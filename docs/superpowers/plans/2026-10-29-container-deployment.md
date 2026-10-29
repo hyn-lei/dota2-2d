@@ -32,13 +32,15 @@
 - [x] Add `.github/workflows/docker.yml`: verify first, publish to GHCR on main/tags/manual, PR validation only.
 - [x] Pin official actions to verified release SHAs; validate with actionlint.
 - [x] Add Chinese deployment instructions covering private registry login, updates, rollback and local builds; link from README.
-- [ ] Review configuration, initialize Git, inspect staged paths and sizes, commit and push to `hyn-lei/dota2-2d` main.
-- [ ] Inspect the triggered Actions run when accessible; report its real status and any environment limitation.
+- [x] Review configuration, initialize Git, inspect staged paths and sizes, commit and push to `hyn-lei/dota2-2d` main.
+- [x] Inspect the triggered Actions run when accessible; report its real status and any environment limitation.
 
 ## Verification record
 
 - Local static build and import linking passed: 26 modules, 52 references. Deliberately broken fixtures confirmed missing files and missing named exports fail the check.
 - Official actionlint v1.7.12 and Compose v5.6.1 configuration validation passed; downloaded validators were checked against release SHA256 digests.
-- Browser startup passed against the existing local development server. Actual container startup is left to CI; Docker is not installed locally.
+- Browser startup passed against the existing local development server. Docker is not installed locally; actual container startup and browser checks subsequently passed on GitHub Actions.
 - Full existing gameplay suite: 137 passed, 17 failed. Failures concern the paused shop/inventory/item-active and hero-upgrade work. No gameplay changes are part of this deployment task, and these failures are not represented as passing CI checks.
 - Independent deployment review found no critical or important blockers. Documentation now clarifies switching away from a pinned image when updating. Static reference checks do not enumerate arbitrary JS-generated asset names or quoted CSS @import; the browser smoke check covers resources requested during startup.
+- Initial commit `5b00fd7a62cabb8d9d96a880d0b64235542391b7` was pushed to main. Both verification and multi-architecture GHCR publishing succeeded in [Actions run 40840695954](https://github.com/hyn-lei/dota2-2d/actions/runs/40840695954).
+- Published image tags: `ghcr.io/hyn-lei/dota2-2d:latest` and `ghcr.io/hyn-lei/dota2-2d:sha-5b00fd7a62cabb8d9d96a880d0b64235542391b7`. Deployment to a user-owned server has not been performed; no server address or credentials were provided.
