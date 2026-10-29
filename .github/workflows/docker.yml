@@ -1,0 +1,141 @@
+name: Build and publish Docker image
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: docker-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    name: Verify static build and container
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      IMAGE: dota2-2d:ci
+      BIND_ADDRESS: 127.0.0.1
+      HTTP_PORT: '18080'
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Set up Node
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+          package-manager-cache: false
+      - name: Validate static build
+        run: |
+          npm run build
+          npm run check:build
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+      - name: Build test image
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: .
+          load: true
+          push: false
+          platforms: linux/amd64
+          tags: ${{ env.IMAGE }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: Start with production Compose settings
+        run: |
+          docker compose config --quiet
+          docker compose up -d --pull never --wait --wait-timeout 90
+      - name: Verify HTTP and static assets
+        run: npm run test:container -- http://127.0.0.1:18080
+      - name: Install browser smoke test dependencies
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+      - name: Verify the game opens in a browser
+        run: npm run test:deployment -- http://127.0.0.1:18080
+      - name: Show container logs
+        if: failure()
+        run: docker compose logs --no-color --tail=100
+      - name: Stop test container
+        if: always()
+        run: docker compose down
+
+  publish:
+    name: Publish amd64 and arm64 images to GHCR
+    needs: verify
+    if: github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Set lowercase image name
+        id: image
+        env:
+          REPOSITORY: ${{ github.repository }}
+        run: echo "name=ghcr.io/${REPOSITORY,,}" >> "$GITHUB_OUTPUT"
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+      # The builder uses BUILDPLATFORM and the runtime has no RUN instructions,
+      # so the arm64 image can be assembled without CPU emulation.
+      - name: Log in to GHCR
+        uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4.7.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Generate image tags and labels
+        id: meta
+        uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
+        with:
+          images: ${{ steps.image.outputs.name }}
+          flavor: latest=false
+          tags: |
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+            type=sha,format=long
+            type=semver,pattern={{version}}
+          labels: |
+            org.opencontainers.image.title=Dota 2D
+            org.opencontainers.image.description=Ancient Front browser game
+      - name: Build and publish
+        id: build
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          provenance: true
+      - name: Print deployment image reference
+        env:
+          IMAGE_NAME: ${{ steps.image.outputs.name }}
+          DIGEST: ${{ steps.build.outputs.digest }}
+          TAGS: ${{ steps.meta.outputs.tags }}
+        run: |
+          {
+            echo '### Published image'
+            echo '```text'
+            echo "$TAGS"
+            echo '```'
+            echo 'Use this immutable reference as IMAGE in the server .env:'
+            echo '```text'
+            echo "IMAGE=$IMAGE_NAME@$DIGEST"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"

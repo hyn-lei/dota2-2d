@@ -1,0 +1,184 @@
+import assert from 'node:assert/strict';
+import { mkdir } from 'node:fs/promises';
+import { chromium } from 'playwright';
+
+const base=process.env.GAME_URL||'http://localhost:5184';
+await mkdir('artifacts',{recursive:true});
+const browser=await chromium.launch({headless:true});
+const page=await browser.newPage({viewport:{width:1440,height:900},deviceScaleFactor:1});
+const errors=[],checks=[];
+page.on('pageerror',e=>errors.push(e.message));
+page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});
+const check=name=>{checks.push(name);console.log(`PASS ${name}`);};
+const observe=()=>page.evaluate(async()=>{
+  const {Renderer}=await import('/src/renderer.js');const render=Renderer.prototype.render;
+  Renderer.prototype.render=function(game,time){window.observedGame=game;window.observedRenderer=this;return render.call(this,game,time);};
+});
+const point=(x,y)=>page.evaluate(({x,y})=>window.observedRenderer.worldToScreen(x,y),{x,y});
+const aim=async(x,y)=>{const p=await point(x,y);await page.mouse.move(p.x,p.y);return p;};
+const start=async()=>{await page.locator('#start-game').click();await page.waitForFunction(()=>window.observedGame?.time>.2);};
+const returnLobby=async()=>{await page.locator('#pause-button').click();await page.locator('#back-lobby').click();};
+try{
+  await page.goto(base,{waitUntil:'networkidle'});
+  assert.equal(await page.title(),'Ancient Front · Dota 2D');
+  assert.equal(await page.locator('.hero-option').count(),5);
+  for(const hero of ['juggernaut','crystal_maiden','windranger','axe','kunkka']){
+    await page.locator(`[data-hero="${hero}"]`).click();
+    await page.waitForFunction(()=>document.querySelector('#hero-render').complete&&document.querySelector('#hero-render').naturalWidth>0);
+    if(hero==='windranger')assert.match(await page.locator('#selected-info').textContent(),/全才/);
+  }
+  await page.locator('.hero-detail').click();assert.equal(await page.locator('.skill-detail').count(),4);await page.keyboard.press('Escape');
+  await page.screenshot({path:'artifacts/lobby-741f.png'});
+  check('All five heroes load; Windranger is Universal and Kunkka remains playable');
+
+  await page.locator('.settings-button').click();await page.locator('#setting-difficulty').selectOption('normal');
+  await page.locator('#sound-setting').click();await page.locator('.modal-primary').click();
+  await page.reload({waitUntil:'networkidle'});assert.equal(await page.locator('#difficulty').inputValue(),'normal');
+  check('Preferences persist across reloads');await observe();await start();
+  assert.deepEqual(await page.evaluate(()=>window.observedGame.player.abilityLevels),[0,0,0,0]);
+  assert.equal(await page.locator('.ability.unlearned').count(),4);
+  assert.equal(await page.locator('[data-learn="3"]').isDisabled(),true);
+  await page.keyboard.press('q');assert.match(await page.locator('#toast').textContent(),/尚未学习/);
+  await page.locator('[data-learn="0"]').click();await page.waitForFunction(()=>window.observedGame.player.abilityLevels[0]===1);
+  await page.locator('#ability-0').hover();assert.match(await page.locator('.skill-tooltip').textContent(),/110/);assert.match(await page.locator('.skill-tooltip').textContent(),/180/);
+  await page.locator('.skill-tooltip').hover();
+  const tipScroll=await page.locator('.skill-tooltip').evaluate(el=>{el.scrollTop=45;return el.scrollTop;});
+  await page.waitForTimeout(300);assert.equal(await page.locator('.skill-tooltip').isVisible(),true);assert.equal(await page.locator('.skill-tooltip').evaluate(el=>el.scrollTop),tipScroll);
+  await page.screenshot({path:'artifacts/skills-level-one.png'});await page.mouse.move(720,400);
+  await page.evaluate(()=>{const g=window.observedGame;g._addXp(g.player,g.player.xpNext);});
+  await page.waitForFunction(()=>document.querySelector('#skill-point-label b').textContent==='1');assert.equal(await page.locator('[data-learn="0"]').isDisabled(),true);
+  await page.keyboard.press('Control+w');assert.equal(await page.evaluate(()=>window.observedGame.player.abilityLevels[1]),1);
+  await page.evaluate(()=>{const g=window.observedGame;g._addXp(g.player,g.player.xpNext);});await page.waitForFunction(()=>!document.querySelector('[data-learn="0"]').disabled);
+  await page.keyboard.press('Control+q');assert.equal(await page.evaluate(()=>window.observedGame.player.abilityLevels[0]),2);
+  await page.evaluate(()=>{const g=window.observedGame;while(g.player.level<6)g._addXp(g.player,g.player.xpNext);});await page.waitForFunction(()=>!document.querySelector('[data-learn="3"]').disabled);
+  await page.locator('[data-learn="3"]').click();await page.locator('[data-learn="2"]').click();
+  await page.keyboard.press('u');assert.ok(await page.locator('.talent-panel').isVisible());
+  const strength=await page.evaluate(()=>window.observedGame.player.strength);await page.locator('[data-attributes]').click();
+  assert.equal(await page.evaluate(()=>window.observedGame.player.strength),strength+2);await page.locator('.talent-close').click();
+  check('Level-one locks, rank requirements, Ctrl hotkeys, level-six ultimate and real attribute upgrades work');
+  await page.evaluate(()=>{const g=window.observedGame;while(g.player.level<10)g._addXp(g.player,g.player.xpNext);});
+  await page.keyboard.press('u');await page.locator('[data-talent="0"]').click();assert.equal(await page.locator('[data-talent="1"]').isDisabled(),true);
+  await page.screenshot({path:'artifacts/skill-talents.png'});await page.locator('.talent-close').click();
+  check('Talent tree enforces tier choice and displays learned progression');
+  assert.equal(await page.evaluate(()=>window.observedGame.entities.filter(e=>e.kind==='tower').length),22);
+  assert.equal(await page.evaluate(()=>window.observedGame.entities.filter(e=>e.kind==='barracks').length),12);
+  assert.equal(await page.evaluate(()=>window.observedGame.camps.length),28);
+  await page.waitForFunction(()=>window.observedRenderer.mapAsset.ready);
+  const mini=await page.locator('#minimap').boundingBox();assert.equal(mini.width,mini.height);
+  await page.locator('#map-overview').click();await page.screenshot({path:'artifacts/map-741f-overview.png'});
+  const zoom=await page.evaluate(()=>window.observedRenderer.zoom);await page.mouse.move(720,450);await page.mouse.wheel(0,-120);
+  assert.ok(await page.evaluate(z=>window.observedRenderer.zoom>z,zoom));
+  await page.keyboard.press('Space');assert.ok(await page.evaluate(()=>window.observedRenderer.followPlayer));
+  check('Real map, 22 towers, 12 barracks, 28 camps, square minimap and camera zoom work');
+
+  await page.locator('.roster-team.dire button').first().click();
+  assert.equal(await page.locator('#selection-panel').isVisible(),true);
+  assert.match(await page.locator('.inspected-unit').textContent(),/夜魇/);
+  assert.equal(await page.locator('.attribute-trio>div').count(),3);
+  assert.equal(await page.locator('.inspected-slot').count(),6);
+  assert.match(await page.locator('#inspection-body').textContent(),/魔法抗性.*白天视野.*夜晚视野/s);
+  await page.waitForFunction(()=>document.querySelector('.inspected-slot.filled'));
+  await page.screenshot({path:'artifacts/enemy-attributes-741f.png'});
+  const enemyInventory=await page.evaluate(()=>window.observedGame.selected.inventory.slice());
+  await page.evaluate(()=>window.observedGame.player.gold=1400);
+  await page.locator('#shop-button').click();await page.locator('.shop-catalog [data-item="blade"]').click();await page.locator('#buy-selected').click();
+  assert.ok(await page.evaluate(()=>window.observedGame.player.inventory.includes('blade')));
+  assert.deepEqual(await page.evaluate(()=>window.observedGame.selected.inventory.slice()),enemyInventory);
+  await page.locator('.shop-catalog [data-item="relic"]').click();assert.equal(await page.locator('#buy-selected').isDisabled(),true);assert.match(await page.locator('#buy-selected').textContent(),/神秘商店/);
+  await page.locator('#close-shop').click();await page.locator('#close-inspection').click();
+  check('Enemy attributes and six equipment slots are visible; purchases still affect only our hero');
+
+  await page.evaluate(()=>{
+    const g=window.observedGame,p=g.player,e=g.entities.find(e=>e.kind==='hero'&&e.team===1);
+    g.entities=[p,e];g.nextWave=Infinity;g.nextNeutralSpawn=Infinity;
+    Object.assign(p,{x:10400,y:10400,destination:null,navPath:null,attackCooldown:999,mana:900,maxMana:900});
+    Object.assign(e,{x:10720,y:10400,speed:0,hp:5000,maxHp:5000,hpRegen:0,magicResistance:0,armor:0,damage:0,aiTimer:999,attackCooldown:999,cooldowns:[999,999,999,999]});
+    window.observedRenderer.lookAt(10400,10400);
+  });
+  let p=await aim(10720,10400);await page.mouse.click(p.x,p.y);
+  assert.equal(await page.evaluate(()=>window.observedGame.selected.team),1);
+  assert.equal(await page.evaluate(()=>window.observedGame.player.destination),null);
+  await page.locator('#close-inspection').click();
+  check('Canvas left-click selects an enemy without issuing movement');
+
+  p=await aim(10580,10580);await page.mouse.click(p.x,p.y,{button:'right'});
+  await page.waitForFunction(()=>window.observedGame.player.x>10440);
+  await page.evaluate(()=>window.observedGame.player.destination=null);
+  const before=await page.evaluate(()=>({x:window.observedGame.player.x,y:window.observedGame.player.y}));
+  await page.keyboard.down('ArrowLeft');await page.waitForTimeout(400);await page.keyboard.up('ArrowLeft');
+  assert.ok(await page.evaluate(a=>Math.hypot(window.observedGame.player.x-a.x,window.observedGame.player.y-a.y)>30,before));
+  check('Right-click pathing and keyboard movement move the actual hero');
+
+  await page.evaluate(()=>{const p=window.observedGame.player;Object.assign(p,{x:10400,y:10400,destination:null,navPath:null,explicitTarget:null,mana:900,maxMana:900,cooldowns:[0,0,0,0]});});
+  await aim(10720,10400);await page.keyboard.press('e');await page.waitForSelector('#ability-2.recast-ready');
+  await page.evaluate(()=>{window.observedGame.entities[1].x=11100;window.observedGame.player.mana=0;});
+  await page.waitForTimeout(120);assert.equal(await page.locator('#ability-2 .ability-cost').textContent(),'0');
+  await page.locator('.roster-team.dire button').first().click();await page.waitForSelector('#inspection-status [data-status-id="xmark"]');
+  await page.screenshot({path:'artifacts/skill-status-enemy.png'});await page.locator('#close-inspection').click();
+  await page.locator('#ability-2').click();
+  assert.equal(await page.evaluate(()=>window.observedGame.entities[1].x),10720);
+  check('Kunkka free E recast returns its marked target with zero mana');
+  await page.evaluate(()=>{const g=window.observedGame;g.player.mana=900;const e=g.entities[1];g.entities.push({...e,id:'creep-test',kind:'creep',x:10740,y:10420,statuses:{},buffs:{},cooldowns:[],inventory:[],xpBounty:57,goldMin:34,goldMax:39});});
+  await aim(10720,10400);await page.keyboard.press('q');await page.waitForFunction(()=>window.observedGame.pendingSpells.some(s=>s.type==='torrent'));await page.keyboard.press('r');await page.waitForFunction(()=>window.observedGame.pendingSpells.length===2);
+  assert.ok(await page.evaluate(()=>window.observedGame.pendingSpells.length===2));
+  await page.screenshot({path:'artifacts/kunkka-ghostship-741f.png'});
+  await page.waitForFunction(()=>window.observedGame.entities[2].hp<4540);
+  assert.ok(await page.evaluate(()=>window.observedGame.entities[2].buffs.stunUntil>window.observedGame.time));
+  await page.keyboard.press('q');assert.match(await page.locator('#toast').textContent(),/冷却/);
+  assert.ok(await page.locator('.hud-vitals [data-status-id="rum"]').count());
+  check('Torrent and Ghostship keep real delays, damage, disables and cooldown enforcement');
+  await page.evaluate(()=>{const g=window.observedGame;Object.assign(g.entities[1],{x:10480,y:10400});Object.assign(g.entities[2],{x:10590,y:10400});});
+  await page.keyboard.press('w');assert.equal(await page.evaluate(()=>window.observedGame.player.autocast[1]),false);await page.keyboard.press('w');await page.evaluate(()=>window.observedGame.player.cooldowns[1]=0);const hp=await page.evaluate(()=>window.observedGame.entities[2].hp);
+  p=await aim(10480,10400);await page.mouse.click(p.x,p.y,{button:'right'});await page.evaluate(()=>window.observedGame.player.attackCooldown=0);
+  await page.waitForFunction(()=>window.observedGame.player.cooldowns[1]>0);
+  assert.ok(await page.evaluate(hp=>window.observedGame.entities[2].hp<hp-90,hp));
+  check('Tidebringer consumes one empowered basic attack and cleaves another unit');
+
+  await page.evaluate(()=>{const g=window.observedGame;g.entities=[g.player];g.player.explicitTarget=null;g.player.attackCooldown=999;});
+  await page.keyboard.press('b');await page.waitForFunction(()=>window.observedGame.player.recallTimer>0);
+  await page.keyboard.down('ArrowRight');await page.waitForTimeout(100);await page.keyboard.up('ArrowRight');
+  assert.equal(await page.evaluate(()=>window.observedGame.player.recallTimer),0);
+  await page.keyboard.press('b');await page.waitForFunction(()=>window.observedGame.player.recallTimer===0,null,{timeout:7000});
+  assert.ok(await page.evaluate(()=>Math.hypot(window.observedGame.player.x-3008,window.observedGame.player.y-17338)<5));
+  check('Recall cancels on input and returns to the actual Radiant fountain');
+  await page.locator('#pause-button').click();const t=await page.evaluate(()=>window.observedGame.time);await page.waitForTimeout(200);assert.equal(await page.evaluate(()=>window.observedGame.time),t);
+  await page.locator('.modal-primary').click();await page.waitForFunction(t=>window.observedGame.time>t,t);
+  await page.evaluate(()=>window.observedGame.damage(window.observedGame.player,1e6,{team:1},'pure'));
+  await page.waitForFunction(()=>!document.querySelector('#death-overlay').hidden);
+  await page.evaluate(()=>window.observedGame.step(window.observedGame.player.respawnTimer+.1));await page.waitForFunction(()=>document.querySelector('#death-overlay').hidden);
+  check('Pause, death countdown and respawn render correctly');await returnLobby();
+
+  await start();
+  await page.evaluate(()=>window.observedGame.step(60));
+  assert.ok(await page.evaluate(()=>window.observedGame.entities.some(e=>e.kind==='neutral'&&!e.isRoshan)));
+  const neutralPoint=await page.evaluate(()=>{const g=window.observedGame,e=g.entities.find(e=>e.kind==='neutral'&&!e.isRoshan);window.observedRenderer.lookAt(e.x,e.y);return {x:e.x,y:e.y};});
+  p=await aim(neutralPoint.x,neutralPoint.y);await page.mouse.click(p.x,p.y);
+  assert.match(await page.locator('#inspection-body').textContent(),/中立/);assert.match(await page.locator('#inspection-body').textContent(),/击杀奖励/);
+  await page.locator('#camp-bounds').click();await page.screenshot({path:'artifacts/neutral-camp-741f.png'});
+  await page.locator('#close-inspection').click();
+  check('Live neutral packs spawn, can be selected, and expose attributes, rewards and camp boundaries');
+  await page.evaluate(()=>{const g=window.observedGame,p=g.player;for(const tier of [1,2,3])g.damage(g.entities.find(e=>e.kind==='tower'&&e.team===1&&e.lane===1&&e.tier===tier),1e7,p,'pure');for(const e of g.entities.filter(e=>e.kind==='tower'&&e.team===1&&e.tier===4))g.damage(e,1e7,p,'pure');g.damage(g.entities.find(e=>e.kind==='ancient'&&e.team===1),1e7,p,'pure');});
+  await page.waitForSelector('.result-emblem.victory');await page.screenshot({path:'artifacts/victory-741f.png'});
+  await page.locator('#play-again').click();await page.waitForFunction(()=>window.observedGame?.status==='playing'&&window.observedGame.time<3);
+  assert.equal(await page.locator('.inventory-slot.filled').count(),0);
+  await returnLobby();await page.locator('.history-button').click();assert.match(await page.locator('.record-stats').textContent(),/1累计对局1天辉胜利/);await page.keyboard.press('Escape');
+  check('All objective tiers unlock victory and replay resets state with saved history');
+
+  for(const viewport of [{width:1366,height:768},{width:390,height:844}]){
+    await page.setViewportSize(viewport);await page.waitForTimeout(150);
+    assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+    await start();await page.waitForTimeout(200);
+    assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+    const m=await page.locator('#minimap').boundingBox();assert.equal(m.width,m.height);
+    await page.locator('.roster-team.dire button').first().click();assert.ok(await page.locator('#selection-panel').isVisible());
+    await page.screenshot({path:`artifacts/inspection-${viewport.width}.png`});
+    const panel=await page.locator('#selection-panel').boundingBox();assert.ok(panel.x>=0&&panel.x+panel.width<=viewport.width);
+    await page.locator('#close-inspection').click();await page.screenshot({path:`artifacts/match-${viewport.width}.png`});
+    await page.locator('[data-learn="0"]').click();await page.keyboard.press('u');assert.ok(await page.locator('.talent-panel').isVisible());await page.screenshot({path:`artifacts/talents-${viewport.width}.png`});await page.locator('.talent-close').click();
+    await page.locator('#shop-button').click();await page.screenshot({path:`artifacts/shop-${viewport.width}.png`});await page.locator('#close-shop').click();
+    await returnLobby();
+  }
+  check('Laptop and mobile layouts retain square maps, usable inspection and no horizontal overflow');
+  assert.deepEqual(errors,[]);check('No browser runtime or resource errors');
+  console.log(`Browser verification: ${checks.length} checks passed.`);
+}finally{await browser.close();}

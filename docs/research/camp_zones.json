@@ -1,0 +1,577 @@
+{
+  "version": 4,
+  "dota_patch": "7.41",
+  "topology_patch": "7.41",
+  "defaults_by_type": {
+    "small": {
+      "shape": "ellipse",
+      "rx": 560,
+      "ry": 500,
+      "rotation_deg": 0
+    },
+    "medium": {
+      "shape": "ellipse",
+      "rx": 640,
+      "ry": 560,
+      "rotation_deg": 0
+    },
+    "large": {
+      "shape": "ellipse",
+      "rx": 760,
+      "ry": 660,
+      "rotation_deg": 0
+    },
+    "ancient": {
+      "shape": "ellipse",
+      "rx": 900,
+      "ry": 780,
+      "rotation_deg": 0
+    },
+    "flooded_small": {
+      "shape": "ellipse",
+      "rx": 600,
+      "ry": 540,
+      "rotation_deg": 0
+    },
+    "flooded_medium": {
+      "shape": "ellipse",
+      "rx": 700,
+      "ry": 620,
+      "rotation_deg": 0
+    }
+  },
+  "camps": [
+    {
+      "id": 1,
+      "type": "large",
+      "center": {
+        "x": 8071,
+        "y": 15831
+      },
+      "topology": {"owner_team": 2, "lane": "top", "area": "jungle"},
+      "zone": {
+        "shape": "ellipse",
+        "rx": 760,
+        "ry": 660,
+        "rotation_deg": 0
+      },
+      "hysteresis": {
+        "enter_margin": 0,
+        "exit_margin": 120
+      }
+    },
+    {
+      "id": 2,
+      "type": "small",
+      "center": {
+        "x": 8361,
+        "y": 14546
+      },
+      "topology": {"owner_team": 2, "lane": "top", "area": "jungle"},
+      "zone": {
+        "shape": "ellipse",
+        "rx": 560,
+        "ry": 500,
+        "rotation_deg": 0
+      },
+      "hysteresis": {
+        "enter_margin": 0,
+        "exit_margin": 120
+      }
+    },
+    {
+      "id": 3,
+      "type": "ancient",
+      "center": {
+        "x": 11369,
+        "y": 16288
+      },
+      "topology": {"owner_team": 2, "lane": "top", "area": "triangle"},
+      "zone": {
+        "shape": "ellipse",
+        "rx": 900,
+        "ry": 780,
+        "rotation_deg": 0
+      },
+      "hysteresis": {
+        "enter_margin": 0,
+        "exit_margin": 120
+      }
+    },
+    {
+      "id": 4,
+      "type": "large",
+      "center": {
+        "x": 11560,
+        "y": 20299
+      },
+      "topology": {"owner_team": 3, "lane": "top", "area": "jungle"},
+      "zone": {
+        "shape": "ellipse",
+        "rx": 760,
+        "ry": 660,
+        "rotation_deg": 0
+      },
+      "hysteresis": {
+        "enter_margin": 0,
+        "exit_margin": 120
+      }
+    },
+    {
+      "id": 5,
+      "type": "medium",
+      "center": {
+        "x": 12176,
+        "y": 24720
+      },
+      "topology": {"owner_team": 3, "lane": "top", "area": "jungle"},
+      "zone": {
+        "shape": "ellipse",
+        "rx": 640,
+        "ry": 560,
+        "rotation_deg": 0
+      },
+      "hysteresis": {
+        "enter_margin": 0,
+        "exit_margin": 120
+      }
+    },
+    {
+      "id": 6,
+      "type": "medium",
+      "center": {
+        "x": 12371,
+        "y": 17376
+      },
+      "topology": {"owner_team": 2, "lane": "top", "area": "triangle"},
+      "zone": {
+        "shape": "ellipse",
+        "rx": 640,
+        "ry": 560,
+        "rotation_deg": 0
+      },
+      "hysteresis": {
+        "enter_margin": 0,
+        "exit_margin": 120
+      }
+    },
+    {
+      "id": 7,
+      "type": "small",
+      "center": {
+        "x": 12473,
+        "y": 21213
+      },
+      "topology": {"owner_team": 3, "lane": "top", "area": "jungle"},
+      "zone": {
+        "shape": "ellipse",
+        "rx": 560,
+        "ry": 500,
+        "rotation_deg": 0
+      },
+      "hysteresis": {
+        "enter_margin": 0,
+        "exit_margin": 120
+      }
+    },
+    {
+      "id": 8,
+      "type": "flooded_small",
+      "center": {
+        "x": 13504,
+        "y": 23760
+      },
+      "topology": {"owner_team": 3, "lane": "top", "area": "flooded"},
+      "zone": {
+        "shape": "ellipse",
+        "rx": 600,
+        "ry": 540,
+        "rotation_deg": 0
+      },
+      "hysteresis": {
+        "enter_margin": 0,
+        "exit_margin": 120
+      }
+    },
+    {
+      "id": 9,
+      "type": "medium",
+      "center": {
+        "x": 13788,
+        "y": 20234
+      },
+      "topology": {"owner_team": 3, "lane": "top", "area": "jungle"},
+      "zone": {
+        "shape": "ellipse",
+        "rx": 640,
+        "ry": 560,
+        "rotation_deg": 0
+      },
+      "hysteresis": {
+        "enter_margin": 0,
+        "exit_margin": 120
+      }
+    },
+    {
+      "id": 10,
+      "type": "medium",
+      "center": {
+        "x": 13969,
+        "y": 7982
+      },
+      "topology": {"owner_team": 2, "lane": "bot", "area": "jungle"},
+      "zone": {
+        "shape": "ellipse",
+        "rx": 640,
+        "ry": 560,
+        "rotation_deg": 0
+      },
+      "hysteresis": {
+        "enter_margin": 0,
+        "exit_margin": 120
+      }
+    },
+    {
+      "id": 11,
+      "type": "medium",
+      "center": {
+        "x": 14401,
+        "y": 11569
+      },
+      "topology": {"owner_team": 2, "lane": "bot", "area": "jungle"},
+      "zone": {
+        "shape": "ellipse",
+        "rx": 640,
+        "ry": 560,
+        "rotation_deg": 0
+      },
+      "hysteresis": {
+        "enter_margin": 0,
+        "exit_margin": 120
+      }
+    },
+    {
+      "id": 12,
+      "type": "large",
+      "center": {
+        "x": 14930,
+        "y": 13028
+      },
+      "topology": {"owner_team": 2, "lane": "mid", "area": "river"},
+      "zone": {
+        "shape": "ellipse",
+        "rx": 760,
+        "ry": 660,
+        "rotation_deg": 0
+      },
+      "hysteresis": {
+        "enter_margin": 0,
+        "exit_margin": 120
+      }
+    },
+    {
+      "id": 13,
+      "type": "flooded_medium",
+      "center": {
+        "x": 15532,
+        "y": 21324
+      },
+      "topology": {"owner_team": 3, "lane": "top", "area": "flooded"},
+      "zone": {
+        "shape": "ellipse",
+        "rx": 700,
+        "ry": 620,
+        "rotation_deg": 0
+      },
+      "hysteresis": {
+        "enter_margin": 0,
+        "exit_margin": 120
+      }
+    },
+    {
+      "id": 14,
+      "type": "flooded_medium",
+      "center": {
+        "x": 16720,
+        "y": 24080
+      },
+      "topology": {"owner_team": 3, "lane": "top", "area": "flooded"},
+      "zone": {
+        "shape": "ellipse",
+        "rx": 700,
+        "ry": 620,
+        "rotation_deg": 0
+      },
+      "hysteresis": {
+        "enter_margin": 0,
+        "exit_margin": 120
+      }
+    },
+    {
+      "id": 15,
+      "type": "flooded_medium",
+      "center": {
+        "x": 15664,
+        "y": 8688
+      },
+      "topology": {"owner_team": 2, "lane": "bot", "area": "flooded"},
+      "zone": {
+        "shape": "ellipse",
+        "rx": 700,
+        "ry": 620,
+        "rotation_deg": 0
+      },
+      "hysteresis": {
+        "enter_margin": 0,
+        "exit_margin": 120
+      }
+    },
+    {
+      "id": 16,
+      "type": "flooded_medium",
+      "center": {
+        "x": 16570,
+        "y": 11187
+      },
+      "topology": {"owner_team": 2, "lane": "bot", "area": "flooded"},
+      "zone": {
+        "shape": "ellipse",
+        "rx": 700,
+        "ry": 620,
+        "rotation_deg": 0
+      },
+      "hysteresis": {
+        "enter_margin": 0,
+        "exit_margin": 120
+      }
+    },
+    {
+      "id": 17,
+      "type": "large",
+      "center": {
+        "x": 17448,
+        "y": 18964
+      },
+      "topology": {"owner_team": 3, "lane": "mid", "area": "river"},
+      "zone": {
+        "shape": "ellipse",
+        "rx": 760,
+        "ry": 660,
+        "rotation_deg": 0
+      },
+      "hysteresis": {
+        "enter_margin": 0,
+        "exit_margin": 120
+      }
+    },
+    {
+      "id": 18,
+      "type": "medium",
+      "center": {
+        "x": 17608,
+        "y": 20560
+      },
+      "topology": {"owner_team": 3, "lane": "mid", "area": "jungle"},
+      "zone": {
+        "shape": "ellipse",
+        "rx": 640,
+        "ry": 560,
+        "rotation_deg": 0
+      },
+      "hysteresis": {
+        "enter_margin": 0,
+        "exit_margin": 120
+      }
+    },
+    {
+      "id": 19,
+      "type": "medium",
+      "center": {
+        "x": 18306,
+        "y": 12409
+      },
+      "topology": {"owner_team": 2, "lane": "bot", "area": "jungle"},
+      "zone": {
+        "shape": "ellipse",
+        "rx": 640,
+        "ry": 560,
+        "rotation_deg": 0
+      },
+      "hysteresis": {
+        "enter_margin": 0,
+        "exit_margin": 120
+      }
+    },
+    {
+      "id": 20,
+      "type": "medium",
+      "center": {
+        "x": 18400,
+        "y": 24280
+      },
+      "topology": {"owner_team": 3, "lane": "top", "area": "jungle"},
+      "zone": {
+        "shape": "ellipse",
+        "rx": 640,
+        "ry": 560,
+        "rotation_deg": 0
+      },
+      "hysteresis": {
+        "enter_margin": 0,
+        "exit_margin": 120
+      }
+    },
+    {
+      "id": 21,
+      "type": "flooded_small",
+      "center": {
+        "x": 19152,
+        "y": 8048
+      },
+      "topology": {"owner_team": 2, "lane": "bot", "area": "flooded"},
+      "zone": {
+        "shape": "ellipse",
+        "rx": 600,
+        "ry": 540,
+        "rotation_deg": 0
+      },
+      "hysteresis": {
+        "enter_margin": 0,
+        "exit_margin": 120
+      }
+    },
+    {
+      "id": 22,
+      "type": "medium",
+      "center": {
+        "x": 19776,
+        "y": 14976
+      },
+      "topology": {"owner_team": 3, "lane": "bot", "area": "triangle"},
+      "zone": {
+        "shape": "ellipse",
+        "rx": 640,
+        "ry": 560,
+        "rotation_deg": 0
+      },
+      "hysteresis": {
+        "enter_margin": 0,
+        "exit_margin": 120
+      }
+    },
+    {
+      "id": 23,
+      "type": "small",
+      "center": {
+        "x": 20362,
+        "y": 11357
+      },
+      "topology": {"owner_team": 2, "lane": "bot", "area": "jungle"},
+      "zone": {
+        "shape": "ellipse",
+        "rx": 560,
+        "ry": 500,
+        "rotation_deg": 0
+      },
+      "hysteresis": {
+        "enter_margin": 0,
+        "exit_margin": 120
+      }
+    },
+    {
+      "id": 24,
+      "type": "ancient",
+      "center": {
+        "x": 20736,
+        "y": 16432
+      },
+      "topology": {"owner_team": 3, "lane": "bot", "area": "triangle"},
+      "zone": {
+        "shape": "ellipse",
+        "rx": 900,
+        "ry": 780,
+        "rotation_deg": 0
+      },
+      "hysteresis": {
+        "enter_margin": 0,
+        "exit_margin": 120
+      }
+    },
+    {
+      "id": 25,
+      "type": "large",
+      "center": {
+        "x": 21033,
+        "y": 12685
+      },
+      "topology": {"owner_team": 2, "lane": "bot", "area": "jungle"},
+      "zone": {
+        "shape": "ellipse",
+        "rx": 760,
+        "ry": 660,
+        "rotation_deg": 0
+      },
+      "hysteresis": {
+        "enter_margin": 0,
+        "exit_margin": 120
+      }
+    },
+    {
+      "id": 26,
+      "type": "medium",
+      "center": {
+        "x": 20800,
+        "y": 7952
+      },
+      "topology": {"owner_team": 2, "lane": "bot", "area": "jungle"},
+      "zone": {
+        "shape": "ellipse",
+        "rx": 640,
+        "ry": 560,
+        "rotation_deg": 0
+      },
+      "hysteresis": {
+        "enter_margin": 0,
+        "exit_margin": 120
+      }
+    },
+    {
+      "id": 27,
+      "type": "large",
+      "center": {
+        "x": 24312,
+        "y": 16264
+      },
+      "topology": {"owner_team": 3, "lane": "bot", "area": "jungle"},
+      "zone": {
+        "shape": "ellipse",
+        "rx": 760,
+        "ry": 660,
+        "rotation_deg": 0
+      },
+      "hysteresis": {
+        "enter_margin": 0,
+        "exit_margin": 120
+      }
+    },
+    {
+      "id": 28,
+      "type": "small",
+      "center": {
+        "x": 24814,
+        "y": 17647
+      },
+      "topology": {"owner_team": 3, "lane": "bot", "area": "jungle"},
+      "zone": {
+        "shape": "ellipse",
+        "rx": 560,
+        "ry": 500,
+        "rotation_deg": 0
+      },
+      "hysteresis": {
+        "enter_margin": 0,
+        "exit_margin": 120
+      }
+    }
+  ]
+}

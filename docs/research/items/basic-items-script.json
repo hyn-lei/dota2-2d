@@ -1,0 +1,313 @@
+{
+  "boots": {
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
+    "Model": "models/props_gameplay/boots_of_speed.vmdl",
+    "ItemCost": "500",
+    "ItemShopTags": "move_speed;mobility;laning",
+    "ItemQuality": "component",
+    "SuggestPregame": "1",
+    "SuggestEarlygame": "1",
+    "SpeciallyBannedFromNeutralSlot": "1",
+    "AbilityValues": {
+      "bonus_movement_speed": "45"
+    }
+  },
+  "broadsword": {
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
+    "ItemCost": "1000",
+    "ItemShopTags": "damage",
+    "ItemQuality": "component",
+    "AbilityValues": {
+      "bonus_damage": "15"
+    }
+  },
+  "vitality_booster": {
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
+    "ItemCost": "1000",
+    "ItemShopTags": "health_pool",
+    "ItemQuality": "secret_shop",
+    "SecretShop": "1",
+    "AbilityValues": {
+      "bonus_health": "250"
+    }
+  },
+  "staff_of_wizardry": {
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
+    "ItemCost": "1000",
+    "ItemShopTags": "int",
+    "ItemQuality": "component",
+    "AbilityValues": {
+      "bonus_intellect": "10"
+    }
+  },
+  "platemail": {
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
+    "ItemCost": "1400",
+    "ItemShopTags": "armor",
+    "ItemQuality": "secret_shop",
+    "SecretShop": "1",
+    "AbilityValues": {
+      "bonus_armor": "10"
+    }
+  },
+  "relic": {
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
+    "ItemCost": "3400",
+    "ItemShopTags": "damage",
+    "ItemQuality": "secret_shop",
+    "SecretShop": "1",
+    "AbilityValues": {
+      "bonus_damage": "55"
+    }
+  },
+  "branches": {
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_POINT",
+    "Model": "models/props_gameplay/branch.vmdl",
+    "AbilityCastRange": "400",
+    "AbilityCastPoint": "0.0",
+    "AbilityCooldown": "0.0",
+    "ItemCost": "55",
+    "ItemShopTags": "agi;int;str",
+    "ItemQuality": "consumable",
+    "SuggestPregame": "1",
+    "AbilityValues": {
+      "bonus_all_stats": "1",
+      "tree_duration": "20"
+    }
+  },
+  "gauntlets": {
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
+    "ItemCost": "140",
+    "ItemShopTags": "str",
+    "ItemQuality": "component",
+    "SuggestPregame": "1",
+    "AbilityValues": {
+      "bonus_strength": "3"
+    }
+  },
+  "slippers": {
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
+    "ItemCost": "140",
+    "ItemShopTags": "agi",
+    "ItemQuality": "component",
+    "SuggestPregame": "1",
+    "AbilityValues": {
+      "bonus_agility": "3"
+    }
+  },
+  "mantle": {
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
+    "ItemCost": "140",
+    "ItemShopTags": "int",
+    "ItemQuality": "component",
+    "SuggestPregame": "1",
+    "AbilityValues": {
+      "bonus_intellect": "3"
+    }
+  },
+  "circlet": {
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
+    "ItemCost": "155",
+    "ItemShopTags": "agi;int;str",
+    "ItemQuality": "component",
+    "SuggestPregame": "1",
+    "AbilityValues": {
+      "bonus_all_stats": "2"
+    }
+  },
+  "belt_of_strength": {
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
+    "ItemCost": "450",
+    "ItemShopTags": "str",
+    "ItemQuality": "component",
+    "AbilityValues": {
+      "bonus_strength": "6"
+    }
+  },
+  "robe": {
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
+    "ItemCost": "450",
+    "ItemShopTags": "int",
+    "ItemQuality": "component",
+    "AbilityValues": {
+      "bonus_intellect": "6"
+    }
+  },
+  "ogre_axe": {
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
+    "ItemCost": "1000",
+    "ItemShopTags": "str",
+    "ItemQuality": "component",
+    "AbilityValues": {
+      "bonus_strength": "10"
+    }
+  },
+  "blade_of_alacrity": {
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
+    "ItemCost": "1000",
+    "ItemShopTags": "agi",
+    "ItemQuality": "component",
+    "AbilityValues": {
+      "bonus_agility": "10"
+    }
+  },
+  "gloves": {
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
+    "ItemCost": "450",
+    "ItemShopTags": "attack_speed",
+    "ItemQuality": "component",
+    "AbilityValues": {
+      "bonus_attack_speed": "20"
+    }
+  },
+  "chainmail": {
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
+    "AbilityUnitTargetTeam": "DOTA_UNIT_TARGET_TEAM_FRIENDLY",
+    "AbilityUnitTargetType": "DOTA_UNIT_TARGET_HERO",
+    "AbilityUnitTargetFlags": "DOTA_UNIT_TARGET_FLAG_INVULNERABLE | DOTA_UNIT_TARGET_FLAG_OUT_OF_WORLD",
+    "ItemCost": "500",
+    "ItemShopTags": "armor",
+    "ItemQuality": "component",
+    "AbilityValues": {
+      "bonus_armor": "4"
+    }
+  },
+  "ring_of_protection": {
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
+    "ItemCost": "175",
+    "ItemShopTags": "armor",
+    "ItemQuality": "component",
+    "SuggestPregame": "1",
+    "UIPickupSound": "Item.PickUpRingShop",
+    "UIDropSound": "Item.DropRingShop",
+    "WorldDropSound": "Item.DropRingWorld",
+    "AbilityValues": {
+      "bonus_armor": "2"
+    }
+  },
+  "blades_of_attack": {
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
+    "ItemCost": "450",
+    "ItemShopTags": "damage;tutorial",
+    "ItemQuality": "component",
+    "AbilityValues": {
+      "bonus_damage": "9"
+    }
+  },
+  "claymore": {
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
+    "ItemCost": "1350",
+    "ItemShopTags": "damage",
+    "ItemQuality": "component",
+    "AbilityValues": {
+      "bonus_damage": "20"
+    }
+  },
+  "demon_edge": {
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
+    "ItemCost": "2200",
+    "ItemShopTags": "damage",
+    "ItemQuality": "secret_shop",
+    "SecretShop": "1",
+    "AbilityValues": {
+      "bonus_damage": "40"
+    }
+  },
+  "quarterstaff": {
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
+    "ItemCost": "875",
+    "ItemShopTags": "damage;attack_speed",
+    "ItemQuality": "component",
+    "IsObsolete": "1",
+    "AbilityValues": {
+      "bonus_speed": "10",
+      "bonus_damage": "10"
+    }
+  },
+  "mithril_hammer": {
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
+    "ItemCost": "1600",
+    "ItemShopTags": "damage",
+    "ItemQuality": "component",
+    "AbilityValues": {
+      "bonus_damage": "24"
+    }
+  },
+  "point_booster": {
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
+    "ItemCost": "1200",
+    "ItemShopTags": "mana_pool;health_pool",
+    "ItemQuality": "secret_shop",
+    "SecretShop": "1",
+    "AbilityValues": {
+      "bonus_mana": "175",
+      "bonus_health": "175"
+    }
+  },
+  "energy_booster": {
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
+    "ItemCost": "800",
+    "ItemShopTags": "mana_pool",
+    "ItemQuality": "secret_shop",
+    "SecretShop": "1",
+    "AbilityValues": {
+      "bonus_mana": "250"
+    }
+  },
+  "ring_of_regen": {
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
+    "ItemCost": "175",
+    "ItemShopTags": "regen_health",
+    "ItemQuality": "component",
+    "SuggestPregame": "1",
+    "UIPickupSound": "Item.PickUpRingShop",
+    "UIDropSound": "Item.DropRingShop",
+    "WorldDropSound": "Item.DropRingWorld",
+    "AbilityValues": {
+      "bonus_health_regen": "1.25"
+    }
+  },
+  "sobi_mask": {
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
+    "ItemCost": "175",
+    "ItemShopTags": "regen_mana",
+    "ItemQuality": "component",
+    "SuggestPregame": "1",
+    "AbilityValues": {
+      "bonus_mana_regen": "0.7"
+    }
+  },
+  "ring_of_health": {
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
+    "ItemCost": "700",
+    "ItemShopTags": "regen_health",
+    "ItemQuality": "component",
+    "SuggestEarlygame": "1",
+    "SecretShop": "1",
+    "UIPickupSound": "Item.PickUpRingShop",
+    "UIDropSound": "Item.DropRingShop",
+    "WorldDropSound": "Item.DropRingWorld",
+    "AbilityValues": {
+      "bonus_health_regen": "4.5"
+    }
+  },
+  "void_stone": {
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
+    "ItemCost": "700",
+    "ItemShopTags": "regen_mana",
+    "ItemQuality": "component",
+    "SecretShop": "1",
+    "AbilityValues": {
+      "bonus_mana_regen": "1.75"
+    }
+  },
+  "diadem": {
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
+    "ItemCost": "1000",
+    "ItemShopTags": "agi;int;str",
+    "ItemQuality": "component",
+    "AbilityValues": {
+      "bonus_all_stats": "6"
+    }
+  }
+}

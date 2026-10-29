@@ -1,0 +1,57 @@
+import assert from 'node:assert/strict';
+import { chromium } from 'playwright';
+const browser=await chromium.launch({headless:true}),page=await browser.newPage({viewport:{width:1440,height:900}}),errors=[],checks=[];
+page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});
+const check=name=>{checks.push(name);console.log('PASS '+name);};
+const select=async id=>{await page.locator('#item-search').fill(id);await page.locator(`.shop-catalog [data-item="${id}"]`).click();};
+const buy=async id=>{await select(id);await page.locator('#buy-selected').click();};
+try{
+ await page.goto(process.env.GAME_URL||'http://localhost:5184',{waitUntil:'networkidle'});
+ await page.evaluate(async()=>{const {Renderer}=await import('/src/renderer.js'),render=Renderer.prototype.render;Renderer.prototype.render=function(g,t){window.game=g;window.renderer=this;return render.call(this,g,t);};});
+ await page.locator('[data-hero="crystal_maiden"]').click();await page.locator('#start-game').click();await page.waitForFunction(()=>window.game?.time>.1);
+ await page.evaluate(()=>{const g=window.game;g.entities=[g.player];g.nextWave=Infinity;g.nextNeutralSpawn=Infinity;g.roshanRespawnAt=Infinity;g.player.gold=20000;});
+ await page.locator('#shop-button').click();assert.equal(await page.locator('.shop-catalog [data-item]').count(),44);
+ await select('wraith_band');assert.match(await page.locator('.item-detail').textContent(),/怨灵系带/);
+ await page.locator('#item-search').fill('does-not-exist');assert.equal(await page.locator('.shop-empty').isVisible(),true);
+ await page.locator('#item-search').fill('');await page.locator('[data-category="upgrades"]').click();assert.equal(await page.locator('.shop-catalog [data-item]').count(),6);
+ await page.locator('[data-category="all"]').click();check('All 44 local item icons, search, empty results and six upgrade recipes render');
+ await buy('circlet');await buy('gauntlets');await select('bracer');assert.match(await page.locator('.purchase-summary').textContent(),/210/);
+ assert.equal(await page.locator('.recipe-part.owned').count(),2);await page.locator('#buy-selected').click();
+ assert.deepEqual(await page.evaluate(()=>window.game.player.inventory),['bracer']);
+ await page.locator('#item-search').fill('');await page.screenshot({path:'artifacts/shop-recipes-1440.png'});
+ check('UI purchase consumes owned components and charges only the recipe remainder');
+ await page.locator('#inventory [data-slot-area="inventory"][data-slot-index="0"]').click();
+ assert.match(await page.locator('#sell-selected').textContent(),/505/);await page.locator('#sell-selected').click();
+ assert.deepEqual(await page.evaluate(()=>window.game.player.inventory),[]);check('Owned item details sell a new item for its full refund');
+ await buy('blade');const damage=await page.evaluate(()=>window.game.player.damage);
+ await page.locator('#inventory [data-slot-area="inventory"][data-slot-index="0"]').click();await page.locator('[data-transfer="backpack"]').click();
+ assert.equal(await page.evaluate(()=>window.game.player.damage),damage-15);
+ await page.evaluate(()=>{window.game.player.x=10400;window.game.player.y=10400;window.game.step(4);});
+ await page.locator('#inventory [data-slot-area="backpack"][data-slot-index="0"]').click();await page.locator('[data-transfer="inventory"]').click();
+ assert.equal(await page.locator('.item-reactivation').count(),1);assert.equal(await page.evaluate(()=>window.game.player.damage),damage-15);
+ await page.evaluate(()=>window.game.step(6.1));await page.waitForFunction(()=>!document.querySelector('.item-reactivation'));
+ assert.equal(await page.evaluate(()=>window.game.player.damage),damage);check('Backpack transfers remove attributes and show the six-second reactivation countdown');
+ await buy('gauntlets');assert.deepEqual(await page.evaluate(()=>window.game.player.stash),['gauntlets']);
+ assert.equal(await page.locator('#collect-stash').isDisabled(),true);
+ await page.evaluate(async()=>{const {BASES}=await import('/src/data.js');Object.assign(window.game.player,BASES[0]);});
+ await page.waitForFunction(()=>window.game.player.inventory.includes('gauntlets')&&!window.game.player.stash.length);
+ check('Remote purchases stay in stash and are collected automatically at the fountain');
+ await select('relic');assert.equal(await page.locator('#buy-selected').isDisabled(),true);
+ await page.locator('#locate-secret').click();
+ await page.evaluate(async()=>{const {SECRET_SHOPS}=await import('/src/inventory.js');Object.assign(window.game.player,SECRET_SHOPS[0]);});
+ await page.waitForFunction(()=>!document.querySelector('#buy-selected').disabled);await page.locator('#buy-selected').click();
+ assert.ok(await page.evaluate(()=>window.game.player.inventory.includes('relic')));check('Secret components require an actual visit to a marked secret shop');
+ await page.evaluate(async()=>{const {BASES}=await import('/src/data.js');Object.assign(window.game.player,BASES[0]);});
+ await select('bracer');await page.locator('.shop-catalog [data-item="bracer"]').click({modifiers:['Shift']});
+ assert.deepEqual(await page.evaluate(()=>window.game.player.quickbuy),['bracer']);await page.locator('#buy-quick').click();
+ assert.deepEqual(await page.evaluate(()=>window.game.player.quickbuy),[]);check('Shift-click quickbuy completes queued recipes');
+ for(const width of [1366,390]){
+  await page.setViewportSize({width,height:900});await page.locator('#item-search').fill('');
+  await page.locator('#shop').evaluate(el=>el.scrollTop=0);
+  await page.screenshot({path:`artifacts/shop-final-${width}.png`});
+  assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
+  const box=await page.locator('#shop').boundingBox();assert.ok(box.x>=0&&box.x+box.width<=width+1&&box.y>=0);
+ }
+ check('Shop remains inside desktop and mobile viewports without horizontal overflow');
+ assert.deepEqual(errors,[]);console.log(JSON.stringify({checks:checks.length,errors}));
+}finally{await browser.close();}

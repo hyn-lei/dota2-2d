@@ -1,0 +1,30 @@
+.status-bar{display:flex;align-items:center;gap:7px;min-width:0;max-width:100%;min-height:30px;margin-top:7px;padding-top:6px;border-top:1px solid #81906b32;color:#b8c4a8;font-family:inherit}
+.status-bar-label{flex:0 0 auto;font-size:9px;line-height:1.4;letter-spacing:1px;color:#91a38d}
+.status-empty{font-size:10px;color:#a9b99d;line-height:20px}
+.status-empty:before{content:'';display:inline-block;vertical-align:middle;width:4px;height:4px;margin-right:6px;background:#91ac79;border-radius:50%}
+.status-effects{display:flex;align-items:center;gap:5px;min-width:0;max-width:100%;padding:2px 1px 3px;overflow-x:auto;overflow-y:hidden;scrollbar-width:thin;scrollbar-color:#65775b transparent;overscroll-behavior-x:contain}
+.status-effect{--status-color:#b8ce8f;--status-edge:#a7bc7866;position:relative;display:block;flex:0 0 35px;width:35px;height:37px;padding:0;border:1px solid var(--status-edge);border-radius:2px;background:#101c17;color:var(--status-color);cursor:help;isolation:isolate}
+.status-effect[data-positive="false"]{--status-color:#e4a08a;--status-edge:#b964536b;background:#241c19}
+.status-effect:hover,.status-effect:focus-visible{border-color:var(--status-color);outline:1px solid var(--status-color);outline-offset:1px;background:#243027}
+.status-effect[data-positive="false"]:hover,.status-effect[data-positive="false"]:focus-visible{background:#38231f}
+.status-ring{position:absolute;left:1px;top:0;width:31px;height:31px;fill:none;stroke-width:1.5;transform:rotate(-90deg);pointer-events:none}
+.status-ring-track{stroke:currentColor;opacity:.13}
+.status-ring-progress{stroke:currentColor;stroke-linecap:round}
+.status-effect-icon{position:absolute;inset:7px 8px auto;display:grid;place-items:center;height:17px;pointer-events:none}
+.status-effect-icon .icon{display:block;width:17px;height:17px;stroke-width:1.8}
+.status-effect[data-positive="true"] .status-effect-icon{color:#d0c594}
+.status-effect-time{position:absolute;inset:auto 1px 0;background:#0e1916f2;color:#e2e6d1;font:9px/12px Consolas,monospace;text-align:center;font-variant-numeric:tabular-nums;pointer-events:none}
+.status-effect-stacks{position:absolute;right:-1px;top:-2px;min-width:11px;padding:0 2px;background:#bcad72;color:#172017;font:bold 9px/12px Consolas,monospace;text-align:center;border:1px solid #101b16;pointer-events:none}
+.status-effect[data-positive="false"] .status-effect-stacks{background:#bf7b66;color:#1f1714}
+.status-tooltip{position:fixed;z-index:1000;box-sizing:border-box;width:250px;max-width:calc(100vw - 20px);max-height:calc(100dvh - 20px);overflow:auto;padding:11px 13px;border:1px solid #91a275a3;border-top:2px solid #b7ba83;background:#13201efc;box-shadow:0 8px 25px #040c0bad;pointer-events:auto;color:#d9e0cb;text-align:left;white-space:normal;font-family:inherit}
+.status-tooltip[data-positive="false"]{border-color:#a76550a6;border-top-color:#d9987d}
+.status-tooltip-heading{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.status-tooltip-heading strong{font-size:12px;font-weight:600;line-height:1.5;overflow-wrap:anywhere}
+.status-tooltip-heading span{flex-shrink:0;font-size:9px;color:#a8be8a}
+.status-tooltip[data-positive="false"] .status-tooltip-heading span{color:#de9c87}
+.status-tooltip p{margin:7px 0;color:#b6c2ad;font-size:11px;line-height:1.75;overflow-wrap:anywhere}
+.status-tooltip small{display:block;padding-top:7px;border-top:1px solid #88997538;color:#d0c28b;font:10px/1.5 Consolas,"Microsoft YaHei",sans-serif;font-variant-numeric:tabular-nums}
+.status-bar [hidden]{display:none!important}
+.selection-panel .status-bar{margin-top:13px;padding:9px 0 3px;gap:9px}
+.selection-panel .status-effects{flex-wrap:wrap;overflow:visible}
+@media(max-width:700px){.status-bar{gap:5px;margin-top:5px;padding-top:4px;min-height:23px}.status-bar-label{font-size:8px;letter-spacing:0}.status-empty{font-size:9px}.status-effects{gap:4px}.status-effect{flex-basis:31px;width:31px;height:34px}.status-ring{width:27px;height:27px}.status-effect-icon{inset:6px 6px auto;height:16px}.status-effect-icon .icon{width:16px;height:16px}.status-effect-time{font-size:8px;line-height:11px}.selection-panel .status-bar{margin-top:10px;padding-top:7px}.status-tooltip{width:240px}}

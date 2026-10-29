@@ -1,0 +1,14 @@
+# Only files needed to build and serve the game enter the build context.
+**
+!Dockerfile
+!package.json
+!index.html
+!scripts/
+!scripts/build.mjs
+!scripts/check-static-build.mjs
+!src/
+!src/**
+!assets/
+!assets/**
+!deploy/
+!deploy/nginx.conf

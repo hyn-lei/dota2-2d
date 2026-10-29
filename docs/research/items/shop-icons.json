@@ -1,0 +1,269 @@
+{
+  "retrieved": "2026-10-26",
+  "items": [
+    {
+      "id": "boots",
+      "file": "assets/items/boots.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/boots.png",
+      "sha256": "bc4d051758ce1ef1deccce71932b3dfe0e406690d5ad9ab0e1b8c12c4ca8fd99"
+    },
+    {
+      "id": "blade",
+      "file": "assets/items/broadsword.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/broadsword.png",
+      "sha256": "3040f5eee6222753eb43014ab1f430c5845729fd56cd847a58b635a39591b732"
+    },
+    {
+      "id": "vitality",
+      "file": "assets/items/vitality_booster.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/vitality_booster.png",
+      "sha256": "f01d91682f45c46a0399d4e9d7920da78ffbbd55040e05cbb92dd6296614cf89"
+    },
+    {
+      "id": "arcane",
+      "file": "assets/items/staff_of_wizardry.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/staff_of_wizardry.png",
+      "sha256": "46919315fb7edf2384ad05011d55427716100b15cc1f16cb177cd079425ed262"
+    },
+    {
+      "id": "armor",
+      "file": "assets/items/platemail.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/platemail.png",
+      "sha256": "2b2be346bde57942f70dc243e9714147150a1087579aa28728cf5fd566cdde8a"
+    },
+    {
+      "id": "relic",
+      "file": "assets/items/relic.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/relic.png",
+      "sha256": "bd10ce1870a75cbea788b63272747adafc62fd005f1cebb616551387a8723eaf"
+    },
+    {
+      "id": "branch",
+      "file": "assets/items/branches.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/branches.png",
+      "sha256": "268f77edd9e730b34daf37e3551238bdb6c4d26943ca9cd0034abf37bbf27390"
+    },
+    {
+      "id": "gauntlets",
+      "file": "assets/items/gauntlets.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/gauntlets.png",
+      "sha256": "4e7b459b65570af331e34cadc81f25270541d9b84ca84113c17eda754d08331d"
+    },
+    {
+      "id": "slippers",
+      "file": "assets/items/slippers.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/slippers.png",
+      "sha256": "5964dd02b068e1cccf4929834e81065219a7757c12e4d396cb3b8faa4c90634a"
+    },
+    {
+      "id": "mantle",
+      "file": "assets/items/mantle.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/mantle.png",
+      "sha256": "81e1c0de47d68ceefed6723074760b24cac413945c08d934b3eb9de717b0689e"
+    },
+    {
+      "id": "circlet",
+      "file": "assets/items/circlet.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/circlet.png",
+      "sha256": "d26cd916e17865c212071e806608d0578fe44cc555271935239956ce1a4e225b"
+    },
+    {
+      "id": "belt",
+      "file": "assets/items/belt_of_strength.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/belt_of_strength.png",
+      "sha256": "afaca3e16bf877e86d443d6df84ca059aad1ab24aad266488ba546701415962f"
+    },
+    {
+      "id": "elvenskin",
+      "file": "assets/items/boots_of_elves.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/boots_of_elves.png",
+      "sha256": "f673479c9634e342b9f53f9b0dd7711cb5c04de42256674c28f3a16945bf249e"
+    },
+    {
+      "id": "robe",
+      "file": "assets/items/robe.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/robe.png",
+      "sha256": "6dc239974f47cfefe42e0c2c5cd833747d5eb143ce06553b97fa05c814e830de"
+    },
+    {
+      "id": "ogreaxe",
+      "file": "assets/items/ogre_axe.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/ogre_axe.png",
+      "sha256": "1b6771cce4b62fb98adc618ca0610925125fb5277c95f056adc37aca220d869a"
+    },
+    {
+      "id": "bladealacrity",
+      "file": "assets/items/blade_of_alacrity.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/blade_of_alacrity.png",
+      "sha256": "b362ea945fea7398c8bbe15f90a1001fc7ea24f337bc9d2108801a37c6af711a"
+    },
+    {
+      "id": "gloves",
+      "file": "assets/items/gloves.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/gloves.png",
+      "sha256": "094fa17967ef3702dcbe801b691f35200820af39d610861b9f4c3e955ccf3473"
+    },
+    {
+      "id": "chainmail",
+      "file": "assets/items/chainmail.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/chainmail.png",
+      "sha256": "2b96fa81579224aa79f1e74e5f71e240cb72e32ab9c2c9d67a06aa785cc497b4"
+    },
+    {
+      "id": "protection",
+      "file": "assets/items/ring_of_protection.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/ring_of_protection.png",
+      "sha256": "d07af51813cdad25cd77e49de41cf3cc7d8de8d42a8ef6fe2f583c8a94691606"
+    },
+    {
+      "id": "attackblade",
+      "file": "assets/items/blades_of_attack.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/blades_of_attack.png",
+      "sha256": "f42efe8f40d20fb48c9cc2f49519260569198a7eac240f4ce03c96172042899e"
+    },
+    {
+      "id": "claymore",
+      "file": "assets/items/claymore.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/claymore.png",
+      "sha256": "6a6b2f95ff2d7a24f2506e1f33b943e306e4228e7585bc2f67d6d733d1448bf7"
+    },
+    {
+      "id": "demonedge",
+      "file": "assets/items/demon_edge.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/demon_edge.png",
+      "sha256": "c0a68b5af77d996abcf883b70e87b6e924f8d2fd9c0c0e73a05bc4e482ded175"
+    },
+    {
+      "id": "quarterstaff",
+      "file": "assets/items/quarterstaff.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/quarterstaff.png",
+      "sha256": "0ddc85f942c559acb6026d2770f4bb75eefdb10383e95bbd6a0b3ddab32ab49f"
+    },
+    {
+      "id": "mithril",
+      "file": "assets/items/mithril_hammer.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/mithril_hammer.png",
+      "sha256": "478c8a312f77aac46c6d6f43663d2aa714ccb86aa786ca473fc52539c5027f67"
+    },
+    {
+      "id": "pointbooster",
+      "file": "assets/items/point_booster.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/point_booster.png",
+      "sha256": "f9502e7f4e05139d93e2622502424128631b72725bb3af48321a6e19573cbddf"
+    },
+    {
+      "id": "energy",
+      "file": "assets/items/energy_booster.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/energy_booster.png",
+      "sha256": "e2a1a7e8363a1a6a5ea008ece8890db0195d6b4d5187f79dd527eeccfff344ce"
+    },
+    {
+      "id": "regenring",
+      "file": "assets/items/ring_of_regen.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/ring_of_regen.png",
+      "sha256": "69bc4ead49f1f8be3a8914fc7703189a8d4b0cbd28fb7b70b8181d997553074a"
+    },
+    {
+      "id": "sobi",
+      "file": "assets/items/sobi_mask.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/sobi_mask.png",
+      "sha256": "f0187d1885422e203fcd62db229025578cd1412eb326d1c252d295e7db2b3c44"
+    },
+    {
+      "id": "healthring",
+      "file": "assets/items/ring_of_health.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/ring_of_health.png",
+      "sha256": "2b2bf846856a7e5445c9cdea702030a82435232b7edd808d597dd1bd1d6a1844"
+    },
+    {
+      "id": "voidstone",
+      "file": "assets/items/void_stone.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/void_stone.png",
+      "sha256": "031eecb221cc6450f510dc30c9fd97ae12bdc8cec55444faf1d06de43b702548"
+    },
+    {
+      "id": "diadem",
+      "file": "assets/items/diadem.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/diadem.png",
+      "sha256": "6aefcd1ea6b13ff5daf80b68bc864373fdcd8ffbf53522fa05379bd839893197"
+    },
+    {
+      "id": "blitz_knuckles",
+      "file": "assets/items/blitz_knuckles.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/blitz_knuckles.png",
+      "sha256": "20c2fd888d699e5dca4a6e0687e7383f402426520323b4b3a461ae24d2844c62"
+    },
+    {
+      "id": "hyperstone",
+      "file": "assets/items/hyperstone.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/hyperstone.png",
+      "sha256": "b55a7264e2e0209ae69adf5f671b8791fec078cfe1e3681b5b18eca69b6fdebe"
+    },
+    {
+      "id": "ultimate_orb",
+      "file": "assets/items/ultimate_orb.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/ultimate_orb.png",
+      "sha256": "99d29c6a1ac960e46077423fc0d13e3a0fa39366e7a7aacb4d724c869e792ae6"
+    },
+    {
+      "id": "ring_of_tarrasque",
+      "file": "assets/items/ring_of_tarrasque.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/ring_of_tarrasque.png",
+      "sha256": "9d2ce61fe9992be5e1685066a0a896459acd98d873676a28f1d1e1a35e9619e5"
+    },
+    {
+      "id": "bracer",
+      "file": "assets/items/bracer.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/bracer.png",
+      "sha256": "84f6a739c289221a4597dce4a4c55d57db10e5c982fdfce32483fcfaff8b0d74"
+    },
+    {
+      "id": "wraith_band",
+      "file": "assets/items/wraith_band.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/wraith_band.png",
+      "sha256": "b2c9de07f522d9e8505c6e7a5ae2905770eade29d786ae2257b9769cfa0fa0af"
+    },
+    {
+      "id": "null_talisman",
+      "file": "assets/items/null_talisman.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/null_talisman.png",
+      "sha256": "43f6607b4089e8e44918f0fed57114859817f636541f62ab7c03922e951aaceb"
+    },
+    {
+      "id": "oblivion_staff",
+      "file": "assets/items/oblivion_staff.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/oblivion_staff.png",
+      "sha256": "acdc162cb9efc19e8b6de82060bbf3c4159ce254fae0a4966b7ac0fad48b0e4d"
+    },
+    {
+      "id": "perseverance",
+      "file": "assets/items/pers.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/pers.png",
+      "sha256": "2454a8574455581b22abfac27fb11b51c789e16947963c20b30af4b93fde8136"
+    },
+    {
+      "id": "soul_booster",
+      "file": "assets/items/soul_booster.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/soul_booster.png",
+      "sha256": "73ea4d91a3a40ef3567c4bfd3cbfe87001e866e023bcc840464d48ffa8c5240f"
+    },
+    {
+      "id": "recipe_bracer",
+      "file": "assets/items/recipe_bracer.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/recipe.png",
+      "sha256": "ce022163ddccb8df8890b408f641d27ca05a92a974f43297bb31eb067ccac9d6"
+    },
+    {
+      "id": "recipe_wraith_band",
+      "file": "assets/items/recipe_wraith_band.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/recipe.png",
+      "sha256": "ce022163ddccb8df8890b408f641d27ca05a92a974f43297bb31eb067ccac9d6"
+    },
+    {
+      "id": "recipe_null_talisman",
+      "file": "assets/items/recipe_null_talisman.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/recipe.png",
+      "sha256": "ce022163ddccb8df8890b408f641d27ca05a92a974f43297bb31eb067ccac9d6"
+    }
+  ]
+}

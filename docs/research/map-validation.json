@@ -1,0 +1,21 @@
+{
+  "towers": 22,
+  "barracks": 12,
+  "ancients": 2,
+  "fountains": 2,
+  "fillerBuildings": 14,
+  "camps": 28,
+  "campsMatchingBothSourcesExactly": 28,
+  "trees": 2475,
+  "laneRoutes": 6,
+  "cols": 327,
+  "rows": 327,
+  "blockedCount": 47323,
+  "originalBlockedPoints": 47323,
+  "mapImageRect": {
+    "x": 994.7115844901873,
+    "y": 769,
+    "width": 19466.576831019625,
+    "height": 18322
+  }
+}
