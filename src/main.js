@@ -26,6 +26,7 @@ function toast(message){const el=$('#toast');if(!el)return;el.textContent=messag
 function setupRenderer(){renderer?.destroy();renderer=new Renderer($('#battlefield'));}
 function portrait(h,cls=''){return `<img class="${cls}" src="/${h.portrait}" alt="${h.name}" draggable="false" />`;}
 function renderLobby(){
+  cancelItemUse();
   view='lobby';game=null;modal=null;shopOpen=false;keys.clear();
   app.innerHTML=`<main class="lobby">
     <canvas id="battlefield" class="lobby-canvas" aria-label="远古战场的动态森林背景"></canvas>
@@ -75,6 +76,7 @@ function bindShared(){
   $('.settings-button')?.addEventListener('click',()=>openModal('settings'));
 }
 function startGame(){
+  cancelItemUse();
   sound('start');view='match';modal=null;shopOpen=false;inspectionOpen=false;keys.clear();game=new Game({hero:chosen,difficulty:preferences.difficulty,seed:Math.floor(Math.random()*100000)});lastStatus='playing';
   const h=HEROES[chosen];
   app.innerHTML=`<main class="match"><canvas id="battlefield" aria-label="2D 对战战场，左键查看单位，右键移动与攻击，Q W E R 释放技能" tabindex="0"></canvas>
@@ -90,8 +92,9 @@ function startGame(){
       <section class="inventory-section" aria-label="装备与商店"><div id="inventory" class="inventory"></div><button id="shop-button" class="shop-button">${icon('coin')}<strong id="gold">600</strong><span>装备商店</span>${icon('bag')}</button></section>
     </footer><aside id="shop" class="shop-panel" hidden></aside><div id="toast" role="status"></div><div id="modal-root"></div></main>`;
   setupRenderer();renderer.center(game.player);bindShared();
-  shopUI=mountShop($('#shop'),$('#inventory'),game,{close:toggleShop,open:()=>{if(!shopOpen)toggleShop();},notify:toast,changed:()=>{sound();updateHud();},locate:point=>{renderer.zoom=.4;renderer.lookAt(point.x,point.y);toast('已定位神秘商店，右键前往金色标记处');}});
+  shopUI=mountShop($('#shop'),$('#inventory'),game,{close:toggleShop,open:()=>{if(!shopOpen)toggleShop();},notify:toast,useItem:beginItemUse,changed:()=>{sound();updateHud();},locate:point=>{renderer.zoom=.4;renderer.lookAt(point.x,point.y);toast('已定位神秘商店，右键前往金色标记处');}});
   mountSkills($('.abilities'),game,{cast,learn:i=>learn('learnAbility',i),talent:i=>learn('learnTalent',i),attributes:()=>learn('learnAttributes'),recall});
+  $('.abilities').addEventListener('click',e=>{const b=e.target.closest('[data-extra]');if(b)castExtra(b.dataset.extra);});
   mountStatusBar($('.hud-vitals'));
   $('#inspection-body').insertAdjacentHTML('beforebegin','<div id="inspection-status"></div>');
   mountStatusBar($('#inspection-status'));updateHud();
@@ -104,7 +107,7 @@ function startGame(){
   $('#map-center').onclick=()=>{renderer.zoom=Math.max(.3,Math.min(.5,renderer.w/3200));renderer.center(game.player);};
   $('#camp-bounds').onclick=()=>{renderer.showCampBounds=!renderer.showCampBounds;$('#camp-bounds').classList.toggle('active',renderer.showCampBounds);};
   const canvas=$('#battlefield');canvas.addEventListener('contextmenu',e=>e.preventDefault());
-  const hitTest=p=>game.entities.filter(u=>!u.dead&&Math.hypot(u.x-p.x,u.y-p.y)<Math.max(u.radius||24,18/renderer.zoom)).sort((a,b)=>Math.hypot(a.x-p.x,a.y-p.y)-Math.hypot(b.x-p.x,b.y-p.y))[0];
+  const hitTest=(p,itemsFirst=false)=>game.entities.filter(u=>!u.dead&&game.canSee(game.player,u)&&Math.hypot(u.x-p.x,u.y-p.y)<Math.max(u.radius||24,18/renderer.zoom)).sort((a,b)=>(itemsFirst?Number(b.kind==='droppedItem')-Number(a.kind==='droppedItem'):0)||Math.hypot(a.x-p.x,a.y-p.y)-Math.hypot(b.x-p.x,b.y-p.y))[0];
   let dragging=null;
   canvas.addEventListener('pointermove',e=>{const r=canvas.getBoundingClientRect();pointer={x:e.clientX-r.left,y:e.clientY-r.top};if(dragging){renderer.pan(dragging.x-e.clientX,dragging.y-e.clientY);dragging={x:e.clientX,y:e.clientY};}renderer.hoverId=hitTest(renderer.screenToWorld(pointer.x,pointer.y))?.id;});
   canvas.addEventListener('pointerup',()=>dragging=null);
@@ -113,7 +116,9 @@ function startGame(){
   canvas.addEventListener('pointerdown',e=>{
     if(game.status!=='playing')return;e.preventDefault();canvas.focus();const rect=canvas.getBoundingClientRect(),p=renderer.screenToWorld(e.clientX-rect.left,e.clientY-rect.top);pointer={x:e.clientX-rect.left,y:e.clientY-rect.top};
     if(e.button===1){dragging={x:e.clientX,y:e.clientY};canvas.setPointerCapture(e.pointerId);return;}
-    const target=hitTest(p);
+    const target=hitTest(p,e.button===2);
+    if(pendingItem){if(e.button===2){cancelItemUse();return;}if(e.button===0){const {index,area,uid}=pendingItem;if(game.itemState(index,area).meta?.uid!==uid){cancelItemUse();toast('物品位置已改变');return;}useItem(index,area,p);return;}}
+    if(target?.kind==='droppedItem'&&e.button===2){const result=game.pickupItem(target.id);if(!result.ok){game.moveTo(target.x,target.y);game.player.pickupTargetId=target.id;toast('靠近后拾取物品');}else updateHud();return;}
     if(e.button===0){game.selectEntity(target?.id||game.player.id);inspectionOpen=!!target;updateInspection();return;}
     if(e.button!==2||game.paused||game.player.dead)return;
     if(target&&target.team!==game.player.team){game.attackTarget(target.id);renderer.mark(target.x,target.y);}else{game.moveTo(p.x,p.y);renderer.mark(p.x,p.y);}
@@ -127,13 +132,26 @@ function startGame(){
   window.scrollTo(0,0);
 }
 function cast(i){if(!game||modal)return;const target=renderer.screenToWorld(pointer.x||renderer.w/2,pointer.y||renderer.h/2);const r=game.cast(i,target);if(r.ok){if(game.skill(i).kind==='active')keys.clear();sound('cast');updateHud();}else toast(r.reason||'暂时无法施放技能');}
+let pendingItem=null;
+function cancelItemUse(){pendingItem=null;$('#battlefield')?.classList.remove('item-targeting');$('#item-target-prompt')?.remove();}
+function beginItemUse(index,area='inventory'){
+ if(!game||modal)return;const info=game.itemState(index,area);if(!info.active){toast('这是被动物品');return;}
+ if(info.cooldown||info.ready){toast('物品尚未就绪');return;}
+ if(shopOpen)toggleShop();
+ const noTarget=info.item.behaviors.some(b=>b.endsWith('_NO_TARGET')||b.endsWith('_TOGGLE'));
+ if(noTarget){useItem(index,area,game.player);return;}
+ cancelItemUse();pendingItem={index,area,uid:info.meta.uid};$('#battlefield').classList.add('item-targeting');
+ $('.match').insertAdjacentHTML('beforeend',`<div id="item-target-prompt" role="status">${escapeHtml(info.item.name)} · 左键选择目标 · 右键 / Esc 取消</div>`);
+}
+function useItem(index,area='inventory',point){if(!game||modal)return;const aim=point||renderer.screenToWorld(pointer.x||renderer.w/2,pointer.y||renderer.h/2),result=game.useItem(index,aim,area);if(result.ok){cancelItemUse();sound('cast');updateHud();}else toast(result.reason);}
+function castExtra(id){if(!game||modal)return;const target=renderer.screenToWorld(pointer.x||renderer.w/2,pointer.y||renderer.h/2),result=game.castExtra(id,target);if(result.ok){keys.clear();sound('cast');updateHud();}else toast(result.reason);}
 function learn(method,index){if(!game||modal)return;const result=game[method](index);if(result.ok){sound();updateHud();}else toast(result.reason);}
 function recall(){if(!game)return;const r=game.recall();if(!r.ok)toast(r.reason||'暂时无法回城');else sound();}
 let previousFeed='';
 function updateHud(){
   if(!game||view!=='match')return;const p=game.player,h=HEROES[p.heroId];
   $('#match-time').textContent=clock(game.time);$('#radiant-score').textContent=game.score[0];$('#dire-score').textContent=game.score[1];
-  $('#hero-level').textContent=p.level;$('#hp-label').textContent=`${Math.ceil(p.hp)} / ${Math.round(p.maxHp)}`;$('#mana-label').textContent=`${Math.floor(p.mana)} / ${Math.round(p.maxMana)}`;
+  $('#hero-level').textContent=p.level;$('#hp-label').textContent=`${Math.ceil(p.hp)} / ${Math.ceil(p.maxHp)}`;$('#mana-label').textContent=`${Math.floor(p.mana)} / ${Math.floor(p.maxMana)}`;
   $('#hp-fill').style.transform=`scaleX(${Math.max(0,p.hp/p.maxHp)})`;$('#mana-fill').style.transform=`scaleX(${Math.max(0,p.mana/p.maxMana)})`;$('#xp-fill').style.transform=`scaleX(${Math.min(1,p.xp/p.xpNext)})`;
   $('#gold').textContent=Math.floor(p.gold).toLocaleString();$('#kda').textContent=`${p.kills} / ${p.deaths} / ${p.assists}`;
   $('#stat-damage').textContent=Math.round(p.damage);$('#stat-armor').textContent=Math.round(p.armor||0);$('#stat-speed').textContent=Math.round(p.speed);$('#last-hits').textContent=p.lastHits;
@@ -146,13 +164,13 @@ function updateHud(){
   if(p.level===30)$('#xp-fill').style.transform='scaleX(1)';
   const count=game.entities.filter(e=>e.team===1&&e.kind==='tower'&&!e.dead).length,barracks=game.entities.filter(e=>e.team===1&&e.kind==='barracks'&&!e.dead).length;$('#tower-count').textContent=`敌方防御塔 ${count} / 11 · 兵营 ${barracks} / 6`;
   const ancient=game.entities.find(e=>e.team===1&&e.kind==='ancient');$('#objective-text').textContent=ancient&&!game.isProtected(ancient)?'远古遗迹已暴露，发起最后进攻！':'跟随兵线，攻破敌方防御塔';
-  $('#death-overlay').hidden=!p.dead;$('#respawn-count').textContent=Math.ceil(p.respawnTimer);$('#recall-progress').hidden=!(p.recallTimer>0);$('#recall-fill').style.transform=`scaleX(${1-p.recallTimer/3})`;
+  $('#death-overlay').hidden=!p.dead;$('#respawn-count').textContent=Math.ceil(p.respawnTimer);$('#recall-progress').hidden=!(p.recallTimer>0);$('#recall-fill').style.transform=`scaleX(${1-p.recallTimer/(p.recallDuration||3)})`;
   const feed=game.feed.map(e=>`${e.text}`).join('|');if(previousFeed!==feed){previousFeed=feed;$('#event-feed').innerHTML=game.feed.slice(0,4).map(e=>`<div class="feed-entry ${e.team===0?'radiant':'dire'}">${icon('swords')}<span>${escapeHtml(e.text)}</span></div>`).join('');}
   shopUI?.update();
   if(shopOpen)updateShop();updateInspection();renderer.minimap($('#minimap'),game);
 }
 const attributeLabels={strength:'力量',agility:'敏捷',intelligence:'智力',universal:'全才'};
-const unitLabels={ward:'治疗守卫',hero:'英雄',creep:'兵线单位',neutral:'野怪',tower:'防御塔',barracks:'兵营',fountain:'泉水',ancient:'远古遗迹',filler:'基地建筑'};
+const unitLabels={ward:'守卫',hero:'英雄',creep:'兵线单位',neutral:'野怪',tower:'防御塔',barracks:'兵营',fountain:'泉水',ancient:'远古遗迹',filler:'基地建筑',courier:'信使',droppedItem:'地面物品',illusion:'幻象',summon:'召唤物'};
 function updateInspection(){
   const panel=$('#selection-panel');if(!panel||!game)return;panel.hidden=!inspectionOpen;
   if(!inspectionOpen)return;
@@ -166,7 +184,7 @@ function updateInspection(){
     <div class="inspection-vitals"><span>生命 <b>${n(e.hp)} / ${n(e.maxHp)}</b><em>+${n(e.hpRegen)}/秒</em></span><i><b style="width:${Math.max(0,e.hp/e.maxHp*100)}%"></b></i>${e.maxMana?`<span>魔法 <b>${n(e.mana||0)} / ${n(e.maxMana)}</b><em>+${n(e.manaRegen)}/秒</em></span><i class="blue"><b style="width:${Math.max(0,(e.mana||0)/e.maxMana*100)}%"></b></i>`:''}</div>
     ${hero?`<div class="attribute-trio">${['strength','agility','intelligence'].map(key=>{const a=e.attributes[key];return `<div class="${key} ${e.primaryAttribute===key?'primary-attribute':''}"><span>${attributeLabels[key]}</span><strong>${n(a.total)}</strong><small>${n(a.base)}${a.bonus?` + ${n(a.bonus)}`:''}</small><em>每级 +${n(a.gain)}</em></div>`;}).join('')}</div><p class="attribute-explainer">${e.primaryAttribute==='universal'?'全才：每点力量、敏捷、智力提供 0.45 攻击力。':`${type}主属性：每点${type}额外提供 1 攻击力。`}</p>`:''}
     <dl class="inspection-stats">${pair('攻击力',`${n(e.damageMin??e.damage)} – ${n(e.damageMax??e.damage)}`)}${pair('攻击距离',n(e.range))}${pair('护甲',n(e.armor))}${pair('物理抗性',percent(1-physicalDamageMultiplier(e.armor||0)))}${pair('攻击速度',n(e.attackSpeed??e.baseAttackSpeed??0))}${pair('攻击间隔',`${n(e.attackInterval)} 秒`)}${pair('移动速度',n(e.speed))}${pair('魔法抗性',percent(e.magicResistance||0))}${pair('白天视野',n(e.visionDay??e.dayVision))}${pair('夜晚视野',n(e.visionNight??e.nightVision))}${hero?pair('补刀 / KDA',`${e.lastHits} · ${e.kills}/${e.deaths}/${e.assists}`):neutral?pair('击杀奖励',`${e.goldMin}–${e.goldMax} 金 · ${e.xpBounty} 经验`):''}</dl>
-    ${hero?`<div class="inspection-equipment"><h3>装备 <span>${e.inventory.filter(Boolean).length} / 6</span></h3><div class="inspected-inventory">${Array.from({length:6},(_,i)=>{const item=ITEM_BY_ID[e.inventory[i]];return `<div class="inspected-slot ${item?'filled':''}" title="${item?item.name+'：'+item.description:'空装备栏'}" aria-label="${item?item.name+'，'+item.description:'空装备栏'}">${item?`<span style="color:${item.color}">${itemArt(item)}</span><b>${item.name}</b><small>${item.description}</small>`:'<span>+</span><b>空装备栏</b>'}</div>`;}).join('')}</div></div>`:''}
+    ${hero?`<dl class="inspection-stats">${pair('闪避',n(e.evasion)+'%')}${pair('攻击吸血',n(e.lifesteal)+'%')}${pair('技能吸血',n(e.spellLifesteal)+'%')}${pair('技能增强',n(e.spellAmp)+'%')}${pair('额外施法距离',n(e.castRangeBonus))}${pair('冷却缩减',n(e.cooldownReduction)+'%')}${pair('状态抗性',n(e.statusResistance)+'%')}${pair('减速抗性',n(e.slowResistance)+'%')}${pair('魔法消耗降低',n(e.manaCostReduction)+'%')}${pair('额外技能范围',n(e.spellAoE))}</dl><p class="inspection-note">神杖：${e.hasScepter?'已生效':'未获得'} · 魔晶：${e.hasShard?'已生效':'未获得'}${e.moonShard?' · 已吞服银月之晶':''}</p><div class="inspection-equipment"><h3>装备 <span>${e.inventory.filter(Boolean).length} / 6</span></h3><div class="inspected-inventory">${Array.from({length:6},(_,i)=>{const item=ITEM_BY_ID[e.inventory[i]];return `<div class="inspected-slot ${item?'filled':''}" title="${item?item.name+'：'+item.description:'空装备栏'}" aria-label="${item?item.name+'，'+item.description:'空装备栏'}">${item?`<span style="color:${item.color}">${itemArt(item)}</span><b>${item.name}</b><small>${item.description}</small>`:'<span>+</span><b>空装备栏</b>'}</div>`;}).join('')}</div></div>`:''}
     ${e.aegisUntil>game.time?`<p class="inspection-note">不朽之守护 · 剩余 ${clock(e.aegisUntil-game.time)}</p>`:''}
     ${neutral?'<p class="inspection-note">营地于每分钟检查刷新；范围内有单位时不会刷新。按 Alt 查看营地边界。</p>':''}`;
   const body=$('#inspection-body');
@@ -187,6 +205,7 @@ function openModal(type){
   if(type==='guide'){
     title='从第一刀，到最后一座遗迹。';eyebrow='FIELD MANUAL';
     body=`<div class="guide-goal">${icon('flag')}<div><strong>摧毁夜魇的远古遗迹，赢得对局。</strong><p>每路依次推进一塔、二塔、高地三塔。摧毁近战 / 远程兵营会升级对应兵种；摧毁两座基地四塔后才能攻击遗迹。</p></div></div><div class="guide-controls"><div><kbd>左键 / 顶部头像</kbd><span>选择英雄、建筑或野怪，查看属性与装备</span></div><div><kbd>鼠标右键</kbd><span>移动自己的英雄，点击敌人或野怪持续攻击</span></div><div><kbd>↑ ↓ ← →</kbd><span>直接移动英雄</span></div><div><kbd>Q W E R</kbd><span>朝鼠标位置释放已学习技能</span></div><div><kbd>Ctrl + Q W E R / U</kbd><span>技能加点 / 天赋与全属性；一级拥有 1 技能点</span></div><div><kbd>F / Tab / G</kbd><span>打开商店 / 快捷购买队列物品；拖动物品换装</span></div><div><kbd>滚轮 / 中键拖动</kbd><span>缩放 / 平移地图；M 查看全图，空格回到英雄</span></div><div><kbd>Alt / B</kbd><span>营地边界 / 3 秒回城</span></div><div><kbd>P / Esc</kbd><span>暂停，打开菜单</span></div></div><div class="guide-tip"><strong>7.41f 标准节奏</strong><p>每 30 秒一波兵。野怪从 1:00 开始每分钟检查刷新，营地内有单位会阻挡刷新。三维属性随等级与装备增长；全才从三项属性获取攻击力。左右阵营共 22 塔、12 兵营，野区有 28 营地与肉山。</p></div>`;
+    body=body.replace('营地边界 / 3 秒回城','营地边界 / 使用卷轴传送回泉水').replace('<div><kbd>滚轮 / 中键拖动</kbd>','<div><kbd>1–6 / Alt + 1–6</kbd><span>使用装备 / 对自己使用；双击装备选择目标</span></div><div><kbd>D / F3</kbd><span>神杖或魔晶新增技能 / 信使运送储藏物品</span></div><div><kbd>滚轮 / 中键拖动</kbd>');
     footer='<button class="primary-button modal-primary" data-close>准备好了</button>';
   }else if(type==='hero'){
     const h=HEROES[chosen];title=h.name;eyebrow=h.en;
@@ -219,7 +238,11 @@ window.addEventListener('keydown',e=>{
   if(['INPUT','SELECT','TEXTAREA'].includes(document.activeElement?.tagName))return;
   const key=e.key.toLowerCase();
   if([' ','arrowup','arrowdown','arrowleft','arrowright','escape','tab'].includes(key))e.preventDefault();
-  if(e.repeat){if(['arrowup','arrowdown','arrowleft','arrowright','a','s','d'].includes(key))keys.add(key);return;}
+  if(e.repeat){if(['arrowup','arrowdown','arrowleft','arrowright','a','s'].includes(key))keys.add(key);return;}
+  if(key==='escape'&&pendingItem){e.preventDefault();cancelItemUse();return;}
+  if(/^[1-6]$/.test(key)){e.preventDefault();useItem(Number(key)-1,'inventory',e.altKey?game.player:undefined);return;}
+  if(key==='d'||key==='t'){const skill=game.extraAbilities().find(s=>s.key.toLowerCase()===key);if(skill){e.preventDefault();castExtra(skill.id);}return;}
+  if(key==='f3'){e.preventDefault();const result=game.courierCommand('deliver');toast(result.ok?'信使已收到运输指令':result.reason);return;}
   if(key==='escape'||key==='p'){if(shopOpen)toggleShop();else openModal('pause');return;}
   if(key==='alt'){renderer.showCampBounds=true;return;}
   if(key==='m'){$('#map-overview').click();return;}
@@ -235,7 +258,7 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden&&game&&!mod
 function tick(ms){
   const dt=Math.min((ms-lastFrame)/1000||0,1/20);lastFrame=ms;
   if(game&&view==='match'){
-    const x=(keys.has('d')||keys.has('arrowright')?1:0)-(keys.has('a')||keys.has('arrowleft')?1:0),y=(keys.has('s')||keys.has('arrowdown')?1:0)-(keys.has('arrowup')?1:0);
+    const x=(keys.has('arrowright')?1:0)-(keys.has('a')||keys.has('arrowleft')?1:0),y=(keys.has('s')||keys.has('arrowdown')?1:0)-(keys.has('arrowup')?1:0);
     game.setMovement(x,y);game.step(dt);
     if(ms-hudAt>100){updateHud();hudAt=ms;}
     if(game.status!=='playing'&&lastStatus==='playing'){lastStatus=game.status;history.matches++;if(game.status==='won')history.wins++;history.bestKills=Math.max(history.bestKills,game.player.kills);save();updateHud();openModal('result');}

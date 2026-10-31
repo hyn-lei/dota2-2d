@@ -6,7 +6,16 @@ export class Navigator {
   constructor(grid=NAV_GRID, trees=TREES, buildings=[]) {
     this.grid=grid; this.size=grid.cellSize; this.cols=grid.cols; this.rows=grid.rows;
     this.ox=grid.origin?.x||0; this.oy=grid.origin?.y||0;
-    this.blocked=Uint8Array.from(grid.blocked,c=>c==='1'?1:0);
+    this.baseTerrain=Uint8Array.from(grid.blocked,c=>c==='1'?1:0);
+    this.blocked=this.baseTerrain.slice();
+    const count=this.cols*this.rows;
+    this.seen=new Uint32Array(count); this.closed=new Uint32Array(count);
+    this.cost=new Float64Array(count); this.parent=new Int32Array(count);
+    this.generation=0; this.cache=new Map();
+    this.updateTrees(trees,buildings);
+  }
+  updateTrees(trees,buildings=this.buildings||[]){
+    this.blocked.set(this.baseTerrain);
     for(const tree of trees){
       const cx=Math.round((tree.x-this.ox)/this.size),cy=Math.round((tree.y-this.oy)/this.size);
       for(let y=cy-1;y<=cy+1;y++)for(let x=cx-1;x<=cx+1;x++){
@@ -15,14 +24,11 @@ export class Navigator {
           this.blocked[y*this.cols+x]=1;
       }
     }
-    const count=this.cols*this.rows;
-    this.seen=new Uint32Array(count); this.closed=new Uint32Array(count);
-    this.cost=new Float64Array(count); this.parent=new Int32Array(count);
-    this.generation=0; this.cache=new Map();
     this.terrainBlocked=this.blocked.slice();
     this.updateBuildings(buildings);
   }
   updateBuildings(buildings){
+    this.buildings=buildings;
     this.blocked.set(this.terrainBlocked);
     for(const b of buildings){
       if(b.dead||b.kind==='fountain')continue;

@@ -1,5 +1,5 @@
 import { HEROES, TEAM_COLORS } from './data.js';
-import { WORLD, BASES, MAP_IMAGE, CAMP_LAYOUT, MAP_OBJECTIVES } from './map-data.js';
+import { WORLD, BASES, MAP_IMAGE, CAMP_LAYOUT, MAP_OBJECTIVES, TREES } from './map-data.js';
 
 const TAU = Math.PI * 2;
 const clamp = (n,a,b) => Math.max(a,Math.min(b,n));
@@ -75,6 +75,9 @@ export class Renderer {
     c.fillStyle='#1b2927';c.fillRect(0,0,this.w,this.h);c.save();c.translate(this.w/2,this.h/2);c.scale(this.zoom,this.zoom);c.translate(-this.camera.x,-this.camera.y);
     if(this.mapAsset.ready)c.drawImage(this.mapAsset.image,MAP_IMAGE.x,MAP_IMAGE.y,MAP_IMAGE.width,MAP_IMAGE.height);
     else c.drawImage(this.terrain,0,0,WORLD.width,WORLD.height);
+    // The terrain reference is a baked image. Overlay clear ground and stumps where trees were cut.
+    for(const [index]of game.cutTrees||[]){const tree=TREES[index];if(Math.abs(tree.x-this.camera.x)>halfW+100||Math.abs(tree.y-this.camera.y)>halfH+100)continue;circle(c,tree.x,tree.y,64,'#384936');circle(c,tree.x,tree.y,13,'#817052','#b0a079',2);}
+    for(const tree of game.plantedTrees||[])if(tree.until>game.time)this.drawTree(c,tree.x,tree.y,1.3,false,random(17));
     BASES.forEach((b,team)=>{const glow=c.createRadialGradient(b.x,b.y,30,b.x,b.y,300);glow.addColorStop(0,team?'rgba(204,103,75,.12)':'rgba(126,202,162,.12)');glow.addColorStop(1,'transparent');circle(c,b.x,b.y,300,glow);});
     const camps=game.camps||CAMP_LAYOUT;
     for(const camp of camps){
@@ -96,7 +99,7 @@ export class Renderer {
       circle(c,mark.x,mark.y,52,null,col,2/this.zoom);line(c,[{x:mark.x-25,y:mark.y-25},{x:mark.x+25,y:mark.y+25}],col,3/this.zoom);line(c,[{x:mark.x+25,y:mark.y-25},{x:mark.x-25,y:mark.y+25}],col,3/this.zoom);
       c.font=`${11/this.zoom}px Consolas,monospace`;c.textAlign='center';c.fillStyle=col;c.fillText(`${Math.max(0,mark.expiresAt-game.time).toFixed(1)}s`,mark.x,mark.y+52+14/this.zoom);c.restore();
     }
-    const entities=game.entities.filter(e=>(!e.dead||BUILDINGS.has(e.kind))&&Math.abs(e.x-this.camera.x)<=halfW+450&&Math.abs(e.y-this.camera.y)<=halfH+450).sort((a,b)=>a.y-b.y);
+    const entities=game.entities.filter(e=>(!e.dead||BUILDINGS.has(e.kind))&&(e.team===game.player?.team||!game.canSee||game.canSee(game.player,e))&&Math.abs(e.x-this.camera.x)<=halfW+450&&Math.abs(e.y-this.camera.y)<=halfH+450).sort((a,b)=>a.y-b.y);
     for(const e of entities){if(this.zoom<.15)this.drawOverviewEntity(c,e);else if(BUILDINGS.has(e.kind))this.drawBuilding(c,e,game,time);else this.drawUnit(c,e,game,time);}
     (game.effects||[]).forEach(e=>this.drawEffect(c,e,time));
     if(this.marker){const age=(performance.now()-this.marker.at)/1000;if(age<.8){c.save();c.translate(this.marker.x,this.marker.y);c.scale(1/this.zoom,1/this.zoom);c.globalAlpha=1-age/.8;const r=10+age*22;circle(c,0,0,r,null,'#d2e5a3',1.5);for(let i=0;i<4;i++){c.save();c.rotate(i*TAU/4);poly(c,[[0,-r],[-3,-r-5],[3,-r-5]],'#d2e5a3');c.restore();}c.restore();}else this.marker=null;}
@@ -192,8 +195,13 @@ export class Renderer {
   drawUnit(c,e,game,t){
     const hero=e.kind==='hero',neutral=e.kind==='neutral',color=unitColor(e);c.save();c.translate(e.x,e.y);
     if(neutral){this.drawNeutral(c,e,t);c.restore();return;}
+    if(e.kind==='droppedItem'){poly(c,[[0,-22],[25,0],[0,22],[-25,0]],'#8b713c','#ead08c',3);circle(c,0,0,7,'#f3dfa8');c.restore();return;}
+    if(e.kind==='courier'){
+      c.scale(1.8,1.8);if(e.flying){const flap=Math.sin(t*10)*5;poly(c,[[-6,0],[-30,-15-flap],[-22,8],[0,8]],'#c2c9b5',color,1);poly(c,[[6,0],[30,-15-flap],[22,8],[0,8]],'#c2c9b5',color,1);}
+      c.fillStyle='#826b4f';c.fillRect(-12,-6,25,18);circle(c,9,-11,9,'#aa9270',color,2);poly(c,[[4,-17],[4,-32],[9,-19]],'#b6a07c');poly(c,[[12,-17],[17,-31],[17,-15]],'#b6a07c');c.fillStyle='#244a40';c.fillRect(-14,-9,15,13);circle(c,12,-13,1.7,'#17241d');c.restore();return;
+    }
     if(e.kind==='ward'){
-      circle(c,0,0,e.healRadius,null,'rgba(149,196,112,.16)',2);
+      if(e.healRadius)circle(c,0,0,e.healRadius,null,'rgba(149,196,112,.16)',2);
       c.fillStyle='#594d31';c.fillRect(-7,-30,14,55);poly(c,[[-24,-25],[0,-49],[24,-25],[0,-9]],'#91bc73','#dae3a2',3);
       circle(c,0,-28,7,'#e2eab1');circle(c,0,16,30,null,'rgba(146,204,121,.55)',2);c.restore();return;
     }
@@ -322,7 +330,7 @@ export class Renderer {
     c.save();c.translate(offsetX,offsetY);c.beginPath();c.rect(0,0,side,side);c.clip();c.drawImage(this.terrain,0,0,side,side);
     c.fillStyle='rgba(7,15,14,.19)';c.fillRect(0,0,side,side);
     for(const camp of game.camps||CAMP_LAYOUT){const x=camp.x*scale,y=camp.y*scale,r=camp.type==='ancient'?2.2:1.6;poly(c,[[x,y-r],[x+r,y],[x,y+r],[x-r,y]],CAMP_COLORS[camp.type]||'#d9bb7c','#263227',.6);}
-    const entities=game.entities.filter(e=>!e.dead||BUILDINGS.has(e.kind));
+    const entities=game.entities.filter(e=>(!e.dead||BUILDINGS.has(e.kind))&&(e.team===game.player?.team||!game.canSee||game.canSee(game.player,e)));
     for(const e of entities){
       const x=e.x*scale,y=e.y*scale,color=e.dead?'#77766b':e.isPlayer?'#fff1b7':unitColor(e);
       c.fillStyle=color;

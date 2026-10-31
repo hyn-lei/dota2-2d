@@ -32,3 +32,13 @@ test('living structures block navigation and destroying them opens their footpri
   assert.equal(nav.isWalkable(tower),true);
   assert.equal(nav.lineClear({x:64,y:128},{x:384,y:128}),true);
 });
+
+test('cutting and planting trees rebuilds paths while preserving terrain and buildings',()=>{
+ const grid={cols:9,rows:7,cellSize:64,blocked:'1'+'0'.repeat(62)};
+ const tree={x:256,y:192},tower={x:448,y:320,radius:24,kind:'tower'};
+ const nav=new Navigator(grid,[tree],[tower]);
+ assert.equal(nav.isWalkable(tree),false);
+ nav.updateTrees([], [tower]);assert.equal(nav.isWalkable(tree),true);
+ assert.equal(nav.isWalkable({x:0,y:0}),false);assert.equal(nav.isWalkable(tower),false);
+ nav.updateTrees([tree],[tower]);assert.equal(nav.isWalkable(tree),false);
+});

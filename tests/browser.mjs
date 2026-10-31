@@ -134,12 +134,14 @@ try{
   assert.ok(await page.evaluate(hp=>window.observedGame.entities[2].hp<hp-90,hp));
   check('Tidebringer consumes one empowered basic attack and cleaves another unit');
 
-  await page.evaluate(()=>{const g=window.observedGame;g.entities=[g.player];g.player.explicitTarget=null;g.player.attackCooldown=999;});
+  await page.evaluate(async()=>{const g=window.observedGame,{BASES}=await import('/src/map-data.js');g.entities=[g.player,g._unit('fountain',0,BASES[0].x,BASES[0].y,{damage:0,range:0})];g.player.explicitTarget=null;g.player.attackCooldown=999;g.player.mana=1000;});
   await page.keyboard.press('b');await page.waitForFunction(()=>window.observedGame.player.recallTimer>0);
   await page.keyboard.down('ArrowRight');await page.waitForTimeout(100);await page.keyboard.up('ArrowRight');
   assert.equal(await page.evaluate(()=>window.observedGame.player.recallTimer),0);
-  await page.keyboard.press('b');await page.waitForFunction(()=>window.observedGame.player.recallTimer===0,null,{timeout:7000});
-  assert.ok(await page.evaluate(()=>Math.hypot(window.observedGame.player.x-3008,window.observedGame.player.y-17338)<5));
+  assert.ok(await page.evaluate(()=>window.observedGame.player.itemCooldowns.teleport>0));
+  await page.evaluate(async()=>{const g=window.observedGame,{createMeta}=await import('/src/inventory.js');g.player.tp=['tpscroll'];g.player.tpMeta=[createMeta(g.player,'tpscroll')];g.player.itemCooldowns.teleport=0;});
+  await page.keyboard.press('b');await page.waitForFunction(()=>window.observedGame.player.recallTimer>0);await page.waitForFunction(()=>window.observedGame.player.recallTimer===0,null,{timeout:7000});
+  assert.ok(await page.evaluate(()=>{const g=window.observedGame;return Math.hypot(g.player.x-3008,g.player.y-17338)<250&&g.navigation.isWalkable(g.player);}));
   check('Recall cancels on input and returns to the actual Radiant fountain');
   await page.locator('#pause-button').click();const t=await page.evaluate(()=>window.observedGame.time);await page.waitForTimeout(200);assert.equal(await page.evaluate(()=>window.observedGame.time),t);
   await page.locator('.modal-primary').click();await page.waitForFunction(t=>window.observedGame.time>t,t);
@@ -160,7 +162,8 @@ try{
   await page.evaluate(()=>{const g=window.observedGame,p=g.player;for(const tier of [1,2,3])g.damage(g.entities.find(e=>e.kind==='tower'&&e.team===1&&e.lane===1&&e.tier===tier),1e7,p,'pure');for(const e of g.entities.filter(e=>e.kind==='tower'&&e.team===1&&e.tier===4))g.damage(e,1e7,p,'pure');g.damage(g.entities.find(e=>e.kind==='ancient'&&e.team===1),1e7,p,'pure');});
   await page.waitForSelector('.result-emblem.victory');await page.screenshot({path:'artifacts/victory-741f.png'});
   await page.locator('#play-again').click();await page.waitForFunction(()=>window.observedGame?.status==='playing'&&window.observedGame.time<3);
-  assert.equal(await page.locator('.inventory-slot.filled').count(),0);
+  assert.equal(await page.locator('.inventory-slot.filled[data-slot-area="inventory"]').count(),0);
+  assert.equal(await page.locator('.inventory-slot.filled[data-slot-area="tp"]').count(),1);
   await returnLobby();await page.locator('.history-button').click();assert.match(await page.locator('.record-stats').textContent(),/1累计对局1天辉胜利/);await page.keyboard.press('Escape');
   check('All objective tiers unlock victory and replay resets state with saved history');
 

@@ -63,11 +63,13 @@ test('Boots movement bonuses do not stack, while ordinary stat bonuses do', () =
   near(h.speed, 360); near(h.strength, 31);
 });
 
-test('actual item prices and bonuses match independently fetched official item data', async () => {
-  const mapping = { bonus_strength:'strength', bonus_agility:'agility', bonus_intellect:'intelligence', bonus_all_stats:'allAttributes', bonus_damage:'damage', bonus_armor:'armor', bonus_movement_speed:'speed', bonus_attack_speed:'attackSpeed', bonus_speed:'attackSpeed', bonus_health:'maxHp', bonus_mana:'maxMana', bonus_max_mana_percentage:'maxManaPercent', bonus_health_regen:'hpRegen', bonus_mana_regen:'manaRegen' };
-  assert.ok(ITEMS.length >= 30);
-  for (const item of ITEMS) {
-    const raw = JSON.parse(await readFile(new URL(`../docs/research/items/${item.dotaId}.json`, import.meta.url)));
+test('basic equipment prices and permanent bonuses match independently fetched official data', async () => {
+  const mapping = { bonus_regen:'hpRegen', bonus_strength:'strength', bonus_agility:'agility', bonus_intellect:'intelligence', bonus_all_stats:'allAttributes', bonus_damage:'damage', bonus_armor:'armor', bonus_movement_speed:'speed', bonus_attack_speed:'attackSpeed', bonus_speed:'attackSpeed', bonus_health:'maxHp', bonus_mana:'maxMana', bonus_max_mana_percentage:'maxManaPercent', bonus_health_regen:'hpRegen', bonus_mana_regen:'manaRegen' };
+  // Conditional and active values are covered by full-item-data and runtime tests.
+  const ids=['branch','gauntlets','slippers','mantle','circlet','belt','elvenskin','arcane','ogreaxe','bladealacrity','diadem','crown','ultimate_orb','blade','attackblade','claymore','mithril','relic','demonedge','armor','chainmail','protection','helm_of_iron_will','boots','gloves','vitality','energy','pointbooster','voidstone','healthring'];
+  for (const id of ids) {
+    const item=ITEM_BY_ID[id];assert.ok(item,id);
+    const raw = JSON.parse(await readFile(new URL(`../docs/research/items/full/${item.dotaId}-schinese.json`, import.meta.url)));
     const official = raw.result.data.items[0];
     assert.equal(item.cost, official.item_cost, item.id);
     const expected = {};

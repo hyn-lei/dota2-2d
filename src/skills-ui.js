@@ -1,6 +1,7 @@
 import { ABILITIES, INNATES, TALENTS, abilityAt, innateAt } from './ability-data.js';
 import { canLearnTalent, canLearnAttributes } from './progression.js';
 import { icon } from './icons.js';
+import { castingStats } from './hero-runtime.js';
 const escape=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const number=n=>Number.isFinite(n)?Number(n.toFixed(2)).toString():'—';
 const labels={radius:'作用范围',duration:'持续时间',bonus_armor:'额外护甲',damage_per_second:'每秒伤害',slow:'移动减速 %',trigger_attacks:'触发攻击次数',damage:'伤害',speed_bonus:'移动速度加成 %',armor_bonus:'护甲加成',armor_per_stack:'每次斩杀永久护甲',base_mana_regen:'全图回蓝 / 秒',proximity_mana_regen_tooltip:'近处回蓝 / 秒',mana_regen_amp:'自身回蓝增强 %',nova_damage:'伤害',movespeed_slow:'移动减速 %',attackspeed_slow:'攻速降低',creep_multiplier:'非远古小兵伤害倍率',blade_fury_damage:'每秒伤害',blade_fury_radius:'作用范围',immunity_resist:'额外魔抗 %',healing_ward_heal_amount:'每秒最大生命恢复 %',healing_ward_aura_radius:'治疗范围',blade_dance_crit_chance:'暴击概率 %',blade_dance_crit_mult:'暴击伤害 %',bonus_damage:'额外攻击伤害',bonus_attack_speed:'额外攻击速度',attack_rate_multiplier:'攻击频率倍率',stun_duration:'眩晕时间',fail_stun_duration:'未束缚时眩晕',powershot_damage:'满蓄力伤害',damage_reduction:'每个目标伤害递减 %',movespeed_bonus_pct:'移动速度加成 %',focusfire_damage_reduction:'攻击伤害调整 %',torrent_damage:'总伤害',delay:'生效延迟',slow_duration:'减速时间',damage_bonus:'强化攻击伤害',cleave_damage:'分裂伤害 %',cleave_distance:'分裂距离',allied_duration:'友方持续时间',ghostship_speed:'幽灵船速度',ghostship_width:'碰撞范围',rum_factor:'朗姆酒强化倍率',mana_multiplier:'魔法转护盾 %',barrier_duration:'护盾时间',armor_pct_as_strength:'护甲转力量 %',stack_gain_time:'获得一层间隔',max_stacks:'最高层数',agi_bonus_pct_per_stack:'每层基础敏捷 %',movement_speed_pct_per_stack:'每层移动速度 %',movespeed_bonus:'额外移动速度',ghostship_absorb:'延迟伤害 %',damage_threshold:'触发生命阈值 %',buff_duration:'增益时间',max_movespeed:'移动速度上限'};
@@ -25,7 +26,7 @@ export function mountSkills(container,game,actions){
 }
 export function toggleTalents(container){const state=contexts.get(container);state.talents.hidden=!state.talents.hidden;state.tooltip.hidden=true;updateSkills(container,state.game);}
 function tipHTML(h,index){
- const innate=index<0,s=innate?innateAt(h.heroId,h.level,h.talents):abilityAt(h.heroId,index,h.abilityLevels[index],h.talents),next=innate||s.level>=s.maxLevel?null:abilityAt(h.heroId,index,s.level+1,h.talents);
+ const innate=index<0,adjust=s=>{const result=castingStats(h,s);if(result)result.cooldown*=1-(h.cooldownReduction||0)/100;return result;},s=innate?innateAt(h.heroId,h.level,h.talents,h):adjust(abilityAt(h.heroId,index,h.abilityLevels[index],h.talents,h)),next=innate||s.level>=s.maxLevel?null:adjust(abilityAt(h.heroId,index,s.level+1,h.talents,h));
  const row=(name,a,b)=>`<tr><th>${name}</th><td>${number(a)}</td><td>${b===undefined?'—':number(b)}</td></tr>`;
  const values=[...Object.keys(s.values)].filter(k=>labels[k]&&(s.values[k]!==0||next?.values[k])).slice(0,12);
  return `<div class="skill-tip-heading">${icon(s.icon)}<div><strong>${escape(s.name)}</strong><span>${innate?'先天能力 · 自动生效':`${s.kind==='passive'?'被动技能':s.kind==='autocast'?'自动施放':'主动技能'} · ${s.level} / ${s.maxLevel} 级`}</span></div></div><p>${escape(s.description)}</p><table><thead><tr><th>技能数值</th><td>${innate?'当前':s.level?'当前':'学习后'}</td><td>${next&&s.level?'下一级':'—'}</td></tr></thead><tbody>${s.kind!=='passive'?row('魔法消耗',s.mana,next&&s.level?next.mana:undefined)+row('冷却 / 秒',s.cooldown,next&&s.level?next.cooldown:undefined):''}${s.range>0?row('施法距离',s.range,next&&s.level?next.range:undefined):''}${values.map(k=>row(labels[k],s.values[k],next&&s.level?next.values[k]:undefined)).join('')}</tbody></table>${!innate?`<small class="skill-tip-unlock">${next?`下一等级需要英雄 ${s.requiredLevels[s.level]} 级及 1 技能点`:'技能已满级'}${s.kind==='autocast'?' · 按 W 或右键图标切换自动施放':''}</small>`:''}`;
@@ -33,9 +34,16 @@ function tipHTML(h,index){
 function showTip(state,index,button){state.hover={index,button};state.tipContent=tipHTML(state.game.player,index);state.tooltip.innerHTML=state.tipContent;state.tooltip.hidden=false;const rect=button.getBoundingClientRect();state.tooltip.style.left=`${Math.max(10,Math.min(innerWidth-350,rect.left-120))}px`;state.tooltip.style.bottom=`${Math.max(12,innerHeight-rect.top+15)}px`;}
 export function updateSkills(container,game){
  const state=contexts.get(container);if(!state)return;state.game=game;const h=game.player;
+ const tp=game.itemState(0,'tp'),recall=container.querySelector('#recall-button');
+ recall.disabled=h.dead||game.paused||!tp.item||tp.cooldown>0;
+ recall.title=`B · 传送回泉水 · ${tp.meta?.charges||0} 张卷轴${tp.cooldown>0?' · 冷却 '+Math.ceil(tp.cooldown)+' 秒':''}`;
+ recall.querySelector('span').textContent=tp.cooldown>0?`${Math.ceil(tp.cooldown)} 秒`:'回城';
+ let extras=container.querySelector('.extra-skills');if(!extras){extras=document.createElement('div');extras.className='extra-skills';container.querySelector('.skill-aux').before(extras);}
+ const extraHTML=game.extraAbilities().map(s=>{const cooldown=h.extraCooldowns?.[s.id]||0;return `<button class="extra-ability ${cooldown?'on-cooldown':''}" data-extra="${s.id}" ${!s.level||h.dead||game.paused?'disabled':''} title="${escape(s.name+'：'+s.description)}" aria-label="${escape(s.name)}"><span>${icon(s.icon)}</span><kbd>${s.key}</kbd><strong>${escape(s.name)}</strong><small>${cooldown?Math.ceil(cooldown)+' 秒':s.mana+' 魔法'}</small></button>`;}).join('');
+ if(extras.renderedContent!==extraHTML){extras.innerHTML=extraHTML;extras.renderedContent=extraHTML;}extras.hidden=!extraHTML;
  container.querySelector('#skill-point-label').innerHTML=`技能点 <b>${h.skillPoints}</b>`;container.classList.toggle('has-skill-points',h.skillPoints>0);
  ABILITIES[h.heroId].forEach((_,i)=>{
-  const s=game.skill(i),button=container.querySelector(`#ability-${i}`),learn=container.querySelector(`[data-learn="${i}"]`),eligible=game.canLearnAbility(i),cooldown=h.cooldowns[i]||0,recast=h.heroId==='kunkka'&&i===2&&!!h.xMark;
+  const s=castingStats(h,game.skill(i)),button=container.querySelector(`#ability-${i}`),learn=container.querySelector(`[data-learn="${i}"]`),eligible=game.canLearnAbility(i),cooldown=h.cooldowns[i]||0,recast=h.heroId==='kunkka'&&i===2&&!!h.xMark;
   learn.disabled=!eligible.ok||game.paused||game.status!=='playing';learn.title=eligible.ok?`学习 ${s.name} ${s.level+1} 级（Ctrl + ${s.key}）`:eligible.reason;learn.hidden=h.skillPoints<=0;
   button.classList.toggle('unlearned',!s.level);button.classList.toggle('passive-skill',s.kind==='passive');button.classList.toggle('on-cooldown',!recast&&cooldown>.05);button.classList.toggle('no-mana',!recast&&h.mana<s.mana);button.classList.toggle('recast-ready',recast);button.classList.toggle('autocast-on',s.kind==='autocast'&&h.autocast?.[i]!==false&&s.level>0);
   button.querySelector('.skill-unlearned').hidden=!!s.level;button.querySelector('.ability-name').textContent=recast?'标记返回':s.name;button.querySelector('.ability-cost').textContent=s.kind==='passive'?'被动':recast?'0':s.mana;

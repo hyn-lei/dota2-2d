@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { chromium } from 'playwright';
+import { ITEMS } from '../src/item-data.js';
 const browser=await chromium.launch({headless:true}),page=await browser.newPage({viewport:{width:1440,height:900}}),errors=[],checks=[];
 page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});
 const check=name=>{checks.push(name);console.log('PASS '+name);};
@@ -10,11 +11,11 @@ try{
  await page.evaluate(async()=>{const {Renderer}=await import('/src/renderer.js'),render=Renderer.prototype.render;Renderer.prototype.render=function(g,t){window.game=g;window.renderer=this;return render.call(this,g,t);};});
  await page.locator('[data-hero="crystal_maiden"]').click();await page.locator('#start-game').click();await page.waitForFunction(()=>window.game?.time>.1);
  await page.evaluate(()=>{const g=window.game;g.entities=[g.player];g.nextWave=Infinity;g.nextNeutralSpawn=Infinity;g.roshanRespawnAt=Infinity;g.player.gold=20000;});
- await page.locator('#shop-button').click();assert.equal(await page.locator('.shop-catalog [data-item]').count(),44);
+ await page.locator('#shop-button').click();assert.equal(await page.locator('.shop-catalog [data-item]').count(),ITEMS.length);
  await select('wraith_band');assert.match(await page.locator('.item-detail').textContent(),/怨灵系带/);
  await page.locator('#item-search').fill('does-not-exist');assert.equal(await page.locator('.shop-empty').isVisible(),true);
- await page.locator('#item-search').fill('');await page.locator('[data-category="upgrades"]').click();assert.equal(await page.locator('.shop-catalog [data-item]').count(),6);
- await page.locator('[data-category="all"]').click();check('All 44 local item icons, search, empty results and six upgrade recipes render');
+ await page.locator('#item-search').fill('');await page.locator('[data-category="upgrades"]').click();assert.equal(await page.locator('.shop-catalog [data-item]').count(),ITEMS.filter(i=>i.category==='upgrades').length);
+ await page.locator('[data-category="all"]').click();check('Complete current catalog, local icons, search and upgrade recipes render');
  await buy('circlet');await buy('gauntlets');await select('bracer');assert.match(await page.locator('.purchase-summary').textContent(),/210/);
  assert.equal(await page.locator('.recipe-part.owned').count(),2);await page.locator('#buy-selected').click();
  assert.deepEqual(await page.evaluate(()=>window.game.player.inventory),['bracer']);

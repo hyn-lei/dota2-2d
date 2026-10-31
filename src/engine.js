@@ -7,12 +7,14 @@ import * as Progression from './progression.js';
 import * as Skills from './hero-runtime.js';
 import { talentStats } from './ability-data.js';
 import * as Inventory from './inventory.js';
+import * as ItemRuntime from './item-runtime.js';
+import * as Courier from './courier.js';
 
 const distance = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
 const clamp = (n, low, high) => Math.max(low, Math.min(high, n));
 const alive = e => !e.dead && e.hp > 0;
 const building = e => ['tower','barracks','ancient','fountain','filler'].includes(e?.kind);
-const fighter = e => ['hero','creep','neutral'].includes(e?.kind);
+const fighter = e => ['hero','creep','neutral','summon','illusion'].includes(e?.kind);
 
 /** Deterministic game state. Positions use Source world units; time is real seconds. */
 export class Game {
@@ -44,6 +46,7 @@ export class Game {
     const allies = choices.length >= 5 ? choices.filter(id=>id!==this.heroChoice) : choices;
     for (let i = 0; i < 4; i++) this._makeHero(allies[i % allies.length], 0, [0,2,1,0][i], false, i + 1);
     for (let i = 0; i < 5; i++) this._makeHero(choices[(i + 1) % choices.length], 1, [0,1,2,1,2][i], false, i);
+    for(const h of [...this.entities])if(h.kind==='hero')Courier.ensureCourier(this,h);
     for (const layout of BUILDING_LAYOUT) {
       const key=layout.kind==='tower'?`tower${layout.tier}`:layout.kind==='barracks'?`barracks${layout.barracksType==='melee'?'Melee':'Ranged'}`:layout.kind;
       const stats=BUILDING_STATS[key];
@@ -62,6 +65,9 @@ export class Game {
 
   get player() { return this.entities.find(e => e.isPlayer); }
   get selected() { return this.entities.find(e=>e.id===this.selectedId) || this.player; }
+  get courier() { return Courier.ensureCourier(this,this.player); }
+  courierCommand(command) { return Courier.courierCommand(this,this.player,command); }
+  buyWithCourier(id) { return Courier.buyWithCourier(this,this.player,id); }
   selectEntity(id) { if(this.entities.some(e=>e.id===id)) this.selectedId=id; }
 
   _id(prefix) { return `${prefix}-${++this.serial}`; }
@@ -92,6 +98,8 @@ export class Game {
     });
     Progression.initializeProgression(h);
     Inventory.ensureInventory(h);
+    h.tp=['tpscroll'];h.tpMeta=[Inventory.createMeta(h,'tpscroll')];
+    this._refreshHero(h);
     if(!isPlayer)Progression.autoLearn(h);
     this.entities.push(h);
     return h;
@@ -101,7 +109,7 @@ export class Game {
     const hp=h.hp, mana=h.mana, oldHp=h.maxHp, oldMana=h.maxMana;
     const bonus={...talentStats(h.heroId,h.talents||[]),allAttributes:(h.attributeBonusLevel||0)*2};
     bonus.strength=(bonus.strength||0)+(h.innateStrength||0);bonus.agility=(bonus.agility||0)+(h.innateAgility||0);
-    Object.assign(h,calculateHeroStats(h.heroId,h.level,[...Inventory.activeEquipment(this,h),{stats:bonus}]));
+    Object.assign(h,calculateHeroStats(h.heroId,h.level,[...ItemRuntime.statItems(this,h),{stats:bonus}]));
     h.hp=h.dead?0:clamp(hp+h.maxHp-oldHp,1,h.maxHp);
     h.mana=clamp(mana+h.maxMana-oldMana,0,h.maxMana);
   }
@@ -109,7 +117,16 @@ export class Game {
   setPaused(value) { this.paused = !!value; }
 
   skill(index,hero=this.player) { return Skills.skillOf(hero,index); }
-  combatStats(unit,target=null) { return Skills.combatStats(this,unit,target); }
+  combatStats(unit,target=null) { return ItemRuntime.combatStats(this,unit,Skills.combatStats(this,unit,target),target); }
+  extraAbilities(hero=this.player) { return Skills.extraAbilities(hero); }
+  castExtra(id,point) { return Skills.castExtraAbility(this,this.player,id,point); }
+  useItem(index,point,area='inventory') { return ItemRuntime.useItem(this,this.player,index,point,area); }
+  itemState(index,area='inventory') { return ItemRuntime.itemState(this,this.player,index,area); }
+  blockTargetSpell(caster,target,spell) { return ItemRuntime.blockTargetSpell(this,caster,target,spell); }
+  onSpellCast(hero,spell) { ItemRuntime.onSpellCast(this,hero,spell); }
+  onSpellTarget(hero,target,spell) { ItemRuntime.onSpellTarget(this,hero,target,spell); }
+  onStatusExpired(unit,status) { ItemRuntime.expiredStatus(this,unit,status); }
+  canSee(viewer,target) { return viewer.team===target.team||!Skills.hasStatusFlag(this,target,'invisible')||Skills.hasStatusFlag(this,target,'revealed')||this.entities.some(e=>alive(e)&&e.team===viewer.team&&((e.trueSight||0)>distance(e,target)||e.kind==='hero'&&ItemRuntime.statItems(this,e).some(i=>i.id==='gem')&&distance(e,target)<=900)); }
   isStunned(unit) { return Skills.isStunned(this,unit); }
   isRooted(unit) { return Skills.isRooted(this,unit); }
   canLearnAbility(index,hero=this.player) { return Progression.canLearnAbility(hero,index); }
@@ -137,6 +154,7 @@ export class Game {
     p.recallTimer = 0;
     p.targetId = null;
     p.explicitTarget = null;
+    p.pickupTargetId = null;
     p.destination = this.navigation.nearestWalkable(this._point(x,y));
     p.navPath=null;
   }
@@ -173,14 +191,7 @@ export class Game {
     const p = this.player;
     if (this._tauntSource(p)) return {ok:false, reason:'嘲讽期间无法回城'};
     if(this.isStunned(p)||this.isRooted(p))return {ok:false,reason:'控制期间无法回城'};
-    Skills.interruptCast(this,p,true);
-    p.recallTimer = 3;
-    p.destination = null;
-    p.explicitTarget = null;
-    p.targetId = null;
-    this.keyboard = {x:0,y:0};
-    this._effect('recall', p.x, p.y, {radius:65, life:3, color:'#8adbe9', team:p.team});
-    return {ok:true};
+    return this.useItem(0,BASES[p.team],'tp');
   }
 
   buy(itemId) { return this._buy(this.player, itemId); }
@@ -190,6 +201,10 @@ export class Game {
   collectStash() { return Inventory.collectStash(this,this.player); }
   queueItem(id,append=false) { return Inventory.queueItem(this,this.player,id,append); }
   buyQuick() { return Inventory.buyQuick(this,this.player); }
+  setCombineLock(area,index,locked) { return Inventory.setCombineLock(this,this.player,area,index,locked); }
+  disassembleItem(area,index) { return Inventory.disassembleItem(this,this.player,area,index); }
+  dropItem(area,index,point) { return Inventory.dropItem(this,this.player,area,index,point); }
+  pickupItem(id) { return Inventory.pickupItem(this,this.player,id); }
 
   _buy(h, itemId) {
     return Inventory.buyItem(this,h,itemId);
@@ -214,7 +229,12 @@ export class Game {
   damage(target, amount, source, type='physical', options={}) {
     if (!target || !alive(target) || this.status !== 'playing' || !Number.isFinite(amount) || amount <= 0) return 0;
     if (source && source.team === target.team) return 0;
-    if (this.isProtected(target)) return 0;
+    if (this.isProtected(target)||target.kind==='droppedItem') return 0;
+    if(target.kind==='courier'){
+      if(!options.attack||Skills.isInvulnerable(this,target))return 0;
+      const hits=source?.kind==='hero'?(source.range>300?3:6):1;target.hp=Math.max(0,target.hp-hits);if(!target.hp)this._kill(target,source);return hits;
+    }
+    amount=ItemRuntime.outgoingDamage(this,source,amount,type,options);
     const stats=this.combatStats(target);
     let value = amount * (type==='pure'?1:type==='magical'?magicalDamageMultiplier(stats.magicResistance):physicalDamageMultiplier(stats.armor*(1-(options.armorIgnorePct||0)/100)));
     if (building(target) && type==='physical' && source) {
@@ -228,10 +248,13 @@ export class Game {
     if(type==='physical'&&source?.attackType==='pierce'&&target.kind==='creep'&&!target.siege)value*=1.5;
     if(target.backdoorActive)value*=.5;
     value=Skills.incomingDamage(this,target,value,source,type);
+    value=ItemRuntime.incomingDamage(this,target,value,source,type,options);
+    value=Math.min(target.hp,value);
     target.hp = Math.max(0, target.hp - value);
+    ItemRuntime.afterDamage(this,target,value,source,type,options);
     if(target.kind==='neutral' && source && source.team!==2) this._aggroCamp(target.campId,source);
     if (target.kind === 'hero') {
-      target.recallTimer = 0;
+      if(!target.itemChannel)target.recallTimer = 0;
       target.lastDamagers ||= {};
       if (source?.kind === 'hero') target.lastDamagers[source.id] = this.time;
     }
@@ -240,6 +263,8 @@ export class Game {
   }
 
   _kill(target, source) {
+    if(target.dead)return;
+    if(target.kind==='courier'){Courier.courierDied(this,target,source);return;}
     target.dead = true;
     target.hp = 0;
     target.moving = false;
@@ -247,6 +272,7 @@ export class Game {
     target.destination = null;
     target.deathTime = this.time;
     Skills.onUnitKilled(this,target,source);
+    ItemRuntime.onDeath(this,target,source);
     if(building(target))this.navigation.updateBuildings(this.entities.filter(building));
     for (const hero of this.entities) if (hero.xMark?.targetId===target.id || hero===target) hero.xMark=null;
     this._effect('burst', target.x, target.y, {radius:target.radius * 2.5, color:TEAM_COLORS[target.team]||'#cdb28b', life:.7});
@@ -483,6 +509,7 @@ export class Game {
 
   _tick(dt) {
     this.time += dt;
+    ItemRuntime.tickWorld(this,dt);
     this._resolveDelayedSpells();
     if (this.time + 1e-7 >= this.nextWave) { this._spawnWave(); this.nextWave += RULES.laneWaveInterval; }
     if (this.time + 1e-7 >= this.nextNeutralSpawn) {this._spawnCamps();this.nextNeutralSpawn+=60;}
@@ -494,6 +521,7 @@ export class Game {
       e.attackCooldown = Math.max(0,e.attackCooldown - dt);
       e.attackFlash = Math.max(0,e.attackFlash - dt);
       e.moving = false;
+      ItemRuntime.tickUnit(this,e,dt);
       if(alive(e))Skills.tickStatuses(this,e,dt);
       if (e.kind === 'hero') {
         e.gold += 100 / 60 * dt;
@@ -516,8 +544,9 @@ export class Game {
       if (e.kind === 'neutral') this._neutralTick(e,dt);
       if (e.kind === 'ward') Skills.tickWard(this,e,dt);
     }
+    Courier.tickCouriers(this,dt);
     // Keep persistent heroes/buildings for scoreboards; discarded creep corpses fade briefly.
-    this.entities = this.entities.filter(e => !['creep','neutral','ward'].includes(e.kind) || !e.dead || this.time - e.deathTime < 1.1);
+    this.entities = this.entities.filter(e => !['creep','neutral','ward','droppedItem','illusion','summon'].includes(e.kind) || !e.dead || this.time - e.deathTime < 1.1);
   }
 
   _index() {
@@ -558,7 +587,7 @@ export class Game {
   _chooseTarget(e, radius, heroPriority = false) {
     let target = null, score = Infinity;
     for (const unit of this._near(e,radius)) {
-      if (unit.team === e.team || this.isProtected(unit)) continue;
+      if (unit.team === e.team || this.isProtected(unit)||unit.kind==='droppedItem'||!this.canSee(e,unit)) continue;
       if(unit.kind==='neutral'&&unit.targetId!==e.id&&unit.id!==e.explicitTarget)continue;
       let value = distance(e,unit) - unit.radius;
       if (heroPriority && unit.kind === 'hero') value -= 125;
@@ -570,23 +599,25 @@ export class Game {
   }
 
   _attack(e,target,options={}) {
-    if(!target||!alive(target)||!alive(e)||this.isStunned(e)||this.isRooted(e)||
+    if(!target||!alive(target)||!alive(e)||this.isStunned(e)||Skills.hasStatusFlag(this,e,'disarmed')||!this.canSee(e,target)||
       (e.castPhase||e.channel||e.omnislash)&&!options.omni||Skills.isInvulnerable(this,target)||
-      distance(e,target)>e.range+target.radius+8||e.attackCooldown>0)return false;
+      distance(e,target)>(this.combatStats(e,target).range||e.range)+target.radius+8||e.attackCooldown>0)return false;
     e.angle=Math.atan2(target.y-e.y,target.x-e.x);e.attackFlash=.24;e.targetId=target.id;
     const targetStats=this.combatStats(target);
-    if(targetStats.evasion&&this._random()*100<targetStats.evasion){e.attackCooldown=this.combatStats(e,target).attackInterval;this._effect('text',target.x,target.y-40,{text:'MISS',life:.5,color:'#bfcdb1'});return true;}
-    const result=Skills.attackModifiers(this,e,target,options);e.attackCooldown=result.interval;
+    const trueStrike=ItemRuntime.trueStrike(this,e,target);
+    if(targetStats.evasion&&!trueStrike&&this._random()*100<targetStats.evasion){e.attackCooldown=this.combatStats(e,target).attackInterval;this._effect('text',target.x,target.y-40,{text:'MISS',life:.5,color:'#bfcdb1'});return true;}
+    const result=ItemRuntime.attackModifiers(this,e,target,Skills.attackModifiers(this,e,target,options));e.attackCooldown=result.interval;
     let dealt=0;
     if(target.kind==='ward'){target.hitsRemaining--;target.hp=target.hitsRemaining;if(target.hp<=0)this._kill(target,e);}
-    else dealt=this.damage(target,result.damage,e);
+    else dealt=this.damage(target,result.damage,e,'physical',{attack:true});
     Skills.afterAttack(this,e,target,result,dealt);
+    ItemRuntime.afterAttack(this,e,target,result,dealt);
     this._effect(e.range>200?'projectile':'slash',e.x,e.y,{tx:target.x,ty:target.y,radius:e.range>200?5:45,team:e.team,color:e.heroId==='crystal_maiden'?'#a1d9ef':TEAM_COLORS[e.team],life:.2});
     return true;
   }
 
   _move(e, point, dt, stop = 0) {
-    if(this.isStunned(e)||this.isRooted(e)||Skills.isInvulnerable(this,e))return;
+    if(this.isStunned(e)||this.isRooted(e)||(Skills.isInvulnerable(this,e)&&!Skills.hasStatusFlag(this,e,'canMoveInvulnerable')))return;
     const originalDistance=distance(e,point);
     if(originalDistance<=Math.max(3,stop))return;
     const goal=stop?{x:point.x+(e.x-point.x)/originalDistance*stop,y:point.y+(e.y-point.y)/originalDistance*stop}:point;
@@ -646,20 +677,25 @@ export class Game {
 
   _heroTick(h,dt) {
     Inventory.tickInventory(this,h);
-    h.hp=Math.min(h.maxHp,h.hp+h.hpRegen*dt);
+    ItemRuntime.regenerate(this,h,h.hpRegen*dt);
     h.mana=Math.min(h.maxMana,h.mana+Skills.auraManaRegen(this,h)*dt);
     const ownBase=BASES[h.team];
     if(distance(h,ownBase)<1200){h.hp=Math.min(h.maxHp,h.hp+h.maxHp*.05*dt);h.mana=Math.min(h.maxMana,h.mana+(h.maxMana*.06+14)*dt);}
     if(h.dead)return;
+    if(h.itemChannel||h.forcedMotion)return;
     const busy=Skills.tickHeroAbilities(this,h,dt);
     if(this.isStunned(h))return;
     if(this._tauntedTick(h,dt))return;
     if(busy)return;
-    if(h.recallTimer>0){h.recallTimer=Math.max(0,h.recallTimer-dt);if(h.recallTimer<=1e-7){h.recallTimer=0;Object.assign(h,ownBase);h.navPath=null;h.destination=null;h.targetId=null;h.pathIndex=1;}return;}
     if(h.isPlayer)this._playerTick(h,dt);else this._botTick(h,dt);
   }
 
   _playerTick(h,dt) {
+    if(h.pickupTargetId){
+      const item=this.entities.find(e=>e.id===h.pickupTargetId&&!e.dead);
+      if(!item)h.pickupTargetId=null;
+      else if(distance(h,item)<=250){Inventory.pickupItem(this,h,item);h.pickupTargetId=null;h.destination=null;h.navPath=null;}
+    }
     let target = h.explicitTarget ? this.entities.find(e => e.id === h.explicitTarget && alive(e)) : null;
     if (h.explicitTarget && !target) { h.explicitTarget = null; h.targetId = null; }
     if (this.keyboard.x || this.keyboard.y) {

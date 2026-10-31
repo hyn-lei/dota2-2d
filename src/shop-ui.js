@@ -1,16 +1,27 @@
 import { ITEMS, ITEM_BY_ID } from './item-data.js';
-import { SLOT_COUNTS, shopAccess, sellValue, SECRET_SHOPS } from './inventory.js';
+import { SLOT_COUNTS, shopAccess, sellValue, SECRET_SHOPS, stockStatus } from './inventory.js';
 import { icon } from './icons.js';
 
 const escape=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const areaNames={inventory:'装备栏',backpack:'背包',stash:'储藏处'};
+const areaNames={inventory:'装备栏',backpack:'背包',stash:'储藏处',tp:'回城卷轴',cargo:'信使'};
 export const itemArt=item=>`<img src="/${item.image}" alt="" draggable="false" />`;
 const setHTML=(element,html)=>{if(element.renderedContent!==html){element.innerHTML=html;element.renderedContent=html;}};
 
 export function mountShop(panel,inventory,game,actions){
  const state={selected:'boots',category:'all',query:'',slot:null};
  panel.innerHTML=`<div class="panel-heading"><div><span class="eyebrow">DOTA 2 · 7.41f</span><h2>装备商店</h2></div><button class="icon-button" id="close-shop" aria-label="关闭商店">${icon('close')}</button></div><div class="shop-location"></div><label class="shop-search">${icon('search')}<input id="item-search" type="search" placeholder="搜索物品、属性或英文名称" aria-label="搜索商店物品" autocomplete="off" /></label><nav class="shop-categories" aria-label="物品分类">${Object.entries({all:'全部',attributes:'属性',equipment:'装备',secret:'神秘',upgrades:'合成',recipes:'卷轴'}).map(([id,label])=>`<button data-category="${id}">${label}</button>`).join('')}</nav><div class="shop-content"><div class="shop-catalog" aria-label="可购买物品"></div><section class="item-detail" aria-label="物品详情"></section></div><section class="stash-section"><div><h3>储藏处 <span id="stash-used"></span></h3><button id="collect-stash">取出全部</button></div><div class="stash-slots"></div></section><section class="quickbuy-section"><div><h3>快捷购买 <small>Shift + 单击物品添加</small></h3><button id="clear-quickbuy" aria-label="清空快捷购买">清空</button></div><div class="quickbuy-items"></div><button id="buy-quick">购买队列物品 <kbd>G</kbd></button></section><p class="shop-foot"><span id="slots-used"></span><small>双击 / 右键购买 · 单击查看详情</small></p>`;
+ const consumables=document.createElement('button');consumables.dataset.category='consumables';consumables.textContent='消耗品';panel.querySelector('[data-category="attributes"]').before(consumables);
  const notify=result=>{if(result.ok){actions.changed();}else actions.notify(result.reason||'无法操作');update();return result;};
+ const courierPanel=document.createElement('section');courierPanel.className='courier-section';panel.querySelector('.quickbuy-section').before(courierPanel);
+ panel.addEventListener('click',e=>{
+  const command=e.target.closest('[data-courier]');if(command){notify(game.courierCommand(command.dataset.courier));return;}
+  if(e.target.closest('#courier-buy')){notify(game.buyWithCourier(state.selected));return;}
+  if(!state.slot)return;const {area,index}=state.slot;
+  if(e.target.closest('#use-selected'))actions.useItem(index,area);
+  if(e.target.closest('#lock-selected'))notify(game.setCombineLock(area,index));
+  if(e.target.closest('#disassemble-selected')){state.slot=null;notify(game.disassembleItem(area,index));}
+  if(e.target.closest('#drop-selected')){state.slot=null;notify(game.dropItem(area,index));}
+ });
  const buy=id=>{const result=notify(game.buy(id));if(result.ok)actions.notify(`已购买 ${ITEM_BY_ID[id].name}${result.area==='stash'?'，放入储藏处':result.area==='backpack'?'，放入背包':''}`);};
  function select(id){state.selected=id;state.slot=null;update();}
  function inspect(area,index){
@@ -18,8 +29,8 @@ export function mountShop(panel,inventory,game,actions){
   state.selected=id;state.slot={area,index};actions.open();update();
  }
  const slotHTML=(area,index)=>{
-  const p=game.player,id=p[area][index],item=ITEM_BY_ID[id],ready=p[area+'Meta'][index]?.readyAt||0,remaining=area==='inventory'?Math.max(0,Math.ceil(ready-game.time)):0;
-  return `<button class="inventory-slot ${item?'filled':''} ${state.slot?.area===area&&state.slot.index===index?'selected-slot':''} ${remaining?'item-inactive':''}" data-slot-area="${area}" data-slot-index="${index}" draggable="${!!item}" title="${escape(item?item.name+' · '+item.description:areaNames[area]+'空位')}" aria-label="${areaNames[area]} ${index+1}：${escape(item?.name||'空位')}">${item?itemArt(item):'<span>·</span>'}${remaining?`<b class="item-reactivation">${remaining}</b>`:''}</button>`;
+  const p=game.player,id=p[area][index],item=ITEM_BY_ID[id],meta=p[area+'Meta'][index],info=game.itemState(index,area),remaining=Math.ceil(Math.max(info.ready,info.cooldown));
+  return `<button class="inventory-slot ${item?'filled':''} ${remaining?'item-inactive':''}" data-slot-area="${area}" data-slot-index="${index}" draggable="${!!item}" title="${escape(item?item.name+' · '+item.description:areaNames[area]+'空位')}" aria-label="${areaNames[area]} ${index+1}：${escape(item?.name||'空位')}">${item?itemArt(item):'<span>·</span>'}${area==='inventory'?`<kbd>${index+1}</kbd>`:area==='tp'?'<kbd>B</kbd>':''}${item&&(item.charges||item.abilityCharges||item.displayCharges||item.requiresCharges)?`<em class="item-charges">${meta?.charges||0}</em>`:''}${meta?.combineLocked?'<span class="item-lock">锁</span>':''}${remaining?`<b class="item-reactivation">${remaining}</b>`:''}</button>`;
  };
  function handleSlot(e){
   const button=e.target.closest('[data-slot-area]');if(!button)return;
@@ -30,6 +41,7 @@ export function mountShop(panel,inventory,game,actions){
  }
  for(const container of [panel,inventory]){
   container.addEventListener('click',handleSlot);
+  container.addEventListener('dblclick',e=>{const b=e.target.closest('[data-slot-area]');if(b&&['inventory','tp'].includes(b.dataset.slotArea))actions.useItem(+b.dataset.slotIndex,b.dataset.slotArea);});
   container.addEventListener('dragstart',e=>{const b=e.target.closest('[data-slot-area]');if(b&&game.player[b.dataset.slotArea][+b.dataset.slotIndex])e.dataTransfer.setData('application/x-dota-item',JSON.stringify({area:b.dataset.slotArea,index:+b.dataset.slotIndex}));});
   container.addEventListener('dragover',e=>{if(e.target.closest('[data-slot-area]'))e.preventDefault();});
   container.addEventListener('drop',e=>{const b=e.target.closest('[data-slot-area]');if(!b)return;e.preventDefault();try{const from=JSON.parse(e.dataTransfer.getData('application/x-dota-item'));state.slot=null;notify(game.moveItem(from.area,from.index,b.dataset.slotArea,+b.dataset.slotIndex));}catch{}});
@@ -52,12 +64,13 @@ export function mountShop(panel,inventory,game,actions){
  panel.querySelector('#clear-quickbuy').onclick=()=>{game.player.quickbuy=[];update();};
  function update(){
   const p=game.player,access=shopAccess(p);
-  setHTML(inventory,`<div class="equipped-slots">${Array.from({length:6},(_,i)=>slotHTML('inventory',i)).join('')}</div><div class="backpack-label">背包 <span>物品不提供属性</span></div><div class="backpack-slots">${Array.from({length:3},(_,i)=>slotHTML('backpack',i)).join('')}</div>`);
+  setHTML(inventory,`<div class="equipped-slots">${Array.from({length:6},(_,i)=>slotHTML('inventory',i)).join('')}</div><div class="backpack-label">背包 <span>1–6 使用装备 · 双击选择目标</span></div><div class="backpack-slots">${Array.from({length:3},(_,i)=>slotHTML('backpack',i)).join('')}${slotHTML('tp',0)}</div>`);
+  inventory.querySelectorAll('[data-slot-area]').forEach(b=>b.classList.toggle('selected-slot',state.slot?.area===b.dataset.slotArea&&state.slot.index===+b.dataset.slotIndex));
   if(panel.hidden)return;
   setHTML(panel.querySelector('.shop-location'),`<span class="${access.shop?'at-shop':''}">${p.dead?'阵亡中 · 购买放入储藏处':access.base?'泉水商店 · 可取放储藏物品':access.secret?'神秘商店 · 可购买专属组件':'远离商店 · 普通物品放入储藏处'}</span><button id="locate-secret">定位神秘商店</button>`);
   panel.querySelector('#locate-secret').onclick=()=>{const nearest=[...SECRET_SHOPS].sort((a,b)=>Math.hypot(a.x-p.x,a.y-p.y)-Math.hypot(b.x-p.x,b.y-p.y))[0];actions.locate(nearest);};
   panel.querySelectorAll('[data-category]').forEach(b=>{const selected=b.dataset.category===state.category;b.classList.toggle('active',selected);b.setAttribute('aria-pressed',String(selected));});
-  const visible=ITEMS.filter(i=>(state.category==='all'||i.category===state.category)&&`${i.name} ${i.en} ${i.description} ${i.id}`.toLocaleLowerCase().includes(state.query));
+  const visible=ITEMS.filter(i=>(state.category==='all'||i.category===state.category||state.category==='consumables'&&!i.recipeOnly&&(!i.permanent||i.id==='bottle'))&&`${i.name} ${i.en} ${i.description} ${i.id}`.toLocaleLowerCase().includes(state.query));
   setHTML(panel.querySelector('.shop-catalog'),visible.length?visible.map(i=>`<button class="shop-item ${i.id===state.selected?'selected':''} ${p.gold<i.cost?'unaffordable':''}" data-item="${i.id}" title="${escape(i.name+' · '+i.description)}" aria-label="查看${escape(i.name)}，${i.cost}金币"><span class="item-art">${itemArt(i)}</span><strong>${i.name}</strong><span class="item-price">${i.cost}</span></button>`).join(''):'<p class="shop-empty">没有匹配的物品</p>');
   const item=ITEM_BY_ID[state.selected],quote=game.purchaseQuote(item.id),slot=state.slot;
   if(slot&&p[slot.area][slot.index]!==item.id)state.slot=null;
@@ -70,6 +83,13 @@ export function mountShop(panel,inventory,game,actions){
   setHTML(panel.querySelector('.quickbuy-items'),p.quickbuy.length?p.quickbuy.map(id=>`<button data-item="${id}" title="${ITEM_BY_ID[id].name}">${itemArt(ITEM_BY_ID[id])}<span>${ITEM_BY_ID[id].name}</span></button>`).join(''):'<span class="quickbuy-empty">将下一件装备加入队列，按 G 购买买得起的组件。</span>');
   panel.querySelector('#buy-quick').disabled=!p.quickbuy.length||game.paused||game.status!=='playing';
   panel.querySelector('#slots-used').textContent=`装备 ${p.inventory.filter(Boolean).length}/6 · 背包 ${p.backpack.filter(Boolean).length}/3`;
+  // Owned-item controls stay separate from the purchase/recipe view.
+  const detail=panel.querySelector('.item-detail'),old=detail.querySelector('.owned-commands');if(!owned)old?.remove();
+  if(owned){const meta=p[slot.area+'Meta'][slot.index],info=game.itemState(slot.index,slot.area);const commands=old||document.createElement('div');commands.className='owned-commands';setHTML(commands,`<p>${meta?.mode?`模式：${escape({strength:'力量',agility:'敏捷',intelligence:'智力',on:'开启',off:'关闭',attack:'攻击',spell:'技能'}[meta.mode]||meta.mode)} · `:''}${info.cooldown>0?`冷却 ${Math.ceil(info.cooldown)} 秒`:info.active?'主动效果就绪':'被动装备'}</p><button id="use-selected" ${info.active&&['inventory','tp'].includes(slot.area)&&!info.ready&&!info.cooldown?'':'disabled'}>使用物品</button><button id="lock-selected">${meta.combineLocked?'允许合成':'锁定合成'}</button><button id="disassemble-selected" ${String(item.disassemble).endsWith('_ALWAYS')?'':'disabled'}>拆分</button><button id="drop-selected" ${item.droppable&&slot.area!=='stash'?'':'disabled'}>丢在脚下</button>`);if(!old)detail.prepend(commands);}
+  detail.querySelectorAll('[data-transfer="cargo"],[data-transfer="tp"]').forEach(b=>{if(b.dataset.transfer==='cargo'||item.id!=='tpscroll')b.remove();});
+  let supply=detail.querySelector('.item-supply');if(!supply){supply=document.createElement('p');supply.className='item-supply';detail.append(supply);}const stock=stockStatus(game,p,item.id);supply.textContent=Number.isFinite(stock.available)?`库存 ${stock.available} / ${item.maxStock}${stock.remaining>0&&Number.isFinite(stock.remaining)?` · ${Math.ceil(stock.remaining)} 秒后补货`:''}`:'';
+  const c=game.courier,names={idle:'待命',collect:'返回取货',deliver:'正在送达',return:'返航',secret:'前往神秘商店',shopping:'神秘商店待命'};
+  setHTML(courierPanel,`<div class="courier-heading"><h3>信使 · ${c.dead?`${Math.ceil(c.respawnAt-game.time)} 秒后复活`:names[c.command]||'待命'}</h3><small>${c.flying?'飞行':'地面'} · Lv.${p.level} · ${c.cargo.filter(Boolean).length}/6</small></div><div class="courier-cargo">${Array.from({length:6},(_,i)=>{const item=ITEM_BY_ID[c.cargo[i]];return `<span title="${escape(item?.name||'信使空位')}">${item?itemArt(item):'·'}</span>`;}).join('')}</div><div class="courier-controls">${[['deliver','运送 F3'],['return','返航'],['secret','神秘商店'],['burst','加速 10级'],['shield','护盾 20级']].map(([id,label])=>`<button data-courier="${id}" ${c.dead||game.paused||(id==='burst'&&(p.level<10||c.burstReadyAt>game.time))||(id==='shield'&&(p.level<20||c.shieldReadyAt>game.time))?'disabled':''}>${label}</button>`).join('')}<button id="courier-buy" ${item.secretShop&&!c.dead&&shopAccess(c).secret?'':'disabled'}>信使购买所选组件</button></div>`);
  }
  update();return {update,inspect,buyQuick:()=>notify(game.buyQuick())};
 }

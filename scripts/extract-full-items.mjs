@@ -35,6 +35,7 @@ const fields = {
   spell_lifesteal:'spellLifesteal', spell_amp:'spellAmp',
   movement_speed_percent_bonus:'moveSpeedPct', hp_regen_amp:'healthRegenAmp',
   mana_regen_multiplier:'manaRegenAmp', bonus_cooldown:'cooldownReduction',
+  bonus_aoe:'spellAoE', manacost_reduction:'manaCostReduction', cast_speed_pct:'castSpeed', slow_resistance:'slowResistance',
 };
 // These names are ambiguous across items: only map their verified permanent uses.
 const extraFields = {
@@ -64,10 +65,11 @@ const labels = {
   hpRegen:'生命恢复/秒',manaRegen:'魔法恢复/秒',maxManaPercent:'最大魔法值',
   magicResistance:'魔法抗性',evasion:'闪避',lifesteal:'攻击吸血',spellLifesteal:'技能吸血',
   spellAmp:'技能增强',attackRange:'攻击距离',castRange:'施法距离',statusResistance:'状态抗性',
+  spellAoE:'技能范围',manaCostReduction:'魔法消耗降低',castSpeed:'施法速度',slowResistance:'减速抗性',
   moveSpeedPct:'移动速度',healthRegenAmp:'生命恢复增强',manaRegenAmp:'魔法恢复增强',
   cooldownReduction:'冷却减少',
 };
-const percentageStats = new Set(['maxManaPercent','magicResistance','evasion','lifesteal','spellLifesteal','spellAmp','statusResistance','moveSpeedPct','healthRegenAmp','manaRegenAmp','cooldownReduction']);
+const percentageStats = new Set(['manaCostReduction','castSpeed','slowResistance','maxManaPercent','magicResistance','evasion','lifesteal','spellLifesteal','spellAmp','statusResistance','moveSpeedPct','healthRegenAmp','manaRegenAmp','cooldownReduction']);
 
 export function parseValveKV(raw) {
   const tokens = [...raw.matchAll(/\/\/[^\n]*|"((?:\\.|[^"\\])*)"|([{}])/g)]
@@ -210,7 +212,9 @@ export async function generateFullItems({refresh = false} = {}) {
     const resultItem = recipeOnly ? listByName.get(script.ItemResult) : null;
     const name = official.name_loc || item.name_loc || (resultItem ? `图纸（${resultItem.name_loc}）` : '');
     const en = englishByNumber.get(item.id)?.name_english_loc || item.name_english_loc || (resultItem ? `${resultItem.name_english_loc} Recipe` : '');
-    const description = substitute(plainText(official.desc_loc), values, valueLevels)
+    const descriptionValues = item.name==='item_satanic'
+      ? {...values,unholy_lifesteal_total_tooltip:values.lifesteal_percent+values.unholy_lifesteal_percent} : values;
+    const description = substitute(plainText(official.desc_loc), descriptionValues, valueLevels)
       || (recipeOnly ? `用于合成${resultItem.name_loc}，不提供属性加成。` : '');
     const icon = stats.damage ? 'sword' : stats.armor ? 'shield' : stats.strength || stats.maxHp ? 'heart'
       : stats.speed || stats.agility ? 'boots' : stats.intelligence || stats.maxMana ? 'staff' : 'relic';

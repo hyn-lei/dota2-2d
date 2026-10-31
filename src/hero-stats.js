@@ -29,14 +29,18 @@ export function calculateHeroStats(heroId, level = 1, inventory = []) {
   if (!hero) throw new RangeError(`Unknown hero: ${heroId}`);
   const actualLevel = Math.max(1, Math.min(30, Math.floor(Number(level) || 1)));
   const bonus = {};
-  let bootSpeed = 0;
+  let bootSpeed = 0, itemMagicMultiplier=1,evasionMultiplier=1;const unique={};
   for (const entry of inventory) {
     if (!entry) continue;
     const item = typeof entry === 'string' ? ITEM_BY_ID[entry] : entry;
     if (!item) throw new RangeError(`Unknown item: ${entry}`);
     for (const [key, value] of Object.entries(item.stats || {})) {
       // Basic catalog has only flat Boots of Speed; duplicate boots do not stack.
-      if (key === 'speed' && item.movementGroup === 'boots') bootSpeed = Math.max(bootSpeed, value);
+      if(key==='magicResistance')itemMagicMultiplier*=1-value/100;
+      else if(key==='evasion')evasionMultiplier*=1-value/100;
+      else if(['castRange','cooldownReduction','statusResistance','slowResistance','castSpeed','manaCostReduction','spellAoE','moveSpeedPct','healthRegenAmp','manaRegenAmp','attackRange'].includes(key))bonus[key]=Math.max(bonus[key]||0,value);
+      else if((key==='spellAmp'&&['kaya','kaya_and_sange','yasha_and_kaya'].includes(item.id))||(key==='speed'&&item.id==='wind_lace')){const group=key+':'+(item.id==='wind_lace'?'windlace':'kaya');const old=unique[group]||0;unique[group]=Math.max(old,value);bonus[key]=(bonus[key]||0)+unique[group]-old;}
+      else if (key === 'speed' && item.movementGroup === 'boots') bootSpeed = Math.max(bootSpeed, value);
       else bonus[key] = (bonus[key] || 0) + value;
     }
   }
@@ -54,20 +58,24 @@ export function calculateHeroStats(heroId, level = 1, inventory = []) {
   const damageMin = hero.baseDamageMin + attributeDamage + (bonus.damage || 0);
   const damageMax = hero.baseDamageMax + attributeDamage + (bonus.damage || 0);
   const armor = hero.baseArmor + agility / 6 + (bonus.armor || 0);
-  const magicResistance = Math.min(1, hero.baseMagicResistance + intelligence * 0.001);
+  const magicResistance = 1-(1-Math.min(1, hero.baseMagicResistance + intelligence * 0.001))*itemMagicMultiplier;
   const attackSpeed = Math.max(20, Math.min(700, hero.baseAttackSpeed + agility + (bonus.attackSpeed || 0)));
   return {
     heroId, level: actualLevel, primaryAttribute: hero.primaryAttribute,
     strength, agility, intelligence, attributes,
     maxHp: hero.baseHealth + strength * 22 + (bonus.maxHp || 0),
     maxMana: (hero.baseMana + intelligence * 12 + (bonus.maxMana || 0)) * (1+(bonus.maxManaPercent||0)/100),
-    hpRegen: hero.baseHealthRegen + strength * 0.1 + (bonus.hpRegen || 0),
-    manaRegen: hero.baseManaRegen + intelligence * 0.05 + (bonus.manaRegen || 0),
+    hpRegen: (hero.baseHealthRegen + strength * 0.1 + (bonus.hpRegen || 0))*(1+(bonus.healthRegenAmp||0)/100),
+    manaRegen: (hero.baseManaRegen + intelligence * 0.05 + (bonus.manaRegen || 0))*(1+(bonus.manaRegenAmp||0)/100),
     damageMin, damageMax, damage: (damageMin + damageMax) / 2,
     armor, magicResistance, physicalResistance: 1 - physicalDamageMultiplier(armor),
     baseAttackTime: hero.baseAttackTime, baseAttackSpeed: hero.baseAttackSpeed,
     attackSpeed, attackInterval: hero.baseAttackTime / (attackSpeed / 100),
-    range: hero.range, speed: hero.moveSpeed + bootSpeed + (bonus.speed || 0),
+    range: hero.range+(bonus.attackRange||0), speed: Math.min(550,(hero.moveSpeed + bootSpeed + (bonus.speed || 0))*(1+(bonus.moveSpeedPct||0)/100)),
     visionDay: hero.visionDay, visionNight: hero.visionNight,
+    castRangeBonus:bonus.castRange||0,spellAmp:bonus.spellAmp||0,cooldownReduction:bonus.cooldownReduction||0,
+    lifesteal:bonus.lifesteal||0,spellLifesteal:bonus.spellLifesteal||0,statusResistance:bonus.statusResistance||0,evasion:(1-evasionMultiplier)*100,
+    slowResistance:bonus.slowResistance||0,spellAoE:bonus.spellAoE||0,manaCostReduction:bonus.manaCostReduction||0,castSpeed:bonus.castSpeed||0,
+    healAmp:bonus.healAmp||0,
   };
 }

@@ -503,7 +503,7 @@ export const EXTRA_ABILITIES={
           12
         ]
       },
-      "description": "释放一道在昆卡身后出现的潮汐波。造成点伤害，并将敌人沿着波浪拖拽距离。敌人被拖拽时无法攻击。",
+      "description": "释放一道在昆卡身后出现的潮汐波。造成 180 点伤害，并将敌人沿着波浪拖拽 600 距离。敌人被拖拽时无法攻击。",
       "damageType": "magical"
     }
   ]

@@ -8,7 +8,7 @@ import { navigation } from '../src/navigation.js';
 const advance = (game, seconds) => { for (let t = 0; t < seconds - 1e-8; t += .1) game.step(Math.min(.1, seconds - t)); };
 const isolated = (hero = 'juggernaut') => {
   const game = new Game({hero});
-  game.entities = game.entities.filter(e => e.isPlayer || e.kind === 'ancient' || e.kind === 'tower');
+  game.entities = game.entities.filter(e => e.isPlayer || e.kind === 'ancient' || e.kind === 'tower' || e.kind === 'fountain');
   game.nextWave = Infinity;
   game.nextNeutralSpawn=Infinity;
   return game;
@@ -61,7 +61,7 @@ test('shopping applies equipped bonuses, preserves economy, and keeps overflow i
   assert.equal(g.buy('boots').ok, true); assert.equal(p.speed, speed + 45); assert.equal(p.gold, 100);
   assert.equal(g.buy('relic').ok, false); assert.equal(g.buy('unknown').ok, false);
   p.gold = 10000;
-  while (p.inventory.length < 6) assert.equal(g.buy(ITEMS[0].id).ok, true);
+  while (p.inventory.length < 6) assert.equal(g.buy('blade').ok, true);
   assert.equal(g.buy('boots').ok, true);assert.deepEqual(p.backpack,['boots']);assert.equal(p.speed,speed+45);
   g.damage(p, 1e6, {team:1}); assert.equal(g.buy('boots').ok, true);assert.deepEqual(p.stash,['boots']);
 });
@@ -83,12 +83,13 @@ test('lane tiers and both T4 towers must fall before Ancient victory', () => {
   const time = g.time; advance(g, 1); assert.equal(g.time, time);
 });
 
-test('recall channels, cancels on commands or damage, and returns to fountain', () => {
+test('recall consumes a scroll and mana, survives ordinary damage, and returns to fountain', () => {
   const g = isolated(), p = g.player; p.x = 1100; p.y = 900;
-  assert.equal(g.recall().ok, true); advance(g, 1); assert.ok(p.recallTimer > 0);
-  g.damage(p, 10, {team:1}); assert.equal(p.recallTimer, 0);
-  g.recall(); g.moveTo(1300, 900); assert.equal(p.recallTimer, 0);
-  g.recall(); advance(g, 3.1); assert.ok(Math.hypot(p.x-BASES[0].x,p.y-BASES[0].y) < 70);
+  const mana=p.mana;assert.equal(p.tp[0],'tpscroll');
+  assert.equal(g.recall().ok, true);assert.equal(p.mana,mana-75);assert.equal(p.tp[0],undefined);
+  advance(g,1);g.damage(p,10,{team:1});assert.ok(p.itemChannel);
+  advance(g,2.1);assert.ok(Math.hypot(p.x-BASES[0].x,p.y-BASES[0].y)<250);
+  assert.ok(p.itemCooldowns.teleport>76);assert.equal(g.recall().ok,false);
 });
 
 test('death awards kills, blocks actions, and respawns with equipment and clean targets', () => {

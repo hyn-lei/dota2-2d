@@ -30,11 +30,13 @@ export function dot(g,e,item,duration,dps,source,type='magical',extra={}){
  if(invulnerable(g,e))return;
  return status(g,e,'itemDot:'+item.id,item,{duration,sourceId:source.id,tickDamage:dps*.25,tickInterval:.25,nextTick:g.time+.25,damageType:type,...extra});
 }
-export function heal(g,e,amount,source){
+export function heal(g,e,amount,source,isRegen=false){
  const reduction=Object.values(e.statuses||{}).filter(s=>s.until>g.time).reduce((a,s)=>Math.max(a,s.healReduction||0),0);
  const received=Object.values(e.statuses||{}).filter(s=>s.until>g.time).reduce((a,s)=>a+(s.healReceivedAmp||0),0);
- const amp=1+(source?.healAmp||0)/100;
- const result=Math.max(0,amount*amp*(1-reduction/100)*(1+received/100));
+ const amp=isRegen?1:1+(source?.healAmp||0)/100;
+ let result=Math.max(0,amount*amp*(1-reduction/100)*(1+received/100));
+ const theft=isRegen&&e.itemAura?.regenTheft;
+ if(theft){const lost=result*theft.percent/100;result-=lost;const thief=g.entities.find(h=>h.id===theft.sourceId);if(theft.active&&alive(thief))thief.hp=Math.min(thief.maxHp,thief.hp+lost);}
  const before=e.hp;e.hp=Math.min(e.maxHp,e.hp+result);return e.hp-before;
 }
 export function regen(g,e,item,duration,hpPerSec,manaPerSec,source,breakOnDamage=false,extra={}){
@@ -47,6 +49,7 @@ export function equipped(g,h){
  return Inventory.itemEntries(h,['inventory','tp']).filter(e=>(e.meta.readyAt||0)<=g.time).map(e=>({...e,item:ITEM_BY_ID[e.id]})).filter(e=>e.item);
 }
 export function refresh(g,h){
+ if(h.kind!=='hero')return;
  const hp=h.hp/h.maxHp,mana=h.maxMana?h.mana/h.maxMana:0;g._refreshHero(h);
  h.hp=h.dead?0:Math.max(Number.EPSILON,Math.min(h.maxHp,hp*h.maxHp));h.mana=Math.max(0,Math.min(h.maxMana,mana*h.maxMana));
 }
@@ -66,7 +69,7 @@ export function forceMove(g,e,to,duration=.5){
  e.destination=null;e.navPath=null;e.recallTimer=0;Skills.interruptCast(g,e,false);
 }
 export function teleport(g,h,point){Object.assign(h,g.navigation.nearestWalkable(g._point(point.x,point.y)));h.navPath=null;h.destination=null;h.targetId=null;h.explicitTarget=null;h.recallTimer=0;}
-export function allTrees(g){return [...TREES.filter((_,index)=>!g.cutTrees?.has(index)).map((t,index)=>({...t,treeIndex:TREES.indexOf(t)})),...(g.plantedTrees||[]).filter(t=>t.until>g.time)];}
+export function allTrees(g){return [...TREES.flatMap((t,index)=>g.cutTrees?.has(index)?[]:[{...t,treeIndex:index}]),...(g.plantedTrees||[]).filter(t=>t.until>g.time)];}
 export function treeAt(g,point,radius=120){return allTrees(g).filter(t=>distance(t,point)<=radius).sort((a,b)=>distance(a,point)-distance(b,point))[0];}
 export function rebuildTrees(g){
  g.navigation.updateTrees?.(allTrees(g),g.entities.filter(building));

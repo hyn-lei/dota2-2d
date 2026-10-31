@@ -150,3 +150,10 @@ test('transferring an instance to full storage fails atomically and foreign equi
  assert.equal(ally.backpackMeta[0].uid,uid);assert.equal(ally.backpackMeta[0].ownerId,p.id);
  assert.equal(Inventory.activeEquipment(g,ally).includes('blade'),false);
 });
+
+test('Power Treads supports the intelligence recipe and cannot consume foreign components',()=>{
+ const g=setup(),p=g.player;g.buy('boots');g.buy('gloves');g.buy('robe');
+ assert.deepEqual(p.inventory,['power_treads']);
+ p.inventory=['boots','gloves','robe'];p.inventoryMeta=[];Inventory.ensureInventory(p);p.inventoryMeta[2].ownerId='someone-else';
+ const quote=g.purchaseQuote('power_treads');assert.equal(quote.cost,450);assert.equal(quote.consumed.some(e=>e.meta.ownerId!==p.id),false);
+});

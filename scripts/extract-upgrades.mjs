@@ -22,7 +22,8 @@ for(const [heroId,[id,prefix]]of Object.entries(heroes)){
   const upgrade=a.ability_is_granted_by_scepter?'scepter':a.ability_is_granted_by_shard?'shard':null;
   if(!upgrade)continue;
   const values=Object.fromEntries(a.special_values.map(v=>[v.name,v.values_float]));
-  const description=a.desc_loc.replace(/<[^>]*>/g,'').replace(/%(\w+)%/g,(_,key)=>values[key]?.join('/')??'0').replace(/%%/g,'%');
+  let description=a.desc_loc.replace(/<[^>]*>/g,'').replace(/%(\w+)%/g,(_,key)=>values[key]?.join('/')??'0').replace(/%%/g,'%');
+  if(a.name==='kunkka_tidal_wave')description=description.replace('造成点伤害',`造成 ${values.damage[0]} 点伤害`).replace('拖拽距离',`拖拽 ${values.knockback_distance[0]} 距离`);
   extras[heroId].push({id:a.name,sourceID:a.id,name:a.name_loc,key:extras[heroId].length?'T':'D',icon:heroId==='crystal_maiden'?'crystal':heroId==='juggernaut'?'swords':heroId==='windranger'?'wind':'torrent',color:'#a6ced4',kind:'active',maxLevel:1,requiredLevels:[],upgrade,cooldowns:a.cooldowns,manaCosts:a.mana_costs,castRanges:a.cast_ranges,castPoints:a.cast_points,channelTimes:a.channel_times,durations:a.durations,damages:a.damages,values,description,damageType:raw.AbilityUnitDamageType?.replace('DAMAGE_TYPE_','').toLowerCase()||'magical'});
  }
 }
