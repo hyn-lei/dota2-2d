@@ -122,12 +122,12 @@ function startGame(providedGame=null,resume=false){
   setupRenderer();renderer.center(game.player);bindShared();
   shopUI=mountShop($('#shop'),$('#inventory'),game,{close:toggleShop,open:()=>{if(!shopOpen)toggleShop();},notify:toast,useItem:beginItemUse,changed:()=>{sound();updateHud();},locate:point=>{renderer.zoom=.4;renderer.lookAt(point.x,point.y);toast('已定位神秘商店，右键前往金色标记处');}});
   mountSkills($('.abilities'),game,{cast,castSelf:i=>cast(i,true),autocast:async i=>{const activeGame=game,result=await activeGame.toggleAutocast(i);if(game!==activeGame)return;if(!result.ok)toast(result.reason);updateHud();},learn:i=>learn('learnAbility',i),talent:i=>learn('learnTalent',i),attributes:()=>learn('learnAttributes'),recall});
-  if(game.isNetwork)document.querySelector('.match-clock small').textContent='五真人 · 噩梦 AI';
+  if(game.isNetwork){const ai=game.entities.filter(e=>e.kind==='hero'&&e.team===0&&e.controller==='ai').length;document.querySelector('.match-clock small').textContent=ai?`${5-ai} 真人 + ${ai} 困难 AI`:'五真人 · 噩梦 AI';}
   $('.abilities').addEventListener('click',e=>{const b=e.target.closest('[data-extra]');if(b)castExtra(b.dataset.extra);});
   mountStatusBar($('.hud-vitals'));
   $('#inspection-body').insertAdjacentHTML('beforebegin','<div id="inspection-status"></div>');
   mountStatusBar($('#inspection-status'));updateHud();
-  $('.match-header').insertAdjacentHTML('afterend',`<div class="match-roster" aria-label="点击英雄头像查看属性与装备">${[0,1].map(team=>`<div class="roster-team ${team?'dire':'radiant'}"><span>${team?'夜魇':'天辉'}</span>${game.entities.filter(e=>e.kind==='hero'&&e.team===team).map(e=>`<button data-inspect-hero="${e.id}" title="查看${e.name}的属性和装备" aria-label="查看${team?'敌方':'友方'}${e.name}">${portrait(HEROES[e.heroId])}</button>`).join('')}</div>`).join('')}</div>`);
+  $('.match-header').insertAdjacentHTML('afterend',`<div class="match-roster" aria-label="点击英雄头像查看属性与装备">${[0,1].map(team=>`<div class="roster-team ${team?'dire':'radiant'}"><span>${team?'夜魇':'天辉'}</span>${game.entities.filter(e=>e.kind==='hero'&&e.team===team).map(e=>`<button data-inspect-hero="${e.id}" title="查看${e.name}${game.isNetwork&&e.team===0&&e.controller==='ai'?'（困难 AI 队友）':''}的属性和装备" aria-label="查看${team?'敌方':'友方'}${e.name}">${portrait(HEROES[e.heroId])}${game.isNetwork&&e.team===0&&e.controller==='ai'?'<small class="roster-ai-label">AI</small>':''}</button>`).join('')}</div>`).join('')}</div>`);
   document.querySelectorAll('[data-inspect-hero]').forEach(b=>b.onclick=()=>{game.selectEntity(b.dataset.inspectHero);inspectionOpen=true;updateInspection();});
   $('.hero-hud').insertAdjacentHTML('beforeend','<button id="hero-details" class="hero-details" title="查看自己的完整属性">详细属性 <span id="attribute-summary"></span></button>');
   $('#hero-details').onclick=()=>{game.selectEntity(game.player.id);inspectionOpen=!inspectionOpen;updateInspection();};
@@ -248,7 +248,7 @@ function openModal(type){
     title='你的远古征途';eyebrow='BATTLE RECORD';body=`<div class="record-stats"><div><strong>${history.matches}</strong><span>累计对局</span></div><div><strong>${history.wins}</strong><span>天辉胜利</span></div><div><strong>${history.bestKills}</strong><span>单局最高击杀</span></div></div><p class="record-caption">${history.matches?'每一场战斗，都是新的故事。':'战场尚未留下你的名字。选择一位英雄，开始第一场对局。'}</p>`;footer='<button class="primary-button modal-primary" data-close>返回战场</button>';
   }else if(type==='pause'||type==='restored'){
     title='稍作休整';eyebrow='BATTLE PAUSED';body=`<p class="pause-copy">兵线与战斗已暂停。准备好后，继续你的征程。</p><div class="pause-summary"><span>对局时间<strong>${clock(game.time)}</strong></span><span>英雄等级<strong>${game.player.level}</strong></span><span>击杀 / 阵亡<strong>${game.player.kills} / ${game.player.deaths}</strong></span></div>`;footer='<button class="primary-button modal-primary" data-close>继续战斗</button><div class="modal-secondary"><button id="restart-match">重新开始</button><button id="back-lobby">返回大厅</button></div>';
-    if(game.isNetwork){body=body.replace('兵线与战斗已暂停。准备好后，继续你的征程。','联机比赛仍在继续，菜单只停止你的操作。离开会结束本次对局，不会使用 AI 补位。');footer='<button class="primary-button modal-primary" data-close>返回战场</button><div class="modal-secondary"><button id="back-lobby">离开联机对局</button></div>';}
+    if(game.isNetwork){body=body.replace('兵线与战斗已暂停。准备好后，继续你的征程。','联机比赛仍在继续，菜单只停止你的操作。离开会结束本次对局；真人断线会保留原英雄等待重连。');footer='<button class="primary-button modal-primary" data-close>返回战场</button><div class="modal-secondary"><button id="back-lobby">离开联机对局</button></div>';}
     if(type==='restored'){title='已恢复上次对局';eyebrow='BATTLE RESTORED';body=body.replace('兵线与战斗已暂停。准备好后，继续你的征程。','英雄、装备和战斗进度已从本地存档恢复。比赛保持暂停，点击继续战斗后开始。');}
   }else if(type==='result'){
     const won=game.status==='won';title=won?'天辉，赢得胜利。':'遗迹陨落，战意未熄。';eyebrow=won?'RADIANT VICTORY':'THE ANCIENT HAS FALLEN';

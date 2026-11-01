@@ -17,10 +17,14 @@ const clamp = (n, low, high) => Math.max(low, Math.min(high, n));
 const alive = e => !e.dead && e.hp > 0;
 const building = e => ['tower','barracks','ancient','fountain','filler'].includes(e?.kind);
 const fighter = e => ['hero','creep','neutral','summon','illusion'].includes(e?.kind);
+export function coopAllyHeroIds(humans){
+  const used=new Set(humans.map(h=>h.heroId));
+  return Object.keys(HEROES).filter(id=>!used.has(id)).slice(0,5-humans.length);
+}
 
 /** Deterministic game state. Positions use Source world units; time is real seconds. */
 export class Game {
-  constructor({ hero = 'juggernaut', difficulty = 'normal', seed = 42, humanHeroes = null } = {}) {
+  constructor({ hero = 'juggernaut', difficulty = 'normal', seed = 42, humanHeroes = null, fillWithAI = false } = {}) {
     this.time = 0;
     this.status = 'playing';
     this.paused = false;
@@ -42,12 +46,17 @@ export class Game {
     this.nextNeutralSpawn = 60;
     this.nextBuildingCheck=0;
     this.selectedId = null;
-    if(humanHeroes!==null&&(!Array.isArray(humanHeroes)||humanHeroes.length!==5||humanHeroes.some(h=>!HEROES[h?.heroId])||new Set(humanHeroes.map(h=>h.heroId)).size!==5))throw new Error('联机必须有五名真人及五个不同英雄');
+    if(typeof fillWithAI!=='boolean'||fillWithAI&&humanHeroes===null)throw new Error('AI 补位需要明确的联机真人名单');
+    if(humanHeroes!==null&&(!Array.isArray(humanHeroes)||humanHeroes.length<(fillWithAI?1:5)||humanHeroes.length>5||humanHeroes.some(h=>!Object.hasOwn(HEROES,h?.heroId))||new Set(humanHeroes.map(h=>h.heroId)).size!==humanHeroes.length))throw new Error('联机真人名单或英雄选择无效');
     this.heroChoice = humanHeroes?.[0].heroId || (HEROES[hero] ? hero : 'juggernaut');
     const choices = Object.keys(HEROES);
     const allies = choices.length >= 5 ? choices.filter(id=>id!==this.heroChoice) : choices;
     if(humanHeroes){
       humanHeroes.forEach((member,i)=>{const h=this._makeHero(member.heroId,0,[1,0,2,1,2][i],true,i);Object.assign(h,{isHuman:true,controller:'human',clientId:member.clientId,playerName:member.name,movementInput:{x:0,y:0},x:BASES[0].x+(i%3-1)*70,y:BASES[0].y+Math.floor(i/3)*70});});
+      if(fillWithAI)coopAllyHeroIds(humanHeroes).forEach((heroId,index)=>{
+        const slot=humanHeroes.length+index,h=this._makeHero(heroId,0,[1,0,2,1,2][slot],false,slot);
+        Object.assign(h,{isHuman:false,controller:'ai',aiDifficulty:'hard',playerName:'困难 AI'});
+      });
     }else{
       this._makeHero(this.heroChoice, 0, 1, true, 0);
       for (let i = 0; i < 4; i++) this._makeHero(allies[i % allies.length], 0, [0,2,1,0][i], false, i + 1);

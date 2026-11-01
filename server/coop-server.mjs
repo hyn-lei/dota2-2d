@@ -3,7 +3,7 @@ import { readFile, realpath, stat } from 'node:fs/promises';
 import { resolve, extname, sep } from 'node:path';
 import { randomBytes } from 'node:crypto';
 import { WebSocketServer, WebSocket } from 'ws';
-import { CoopGame } from './coop-game.mjs';
+import { CoopGame, coopAllyHeroIds } from './coop-game.mjs';
 import { executeCommand, validHero, validName, messageHasOnly } from './commands.mjs';
 import { snapshotState } from './snapshot.mjs';
 import { encodeMessage } from '../src/network-protocol.js';
@@ -64,7 +64,9 @@ export class RoomManager {
   error(socket,code,message,requestId) {this.send(socket,{type:'error',code,message,...(requestId!==undefined?{requestId}:{})});}
   roomView(room) {
     const deadlines=room.members.filter(m=>!m.connected&&m.reconnectDeadline).map(m=>m.reconnectDeadline);
+    const aiIds=room.fillWithAI?(room.game?room.game.entities.filter(e=>e.kind==='hero'&&e.team===0&&e.controller==='ai').map(e=>e.heroId):coopAllyHeroIds(room.members)):[];
     return {code:room.code,phase:room.phase,hostId:room.hostId,capacity:5,
+      fillWithAI:!!room.fillWithAI,aiAllies:aiIds.map(heroId=>({heroId,name:HEROES[heroId].name,difficulty:'hard',controller:'ai'})),
       ...(room.matchmade?{matchmade:true}:{}),
       members:room.members.map(({clientId,name,heroId,ready,connected,heroEntityId})=>({clientId,name,heroId,ready,connected,heroEntityId:heroEntityId??null})),
       ...(deadlines.length ? {reconnectDeadline:Math.min(...deadlines)} : {}),};
@@ -162,9 +164,9 @@ export class RoomManager {
     if(session.roomCode) {this.error(session.socket,'ALREADY_IN_ROOM','请先离开当前房间',requestId);return false;}
     if(this.matchQueue.some(e=>e.session===session)){this.error(session.socket,'ALREADY_MATCHMAKING','请先取消当前匹配',requestId);return false;}return true;
   }
-  newRoom(hostId,matchmade=false){
+  newRoom(hostId,matchmade=false,fillWithAI=false){
     let code;do {code=Array.from(randomBytes(6),n=>'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'[n%32]).join('');} while(this.rooms.has(code));
-    const room={code,phase:'lobby',hostId,members:[],game:null,matchmade,createdAt:Date.now(),lastActivityAt:Date.now(),lastSnapshotAt:0};
+    const room={code,phase:'lobby',hostId,members:[],game:null,matchmade,fillWithAI,createdAt:Date.now(),lastActivityAt:Date.now(),lastSnapshotAt:0};
     this.rooms.set(code,room);return room;
   }
   enqueueMatchmaking(session,message){
@@ -205,10 +207,10 @@ export class RoomManager {
     if(previous!==this.matchQueue.length)this.broadcastMatchmaking();
   }
   create(session,message) {
-    if(!messageHasOnly(message,['type','name','heroId'])||!validName(message.name)||!validHero(message.heroId)) return this.reject(session.socket,'INVALID_ROOM','请输入玩家名并选择有效英雄');
+    if(!messageHasOnly(message,['type','name','heroId','fillWithAI'])||!validName(message.name)||!validHero(message.heroId)||message.fillWithAI!==undefined&&typeof message.fillWithAI!=='boolean') return this.reject(session.socket,'INVALID_ROOM','请输入玩家名并选择有效英雄');
     if(!this.available(session)) return;this.cleanup();
     if(this.rooms.size>=this.options.maxRooms) return this.error(session.socket,'SERVER_FULL','服务器房间已满');
-    this.addMember(session,this.newRoom(session.clientId),message);
+    this.addMember(session,this.newRoom(session.clientId,false,message.fillWithAI===true),message);
   }
   join(session,message) {
     if(!messageHasOnly(message,['type','code','name','heroId'])||typeof message.code!=='string'||!codePattern.test(message.code)||!validName(message.name)||!validHero(message.heroId)) return this.reject(session.socket,'INVALID_ROOM','无效的房间码、玩家名或英雄');
@@ -245,11 +247,14 @@ export class RoomManager {
   }
   launchMatch(room){
     const session=this.sessions.get(room.members[0]?.token);
-    if(room.members.length!==5||!room.members.every(m=>m.connected&&m.ready&&this.sessions.get(m.token)?.socket?.readyState===WebSocket.OPEN)||new Set(room.members.map(m=>m.heroId)).size!==5||new Set(room.members.map(m=>m.clientId)).size!==5){this.error(session?.socket,'NOT_READY','必须五名在线成员选择不同英雄并全部准备');return false;}
-    const roster=room.members.map(({heroId,name,clientId})=>({heroId,name,clientId})),options={seed:randomBytes(4).readUInt32LE()};
+    const fill=room.fillWithAI===true&&!room.matchmade,count=room.members.length;
+    if(count<(fill?1:5)||count>5||!room.members.every(m=>m.connected&&m.ready&&this.sessions.get(m.token)?.socket?.readyState===WebSocket.OPEN)||new Set(room.members.map(m=>m.heroId)).size!==count||new Set(room.members.map(m=>m.clientId)).size!==count){this.error(session?.socket,'NOT_READY',fill?'所有真人需在线、选择不同英雄并准备':'必须五名在线成员选择不同英雄并全部准备');return false;}
+    const roster=room.members.map(({heroId,name,clientId})=>({heroId,name,clientId})),options={seed:randomBytes(4).readUInt32LE(),fillWithAI:fill};
     try{
       room.game=this.options.gameFactory?this.options.gameFactory(roster,options):new CoopGame(roster,options);
-      if(!room.game||!Array.isArray(room.game.entities)||typeof room.game.setPaused!=='function'||typeof room.game.clearMovement!=='function')throw new Error('Invalid simulation');
+      if(!room.game||!Array.isArray(room.game.entities)||typeof room.game.step!=='function'||typeof room.game.setPaused!=='function'||typeof room.game.clearMovement!=='function'||room.game.difficulty!=='nightmare')throw new Error('Invalid simulation');
+      const heroes=room.game.entities.filter(e=>e.kind==='hero'),humans=heroes.filter(e=>e.isHuman),allies=heroes.filter(e=>e.team===0&&e.controller==='ai'),enemies=heroes.filter(e=>e.team===1&&e.controller==='ai');
+      if(humans.length!==count||allies.length!==5-count||enemies.length!==5||!humans.every(e=>e.team===0&&e.controller==='human')||!allies.every(e=>e.aiDifficulty==='hard'))throw new Error('Invalid team controllers');
       for(const member of room.members) member.heroEntityId=room.game.entities.find(e=>e.isHuman&&e.clientId===member.clientId)?.id;
     }catch{room.game=null;this.end(room,'simulation_error');return false;}
     if(room.members.some(m=>!m.heroEntityId)) {this.end(room,'simulation_error');return false;}

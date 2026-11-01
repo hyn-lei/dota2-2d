@@ -1,8 +1,10 @@
 import { Game } from '../src/engine.js';
+export { coopAllyHeroIds } from '../src/engine.js';
 
 export class CoopGame extends Game {
   constructor(humanHeroes, options = {}) {
-    if(!Array.isArray(humanHeroes) || humanHeroes.length !== 5) throw new Error('Exactly five human heroes are required');
+    const fill=options.fillWithAI??false;
+    if(typeof fill!=='boolean'||!Array.isArray(humanHeroes)||humanHeroes.length<(fill?1:5)||humanHeroes.length>5)throw new Error('Invalid human roster for cooperative mode');
     super({...options,difficulty:'nightmare',humanHeroes});
   }
 

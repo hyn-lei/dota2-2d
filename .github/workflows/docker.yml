@@ -82,6 +82,7 @@ jobs:
           node tests/browser-ogre.mjs
           node tests/browser-notice.mjs
           node tests/browser-recovery.mjs
+          node tests/browser-ai-room.mjs
           node tests/browser-matchmaking.mjs
           node tests/browser-coop.mjs
           node tests/browser-coop-review.mjs

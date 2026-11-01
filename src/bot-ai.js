@@ -16,7 +16,7 @@ export const BOT_DIFFICULTY=Object.freeze({
 const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
 const alive=e=>e&&!e.dead&&e.hp>0;
 const fighter=e=>['hero','creep','neutral','illusion','summon'].includes(e?.kind);
-const profile=(g,h)=>BOT_DIFFICULTY[h.team===1?g.difficulty:'normal']||BOT_DIFFICULTY.normal;
+export const botProfile=(g,h)=>BOT_DIFFICULTY[h.team===1?g.difficulty:h.aiDifficulty==='hard'?'hard':'normal']||BOT_DIFFICULTY.normal;
 const has=(g,h,id)=>h.statuses?.[id]?.until>g.time;
 const controlled=(g,h)=>g.isStunned(h)||g.isRooted(h);
 const nightmare=(g,h)=>h.team===1&&g.difficulty==='nightmare';
@@ -306,7 +306,7 @@ export function tickBusyBot(g,h){
 }
 export function tickBot(g,h,dt){
   maintainBot(g,h);if(h.isPlayer||h.isHuman||g.paused||h.aiTimer===Infinity||!alive(h)||g.status!=='playing')return;
-  const settings=profile(g,h),state=h.botState||=( {mode:'push',targetId:null,nextMacroAt:0,goal:null,chaseStartedAt:0} );
+  const settings=botProfile(g,h),state=h.botState||=( {mode:'push',targetId:null,nextMacroAt:0,goal:null,chaseStartedAt:0} );
   if(nightmare(g,h))director(g);
   h.aiTimer-=dt;const ctx=context(g,h,settings.awareness),hp=h.hp/h.maxHp;
   if(h.heroId==='kunkka'&&h.xMark?.returnAt<=g.time){g._cast(h,2);return;}

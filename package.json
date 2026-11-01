@@ -22,7 +22,8 @@
     "test:coop": "node tests/browser-coop.mjs",
     "test:notice": "node tests/browser-notice.mjs",
     "test:recovery": "node tests/browser-recovery.mjs",
-    "test:matchmaking": "node tests/browser-matchmaking.mjs"
+    "test:matchmaking": "node tests/browser-matchmaking.mjs",
+    "test:ai-room": "node tests/browser-ai-room.mjs"
   },
   "devDependencies": {
     "playwright": "^1.56.1",
