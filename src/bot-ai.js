@@ -20,7 +20,7 @@ const controlled=(g,h)=>g.isStunned(h)||g.isRooted(h);
 
 export function maintainBot(g,h){
   if(h.isPlayer||h.aiTimer===Infinity||g.paused||g.status!=='playing')return;
-  if(h.skillPoints>0&&g.time>=(h.botLearnAt||0)){Progression.autoLearn(h);g._refreshHero(h);h.botLearnAt=g.time+.5;}
+  if((h.skillPoints>0||h.talentPoints>0)&&g.time>=(h.botLearnAt||0)){Progression.autoLearn(h);g._refreshHero(h);h.botLearnAt=g.time+.5;}
   tickBotShopping(g,h);
 }
 function context(g,h,radius){
@@ -76,6 +76,10 @@ function useItem(g,h,id,point=h){
 }
 function useBotItems(g,h,target,ctx,retreating=false){
   const hp=h.hp/h.maxHp,mana=h.mana/h.maxMana,heroFight=ctx.enemyHeroes.length>0,d=target?distance(h,target):Infinity;
+  if(!retreating&&!heroFight&&h.inventory.includes('hand_of_midas')){
+    const food=ctx.enemies.filter(e=>['creep','neutral','summon'].includes(e.kind)&&!e.ancient&&!e.isRoshan).sort((a,b)=>(b.xpBounty||0)-(a.xpBounty||0));
+    for(const unit of food)if(useItem(g,h,'hand_of_midas',unit))return true;
+  }
   if(h.inventory.includes('moon_shard')&&!h.moonShard&&useItem(g,h,'moon_shard',h))return true;
   if((hp<.55||mana<.22)&&['magic_wand','magic_stick','holy_locket'].some(id=>{
     const i=h.inventory.indexOf(id);return i>=0&&(h.inventoryMeta[i]?.charges||0)>=3&&useItem(g,h,id,h);
@@ -134,6 +138,14 @@ function castBotSkills(g,h,target,ctx,settings,retreating=false){
       if(cluster.point&&(hero||cluster.score>=3)&&cast(0,cluster.point))return true;
       if(!retreating&&!h.freezingField&&hero&&hp>.4&&d<skill(3).values.radius*.82&&(controlled(g,target)||ctx.enemyHeroes.length>=2||target.hp/target.maxHp<.6)&&cast(3,h))return true;
     }
+  }else if(h.heroId==='ogre_magi'){
+    if(target&&!controlled(g,target)&&cast(0))return true;
+    if(target&&!retreating&&(!has(g,target,'ogreIgnite')||target.statuses.ogreIgnite.until-g.time<2)&&cast(1))return true;
+    if(hero&&h.hasScepter&&h.cooldowns[0]>0&&Skills.castExtraAbility(g,h,'ogre_magi_unrefined_fireblast',target).ok)return true;
+    const allies=ctx.allies.filter(a=>distance(h,a)<=650&&(!has(g,a,'ogreBloodlust')||a.statuses.ogreBloodlust.until-g.time<3)).sort((a,b)=>g.combatStats(b).damage-g.combatStats(a).damage);
+    if((target||retreating)&&allies[0]&&cast(2,allies[0]))return true;
+    const shieldTarget=ctx.allies.filter(a=>distance(h,a)<=600&&(!has(g,a,'ogreFireShield')||a.statuses.ogreFireShield.stacks<2)).sort((a,b)=>a.hp/a.maxHp-b.hp/b.maxHp)[0];
+    if(h.hasShard&&ctx.enemyHeroes.length&&shieldTarget&&Skills.castExtraAbility(g,h,'ogre_magi_smash',shieldTarget).ok)return true;
   }else if(h.heroId==='kunkka'&&target){
     if(!retreating&&hero&&!h.xMark&&cast(2))return true;
     const mark=h.xMark&&g.entities.find(e=>e.id===h.xMark.targetId&&alive(e));

@@ -11,7 +11,7 @@ page.on('response', response => {
 });
 try {
   await page.goto(base, { waitUntil: 'networkidle' });
-  assert.equal(await page.locator('.hero-option').count(), 5);
+  assert.equal(await page.locator('.hero-option').count(), 6);
   await page.waitForFunction(() => {
     const portrait = document.querySelector('#hero-render');
     return portrait?.complete && portrait.naturalWidth > 0;

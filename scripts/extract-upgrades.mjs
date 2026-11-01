@@ -1,5 +1,5 @@
 import fs from 'node:fs';
-const heroes={axe:[2,'axe'],crystal_maiden:[5,'crystal_maiden'],juggernaut:[8,'juggernaut'],windranger:[21,'windrunner'],kunkka:[23,'kunkka']};
+const heroes={axe:[2,'axe'],crystal_maiden:[5,'crystal_maiden'],juggernaut:[8,'juggernaut'],windranger:[21,'windrunner'],kunkka:[23,'kunkka'],ogre_magi:[84,'ogre_magi']};
 function parse(raw){
  const tokens=[...raw.replace(/\/\/[^\n]*/g,'').matchAll(/"((?:\\.|[^"\\])*)"|([{}])/g)].map(m=>m[2]||m[1]);let i=0;
  function object(){const out={};while(i<tokens.length){const key=tokens[i++];if(key==='}')return out;const value=tokens[i++];out[key]=value==='{'?object():value;}return out;}return object();

@@ -240,6 +240,29 @@ export const UPGRADE_EFFECTS={
       "scepterDescription": "幽灵船在目标地点以%fleet_interval%秒的间隔产生%fleet_count%艘船组成的舰队。每艘船现在还会从左舷和右舷发射%num_cannon_volleys%波炮弹，穿过敌人时造成%cannon_ball_damage_pct%%%幽灵船伤害。",
       "shardDescription": ""
     }
+  },
+  "ogre_magi": {
+    "ogre_magi_fireblast": {
+      "scepter": [
+        {
+          "field": "AbilityCooldown",
+          "operation": "add",
+          "values": [
+            -1
+          ]
+        },
+        {
+          "field": "bonus_cast_speed",
+          "operation": "add",
+          "values": [
+            25
+          ]
+        }
+      ],
+      "shard": [],
+      "scepterDescription": "很精通的火焰爆轰，冷却时间减少%bonus_AbilityCooldown%秒，施法速度提升%bonus_cast_speed%%%。",
+      "shardDescription": ""
+    }
   }
 };
 export const EXTRA_ABILITIES={
@@ -504,6 +527,145 @@ export const EXTRA_ABILITIES={
         ]
       },
       "description": "释放一道在昆卡身后出现的潮汐波。造成 180 点伤害，并将敌人沿着波浪拖拽 600 距离。敌人被拖拽时无法攻击。",
+      "damageType": "magical"
+    }
+  ],
+  "ogre_magi": [
+    {
+      "id": "ogre_magi_unrefined_fireblast",
+      "sourceID": 5466,
+      "name": "未精通的火焰爆轰",
+      "key": "D",
+      "icon": "torrent",
+      "color": "#a6ced4",
+      "kind": "active",
+      "maxLevel": 1,
+      "requiredLevels": [],
+      "upgrade": "scepter",
+      "cooldowns": [
+        7
+      ],
+      "manaCosts": [
+        400
+      ],
+      "castRanges": [
+        525
+      ],
+      "castPoints": [
+        0.45
+      ],
+      "channelTimes": [
+        0
+      ],
+      "durations": [
+        0
+      ],
+      "damages": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "values": {
+        "stun_duration": [
+          1.2
+        ],
+        "multicast_delay": [
+          0.6
+        ],
+        "scepter_mana": [
+          35
+        ],
+        "base_damage": [
+          150
+        ],
+        "str_multiplier": [
+          1.5
+        ],
+        "AbilityCastRange": [
+          525
+        ],
+        "AbilityCastPoint": [
+          0.45
+        ],
+        "AbilityManaCost": [
+          400
+        ],
+        "AbilityCooldown": [
+          7
+        ]
+      },
+      "description": "操控一波火焰轰击一个敌方单位，造成150 + 1.5倍食人魔力量的伤害并使目标眩晕。魔法消耗为食人魔魔法师当前魔法的35%。",
+      "damageType": "magical"
+    },
+    {
+      "id": "ogre_magi_smash",
+      "sourceID": 648,
+      "name": "烈火护盾",
+      "key": "T",
+      "icon": "torrent",
+      "color": "#a6ced4",
+      "kind": "active",
+      "maxLevel": 1,
+      "requiredLevels": [],
+      "upgrade": "shard",
+      "cooldowns": [
+        15
+      ],
+      "manaCosts": [
+        50
+      ],
+      "castRanges": [
+        600
+      ],
+      "castPoints": [
+        0.2
+      ],
+      "channelTimes": [
+        0
+      ],
+      "durations": [
+        0
+      ],
+      "damages": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "values": {
+        "damage": [
+          160
+        ],
+        "attacks": [
+          3
+        ],
+        "duration": [
+          25
+        ],
+        "multicast_fireshield_aoe": [
+          1000
+        ],
+        "projectile_speed": [
+          1400
+        ],
+        "damage_absorb_pct": [
+          85
+        ],
+        "AbilityCastRange": [
+          600
+        ],
+        "AbilityCastPoint": [
+          0.2
+        ],
+        "AbilityManaCost": [
+          50
+        ],
+        "AbilityCooldown": [
+          15
+        ]
+      },
+      "description": "创造一个围绕友军目标的护盾，吸收接下来3次来自敌方英雄攻击的一定百分比伤害。吸收伤害后向攻击者发射火球。可以对防御塔施放。",
       "damageType": "magical"
     }
   ]

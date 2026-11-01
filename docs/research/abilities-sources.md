@@ -1,12 +1,12 @@
-# 五英雄技能数据与实现范围
+# 六英雄技能数据与实现范围
 
-数值目标为 **7.41f**，来自 [Valve 补丁列表](https://www.dota2.com/datafeed/patchnoteslist?language=english) 与本地保存的 Hero Datafeed。2026-10-26 重新核对时该列表最后一项仍为 7.41f。
+数值目标为 **7.41f**，来自 [Valve 补丁列表](https://www.dota2.com/datafeed/patchnoteslist?language=english) 与本地保存的 Hero Datafeed。2026-10-26 以及本次 2026-11-01 食人魔开发核对时，该列表最后一项仍为 7.41f。
 
 ## 数据来源
 
-- 官方简体中文接口 `https://www.dota2.com/datafeed/herodata?language=schinese&hero_id={id}`，对应斧王 2、水晶室女 5、主宰 8、风行者 21、昆卡 23；原始响应在 `abilities/{id}-schinese.json`。
+- 官方简体中文接口 `https://www.dota2.com/datafeed/herodata?language=schinese&hero_id={id}`，对应斧王 2、水晶室女 5、主宰 8、风行者 21、昆卡 23、食人魔魔法师 84；原始响应在 `abilities/{id}-schinese.json`。
 - `heroes/npc_dota_hero_*.txt` 为 Valve 游戏脚本快照，来源及固定提交见 [属性数据来源](attributes-sources.md)。补足施法前摇、先天能力按英雄等级增加的字段，以及技能类型、目标规则。
-- 技能图片来自 `https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/abilities/{ability}.png`，20 张常规技能图标保存在 `assets/abilities/`。
+- 技能图片来自 `https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/abilities/{ability}.png`，24 张常规技能图标保存在 `assets/abilities/`。
 - `scripts/extract-abilities.mjs` 将以上快照转换为 `src/ability-records.js`。运行时由 `ability-data.js` 将等级数组展开为当前等级数值，并按官方 bonus 字段应用天赋。原型中的技能描述和常量已删除。
 
 ## 已接入战斗
@@ -19,10 +19,12 @@
 - 风行者：束缚击检查身后单位或树；强力击蓄力并在飞行途中检测命中，可躲避，实际命中后递减伤害；风行提供移速和普通攻击闪避；集中火力只增强指定目标的攻击。顺风各层独立计时。
 - 昆卡：洪流有前摇、延迟、持续伤害及眩晕后减速；潮汐使者为零魔耗自动施放攻击效果，攻塔不消耗；X 标记仅标记英雄、区分友敌时长且可免费返回；幽灵船航行后撞击，为路径上的友军提供朗姆酒延迟伤害。
 
+食人魔的属性、四项常规技能、傻福、八项天赋、神杖／魔晶、目标与多重时序分开核对，来源和未验证细节见 [食人魔机制来源](../ogre-runtime-sources.md)。
+
 自己的 HUD 与选中单位面板显示实际增益/减益、层数及剩余时间，使用模拟时间，暂停不流逝。状态与底层控制同步清理；审查修复记录见 [运行时审查](../dota-skills-review.md)。
 
 ## 明确边界
 
-这仍是二维模拟实现，不能据此宣称与客户端完整等价。未包括神杖/魔晶扩展技能、幻象、完整驱散分类与全部伤害交互；暴击采用独立随机而非客户端伪随机分布。超出施法距离会拒绝施放，尚未自动走到施法距离。治疗守卫自动跟随，尚未独立编队操控；强力击不会砍树。部分范围命中包含二维单位半径。
+这仍是二维模拟实现，不能据此宣称与客户端完整等价。六英雄已接入神杖／魔晶扩展，幻象与驱散的当前实现见 [物品运行时](../item-runtime-sources.md)；仍未涵盖全部客户端伤害交互。既有暴击采用独立随机，食人魔攻击天赋使用 PRD 规则解释，尚缺当前客户端采样认证。超出施法距离会拒绝施放，尚未自动走到施法距离。治疗守卫自动跟随，尚未独立编队操控；强力击砍树和通路更新已接入，静态底图仍保留原树木影像。部分范围命中包含二维单位半径。
 
 朗姆酒的延迟伤害比例与强化倍数来自源数据；偿还过程使用十秒非致死线性扣血，尚未通过当前客户端回放确认隐藏的偿还实现。先天与天赋数值、主要技能的时序和目标限制有独立回归测试，但这不等同于所有客户端细节已验证。

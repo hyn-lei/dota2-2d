@@ -22,6 +22,7 @@ export function attackVisualFields(source,target){
   else if(source.heroId==='juggernaut'){visual='bladeSlash';color='#ffb36b';}
   else if(source.heroId==='axe'){visual='axeSlash';color='#ef6548';}
   else if(source.heroId==='kunkka'){visual='tideSlash';color='#81dfec';}
+  else if(source.heroId==='ogre_magi'){visual='ogreSmash';color='#f2bd78';}
   else if(ranged){visual=source.kind==='neutral'?'neutralBolt':source.team?'direBolt':'radiantBolt';color=source.kind==='neutral'?'#cdb1ff':source.team?'#ff8055':'#c9eb91';}
   return {visual,color,sourceId:source.id,targetId:target.id,heroId:source.heroId,sourceKind:source.kind,
     team:source.team,tx:target.x,ty:target.y,angle:Math.atan2(target.y-source.y,target.x-source.x),
@@ -30,6 +31,7 @@ export function attackVisualFields(source,target){
 }
 
 export function effectPose(effect,time,entities=[]){
+  if(effect.tracked)return {progress:.5,x:effect.x,y:effect.y-(effect.lift||0),angle:effect.angle||0,distance:140,tx:effect.x,ty:effect.y};
   const duration=effect.maxLife||.5;
   const progress=clamp(effect.startedAt==null?1-effect.life/duration:(time-effect.startedAt)/duration,0,1);
   const target=effect.visual==='shackleShot'&&entities.find(e=>e.id===effect.targetId&&!e.dead);
@@ -53,5 +55,8 @@ export function unitVisuals(unit,time){
   if(unit.channel?.kind==='powershot'&&unit.channel.until>time)result.push('powershotCharge');
   if(unit.crystalClone&&unit.expiresAt>time)result.push('crystalClone');
   if(unit.kind==='ward'&&unit.healRadius)result.push('healingWard');
+  if(live('ogreIgnite'))result.push('ogreIgnite');
+  if(live('ogreBloodlust'))result.push('ogreBloodlust');
+  if(live('ogreFireShield'))result.push('ogreShield');
   return result;
 }

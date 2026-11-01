@@ -1,0 +1,9 @@
+import fs from 'node:fs';
+import { HERO_STATS, HERO_DATA_META } from '../src/hero-data.js';
+function parse(raw){const tokens=[...raw.replace(/\/\/[^\n]*/g,'').matchAll(/"((?:\\.|[^"\\])*)"|([{}])/g)].map(m=>m[2]||m[1]);let i=0;function object(){const out={};while(i<tokens.length){const key=tokens[i++];if(key==='}')return out;const value=tokens[i++];out[key]=value==='{'?object():value;}return out;}return object();}
+const kv=parse(fs.readFileSync('docs/research/heroes/npc_dota_hero_ogre_magi.txt','utf8')).DOTAHeroes.npc_dota_hero_ogre_magi;
+const base=parse(fs.readFileSync('docs/research/heroes/npc_dota_hero_base.txt','utf8')).DOTAHeroes.npc_dota_hero_base;
+const n=(key,fallback)=>Number(kv[key]??base[key]??fallback);
+const stats={id:'ogre_magi',dotaId:84,primaryAttribute:'strength',baseStrength:n('AttributeBaseStrength'),strengthGain:n('AttributeStrengthGain'),baseAgility:n('AttributeBaseAgility'),agilityGain:n('AttributeAgilityGain'),baseIntelligence:n('AttributeBaseIntelligence'),intelligenceGain:n('AttributeIntelligenceGain'),baseHealth:n('StatusHealth',120),baseMana:n('StatusMana',75),baseHealthRegen:n('StatusHealthRegen',0),baseManaRegen:n('StatusManaRegen',0),baseDamageMin:n('AttackDamageMin'),baseDamageMax:n('AttackDamageMax'),baseArmor:n('ArmorPhysical'),baseAttackTime:n('AttackRate'),attackPoint:n('AttackAnimationPoint'),baseAttackSpeed:n('AttackSpeed',100),moveSpeed:n('MovementSpeed'),range:n('AttackRange'),visionDay:n('VisionDaytimeRange',1800),visionNight:n('VisionNighttimeRange',800),baseMagicResistance:n('MagicalResistance',25)/100};
+fs.writeFileSync('src/hero-data.js',`// Snapshot of shipped hero scripts; see docs/research/attributes-sources.md.\nexport const HERO_DATA_META = Object.freeze(${JSON.stringify(HERO_DATA_META,null,2)});\n\nexport const HERO_STATS = Object.freeze(${JSON.stringify({...HERO_STATS,ogre_magi:stats},null,2)});\n`);
+console.log('Generated Ogre base attributes from the saved Valve hero and base KV.');

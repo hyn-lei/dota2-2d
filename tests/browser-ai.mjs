@@ -28,8 +28,9 @@ try{
       const match=new Game({difficulty}),bot=match.entities.find(h=>h.kind==='hero'&&h.team===1);bot.gold=0;match.step(.05);intervals.push(bot.aiTimer);
     }
     const routes=[];
-    for(const hero of ['juggernaut','crystal_maiden','windranger','axe','kunkka']){
-      const match=new Game({hero}),bot=match.entities.find(e=>e.kind==='hero'&&e.team===1&&e.heroId===hero);Object.assign(bot,BASES[1]);bot.gold=15000;
+    for(const hero of ['juggernaut','crystal_maiden','windranger','axe','ogre_magi','kunkka']){
+      // Six heroes cannot all be drafted into the five opponent slots.
+      const match=new Game({hero}),bot=match._makeHero(hero,1,1,false,0);Object.assign(bot,BASES[1]);bot.gold=15000;
       for(let i=0;i<15;i++){match.time+=.6;bot.aiTimer=0;match._botTick(bot,0);}
       routes.push({hero,equipment:bot.inventory.filter(Boolean),purchases:bot.botShop.purchases,spent:bot.botShop.spent});
     }
@@ -38,7 +39,7 @@ try{
     Object.assign(p,{x:10400,y:10400,hp:10000,maxHp:10000,hpRegen:0,attackCooldown:999,abilityLevels:[0,0,0,0],mana:0});
     Object.assign(bot,{x:10600,y:10400,abilityLevels:[4,4,4,3],skillPoints:0,gold:0,aiTimer:0,inventory:['black_king_bar'],mana:5000,maxMana:5000});Inventory.ensureInventory(bot);match._index();
     match.step(1.8);const fight={bkb:bot.inventoryMeta[0].cooldownRemaining,focus:bot.cooldowns[3],shackle:bot.cooldowns[0],targetHp:p.hp};
-    const gearMatch=new Game({hero:'axe'}),carry=gearMatch.entities.find(h=>h.kind==='hero'&&h.team===1&&h.heroId==='juggernaut');
+    const gearMatch=new Game({hero:'axe'}),carry=gearMatch._makeHero('juggernaut',1,1,false,0);
     gearMatch.time=1200;carry.level=25;carry.gold=100000;Object.assign(carry,BASES[1]);
     for(let i=0;i<400;i++){gearMatch.time+=.6;carry.aiTimer=0;gearMatch._botTick(carry,0);Courier.tickCouriers(gearMatch,.6);Inventory.tickInventory(gearMatch,carry);}
     const fullBuild={completed:carry.botShop.completed.length,shard:carry.consumedShard,scepter:carry.consumedScepter,boots:carry.inventory.some(id=>id&&id.includes('boots')),gold:carry.gold,purchases:carry.botShop.purchases};

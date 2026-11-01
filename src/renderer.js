@@ -212,7 +212,7 @@ export class Renderer {
       c.fillStyle='#594d31';c.fillRect(-7,-30,14,55);poly(c,[[-24,-25],[0,-49],[24,-25],[0,-9]],'#91bc73','#dae3a2',3);
       circle(c,0,-28,7,'#e2eab1');circle(c,0,16,30,null,'rgba(146,204,121,.55)',2);c.restore();return;
     }
-    const scale=hero?2.05:2.3;c.scale(scale,scale);
+    const scale=(hero?2.05:2.3)*(e.statuses?.ogreBloodlust?.until>game.time?1+(e.statuses.ogreBloodlust.modelScale||0)/100:1);c.scale(scale,scale);
     c.fillStyle='rgba(7,17,14,.34)';c.beginPath();c.ellipse(3,9,hero?22:12,hero?10:6,0,0,TAU);c.fill();
     if(e.isPlayer){circle(c,0,4,26,null,'#d8de99',2);circle(c,0,4,29,null,'rgba(212,223,156,.18)',3);}
     const buffs=e.buffs||{};
@@ -223,7 +223,14 @@ export class Renderer {
     c.save();const angle=e.angle??(e.team?2.3:-.7);c.rotate(angle+Math.PI/2);
     const bob=e.moving?Math.sin(t*14+Number(String(e.id).replace(/\D/g,'')))*2:Math.sin(t*2)*.6;c.translate(0,bob);
     if(hero){
-      if(e.heroId==='juggernaut'){
+      if(e.heroId==='ogre_magi'){
+        poly(c,[[-22,-9],[-27,10],[-15,24],[16,24],[28,10],[22,-9]],'#558cc0','#2d4b65',2);
+        poly(c,[[-23,10],[-16,29],[0,24],[16,29],[24,11],[8,6],[-6,8]],'#a05b39','#5f442d',2);
+        poly(c,[[-24,-4],[-34,2],[-31,15],[-21,12]],'#5f9acb');poly(c,[[24,-4],[34,2],[31,15],[21,12]],'#689cca');
+        for(const x of [-12,11]){circle(c,x,-18,12,'#75aad4','#31546b',1.5);poly(c,[[x-8,-13],[x-6,-5],[x+5,-4],[x+9,-12]],'#c1ad8a','#5c695f',1);line(c,[{x:x-6,y:-19},{x:x+6,y:-19}],'#253b4b',2);poly(c,[[x-8,-26],[x-2,-34],[x+6,-29],[x+8,-24]],'#3b5364');}
+        line(c,[{x:-21,y:14},{x:20,y:14}],'#d6b678',3);
+        c.save();c.translate(31,3);c.rotate(e.attackFlash>0?-1.25:-.3);line(c,[{x:0,y:23},{x:0,y:-28}],'#8a633a',6);poly(c,[[-9,-25],[-14,-40],[-6,-51],[8,-49],[14,-36],[9,-24]],'#957249','#493a28',2);for(const [x,y]of [[-13,-38],[-4,-50],[12,-37]])poly(c,[[x-3,y],[x,y-7],[x+3,y]],'#ddd8b9');c.restore();
+      }else if(e.heroId==='juggernaut'){
         poly(c,[[-14,8],[-17,-7],[-6,-18],[7,-18],[17,-7],[12,12],[3,7]],'#9c5a3f','#303b30',2);
         poly(c,[[-12,12],[-15,22],[-5,19],[0,11],[5,19],[14,22],[11,10]],'#b57148');
         poly(c,[[-9,-14],[-5,-24],[5,-24],[9,-14],[5,-2],[-5,-2]],'#e7ddbb','#6e634f',1.5);

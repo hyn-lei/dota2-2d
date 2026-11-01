@@ -93,7 +93,7 @@ function startGame(){
     </footer><aside id="shop" class="shop-panel" hidden></aside><div id="toast" role="status"></div><div id="modal-root"></div></main>`;
   setupRenderer();renderer.center(game.player);bindShared();
   shopUI=mountShop($('#shop'),$('#inventory'),game,{close:toggleShop,open:()=>{if(!shopOpen)toggleShop();},notify:toast,useItem:beginItemUse,changed:()=>{sound();updateHud();},locate:point=>{renderer.zoom=.4;renderer.lookAt(point.x,point.y);toast('已定位神秘商店，右键前往金色标记处');}});
-  mountSkills($('.abilities'),game,{cast,learn:i=>learn('learnAbility',i),talent:i=>learn('learnTalent',i),attributes:()=>learn('learnAttributes'),recall});
+  mountSkills($('.abilities'),game,{cast,castSelf:i=>cast(i,true),autocast:i=>{const result=game.toggleAutocast(i);if(!result.ok)toast(result.reason);updateHud();},learn:i=>learn('learnAbility',i),talent:i=>learn('learnTalent',i),attributes:()=>learn('learnAttributes'),recall});
   $('.abilities').addEventListener('click',e=>{const b=e.target.closest('[data-extra]');if(b)castExtra(b.dataset.extra);});
   mountStatusBar($('.hud-vitals'));
   $('#inspection-body').insertAdjacentHTML('beforebegin','<div id="inspection-status"></div>');
@@ -131,7 +131,7 @@ function startGame(){
   toast('你已加入天辉。带领兵线，摧毁夜魇的远古遗迹。');
   window.scrollTo(0,0);
 }
-function cast(i){if(!game||modal)return;const target=renderer.screenToWorld(pointer.x||renderer.w/2,pointer.y||renderer.h/2);const r=game.cast(i,target);if(r.ok){if(game.skill(i).kind==='active')keys.clear();sound('cast');updateHud();}else toast(r.reason||'暂时无法施放技能');}
+function cast(i,self=false){if(!game||modal)return;const target=self?game.player:renderer.screenToWorld(pointer.x||renderer.w/2,pointer.y||renderer.h/2);const r=game.cast(i,target);if(r.ok){if(game.skill(i).kind==='active'||game.player.heroId==='ogre_magi')keys.clear();sound('cast');updateHud();}else toast(r.reason||'暂时无法施放技能');}
 let pendingItem=null;
 function cancelItemUse(){pendingItem=null;$('#battlefield')?.classList.remove('item-targeting');$('#item-target-prompt')?.remove();}
 function beginItemUse(index,area='inventory'){
@@ -144,7 +144,7 @@ function beginItemUse(index,area='inventory'){
  $('.match').insertAdjacentHTML('beforeend',`<div id="item-target-prompt" role="status">${escapeHtml(info.item.name)} · 左键选择目标 · 右键 / Esc 取消</div>`);
 }
 function useItem(index,area='inventory',point){if(!game||modal)return;const aim=point||renderer.screenToWorld(pointer.x||renderer.w/2,pointer.y||renderer.h/2),result=game.useItem(index,aim,area);if(result.ok){cancelItemUse();sound('cast');updateHud();}else toast(result.reason);}
-function castExtra(id){if(!game||modal)return;const target=renderer.screenToWorld(pointer.x||renderer.w/2,pointer.y||renderer.h/2),result=game.castExtra(id,target);if(result.ok){keys.clear();sound('cast');updateHud();}else toast(result.reason);}
+function castExtra(id,self=false){if(!game||modal)return;const target=self?game.player:renderer.screenToWorld(pointer.x||renderer.w/2,pointer.y||renderer.h/2),result=game.castExtra(id,target);if(result.ok){keys.clear();sound('cast');updateHud();}else toast(result.reason);}
 function learn(method,index){if(!game||modal)return;const result=game[method](index);if(result.ok){sound();updateHud();}else toast(result.reason);}
 function recall(){if(!game)return;const r=game.recall();if(!r.ok)toast(r.reason||'暂时无法回城');else sound();}
 let previousFeed='';
@@ -241,7 +241,7 @@ window.addEventListener('keydown',e=>{
   if(e.repeat){if(['arrowup','arrowdown','arrowleft','arrowright','a','s'].includes(key))keys.add(key);return;}
   if(key==='escape'&&pendingItem){e.preventDefault();cancelItemUse();return;}
   if(/^[1-6]$/.test(key)){e.preventDefault();useItem(Number(key)-1,'inventory',e.altKey?game.player:undefined);return;}
-  if(key==='d'||key==='t'){const skill=game.extraAbilities().find(s=>s.key.toLowerCase()===key);if(skill){e.preventDefault();castExtra(skill.id);}return;}
+  if(key==='d'||key==='t'){const skill=game.extraAbilities().find(s=>s.key.toLowerCase()===key);if(skill){e.preventDefault();castExtra(skill.id,e.altKey);}return;}
   if(key==='f3'){e.preventDefault();const result=game.courierCommand('deliver');toast(result.ok?'信使已收到运输指令':result.reason);return;}
   if(key==='escape'||key==='p'){if(shopOpen)toggleShop();else openModal('pause');return;}
   if(key==='alt'){renderer.showCampBounds=true;return;}
@@ -249,7 +249,7 @@ window.addEventListener('keydown',e=>{
   if(key==='u'){toggleTalents($('.abilities'));return;}
   if(key==='g'){shopUI.buyQuick();return;}
   if(key==='h'){openModal('guide');return;}if(key===' '){$('#map-center').click();return;}if(key==='b'){recall();return;}if(key==='f'||key==='tab'){toggleShop();return;}
-  if(['q','w','e','r'].includes(key)){e.preventDefault();const index=['q','w','e','r'].indexOf(key);if(e.ctrlKey)learn('learnAbility',index);else cast(index);return;}
+  if(['q','w','e','r'].includes(key)){e.preventDefault();const index=['q','w','e','r'].indexOf(key);if(e.ctrlKey)learn('learnAbility',index);else cast(index,e.altKey);return;}
   keys.add(key);
 });
 window.addEventListener('keyup',e=>{keys.delete(e.key.toLowerCase());if(e.key==='Alt'&&renderer)renderer.showCampBounds=$('#camp-bounds')?.classList.contains('active')||false;});

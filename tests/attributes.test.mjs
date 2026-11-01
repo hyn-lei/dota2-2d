@@ -7,16 +7,16 @@ import { calculateHeroStats, physicalDamageMultiplier, magicalDamageMultiplier }
 
 const near = (actual, expected) => assert.ok(Math.abs(actual - expected) < 1e-5, `${actual} ≈ ${expected}`);
 
-test('all five level-one heroes reproduce official API health/mana/armor/regen', async () => {
+test('all six level-one heroes reproduce official stats, including Ogre innate mana', async () => {
   for (const [id, source] of Object.entries(HERO_STATS)) {
     const raw = JSON.parse(await readFile(new URL(`../docs/research/heroes/${source.dotaId}.json`, import.meta.url)));
     const official = raw.result.data.heroes[0];
     const hero = calculateHeroStats(id);
     near(hero.maxHp, official.max_health);
-    near(hero.maxMana, official.max_mana);
+    near(hero.maxMana, official.max_mana+(id==='ogre_magi'?official.str_base*6:0));
     near(hero.armor, official.armor);
     near(hero.hpRegen, official.health_regen);
-    near(hero.manaRegen, official.mana_regen);
+    near(hero.manaRegen, official.mana_regen+(id==='ogre_magi'?official.str_base*.02:0));
     assert.equal(hero.range, official.attack_range);
     assert.equal(hero.speed, official.movement_speed);
     // Official API excludes universal damage and INT resistance from its display data.

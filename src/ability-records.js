@@ -1811,6 +1811,369 @@ export const ABILITIES={
       "description": "召唤一艘幽灵船驶过战场，直到撞成粉碎，残骸周围的敌人将会因撞击受到伤害并眩晕。被幽灵船碰到的友军会获得2倍效果的统帅朗姆酒。",
       "damageType": "magical"
     }
+  ],
+  "ogre_magi": [
+    {
+      "id": "ogre_magi_fireblast",
+      "sourceID": 5438,
+      "name": "火焰爆轰",
+      "key": "Q",
+      "icon": "fire",
+      "color": "#9dc0be",
+      "kind": "active",
+      "maxLevel": 4,
+      "requiredLevels": [
+        1,
+        3,
+        5,
+        7
+      ],
+      "cooldowns": [
+        11,
+        10,
+        9,
+        8
+      ],
+      "manaCosts": [
+        70,
+        85,
+        100,
+        115
+      ],
+      "castRanges": [
+        525
+      ],
+      "castPoints": [
+        0.45
+      ],
+      "channelTimes": [
+        0
+      ],
+      "durations": [
+        0
+      ],
+      "damages": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "values": {
+        "stun_duration": [
+          1.2
+        ],
+        "multicast_delay": [
+          0.6
+        ],
+        "fireblast_damage": [
+          70,
+          130,
+          190,
+          250
+        ],
+        "fireblast_proc": [],
+        "bonus_cast_speed": [
+          0
+        ],
+        "AbilityCastRange": [
+          525
+        ],
+        "AbilityCastPoint": [
+          0.45
+        ],
+        "AbilityManaCost": [
+          70,
+          85,
+          100,
+          115
+        ],
+        "AbilityCooldown": [
+          11,
+          10,
+          9,
+          8
+        ]
+      },
+      "scaling": {},
+      "description": "以一波火焰轰击一个敌方单位，造成伤害并使目标眩晕。",
+      "damageType": "magical",
+      "targetTeam": "DOTA_UNIT_TARGET_TEAM_ENEMY",
+      "targetType": "DOTA_UNIT_TARGET_HERO | DOTA_UNIT_TARGET_BASIC",
+      "targetFlags": "",
+      "notes": [
+        "触发多重施法时，两次火焰爆轰之间有%multicast_delay%秒的间隔。"
+      ]
+    },
+    {
+      "id": "ogre_magi_ignite",
+      "sourceID": 5439,
+      "name": "引燃",
+      "key": "W",
+      "icon": "fire",
+      "color": "#99bda0",
+      "kind": "active",
+      "maxLevel": 4,
+      "requiredLevels": [
+        1,
+        3,
+        5,
+        7
+      ],
+      "cooldowns": [
+        17
+      ],
+      "manaCosts": [
+        80,
+        90,
+        100,
+        110
+      ],
+      "castRanges": [
+        700,
+        800,
+        900,
+        1000
+      ],
+      "castPoints": [
+        0.35
+      ],
+      "channelTimes": [
+        0
+      ],
+      "durations": [
+        0
+      ],
+      "damages": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "values": {
+        "duration": [
+          5,
+          6,
+          7,
+          8
+        ],
+        "burn_damage": [
+          20,
+          30,
+          40,
+          50
+        ],
+        "slow_movement_speed_pct": [
+          -25
+        ],
+        "projectile_speed": [
+          1000
+        ],
+        "multicast_delay": [
+          0.6
+        ],
+        "ignite_multicast_aoe": [
+          1400
+        ],
+        "AbilityCastRange": [
+          700,
+          800,
+          900,
+          1000
+        ],
+        "AbilityCastPoint": [
+          0.35
+        ],
+        "AbilityManaCost": [
+          80,
+          90,
+          100,
+          110
+        ],
+        "AbilityCooldown": [
+          17
+        ]
+      },
+      "scaling": {},
+      "description": "使目标和另一个随机单位浸透在挥发性化学物质中，导致其瞬间被火焰吞噬。目标处在极度痛苦之中，受到伤害并且移动缓慢。",
+      "damageType": "magical",
+      "targetTeam": "DOTA_UNIT_TARGET_TEAM_ENEMY",
+      "targetType": "DOTA_UNIT_TARGET_HERO | DOTA_UNIT_TARGET_BASIC",
+      "targetFlags": "",
+      "notes": [
+        "多重施法将使此技能有几率对%ignite_multicast_aoe%范围内的随机敌方单位进行多次施放。",
+        "引燃现在击中已受到作用的单位后会增加持续时间。"
+      ]
+    },
+    {
+      "id": "ogre_magi_bloodlust",
+      "sourceID": 5440,
+      "name": "嗜血术",
+      "key": "E",
+      "icon": "roar",
+      "color": "#d1b47e",
+      "kind": "autocast",
+      "maxLevel": 4,
+      "requiredLevels": [
+        1,
+        3,
+        5,
+        7
+      ],
+      "cooldowns": [
+        20,
+        18,
+        16,
+        14
+      ],
+      "manaCosts": [
+        40,
+        50,
+        60,
+        70
+      ],
+      "castRanges": [
+        650
+      ],
+      "castPoints": [
+        0.45
+      ],
+      "channelTimes": [
+        0
+      ],
+      "durations": [
+        0
+      ],
+      "damages": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "values": {
+        "modelscale": [
+          25
+        ],
+        "bonus_movement_speed": [
+          6,
+          8,
+          10,
+          12
+        ],
+        "bonus_attack_speed": [
+          35,
+          50,
+          65,
+          80
+        ],
+        "self_bonus": [
+          40,
+          60,
+          80,
+          100
+        ],
+        "duration": [
+          30
+        ],
+        "multicast_bloodlust_aoe": [
+          700
+        ],
+        "AbilityCastRange": [
+          650
+        ],
+        "AbilityCastPoint": [
+          0.45
+        ],
+        "AbilityManaCost": [
+          40,
+          50,
+          60,
+          70
+        ],
+        "AbilityCooldown": [
+          20,
+          18,
+          16,
+          14
+        ]
+      },
+      "scaling": {},
+      "description": "激起一个友方单位的狂暴，增加其移动和攻击速度。对食人魔魔法师自身施放时攻击速度加成更高。可以对防御塔施放。",
+      "damageType": "magical",
+      "targetTeam": "DOTA_UNIT_TARGET_TEAM_FRIENDLY",
+      "targetType": "DOTA_UNIT_TARGET_HERO | DOTA_UNIT_TARGET_BASIC | DOTA_UNIT_TARGET_BUILDING",
+      "targetFlags": "DOTA_UNIT_TARGET_FLAG_INVULNERABLE",
+      "notes": [
+        "触发多重施法时，%multicast_bloodlust_aoe%范围内的友方单位将随机获得嗜血术效果。"
+      ]
+    },
+    {
+      "id": "ogre_magi_multicast",
+      "sourceID": 5441,
+      "name": "多重施法",
+      "key": "R",
+      "icon": "aura",
+      "color": "#8ebcca",
+      "kind": "passive",
+      "maxLevel": 3,
+      "requiredLevels": [
+        6,
+        12,
+        18
+      ],
+      "cooldowns": [
+        0
+      ],
+      "manaCosts": [
+        0
+      ],
+      "castRanges": [
+        0
+      ],
+      "castPoints": [
+        0
+      ],
+      "channelTimes": [
+        0
+      ],
+      "durations": [
+        0
+      ],
+      "damages": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "values": {
+        "multicast_2_times": [
+          75
+        ],
+        "multicast_3_times": [
+          0,
+          30,
+          30
+        ],
+        "multicast_4_times": [
+          0,
+          0,
+          15
+        ],
+        "strength_for_one_pct": [
+          16
+        ],
+        "one_tooltip": [
+          1
+        ]
+      },
+      "scaling": {},
+      "description": "使食人魔魔法师在单次施法中有概率多次施放同一技能和物品。每16点力量提升1%多重施法几率。",
+      "damageType": "magical",
+      "targetFlags": "",
+      "notes": [
+        "只有指向性技能和物品有几率触发多重施法。",
+        "指向性技能和物品额外对食人魔周围一定作用范围内敌人和中立生物生效。火焰爆轰和未精通的火焰爆轰将对同个目标生效多次。"
+      ]
+    }
   ]
 };
 export const INNATES={
@@ -2108,6 +2471,68 @@ export const INNATES={
     },
     "description": "如果昆卡受到来自敌方英雄、建筑或肉山的伤害会使他的生命低于65%临界值，那么他会浸在统帅朗姆酒中，获得移动速度加成，并且延后承受即将受到的18%伤害，持续5秒。",
     "damageType": "magical"
+  },
+  "ogre_magi": {
+    "id": "ogre_magi_dumb_luck",
+    "sourceID": 1115,
+    "name": "傻福",
+    "key": "",
+    "icon": "aura",
+    "color": "#b9c19a",
+    "kind": "innate",
+    "maxLevel": 1,
+    "requiredLevels": [
+      1,
+      3,
+      5,
+      7
+    ],
+    "cooldowns": [
+      0
+    ],
+    "manaCosts": [
+      0
+    ],
+    "castRanges": [
+      0
+    ],
+    "castPoints": [
+      0
+    ],
+    "channelTimes": [
+      0
+    ],
+    "durations": [
+      0
+    ],
+    "damages": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "values": {
+      "mana_per_str": [
+        6
+      ],
+      "mana_regen_per_str": [
+        0.02
+      ],
+      "level_one_ability_points": [
+        1
+      ],
+      "level_two_ability_points": [
+        1
+      ],
+      "required_level_reduction": [
+        0
+      ]
+    },
+    "scaling": {},
+    "description": "食人魔魔法师的智力值上限为0。他通过力量来获得魔法和魔法恢复。",
+    "damageType": "none",
+    "targetFlags": "",
+    "notes": []
   }
 };
 export const TALENTS={
@@ -2730,6 +3155,150 @@ export const TALENTS={
           "abilityId": "kunkka_tidebringer",
           "field": "pierces_armor",
           "value": 25,
+          "operation": 0
+        }
+      ]
+    }
+  ],
+  "ogre_magi": [
+    {
+      "id": "special_bonus_unique_ogre_magi_4",
+      "sourceID": 403,
+      "index": 0,
+      "requiredLevel": 10,
+      "name": "+10 引燃燃烧伤害",
+      "effects": [
+        {
+          "abilityId": "ogre_magi_ignite",
+          "field": "burn_damage",
+          "value": 10,
+          "operation": 0
+        }
+      ]
+    },
+    {
+      "id": "special_bonus_unique_ogre_magi_dumb_luck_mana",
+      "sourceID": 1181,
+      "index": 1,
+      "requiredLevel": 10,
+      "name": "+2/0.01 傻福力量提供魔法/魔法恢复",
+      "effects": [
+        {
+          "abilityId": "ogre_magi_dumb_luck",
+          "field": "mana_per_str",
+          "value": 2,
+          "operation": 0
+        },
+        {
+          "abilityId": "ogre_magi_dumb_luck",
+          "field": "mana_regen_per_str",
+          "value": 0.01,
+          "operation": 0
+        }
+      ]
+    },
+    {
+      "id": "special_bonus_attack_damage_80",
+      "sourceID": 442,
+      "index": 2,
+      "requiredLevel": 15,
+      "name": "+80 攻击力",
+      "effects": [
+        {
+          "stat": "damage",
+          "value": 80,
+          "operation": 0
+        }
+      ]
+    },
+    {
+      "id": "special_bonus_unique_ogre_magi",
+      "sourceID": 6183,
+      "index": 3,
+      "requiredLevel": 15,
+      "name": "+20/35 嗜血术/自身攻速",
+      "effects": [
+        {
+          "abilityId": "ogre_magi_bloodlust",
+          "field": "bonus_attack_speed",
+          "value": 20,
+          "operation": 0
+        },
+        {
+          "abilityId": "ogre_magi_bloodlust",
+          "field": "self_bonus",
+          "value": 35,
+          "operation": 0
+        }
+      ]
+    },
+    {
+      "id": "special_bonus_strength_30",
+      "sourceID": 6708,
+      "index": 4,
+      "requiredLevel": 20,
+      "name": "+30 力量",
+      "effects": [
+        {
+          "stat": "strength",
+          "value": 30,
+          "operation": 0
+        }
+      ]
+    },
+    {
+      "id": "special_bonus_unique_ogre_magi_2",
+      "sourceID": 6707,
+      "index": 5,
+      "requiredLevel": 20,
+      "name": "+175 火焰爆轰伤害",
+      "effects": [
+        {
+          "abilityId": "ogre_magi_fireblast",
+          "field": "fireblast_damage",
+          "value": 175,
+          "operation": 0
+        }
+      ]
+    },
+    {
+      "id": "special_bonus_unique_ogre_magi_3",
+      "sourceID": 7030,
+      "index": 6,
+      "requiredLevel": 25,
+      "name": "攻击有17%几率触发火焰爆轰",
+      "effects": [
+        {
+          "abilityId": "ogre_magi_fireblast",
+          "field": "fireblast_proc",
+          "value": 17,
+          "operation": 0
+        }
+      ]
+    },
+    {
+      "id": "special_bonus_unique_ogre_magi_multicast_chance",
+      "sourceID": 1829,
+      "index": 7,
+      "requiredLevel": 25,
+      "name": "+10% 多重施法几率",
+      "effects": [
+        {
+          "abilityId": "ogre_magi_multicast",
+          "field": "multicast_2_times",
+          "value": 10,
+          "operation": 0
+        },
+        {
+          "abilityId": "ogre_magi_multicast",
+          "field": "multicast_3_times",
+          "value": 10,
+          "operation": 0
+        },
+        {
+          "abilityId": "ogre_magi_multicast",
+          "field": "multicast_4_times",
+          "value": 10,
           "operation": 0
         }
       ]

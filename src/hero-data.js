@@ -133,5 +133,31 @@ export const HERO_STATS = Object.freeze({
     "visionDay": 1800,
     "visionNight": 800,
     "baseMagicResistance": 0.25
+  },
+  "ogre_magi": {
+    "id": "ogre_magi",
+    "dotaId": 84,
+    "primaryAttribute": "strength",
+    "baseStrength": 26,
+    "strengthGain": 4,
+    "baseAgility": 14,
+    "agilityGain": 1.5,
+    "baseIntelligence": 0,
+    "intelligenceGain": 0,
+    "baseHealth": 120,
+    "baseMana": 120,
+    "baseHealthRegen": 1.5,
+    "baseManaRegen": 0,
+    "baseDamageMin": 45,
+    "baseDamageMax": 51,
+    "baseArmor": 4,
+    "baseAttackTime": 1.7,
+    "attackPoint": 0.3,
+    "baseAttackSpeed": 100,
+    "moveSpeed": 290,
+    "range": 150,
+    "visionDay": 1800,
+    "visionNight": 800,
+    "baseMagicResistance": 0.25
   }
 });

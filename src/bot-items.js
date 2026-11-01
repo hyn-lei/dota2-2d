@@ -8,7 +8,8 @@ export const BOT_BUILDS=Object.freeze({
   crystal_maiden:['boots','null_talisman','magic_wand','tranquil_boots','glimmer_cape','force_staff','aghanims_shard','black_king_bar','ultimate_scepter','aether_lens','support_counter','ultimate_scepter_2','wind_waker'],
   windranger:['boots','null_talisman','magic_wand','power_treads','maelstrom','black_king_bar','aghanims_shard','ultimate_scepter','carry_counter','greater_crit','mjollnir','ultimate_scepter_2','satanic','moon_shard'],
   axe:['boots','bracer','magic_wand','phase_boots','blink','blade_mail','black_king_bar','aghanims_shard','heart','tank_counter','ultimate_scepter','ultimate_scepter_2','overwhelming_blink'],
-  kunkka:['boots','bracer','magic_wand','phase_boots','blade_mail','blink','black_king_bar','aghanims_shard','ultimate_scepter','heart','greater_crit','ultimate_scepter_2','assault','overwhelming_blink']
+  kunkka:['boots','bracer','magic_wand','phase_boots','blade_mail','blink','black_king_bar','aghanims_shard','ultimate_scepter','heart','greater_crit','ultimate_scepter_2','assault','overwhelming_blink'],
+  ogre_magi:['boots','bracer','magic_wand','arcane_boots','hand_of_midas','glimmer_cape','force_staff','aghanims_shard','ultimate_scepter','black_king_bar','heart','sheepstick','ultimate_scepter_2','refresher']
 });
 const starterItems=new Set(['bracer','wraith_band','null_talisman','magic_stick','magic_wand','diadem','chainmail','blade']);
 const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);

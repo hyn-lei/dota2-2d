@@ -46,6 +46,7 @@ export function useItem(g,h,index,point,area='inventory',options={}){
  if(entry.ready>0)return reject('从背包换入后尚未生效');
  if(entry.cooldown>1e-7)return reject('物品尚未冷却');
  if(item.abilityCharges&&meta.charges<=0)return reject('物品充能不足');
+ const multicastMeta={...meta};
  const manaCost=item.mana*(1-(h.manaCostReduction||0)/100);
  if(h.mana<manaCost)return reject('魔法不足');
  if(point&&(!Number.isFinite(point.x)||!Number.isFinite(point.y)))return reject('无效目标位置');
@@ -61,6 +62,7 @@ export function useItem(g,h,index,point,area='inventory',options={}){
  const blocked=target&&target.team!==h.team&&!options.reflected&&blockTargetSpell(g,h,target,{itemId:item.id});
  if(target&&target.team!==h.team&&!options.reflected&&hasFlag(g,target,'spellReflect')&&alive(target)&&alive(h))handler.run(g,target,{...entry,meta:{...meta}},h,h);
  if(!blocked)handler.run(g,h,entry,selection.point,target);
+ if(!options.reflected)Skills.ogreMulticastItem(g,h,entry,target,multicastMeta);
  meta.uses=(meta.uses||0)+1;return {ok:true,blocked:!!blocked};
 }
 export function blockTargetSpell(g,caster,target,spell){

@@ -111,7 +111,7 @@ export class Game {
     const hp=h.hp, mana=h.mana, oldHp=h.maxHp, oldMana=h.maxMana;
     const bonus={...talentStats(h.heroId,h.talents||[]),allAttributes:(h.attributeBonusLevel||0)*2};
     bonus.strength=(bonus.strength||0)+(h.innateStrength||0);bonus.agility=(bonus.agility||0)+(h.innateAgility||0);
-    Object.assign(h,calculateHeroStats(h.heroId,h.level,[...ItemRuntime.statItems(this,h),{stats:bonus}]));
+    Object.assign(h,calculateHeroStats(h.heroId,h.level,[...ItemRuntime.statItems(this,h),{stats:bonus}],h));
     h.hp=h.dead?0:clamp(hp+h.maxHp-oldHp,1,h.maxHp);
     h.mana=clamp(mana+h.maxMana-oldMana,0,h.maxMana);
   }
@@ -249,6 +249,7 @@ export class Game {
     }
     if(type==='physical'&&source?.attackType==='pierce'&&target.kind==='creep'&&!target.siege)value*=1.5;
     if(target.backdoorActive)value*=.5;
+    value=Skills.fireShieldDamage(this,target,value,source,options,type);
     value=Skills.incomingDamage(this,target,value,source,type);
     value=ItemRuntime.incomingDamage(this,target,value,source,type,options);
     value=Math.min(target.hp,value);
@@ -361,6 +362,11 @@ export class Game {
   cast(index, targetPoint) { return this._cast(this.player, index, targetPoint); }
 
   _cast(h,index,point) { return Skills.castAbility(this,h,index,point); }
+  toggleAutocast(index){
+    const h=this.player,s=this.skill(index,h);if(s.kind!=='autocast'||!s.level||!this._canAct(h).ok)return {ok:false,reason:'当前不能切换自动施放'};
+    if(h.heroId==='kunkka')return this._cast(h,index,h);
+    h.autocast||={};h.autocast[index]=!h.autocast[index];return {ok:true,autocast:h.autocast[index]};
+  }
 
   _spawnWave() {
     this.wave++;
@@ -523,6 +529,7 @@ export class Game {
       e.attackCooldown = Math.max(0,e.attackCooldown - dt);
       e.attackFlash = Math.max(0,e.attackFlash - dt);
       e.moving = false;
+      if(e.attackPhase)this._resolveOgreAttack(e);
       ItemRuntime.tickUnit(this,e,dt);
       if(alive(e))Skills.tickStatuses(this,e,dt);
       if (e.kind === 'hero') {
@@ -604,7 +611,12 @@ export class Game {
   _attack(e,target,options={}) {
     if(!target||!alive(target)||!alive(e)||this.isStunned(e)||Skills.hasStatusFlag(this,e,'disarmed')||!this.canSee(e,target)||
       (e.castPhase||e.channel||e.omnislash)&&!options.omni||Skills.isInvulnerable(this,target)||
-      distance(e,target)>(this.combatStats(e,target).range||e.range)+target.radius+8||e.attackCooldown>0)return false;
+      distance(e,target)>(this.combatStats(e,target).range||e.range)+target.radius+8||e.attackCooldown>0&&!options.attackReleased)return false;
+    if(e.heroId==='ogre_magi'&&!options.attackReleased&&!options.omni){
+      const stats=this.combatStats(e,target),duration=e.attackPoint*100/stats.attackSpeed;
+      e.angle=Math.atan2(target.y-e.y,target.x-e.x);e.attackFlash=duration+.1;e.targetId=target.id;
+      e.attackPhase={targetId:target.id,startedAt:this.time,executeAt:this.time+duration,options};e.attackCooldown=stats.attackInterval;return true;
+    }
     e.angle=Math.atan2(target.y-e.y,target.x-e.x);e.attackFlash=.24;e.targetId=target.id;
     const targetStats=this.combatStats(target);
     const trueStrike=ItemRuntime.trueStrike(this,e,target);
@@ -619,7 +631,15 @@ export class Game {
     return true;
   }
 
+  _resolveOgreAttack(e){
+    const phase=e.attackPhase,target=this.entities.find(t=>t.id===phase.targetId&&alive(t)),taunt=this._tauntSource(e);
+    if(!alive(e)||!target||this.isStunned(e)||Skills.hasStatusFlag(this,e,'disarmed')||e.castPhase||e.channel||e.forcedMotion||taunt&&taunt.id!==target.id){e.attackPhase=null;e.attackCooldown=0;return;}
+    if(phase.executeAt>this.time+1e-7)return;e.attackPhase=null;
+    const elapsed=this.time-phase.startedAt;
+    if(this._attack(e,target,{...phase.options,attackReleased:true}))e.attackCooldown=Math.max(0,e.attackCooldown-elapsed);else e.attackCooldown=0;
+  }
   _move(e, point, dt, stop = 0) {
+    if(e.attackPhase){e.attackPhase=null;e.attackCooldown=0;}
     if(this.isStunned(e)||this.isRooted(e)||(Skills.isInvulnerable(this,e)&&!Skills.hasStatusFlag(this,e,'canMoveInvulnerable')))return;
     const originalDistance=distance(e,point);
     if(originalDistance<=Math.max(3,stop))return;

@@ -1,6 +1,7 @@
 import { abilityAt, innateAt, talentStats, extraAbilityAt } from './ability-data.js';
 import { EXTRA_ABILITIES } from './upgrade-data.js';
 import { TREES } from './map-data.js';
+import * as Ogre from './ogre-runtime.js';
 const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
 const alive=e=>e&&!e.dead&&e.hp>0;
 const fighter=e=>['hero','creep','neutral','illusion','summon'].includes(e?.kind);
@@ -15,15 +16,17 @@ function innate(h){const key=`${h.heroId}:${h.level}:${h.talents?.join(',')}:${!
 export function extraSkillOf(h,id){
  const extra=extraAbilityAt(h.heroId,id,h.talents||[],h);if(!extra)return null;
  if(id==='juggernaut_swift_slash'){const omni=skillOf(h,3);extra.values={...omni.values,...extra.values};extra.level=omni.level?1:0;}
+ if(id==='ogre_magi_unrefined_fireblast')extra.mana=(h.mana||0)*extra.values.scepter_mana/100;
  return extra;
 }
 export function extraAbilities(h){return (EXTRA_ABILITIES[h.heroId]||[]).map(s=>extraSkillOf(h,s.id)).filter(Boolean);}
-export const castingStats=(h,s)=>s&&({...s,range:s.range+(h.castRangeBonus||0),mana:s.mana*(1-(h.manaCostReduction||0)/100),castPoint:s.castPoint*(1-(h.castSpeed||0)/100)});
+export const castingStats=(h,s)=>s&&({...s,range:s.range+(h.castRangeBonus||0),mana:s.mana*(1-(h.manaCostReduction||0)/100),castPoint:s.castPoint*(1-(h.castSpeed||0)/100)*(s.id==='ogre_magi_fireblast'?1-(s.values.bonus_cast_speed||0)/100:1)});
 const targets=(g,h,center,radius)=>g.entities.filter(e=>alive(e)&&fighter(e)&&e.team!==h.team&&distance(e,center)<=radius+e.radius);
 const areaBonus=h=>(talentStats(h.heroId,h.talents||[]).spellAoE||0)+(h.spellAoE||0);
 export function hasStatusFlag(g,e,flag){
  const aliases={stunned:'stun',rooted:'root',silenced:'silence',disarmed:'disarm',muted:'mute',break:'break',hex:'hex',invulnerable:'invulnerable',debuffImmune:'spin'};
- return Object.values(e?.statuses||{}).some(s=>s.startedAt<=g.time+1e-7&&s.until>g.time+1e-7&&(s[flag]||s.id===aliases[flag]||(flag==='disarmed'&&s.disarm)||(['silenced','muted','disarmed'].includes(flag)&&(s.hex||s.id==='hex'))));
+ const statuses=Object.values(e?.statuses||{}),immune=statuses.some(s=>s.startedAt<=g.time+1e-7&&s.until>g.time+1e-7&&(s.debuffImmune||s.id==='spin'));
+ return statuses.some(s=>s.startedAt<=g.time+1e-7&&s.until>g.time+1e-7&&(!s.suppressedByDebuffImmunity||!immune)&&(s[flag]||s.id===aliases[flag]||(flag==='disarmed'&&s.disarm)||(['silenced','muted','disarmed'].includes(flag)&&(s.hex||s.id==='hex'))));
 }
 export const isStunned=(g,e)=>hasStatusFlag(g,e,'stunned')||(e.buffs?.stunUntil||0)>g.time;
 export const isRooted=(g,e)=>hasStatusFlag(g,e,'rooted')||(e.buffs?.rootUntil||0)>g.time;
@@ -114,11 +117,12 @@ export function castAbility(g,h,index,point){
  if(h.castPhase)return {ok:false,reason:'正在施法'};
  if(active(g,h,'spin')&&index===3)return {ok:false,reason:'剑刃风暴期间无法使用无敌斩'};
  const aim=point&&Number.isFinite(point.x)&&Number.isFinite(point.y)?{x:point.x,y:point.y}:{x:h.x+Math.cos(h.angle)*100,y:h.y+Math.sin(h.angle)*100};
- const unitTarget=(h.heroId==='axe'&&(index===1||index===3))||(h.heroId==='crystal_maiden'&&index===1)||(h.heroId==='juggernaut'&&index===3)||(h.heroId==='windranger'&&(index===0||index===3))||(h.heroId==='kunkka'&&index===2);
+ const ogreAlly=h.heroId==='ogre_magi'&&index===2;
+ const unitTarget=(h.heroId==='axe'&&(index===1||index===3))||(h.heroId==='crystal_maiden'&&index===1)||(h.heroId==='juggernaut'&&index===3)||(h.heroId==='windranger'&&(index===0||index===3))||(h.heroId==='kunkka'&&index===2)||(h.heroId==='ogre_magi'&&index<3);
  let target;
  if(unitTarget){
-  target=g.entities.filter(e=>alive(e)&&!isInvulnerable(g,e)&&g.canSee(h,e)&&distance(e,aim)<=Math.max(e.radius||24,90)&&
-   (h.heroId==='kunkka'?e.kind==='hero':e.team!==h.team&&(fighter(e)||(h.heroId==='windranger'&&index===3&&structure(e))))).sort((a,b)=>distance(a,aim)-distance(b,aim))[0];
+  target=g.entities.filter(e=>alive(e)&&(ogreAlly&&structure(e)||!isInvulnerable(g,e))&&g.canSee(h,e)&&distance(e,aim)<=Math.max(e.radius||24,90)&&
+   (ogreAlly?e.team===h.team&&(fighter(e)||structure(e)):h.heroId==='kunkka'?e.kind==='hero':e.team!==h.team&&(fighter(e)||(h.heroId==='windranger'&&index===3&&structure(e))))).sort((a,b)=>distance(a,aim)-distance(b,aim))[0];
   if(!target)return {ok:false,reason:h.heroId==='kunkka'?'请指向友方或敌方英雄':'请指向有效敌方目标'};
   if(distance(h,target)>s.range+target.radius)return {ok:false,reason:`目标超过 ${s.range} 施法距离`};
  }
@@ -144,7 +148,12 @@ export function castExtraAbility(g,h,id,point){
  if(id==='juggernaut_swift_slash'&&active(g,h,'spin'))return {ok:false,reason:'剑刃风暴期间无法使用迅风斩'};
  const aim=point&&Number.isFinite(point.x)&&Number.isFinite(point.y)?{x:point.x,y:point.y,direction:point.direction}:{x:h.x+Math.cos(h.angle||0)*100,y:h.y+Math.sin(h.angle||0)*100};
  let target;
- if(id==='juggernaut_swift_slash'){
+ if(id==='ogre_magi_unrefined_fireblast'||id==='ogre_magi_smash'){
+  const ally=id==='ogre_magi_smash';
+  target=g.entities.filter(e=>alive(e)&&!isInvulnerable(g,e)&&g.canSee(h,e)&&distance(e,aim)<=Math.max(e.radius||24,90)&&(ally?e.team===h.team&&(fighter(e)||structure(e)):e.team!==h.team&&fighter(e))).sort((a,b)=>distance(a,aim)-distance(b,aim))[0];
+  if(!target)return {ok:false,reason:ally?'请指向友方单位或建筑':'请指向敌方单位'};
+  if(distance(h,target)>s.range+target.radius)return {ok:false,reason:`目标超过 ${s.range} 施法距离`};
+ }else if(id==='juggernaut_swift_slash'){
   target=g.entities.filter(e=>alive(e)&&fighter(e)&&e.team!==h.team&&!isInvulnerable(g,e)&&g.canSee(h,e)&&distance(e,aim)<=Math.max(e.radius||24,90)).sort((a,b)=>distance(a,aim)-distance(b,aim))[0];
   if(!target)return {ok:false,reason:'请指向有效敌方目标'};
   if(distance(h,target)>s.range+(target.radius||0))return {ok:false,reason:`目标超过 ${s.range} 施法距离`};
@@ -157,6 +166,7 @@ export function castExtraAbility(g,h,id,point){
  else releaseCast(g,h,phase);return {ok:true};
 }
 export function interruptCast(g,h,releasePartial=true){
+ if(h.attackPhase){h.attackPhase=null;h.attackCooldown=0;}
  if(h.itemChannel){h.itemChannel=null;h.recallTimer=0;removeStatus(h,'itemChannel');}
  h.castPhase=null;removeStatus(h,'casting');
  if(!releasePartial&&h.freezingField)stopFreezingField(h);
@@ -169,15 +179,16 @@ function releaseCast(g,h,phase){
  if(!alive(h)||isStunned(g,h)||g._tauntSource(h)||hasStatusFlag(g,h,'silenced'))return;
  const s=phase.skill,v=s.values,point=phase.point,index=phase.index,target=phase.targetId&&g.entities.find(e=>e.id===phase.targetId);
  if(phase.targetId&&!alive(target))return;
- if(target&&isInvulnerable(g,target))return;
+ if(target&&isInvulnerable(g,target)&&!(s.id==='ogre_magi_bloodlust'&&structure(target)))return;
  if(phase.extraId&&!extraSkillOf(h,phase.extraId))return;
+ if(phase.extraId==='ogre_magi_unrefined_fireblast')s.mana=h.mana*v.scepter_mana/100*(1-(h.manaCostReduction||0)/100);
  if(h.mana<s.mana)return;
  h.mana-=s.mana;const cooldown=s.cooldown*(1-(h.cooldownReduction||0)/100);if(phase.extraId){h.extraCooldowns||={};h.extraCooldowns[phase.extraId]=cooldown;h.extraCooldownTick=g.time;}else h.cooldowns[index]=cooldown;h.angle=Math.atan2(point.y-h.y,point.x-h.x);
  if(h.heroId==='crystal_maiden'&&s.mana>0){const a=innate(h);const shield=addStatus(g,h,'barrier',{name:'冰川护体',description:'抵挡物理伤害；由消耗的魔法转化。',positive:true,icon:'shield',duration:a.values.barrier_duration,barrier:(active(g,h,'barrier')?.barrier||0)+s.mana*a.values.mana_multiplier/100});shield.stacks=Math.ceil(shield.barrier);}
  if(h.heroId==='windranger')grantTailwind(g,h);
  g.onSpellCast?.(h,s,target);
- if(target&&target.team!==h.team&&hasStatusFlag(g,target,'spellReflect'))applyAbilityEffect(g,target,{...phase,targetId:h.id,point:{x:h.x,y:h.y},reflected:true},h.heroId);
- if(target?.team!==h.team&&target&&g.blockTargetSpell?.(h,target,s))return;
+ if(h.heroId!=='ogre_magi'&&target&&target.team!==h.team&&hasStatusFlag(g,target,'spellReflect'))applyAbilityEffect(g,target,{...phase,targetId:h.id,point:{x:h.x,y:h.y},reflected:true},h.heroId);
+ if(h.heroId!=='ogre_magi'&&target?.team!==h.team&&target&&g.blockTargetSpell?.(h,target,s))return;
  if(target&&target.team!==h.team)g.onSpellTarget?.(h,target,s);
  applyAbilityEffect(g,h,phase,h.heroId);
 }
@@ -186,6 +197,7 @@ function spellEffect(g,h,type,x,y,fields){
 }
 function applyAbilityEffect(g,h,phase,heroId){
  const s=phase.skill,v=s.values,point=phase.point,index=phase.index,target=phase.targetId&&g.entities.find(e=>e.id===phase.targetId);
+ if(heroId==='ogre_magi'){Ogre.releaseOgreAbility(g,h,phase);return;}
  if(phase.extraId){releaseExtraAbility(g,h,s,point,target);return;}
  if(heroId==='axe'){
   if(index===0){
@@ -307,6 +319,7 @@ export function returnMark(g,h){
  if(target.isPlayer)g.keyboard={x:0,y:0};g._effect('burst',mark.x,mark.y,{radius:48,life:.5,color:'#c4d9d1'});return {ok:true};
 }
 export function tickWorldAbilities(g){
+ Ogre.tickOgreWorld(g);
  for(const h of g.entities)if(h.kind==='hero'){
   if(h.extraCooldowns){const elapsed=Math.max(0,g.time-(h.extraCooldownTick??g.time));for(const id of Object.keys(h.extraCooldowns))h.extraCooldowns[id]=Math.max(0,h.extraCooldowns[id]-elapsed);h.extraCooldownTick=g.time;}
   if(h.castPhase&&h.castPhase.executeAt<=g.time+1e-7)releaseCast(g,h,h.castPhase);
@@ -378,7 +391,7 @@ function forceMove(g,e,dir,amount){
 export function tickStatuses(g,e,dt){
  for(const [id,s]of Object.entries(e.statuses||{})){
   if(s.forcedDirection&&alive(e)&&!debuffImmune(g,e)&&!isInvulnerable(g,e))forceMove(g,e,s.forcedDirection,s.forcedSpeed*Math.max(0,Math.min(dt,s.until-(g.time-dt))));
-  if(s.tickInterval&&alive(e)){const source=g.entities.find(h=>h.id===s.sourceId);while(s.nextTick<=g.time+1e-7&&s.nextTick<s.until-1e-7){if(source)g.damage(e,s.tickDamage*Math.min(s.tickInterval,s.until-s.nextTick)/s.tickInterval,source,s.damageType);s.nextTick+=s.tickInterval;}}
+  if(s.tickInterval&&alive(e)){const source=g.entities.find(h=>h.id===s.sourceId);while(s.nextTick<=g.time+1e-7&&s.nextTick<s.until-1e-7){if(source)g.damage(e,s.tickDamage*(s.fullDamageTicks?1:Math.min(s.tickInterval,s.until-s.nextTick)/s.tickInterval),source,s.damageType);s.nextTick+=s.tickInterval;}}
   if(s.until<=g.time+1e-7){
    removeStatus(e,id);g.onStatusExpired?.(e,s);if(id==='spin')dispel(e,true);
    if(id==='rum'&&s.debt>0)addStatus(g,e,'rumdebt',{name:'朗姆酒延迟伤害',description:'逐渐偿还延迟承受的伤害，不会因此死亡。',duration:10,icon:'ship',debtPerSecond:s.debt/10});
@@ -386,6 +399,7 @@ export function tickStatuses(g,e,dt){
  }
 }
 export function tickHeroAbilities(g,h,dt){
+ if(h.heroId==='ogre_magi')Ogre.tickBloodlustAutocast(g,h);
  if(h.cloneHop){const hop=h.cloneHop,t=Math.max(0,Math.min(1,(g.time-hop.startedAt)/(hop.until-hop.startedAt)));Object.assign(h,{x:hop.from.x+(hop.to.x-hop.from.x)*t,y:hop.from.y+(hop.to.y-hop.from.y)*t});if(t===1)h.cloneHop=null;}
  if(h.heroId==='windranger'&&h.tailwinds?.length){
   h.tailwinds=h.tailwinds.filter(t=>t.until>g.time+1e-7);
@@ -456,6 +470,8 @@ function tickFreezingField(g,h,field){
   spellEffect(g,h,'burst',at.x,at.y,{visual:'frostNova',radius:v.explosion_radius,life:.35,color:'#aee4f2'});field.nextExplosion+=interval;
  }
 }
+export const fireShieldDamage=(g,target,amount,source,options,type)=>Ogre.fireShieldDamage(g,target,amount,source,options,type);
+export const ogreMulticastItem=(g,h,entry,target,meta)=>Ogre.multicastItem(g,h,entry,target,meta);
 export function auraManaRegen(g,h){
  let extra=0,amp=0;
  for(const maiden of g.entities)if(alive(maiden)&&maiden.heroId==='crystal_maiden'&&maiden.team===h.team){const s=skillOf(maiden,2);if(!s.level)continue;const value=s.values.base_mana_regen*(distance(h,maiden)<=s.values.proximity_bonus_radius?s.values.proximity_bonus_factor:1);extra=Math.max(extra,value);if(h===maiden)amp=s.values.mana_regen_amp;}
@@ -486,6 +502,7 @@ export function attackModifiers(g,h,target,options={}){
  return {damage,critical,cleave,interval:stats.attackInterval};
 }
 export function afterAttack(g,h,target,result,dealt){
+ Ogre.ogreAttackProc(g,h,target);
  if(result.cleave){const v=result.cleave.values,dir={x:Math.cos(h.angle),y:Math.sin(h.angle)};
   for(const e of g.entities)if(e!==target&&alive(e)&&fighter(e)&&e.team!==h.team){const x=e.x-h.x,y=e.y-h.y,along=x*dir.x+y*dir.y,across=Math.abs(x*dir.y-y*dir.x);const width=v.cleave_starting_width+(v.cleave_ending_width-v.cleave_starting_width)*along/v.cleave_distance;if(along>=0&&along<=v.cleave_distance&&across<=width){g.damage(e,result.damage*v.cleave_damage/100,h,'physical',{armorIgnorePct:v.pierces_armor||0});if(v.movespeed_slow)slow(g,e,v.movespeed_slow_duration,v.movespeed_slow,h);}}
   if(v.movespeed_slow)slow(g,target,v.movespeed_slow_duration,v.movespeed_slow,h);

@@ -1,5 +1,6 @@
 import { HERO_STATS } from './hero-data.js';
 import { ITEM_BY_ID } from './item-data.js';
+import { innateAt } from './ability-data.js';
 
 // Indexed by CURRENT hero level. Official 7.32 progression; level 30 is capped.
 export const XP_TO_NEXT = Object.freeze([0, 240, 400, 520, 600, 680, 760, 800, 900, 1000,
@@ -24,7 +25,7 @@ export function magicalDamageMultiplier(resistance = 0) {
 }
 
 /** Natural growth + equipment. Talents, innates and temporary buffs are separate. */
-export function calculateHeroStats(heroId, level = 1, inventory = []) {
+export function calculateHeroStats(heroId, level = 1, inventory = [], options = {}) {
   const hero = HERO_STATS[heroId];
   if (!hero) throw new RangeError(`Unknown hero: ${heroId}`);
   const actualLevel = Math.max(1, Math.min(30, Math.floor(Number(level) || 1)));
@@ -49,7 +50,7 @@ export function calculateHeroStats(heroId, level = 1, inventory = []) {
     const capitalized = attribute[0].toUpperCase() + attribute.slice(1);
     const base = hero[`base${capitalized}`] + hero[`${attribute}Gain`] * (actualLevel - 1);
     const extra = (bonus[attribute] || 0) + (bonus.allAttributes || 0);
-    attributes[attribute] = { base, bonus: extra, total: base + extra, gain: hero[`${attribute}Gain`] };
+    attributes[attribute] = heroId==='ogre_magi'&&attribute==='intelligence'?{base:0,bonus:0,total:0,gain:0}:{ base, bonus: extra, total: base + extra, gain: hero[`${attribute}Gain`] };
   }
   const { strength: { total: strength }, agility: { total: agility }, intelligence: { total: intelligence } } = attributes;
   const attributeDamage = hero.primaryAttribute === 'universal'
@@ -60,16 +61,17 @@ export function calculateHeroStats(heroId, level = 1, inventory = []) {
   const armor = hero.baseArmor + agility / 6 + (bonus.armor || 0);
   const magicResistance = 1-(1-Math.min(1, hero.baseMagicResistance + intelligence * 0.001))*itemMagicMultiplier;
   const attackSpeed = Math.max(20, Math.min(700, hero.baseAttackSpeed + agility + (bonus.attackSpeed || 0)));
+  const dumbLuck=heroId==='ogre_magi'?innateAt(heroId,actualLevel,options.talents||[],options).values:null;
   return {
     heroId, level: actualLevel, primaryAttribute: hero.primaryAttribute,
     strength, agility, intelligence, attributes,
     maxHp: hero.baseHealth + strength * 22 + (bonus.maxHp || 0),
-    maxMana: (hero.baseMana + intelligence * 12 + (bonus.maxMana || 0)) * (1+(bonus.maxManaPercent||0)/100),
+    maxMana: (hero.baseMana + intelligence * 12 + (dumbLuck?strength*dumbLuck.mana_per_str:0) + (bonus.maxMana || 0)) * (1+(bonus.maxManaPercent||0)/100),
     hpRegen: (hero.baseHealthRegen + strength * 0.1 + (bonus.hpRegen || 0))*(1+(bonus.healthRegenAmp||0)/100),
-    manaRegen: (hero.baseManaRegen + intelligence * 0.05 + (bonus.manaRegen || 0))*(1+(bonus.manaRegenAmp||0)/100),
+    manaRegen: (hero.baseManaRegen + intelligence * 0.05 + (dumbLuck?strength*dumbLuck.mana_regen_per_str:0) + (bonus.manaRegen || 0))*(1+(bonus.manaRegenAmp||0)/100),
     damageMin, damageMax, damage: (damageMin + damageMax) / 2,
     armor, magicResistance, physicalResistance: 1 - physicalDamageMultiplier(armor),
-    baseAttackTime: hero.baseAttackTime, baseAttackSpeed: hero.baseAttackSpeed,
+    baseAttackTime: hero.baseAttackTime, baseAttackSpeed: hero.baseAttackSpeed,attackPoint:hero.attackPoint||0,
     attackSpeed, attackInterval: hero.baseAttackTime / (attackSpeed / 100),
     range: hero.range+(bonus.attackRange||0), speed: Math.min(550,(hero.moveSpeed + bootSpeed + (bonus.speed || 0))*(1+(bonus.moveSpeedPct||0)/100)),
     visionDay: hero.visionDay, visionNight: hero.visionNight,

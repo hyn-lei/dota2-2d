@@ -12,7 +12,7 @@ function resolve(record,rank,talents,heroId,heroLevel=0,upgrades={}){
  }
  applyUpgradeValues(heroId,record.id,values,rank,upgrades);
  const get=(key,field)=>values[key]??rankValue(record[field],rank);
- return {...record,level:rank,values,cooldown:get('AbilityCooldown','cooldowns'),mana:get('AbilityManaCost','manaCosts'),range:get('AbilityCastRange','castRanges'),castPoint:get('AbilityCastPoint','castPoints'),channelTime:get('AbilityChannelTime','channelTimes'),duration:values.duration??get('AbilityDuration','durations'),damage:values.damage??values.torrent_damage??values.nova_damage??values.powershot_damage??get('AbilityDamage','damages')};
+ return {...record,level:rank,values,cooldown:get('AbilityCooldown','cooldowns'),mana:get('AbilityManaCost','manaCosts'),range:get('AbilityCastRange','castRanges'),castPoint:get('AbilityCastPoint','castPoints'),channelTime:get('AbilityChannelTime','channelTimes'),duration:values.duration??get('AbilityDuration','durations'),damage:values.damage??values.torrent_damage??values.nova_damage??values.powershot_damage??values.fireblast_damage??get('AbilityDamage','damages')};
 }
 export function abilityAt(heroId,index,rank=0,talents=[],upgrades={}){
  const record=ABILITIES[heroId]?.[index];if(!record)throw new RangeError(`Unknown ability ${heroId}:${index}`);

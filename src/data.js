@@ -24,6 +24,11 @@ export const HEROES = {
     description:'冲入敌阵，让所有锋芒朝向自己。以怒吼牵制敌人，用巨斧终结残血目标。',
     color:'#c66e57',portrait:'assets/axe.jpg',render:'assets/axe.png'
   },
+  ogre_magi: {
+    id:'ogre_magi',name:'食人魔魔法师',en:'OGRE MAGI',title:'傻福眷顾的双头魔法师',role:'近战 / 辅助 / 控制',attribute:'力量',
+    description:'两个脑袋，一份好运。用火焰爆轰和引燃控制敌人，以嗜血术强化友军，让多重施法放大每一次机会。',
+    color:'#ee9f54',portrait:'assets/ogre_magi_portrait.png',render:'assets/ogre_magi.png'
+  },
   kunkka: {
     id:'kunkka',name:'昆卡',en:'KUNKKA',title:'纵横四海的舰队统帅',role:'近战 / 控制',attribute:'力量',
     description:'潮汐听从号令，幽灵舰队破浪而来。用 X 标记锁定归途，让洪流与炮火准时抵达。',
