@@ -25,7 +25,7 @@
 
 - main：现有规则/浏览器/容器验证 → 发布摘要 → 首次配置检查 → 旧提交检查 → SSH 部署 → 容器与线上提交版本检查。
 - 标签只发布镜像，PR 不部署；未配置全部必填 Secrets 时部署明确跳过，配置只缺部分时失败并列出名称。
-- 必填 Secrets 为 DEPLOY_HOST、DEPLOY_USER、DEPLOY_SSH_KEY、DEPLOY_KNOWN_HOSTS；端口/目录/公网地址默认值及设置位置见 [部署说明](../deployment.md#3-配置一次以后自动更新)。
+- 用户后续明确使用 root，当前必填 Secrets 为 DEPLOY_HOST、DEPLOY_SSH_KEY、DEPLOY_KNOWN_HOSTS；主机/私钥兼容 SERVER_HOST、SERVER_SSH_KEY。端口/目录/公网地址默认值及设置位置见 [部署说明](../deployment.md#3-配置一次以后自动更新)。
 - 临时 Docker 认证使用当前 Actions 短期令牌，不永久覆盖服务器登录；成功后只原子更新 .env 的 IMAGE。
 
 ## 边界

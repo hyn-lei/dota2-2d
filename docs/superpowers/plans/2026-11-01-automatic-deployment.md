@@ -62,3 +62,4 @@
 - Final review: 独立只读审查无 Critical/Important，审查者复跑范围内 31 / 31。
 - Final: minor (deferred): flock 由测试替身代替，没有专门注入信号测试；真实并发和中断恢复不作为本轮已经完成的验收证据。
 - Final review boundaries: 实际 SSH/GHCR/反向代理由首次配置后验证；SIGKILL/断电/守护进程故障超出尽力回滚；本轮面向已有 Compose 服务；玩法等价性不在部署改动范围。
+- 后续用户指定 root：固定工作流 SSH 用户名、移除用户名 Secret 要求，兼容参考项目 SERVER_HOST / SERVER_SSH_KEY。新增默认 root 回归 RED→GREEN，最新完整检查 324 / 324；具体证据见 docs/verification/2026-11-01-root-ssh-config.md。

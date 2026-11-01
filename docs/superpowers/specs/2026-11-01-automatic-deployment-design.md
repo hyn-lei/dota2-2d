@@ -19,3 +19,5 @@
 ## 一次性配置与当前边界
 
 已只读核实 GitHub 仓库没有 Actions Secrets、Variables 或 Environments，本地也没有该项目 .env。实际登录和首次部署需要用户提供服务器主机、用户名、现有 Compose 目录，以及配置 SSH 私钥和已验证的主机公钥。默认目录 /opt/dota2-2d、SSH 端口 22，线上检查地址沿用 https://dota2.prismabyss.com/，均可设置仓库 Variables。未拿到这些配置前继续完成、验证并提交代码，不声称服务器已经自动更新。
+
+后续用户提供参考项目 `E:\works\vps_cost` 并明确 `DEPLOY_USER` 使用 root。工作流用户名固定为 root，不再要求用户名 Secret；主机和私钥接受现有 DEPLOY_ 名称或参考项目的 SERVER_HOST / SERVER_SSH_KEY。主机公钥核验继续使用 DEPLOY_KNOWN_HOSTS，说明其确认服务器身份的用途。

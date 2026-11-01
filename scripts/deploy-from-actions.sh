@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-required=(DEPLOY_HOST DEPLOY_USER DEPLOY_SSH_KEY DEPLOY_KNOWN_HOSTS)
+DEPLOY_USER=${DEPLOY_USER:-root}
+required=(DEPLOY_HOST DEPLOY_SSH_KEY DEPLOY_KNOWN_HOSTS)
 missing=()
 for name in "${required[@]}"; do [[ -n "${!name:-}" ]] || missing+=("$name"); done
 report_config() {
@@ -11,7 +12,7 @@ report_config() {
 if ((${#missing[@]} == ${#required[@]})); then
   report_config false
   printf 'Automatic deployment awaits first-time SSH configuration.\n'
-  if [[ -n "${GITHUB_STEP_SUMMARY:-}" ]]; then printf '### Server deployment waiting for configuration\n\nSet DEPLOY_HOST, DEPLOY_USER, DEPLOY_SSH_KEY and DEPLOY_KNOWN_HOSTS in repository Secrets. No server was updated.\n' >> "$GITHUB_STEP_SUMMARY"; fi
+  if [[ -n "${GITHUB_STEP_SUMMARY:-}" ]]; then printf '### Server deployment waiting for configuration\n\nSet DEPLOY_HOST (or SERVER_HOST), DEPLOY_SSH_KEY (or SERVER_SSH_KEY) and DEPLOY_KNOWN_HOSTS in repository Secrets. SSH username is root. No server was updated.\n' >> "$GITHUB_STEP_SUMMARY"; fi
   [[ "${1:-}" == --check-config ]] && exit 0
   exit 2
 fi

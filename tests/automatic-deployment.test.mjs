@@ -73,6 +73,11 @@ test('SSH deployment pins host keys, safely quotes the directory and cleans temp
  assert.doesNotMatch(log+result.stdout+result.stderr,/private-test-key|registry-test-token/);assert.deepEqual(await readdir(f.runner),[]);
 });
 
+test('SSH deployment defaults to root without requiring a username Secret',async t=>{
+ const f=await fixture(t),result=f.run('deploy-from-actions.sh',[],{DEPLOY_USER:''});
+ assert.equal(result.status,0,result.stderr);assert.match(await f.log(),/root@server\.example\.test/);
+});
+
 test('invalid SSH hosts fail before transport or filesystem mutation',async t=>{
  const f=await fixture(t),result=f.run('deploy-from-actions.sh',[],{DEPLOY_HOST:'server; touch injected'});
  assert.equal(result.status,2);assert.equal(await f.log(),'');assert.deepEqual(await readdir(f.runner),[]);

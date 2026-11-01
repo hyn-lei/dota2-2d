@@ -64,25 +64,28 @@ curl --fail http://127.0.0.1:8080/healthz
 
 在 [仓库 Actions Secrets](https://github.com/hyn-lei/dota2-2d/settings/secrets/actions) 添加以下 Repository secrets，名称必须一致。用户选择自行在仓库填写，私钥不进入代码。
 
+SSH 登录用户名按用户要求固定为 `root`，与参考项目 `E:\works\vps_cost` 的工作流一致；不用设置 DEPLOY_USER，也不是让用户填写 GitHub 登录名。GitHub 镜像登录由 github.actor 和任务令牌自动处理。
+
 | Secret | 内容 | 必须填写 |
 | --- | --- | --- |
 | `DEPLOY_HOST` | 服务器 SSH 主机名或 IP；不带协议和端口 | 是 |
-| `DEPLOY_USER` | 服务器登录用户名，有 Docker 权限且能写部署目录 | 是 |
 | `DEPLOY_SSH_KEY` | 用于该用户的 SSH 私钥完整内容；对应公钥已在服务器 authorized_keys | 是 |
 | `DEPLOY_KNOWN_HOSTS` | 服务器已验证的 SSH 主机公钥 known_hosts 内容 | 是 |
 | `DEPLOY_SSH_PORT` | SSH 端口，默认 `22` | 否 |
 | `DEPLOY_PATH` | 服务器已有 Compose 目录，默认 `/opt/dota2-2d` | 否 |
 | `DEPLOY_PUBLIC_URL` | 网站根地址，默认 `https://dota2.prismabyss.com` | 否 |
 
+兼容参考工作流的名称：`SERVER_HOST` 可替代 `DEPLOY_HOST`，`SERVER_SSH_KEY` 可替代 `DEPLOY_SSH_KEY`。同时设置时 DEPLOY_ 名称优先；这些 Secrets 仍需放在游戏仓库中，不会自动读取另一个仓库的 Secrets。
+
 后三项也可放在同名 Actions Variables 中；Secrets 优先。无需另设 GHCR 密码：部署使用当前任务的短期 `GITHUB_TOKEN` 和 `packages: read` 权限，服务器的临时 Docker 认证目录在结束后清除，原有 Docker 登录不改写。
 
 服务器一次性准备：Linux/Bash、Docker Compose v2（支持 `--wait`）、curl、util-linux 的 flock；指定目录已包含本仓库 `compose.yaml` 和普通文件 `.env`。沿用已有目录即可。`.env` 的 HTTP_PORT 和 BIND_ADDRESS 保持不变，仅 IMAGE 在成功更新后原子改为本次摘要。
 
-`DEPLOY_KNOWN_HOSTS` 可以在可信环境用 `ssh-keyscan -p SSH端口 SSH主机` 获取，再与服务器控制台提供的主机密钥指纹核对；自定义端口的主机项为 `[主机]:端口`。Actions 使用 `StrictHostKeyChecking=yes`，不在部署时临时接受未知主机。
+`DEPLOY_KNOWN_HOSTS` 保存服务器的 SSH 主机公钥，确认连接目标的身份；它不是登录私钥。可以在可信环境用 `ssh-keyscan -p SSH端口 SSH主机` 获取，再与服务器控制台提供的主机密钥指纹核对；自定义端口的主机项为 `[主机]:端口`。Actions 使用 `StrictHostKeyChecking=yes`，不在部署时临时接受未知主机。参考工作流的 ssh-action 没有配置 fingerprint，因此没有这项显式核验。
 
 配置完成后推送 main，或手动运行 main 工作流。顺序为 **验证 → 发布不可变镜像 → SSH 拉取 → 重建 game → 容器健康检查 → 网站 /healthz 提交版本检查**，以后无需登录服务器更新。准备部署时 main 已有新提交的旧任务会跳过更新。
 
-全部四个必填 Secrets 都缺失时，配置检查明确显示等待首次配置，服务器部署任务跳过；只填写一部分时，配置检查报缺失名称并失败。不要把前两项任务通过理解为网站已经更新；以 **Update production server and verify deployed commit** 的结果和 Summary 为准。Secrets 保存后可手动运行 main 来部署已有代码。
+全部三个必填 Secrets 都缺失时，配置检查明确显示等待首次配置，服务器部署任务跳过；只填写一部分时，配置检查报缺失名称并失败。不要把前两项任务通过理解为网站已经更新；以 **Update production server and verify deployed commit** 的结果和 Summary 为准。Secrets 保存后可手动运行 main 来部署已有代码。
 
 ## 4. 回滚与手动更新
 
