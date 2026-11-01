@@ -120,6 +120,9 @@ export function refreshInventory(g,h){
  h.hp=h.dead?0:Math.min(h.maxHp,Math.max(Number.EPSILON,healthRatio*h.maxHp));h.mana=Math.min(h.maxMana,Math.max(0,manaRatio*h.maxMana));
  h.equipmentSignature=activeEquipment(g,h).join('|')+`:${!!h.consumedScepter}:${!!h.consumedShard}`;
 }
+export function combineItems(g,h){
+ const completed=assemble(g,h);if(completed.length)refreshInventory(g,h);return completed;
+}
 const refresh=refreshInventory;
 function consumeUpgrades(g,h){for(const e of itemEntries(h,['inventory']))if((e.meta.readyAt||0)<=g.time&&e.meta.ownerId===h.id&&['aghanims_shard','ultimate_scepter_2'].includes(e.id)){h[e.id==='aghanims_shard'?'consumedShard':'consumedScepter']=true;take(h,e);}}
 export function buyItem(g,h,id){

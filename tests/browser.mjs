@@ -92,7 +92,7 @@ try{
     const g=window.observedGame,p=g.player,e=g.entities.find(e=>e.kind==='hero'&&e.team===1);
     g.entities=[p,e];g.nextWave=Infinity;g.nextNeutralSpawn=Infinity;
     Object.assign(p,{x:10400,y:10400,destination:null,navPath:null,attackCooldown:999,mana:900,maxMana:900});
-    Object.assign(e,{x:10720,y:10400,speed:0,hp:5000,maxHp:5000,hpRegen:0,magicResistance:0,armor:0,damage:0,aiTimer:999,attackCooldown:999,cooldowns:[999,999,999,999]});
+    Object.assign(e,{x:10720,y:10400,speed:0,hp:5000,maxHp:5000,hpRegen:0,magicResistance:0,armor:0,damage:0,aiTimer:Infinity,attackCooldown:999,cooldowns:[999,999,999,999]});
     window.observedRenderer.lookAt(10400,10400);
   });
   let p=await aim(10720,10400);await page.mouse.click(p.x,p.y);

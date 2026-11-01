@@ -10,6 +10,7 @@ import * as Inventory from './inventory.js';
 import * as ItemRuntime from './item-runtime.js';
 import * as Courier from './courier.js';
 import { attackVisualFields } from './combat-visuals.js';
+import * as Bots from './bot-ai.js';
 
 const distance = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
 const clamp = (n, low, high) => Math.max(low, Math.min(high, n));
@@ -527,6 +528,7 @@ export class Game {
       if (e.kind === 'hero') {
         e.gold += 100 / 60 * dt;
         e.cooldowns = e.cooldowns.map(c => Math.max(0,c - dt));
+        if(!e.isPlayer)Bots.maintainBot(this,e);
         if (e.dead) {
           e.respawnTimer = Math.max(0,e.respawnTimer - dt);
           if (e.respawnTimer <= 1e-7) this._respawn(e);
@@ -687,7 +689,7 @@ export class Game {
     const busy=Skills.tickHeroAbilities(this,h,dt);
     if(this.isStunned(h))return;
     if(this._tauntedTick(h,dt))return;
-    if(busy)return;
+    if(busy){if(!h.isPlayer)Bots.tickBusyBot(this,h);return;}
     if(h.isPlayer)this._playerTick(h,dt);else this._botTick(h,dt);
   }
 
@@ -712,51 +714,7 @@ export class Game {
     if (target) this._attack(h,target);
   }
 
-  _botTick(h,dt) {
-    if(h.heroId==='kunkka'&&h.xMark?.returnAt<=this.time)this._cast(h,2);
-    h.aiTimer-=dt;
-    if(h.hp<h.maxHp*.22)h.retreating=true;
-    if(h.retreating&&h.hp>h.maxHp*.87){h.retreating=false;h.pathIndex=1;}
-    if(h.retreating){
-      if(h.heroId==='juggernaut'&&this._cast(h,1,h).ok)return;
-      if(h.heroId==='windranger'&&this._cast(h,2,h).ok)return;
-      this._move(h,BASES[h.team],dt,25);return;
-    }
-    let target=this._chooseTarget(h,1000,true);
-    if(!target&&this.time>120&&h.level>=3&&h.hp>h.maxHp*.7&&['axe','juggernaut'].includes(h.heroId)){
-      target=this.entities.find(e=>e.id===h.farmTargetId&&alive(e))||this._near(h,1100).find(e=>e.kind==='neutral'&&!e.ancient&&!e.returning);h.farmTargetId=target?.id||null;
-    }
-    h.targetId=target?.id||null;
-    if(h.aiTimer<=0){
-      const reaction=h.team===1?({easy:1.4,normal:.32,hard:.14}[this.difficulty]||.32):.32;h.aiTimer=reaction+this._random()*.15;
-      if(h.skillPoints>0){Progression.autoLearn(h);this._refreshHero(h);}
-      const owned=Inventory.itemEntries(h).length;
-      if(owned<6)this._buy(h,['boots','bracer','blade','chainmail','blade','diadem'][owned]);
-      if(h.heroId==='juggernaut'&&h.hp<h.maxHp*.65&&this._cast(h,1,h).ok)return;
-      if(target&&fighter(target)){
-        const d=distance(h,target),cast=(index,point=target)=>this._cast(h,index,point).ok;
-        if(h.heroId==='axe'){
-          if(d<=200&&target.hp<=this.skill(3,h).damage&&cast(3))return;
-          if(d<=315&&cast(0,h))return;
-          if(cast(1))return;
-        }else if(h.heroId==='juggernaut'){
-          if(d<=450&&target.kind==='hero'&&cast(3))return;
-          if(d<=260&&cast(0,h))return;
-        }else if(h.heroId==='crystal_maiden'){
-          if(d<=500&&target.kind==='hero'&&cast(3,h))return;
-          if(cast(1))return;if(cast(0))return;
-        }else if(h.heroId==='windranger'){
-          if(target.kind==='hero'&&cast(3))return;
-          if(cast(0))return;if(d<500&&cast(2,h))return;if(cast(1))return;
-        }else if(h.heroId==='kunkka'){
-          if(target.kind==='hero'&&!h.xMark&&cast(2))return;
-          if(cast(0,h.xMark||target)){if(h.xMark)h.xMark.returnAt=this.time+1.9;return;}
-          if(target.kind==='hero'&&cast(3,h.xMark||target))return;
-        }
-      }
-    }
-    if(target&&alive(target)){if(!this._attack(h,target))this._move(h,target,dt,h.range+target.radius-5);}else this._followLane(h,dt);
-  }
+  _botTick(h,dt) { Bots.tickBot(this,h,dt); }
 
   _respawn(h) {
     Object.assign(h,h.reincarnating?h.reincarnationPoint:BASES[h.team]);

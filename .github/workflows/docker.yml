@@ -70,6 +70,7 @@ jobs:
           node tests/browser-shop.mjs
           node tests/browser-items.mjs
           node tests/browser-vfx.mjs
+          node tests/browser-ai.mjs
       - name: Show container logs
         if: failure()
         run: docker compose logs --no-color --tail=100

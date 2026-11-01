@@ -56,7 +56,7 @@ export function tickCouriers(g,dt){
    }
   }else if(c.command==='deliver'){
    if(h.dead){c.command='return';continue;}goal=h;
-   if(distance(c,h)<220){for(const entry of Inventory.itemEntries(c,['cargo']))Inventory.transferItem(g,c,'cargo',entry.index,h,entry.id==='tpscroll'?['tp']:['inventory','backpack'],true);if(!c.cargo.some(Boolean))c.command='return';goal=null;}
+   if(distance(c,h)<220){for(const entry of Inventory.itemEntries(c,['cargo'])){Inventory.transferItem(g,c,'cargo',entry.index,h,entry.id==='tpscroll'?['tp']:['inventory','backpack'],true);Inventory.combineItems(g,h);}if(!c.cargo.some(Boolean))c.command='return';goal=null;}
   }else if(c.command==='secret'){
    goal=[...Inventory.SECRET_SHOPS].sort((a,b)=>distance(a,base)-distance(b,base))[0];if(distance(c,goal)<200){c.command='shopping';goal=null;}
   }
