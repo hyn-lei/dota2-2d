@@ -24,6 +24,7 @@ async function connect(base, token) {
   const messages = [], waiters = [];
   socket.on('message', data => {
     const value = codec.decodeMessage(data.toString());
+    if(value.type==='snapshot')socket.send(JSON.stringify({type:'snapshotAck',frame:value.frame}));
     const index = waiters.findIndex(w => w.predicate(value));
     if(index >= 0) waiters.splice(index,1)[0].resolve(value);
     else messages.push(value);

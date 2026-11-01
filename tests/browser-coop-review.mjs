@@ -11,7 +11,7 @@ await mkdir('artifacts',{recursive:true});const browser=await chromium.launch({h
 const page=await browser.newPage({viewport:{width:1366,height:768}});page.on('pageerror',e=>errors.push(e.message));
 async function peer(hero,code){
  const socket=new WebSocket(new URL('/ws/coop',base).href.replace(/^http/,'ws'));peers.push(socket);
- const welcome=new Promise(resolve=>socket.on('message',data=>{if(decodeMessage(data.toString()).type==='welcome')resolve();}));
+ const welcome=new Promise(resolve=>socket.on('message',data=>{const message=decodeMessage(data.toString());if(message.type==='snapshot')socket.send(JSON.stringify({type:'snapshotAck',frame:message.frame}));if(message.type==='welcome')resolve();}));
  await once(socket,'open');socket.send(JSON.stringify({type:'hello'}));await welcome;
  socket.send(JSON.stringify({type:'join',code,name:hero,heroId:hero}));socket.send(JSON.stringify({type:'ready',ready:true}));return socket;
 }

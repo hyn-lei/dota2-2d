@@ -9,6 +9,7 @@ Client messages:
 - `{type:'chooseHero',heroId:string}`, `{type:'ready',ready:boolean}`, `{type:'start'}`, `{type:'leave'}`.
 - `{type:'command',id:positiveInteger,action:string,args:array,slotGuards?:[{area,index,uid}]}`. Actor is the session's bound hero. IDs must exceed session.lastCommandId; welcome carries the counter across reconnect. Item mutations verify guard UID equals the current actor slot when a slot is involved; null can guard an empty destination. No command execution in lobby/disconnect pause/end.
 - `{type:'ping',sentAt:number}` → `{type:'pong',sentAt:number}`.
+- `{type:'snapshotAck',frame:positiveInteger}`: mandatory after decoding and applying a snapshot. Only the exact outstanding frame on the authenticated current socket releases it; stale or unrelated frame acknowledgements are ignored. Invalid shapes or numbers are rejected. This acknowledgement does not mutate the game or advance command IDs.
 
 Server messages:
 
@@ -25,7 +26,7 @@ Supported command actions: moveTo, setMovement, attackTarget, cast, castExtra, u
 
 Points may include `self:true`; the server resolves this to the authenticated actor, never a client-selected entity ID. Self Bloodlust and Fire Shield disambiguate overlapping allies. Large snapshots negotiate permessage-deflate, with no context takeover, a 1024-byte threshold and bounded compression concurrency.
 
-Each socket has at most one snapshot send outstanding. Broadcasts skip stale intermediate states while that send is pending and project the current state on the next eligible broadcast. If the match finishes during a pending send, retain one terminal room/member reference and deliver the final state after drain only if that socket still owns the original connected seat. Control messages, including ACKs, do not request compression; they still follow an already queued frame and have no absolute WAN latency guarantee. The outgoing byte limit and transport-error disconnect remain in force.
+Each socket has at most one snapshot outstanding until **both** the transport send completes and the browser acknowledges applying it. Broadcasts coalesce intermediate states into one room/member reference; after both signals, reproject only the latest state, including a terminal result, if the socket still owns the original connected seat and the room has not aborted. Either ACK/drain ordering works. Controls, including command ACKs, do not request compression; they still follow an already queued frame and have no absolute WAN latency guarantee. Heartbeat disconnects a socket with an unacknowledged snapshot older than 30 seconds (checked every 15 seconds), entering the usual reserved-seat reconnect pause. Outgoing byte limits and transport-error disconnect remain in force. Raw WebSocket clients must also send snapshotAck; merely receiving TCP/WebSocket bytes does not release the application gate.
 
 Snapshot encoding preserves recursive Infinity/-Infinity through a dedicated numeric tag and restores it client-side. Commands use ordinary JSON plus strict validators; server must not trust numeric tags as command numbers. Exclude navPath/navGoal/skillCache/innateCache/botState/botShop and Map/cache objects except explicit cutTrees entries. Include pendingSpells identifiers/times needed by active projectile visuals, no AI plans or secrets.
 

@@ -11,7 +11,7 @@ import { encodeMessage } from '../src/network-protocol.js';
 const defaults = {
   host:'127.0.0.1',port:5184,autoTick:true,tickMs:50,snapshotMs:100,reconnectMs:120000,
   maxRooms:20,maxConnections:120,maxSessions:600,maxMessageBytes:8192,
-  maxBufferedBytes:2*1024*1024,heartbeatMs:15000,helloTimeoutMs:10000,
+  maxBufferedBytes:2*1024*1024,heartbeatMs:15000,helloTimeoutMs:10000,snapshotAckMs:30000,
   sessionTtlMs:600000,lobbyTtlMs:1800000,endedTtlMs:120000,
   messageRate:60,commandRate:40,lobbyRate:2,
 };
@@ -27,31 +27,36 @@ function consume(socket, kind, rate, now) {
 }
 
 export class RoomManager {
-  constructor(options) {this.options=options;this.rooms=new Map();this.sessions=new Map();this.sockets=new Set();this.pendingSnapshots=new WeakSet();this.terminalSnapshots=new WeakMap();this.frame=0;this.closed=false;}
+  constructor(options) {this.options=options;this.rooms=new Map();this.sessions=new Map();this.sockets=new Set();this.pendingSnapshots=new WeakMap();this.deferredSnapshots=new WeakMap();this.frame=0;this.closed=false;}
 
   send(socket,message) {
     if(socket?.readyState!==WebSocket.OPEN) return false;
     if(socket.bufferedAmount>this.options.maxBufferedBytes) {socket.terminate();return false;}
     const snapshot=message.type==='snapshot';
     if(snapshot&&this.pendingSnapshots.has(socket)) return false;
-    if(snapshot)this.pendingSnapshots.add(socket);
+    if(snapshot)this.pendingSnapshots.set(socket,{frame:message.frame,sent:false,applied:false,at:Date.now()});
     try {
-      // Keep one snapshot in flight. Small replies add no compression jobs behind it.
+      // Keep one snapshot outstanding until transport drain AND client application.
       socket.send(encodeMessage(message),{compress:snapshot},error=>{
         if(error)socket.terminate();
         if(snapshot){
-          this.pendingSnapshots.delete(socket);
-          const terminal=this.terminalSnapshots.get(socket);this.terminalSnapshots.delete(socket);
-          if(!error&&terminal){
-            const {room,member}=terminal,session=socket.coopSession;
-            // A terminal result has no next tick. Deliver it after drain, only to the same active seat.
-            if(session?.socket===socket&&session.roomCode===room.code&&member.connected&&room.members.includes(member))
-              this.send(socket,{type:'snapshot',frame:++this.frame,playerId:member.heroEntityId,roomCode:room.code,state:snapshotState(room.game)});
-          }
+          if(error){this.pendingSnapshots.delete(socket);this.deferredSnapshots.delete(socket);return;}
+          const pending=this.pendingSnapshots.get(socket);if(pending?.frame===message.frame){pending.sent=true;this.completeSnapshot(socket);}
         }
       });
       return true;
-    } catch {if(snapshot){this.pendingSnapshots.delete(socket);this.terminalSnapshots.delete(socket);}socket.terminate();return false;}
+    } catch {if(snapshot){this.pendingSnapshots.delete(socket);this.deferredSnapshots.delete(socket);}socket.terminate();return false;}
+  }
+  completeSnapshot(socket) {
+    const pending=this.pendingSnapshots.get(socket);if(!pending?.sent||!pending.applied)return;
+    this.pendingSnapshots.delete(socket);
+    const deferred=this.deferredSnapshots.get(socket);this.deferredSnapshots.delete(socket);
+    if(deferred){
+      const {room,member}=deferred,session=socket.coopSession;
+      // Project only the latest state, including a terminal result, for the same active seat.
+      if(!room.abortReason&&session?.socket===socket&&session.roomCode===room.code&&member.connected&&room.members.includes(member))
+        this.send(socket,{type:'snapshot',frame:++this.frame,playerId:member.heroEntityId,roomCode:room.code,state:snapshotState(room.game)});
+    }
   }
   error(socket,code,message) {this.send(socket,{type:'error',code,message});}
   roomView(room) {
@@ -73,7 +78,7 @@ export class RoomManager {
       if(!member.connected||socket?.readyState!==WebSocket.OPEN)continue;
       if(socket.bufferedAmount>this.options.maxBufferedBytes){socket.terminate();continue;}
       if(!this.pendingSnapshots.has(socket))recipients.push({member,socket});
-      else if(room.phase==='ended'&&room.game.status!=='playing')this.terminalSnapshots.set(socket,{room,member});
+      else this.deferredSnapshots.set(socket,{room,member});
     }
     if(!recipients.length)return;
     const state=snapshotState(room.game),frame=++this.frame;
@@ -101,6 +106,11 @@ export class RoomManager {
     const session=socket.coopSession;
     if(!session || session.socket!==socket) return this.reject(socket,'HELLO_REQUIRED','请先建立会话');
     session.lastSeenAt=Date.now();
+    if(message.type==='snapshotAck') {
+      if(!messageHasOnly(message,['type','frame'])||!Number.isSafeInteger(message.frame)||message.frame<=0)return this.reject(socket,'INVALID_MESSAGE','无效快照确认');
+      const pending=this.pendingSnapshots.get(socket);
+      if(pending?.frame===message.frame){pending.applied=true;this.completeSnapshot(socket);}return;
+    }
     if(message.type==='ping') {
       if(!messageHasOnly(message,['type','sentAt'])||!Number.isFinite(message.sentAt)) return this.reject(socket,'INVALID_MESSAGE','无效 ping');
       return this.send(socket,{type:'pong',sentAt:message.sentAt});
@@ -246,6 +256,8 @@ export class RoomManager {
   }
   heartbeat() {
     for(const socket of this.sockets) {
+      const snapshot=this.pendingSnapshots.get(socket);
+      if(snapshot&&Date.now()-snapshot.at>=this.options.snapshotAckMs){socket.terminate();continue;}
       if(!socket.coopAlive) {socket.terminate();continue;}socket.coopAlive=false;
       if(socket.readyState===WebSocket.OPEN)socket.ping();
     }

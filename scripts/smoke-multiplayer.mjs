@@ -13,6 +13,7 @@ async function connect(token) {
   socket.on('error',()=>{});
   socket.on('message',data=>{
     const value=decodeMessage(data.toString()),index=waiters.findIndex(w=>w.matches(value));
+    if(value.type==='snapshot')socket.send(JSON.stringify({type:'snapshotAck',frame:value.frame}));
     if(index>=0)waiters.splice(index,1)[0].resolve(value);else messages.push(value);
   });
   const next=(type,predicate=()=>true)=>{

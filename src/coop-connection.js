@@ -27,6 +27,7 @@ export class CoopConnection extends EventTarget {
         if(message.frame<this.frame)return;this.frame=message.frame;
         if(!this.game||this.game.playerId!==message.playerId)this.game=new NetworkGame({state:message.state,playerId:message.playerId,request:(...args)=>this.request(...args)});
         else this.game.applySnapshot(message.state);
+        this.send({type:'snapshotAck',frame:message.frame});
         this.emit('snapshot',{game:this.game,frame:message.frame});
       }else if(message.type==='ack'){
         const waiting=this.pending.get(message.id);if(waiting){clearTimeout(waiting.timer);this.pending.delete(message.id);waiting.resolve(message.result);}
