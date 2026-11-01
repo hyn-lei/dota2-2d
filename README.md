@@ -64,6 +64,8 @@ docker compose up -d --wait --wait-timeout 90
 
 每队现包含五位不同的英雄；玩家选择后，队友由另外四位英雄组成。
 
+战斗特效按英雄和攻击来源区分：冰女使用冰晶与冰爆，风行者使用弓箭和绿色强力击，剑圣使用旋转弧刃与跳跃斩击，斧王使用战吼冲击与落斧，昆卡使用水柱、浪花和幽灵船航迹。双方英雄保留相同的技能材质；天辉塔与夜魇塔分别使用金色能量弹和熔火弹。持续特效跟随实际状态与游戏暂停。视觉参照、验证与二维实现边界见 [战斗特效说明](docs/combat-vfx-sources.md)。
+
 一级有 **1 个待分配技能点**，四项常规技能均未学习，先天能力自动生效。普通技能四级，分别要求英雄 **1 / 3 / 5 / 7** 级；大招三级，要求 **6 / 12 / 18** 级。英雄升级获得技能点；分配点数后，技能按对应等级增强。鼠标悬停技能可对比当前与下一级数值。天赋在 10 / 15 / 20 / 25 级解锁；全属性最多学习七次。自己与选中单位都可查看实际状态、层数和剩余时间，暂停会冻结计时。
 
 ## 对局规则
@@ -98,6 +100,7 @@ npm install
 npx playwright install chromium
 npm run test:browser
 node tests/browser-shop.mjs
+npm run test:vfx
 ```
 
 若服务器使用了其他端口，设置 `GAME_URL` 为实际地址。测试截图保存到 `artifacts/`。测试覆盖技能经济、控制效果、兵线、建筑保护、复活、完整 AI 对局，以及实际 UI 操作、胜负结算、重开和响应式布局。
@@ -123,6 +126,8 @@ src/skills-ui.js     技能加点、等级、数值对比与天赋树
 src/unit-data.js     建筑、兵线、野怪数据
 src/engine.js        不依赖 DOM 的确定性对局模拟
 src/renderer.js      Canvas 地形、单位、镜头、小地图、特效
+src/combat-visuals.js 攻击来源与英雄视觉标识、弹道插值、状态视觉查询
+src/combat-effects.js Canvas 弹芯、尾迹、冰爆、斩击、水柱与持续光效
 src/main.js          大厅、输入、HUD、商店、弹窗与战绩
 src/style.css        大厅和基础界面
 src/world-ui.css     地图操作、单位属性与装备面板

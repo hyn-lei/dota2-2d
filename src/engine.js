@@ -9,6 +9,7 @@ import { talentStats } from './ability-data.js';
 import * as Inventory from './inventory.js';
 import * as ItemRuntime from './item-runtime.js';
 import * as Courier from './courier.js';
+import { attackVisualFields } from './combat-visuals.js';
 
 const distance = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
 const clamp = (n, low, high) => Math.max(low, Math.min(high, n));
@@ -352,7 +353,7 @@ export class Game {
 
   _effect(type, x, y, fields = {}) {
     const life = fields.life || .5;
-    this.effects.push({id:this._id('fx'), type, x, y, color:'#e9c884', ...fields, life, maxLife:life});
+    this.effects.push({id:this._id('fx'), type, x, y, startedAt:this.time, color:'#e9c884', ...fields, life, maxLife:life});
     if (this.effects.length > 250) this.effects.splice(0, this.effects.length - 250);
   }
 
@@ -514,7 +515,7 @@ export class Game {
     if (this.time + 1e-7 >= this.nextWave) { this._spawnWave(); this.nextWave += RULES.laneWaveInterval; }
     if (this.time + 1e-7 >= this.nextNeutralSpawn) {this._spawnCamps();this.nextNeutralSpawn+=60;}
     if (this.time>=this.roshanRespawnAt) this._spawnRoshan();
-    this.effects = this.effects.filter(fx => (fx.life -= dt) > 0);
+    this.effects = this.effects.filter(fx => (fx.life = fx.startedAt==null ? fx.life-dt : fx.maxLife-(this.time-fx.startedAt)) > 0);
     this._index();
     if(this.time>=this.nextBuildingCheck){this._updateBackdoor();this.nextBuildingCheck=this.time+.25;}
     for (const e of this.entities) {
@@ -612,7 +613,7 @@ export class Game {
     else dealt=this.damage(target,result.damage,e,'physical',{attack:true});
     Skills.afterAttack(this,e,target,result,dealt);
     ItemRuntime.afterAttack(this,e,target,result,dealt);
-    this._effect(e.range>200?'projectile':'slash',e.x,e.y,{tx:target.x,ty:target.y,radius:e.range>200?5:45,team:e.team,color:e.heroId==='crystal_maiden'?'#a1d9ef':TEAM_COLORS[e.team],life:.2});
+    this._effect(e.range>200?'projectile':'slash',e.x,e.y,attackVisualFields(e,target));
     return true;
   }
 

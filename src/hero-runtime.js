@@ -181,6 +181,9 @@ function releaseCast(g,h,phase){
  if(target&&target.team!==h.team)g.onSpellTarget?.(h,target,s);
  applyAbilityEffect(g,h,phase,h.heroId);
 }
+function spellEffect(g,h,type,x,y,fields){
+ g._effect(type,x,y,{sourceId:h.id,heroId:h.heroId,team:h.team,...fields});
+}
 function applyAbilityEffect(g,h,phase,heroId){
  const s=phase.skill,v=s.values,point=phase.point,index=phase.index,target=phase.targetId&&g.entities.find(e=>e.id===phase.targetId);
  if(phase.extraId){releaseExtraAbility(g,h,s,point,target);return;}
@@ -190,18 +193,18 @@ function applyAbilityEffect(g,h,phase,heroId){
    for(const e of targets(g,h,h,v.radius+areaBonus(h)).filter(e=>!isInvulnerable(g,e))){
     addStatus(g,e,'taunt',{name:'嘲讽',description:'被迫攻击斧王。',duration:v.duration,icon:'roar',sourceId:h.id});Object.assign(e.buffs,{tauntUntil:g.time+v.duration,tauntSourceId:h.id});interruptCast(g,e,false);e.recallTimer=0;e.destination=null;e.explicitTarget=null;if(e.isPlayer)g.keyboard={x:0,y:0};
     if(v.applies_battle_hunger)applyHunger(g,h,e);
-   }g._effect('burst',h.x,h.y,{radius:v.radius,life:.6,color:'#e8a16e'});
+   }spellEffect(g,h,'burst',h.x,h.y,{visual:'berserkerCall',radius:v.radius,life:.6,color:'#e85b3e'});
   }else if(index===1)applyHunger(g,h,target,s);
   else if(index===3){
    const wasHero=target.kind==='hero';g.damage(target,s.damage,h,'pure');
    if(target.dead&&wasHero&&!target.reincarnating){if(!phase.reflected)h.cooldowns[3]=0;h.cullingStacks=(h.cullingStacks||0)+1;
     for(const ally of g.entities)if(alive(ally)&&ally.team===h.team&&fighter(ally)&&distance(ally,h)<=v.speed_aoe)addStatus(g,ally,'culling',{name:'淘汰之刃',description:`移动速度 +${v.speed_bonus}%，护甲 +${v.armor_bonus}。`,duration:v.speed_duration,positive:true,icon:'axe',armor:v.armor_bonus,movePercent:v.speed_bonus});
     g._effect('text',target.x,target.y-55,{text:'淘汰！',life:1,color:'#f3c88c'});
-   }g._effect('slash',target.x,target.y,{radius:90,life:.5,color:'#e8aa73'});
+   }spellEffect(g,h,'slash',target.x,target.y,{visual:'cullingBlade',radius:90,life:.5,color:'#e8aa73'});
   }
  }else if(heroId==='crystal_maiden'){
-  if(index===0){for(const e of targets(g,h,point,v.radius+areaBonus(h))){g.damage(e,s.damage,h,'magical');slow(g,e,v.duration,v.movespeed_slow,h,v.attackspeed_slow,'nova');}damageOwnClones(g,h,point,v.radius+areaBonus(h),s.damage);g._effect('burst',point.x,point.y,{radius:v.radius,life:.7,color:'#9ad9ef'});}
-  else if(index===1){applyFrostbite(g,h,target,s);g._effect('ring',target.x,target.y,{radius:65,life:.7,color:'#b4e6f1'});}
+  if(index===0){for(const e of targets(g,h,point,v.radius+areaBonus(h))){g.damage(e,s.damage,h,'magical');slow(g,e,v.duration,v.movespeed_slow,h,v.attackspeed_slow,'nova');}damageOwnClones(g,h,point,v.radius+areaBonus(h),s.damage);spellEffect(g,h,'burst',point.x,point.y,{visual:'frostNova',radius:v.radius,life:.7,color:'#9ad9ef'});}
+  else if(index===1){applyFrostbite(g,h,target,s);spellEffect(g,h,'ring',target.x,target.y,{visual:'frostNova',radius:75,life:.4,color:'#b4e6f1'});}
   else if(index===3){const field={kind:'freezing',index,skill:s,startedAt:g.time,until:g.time+s.channelTime,nextExplosion:g.time,dwell:{},frostbitten:[]};h.buffs.ultUntil=field.until;
    if(v.can_move){h.freezingField=field;addStatus(g,h,'freezingField',{name:'极寒领域',description:'可以移动、攻击与施法；敌方控制仍会打断领域。',duration:s.channelTime,positive:true,undispellable:true,movePercent:v.shard_self_movement_speed_slow_pct,icon:'storm'});}
    else{h.channel=field;addStatus(g,h,'channel',{name:'极寒领域',description:'持续施法；移动、停止或被控制会中断。',duration:s.channelTime,positive:true,icon:'storm'});}
@@ -213,12 +216,12 @@ function applyAbilityEffect(g,h,phase,heroId){
    const position=g.navigation.nearestWalkable(point);const ward=g._unit('ward',h.team,position.x,position.y,{name:'治疗守卫',ownerId:h.id,maxHp:1+v.healing_ward_bonus_health,hitsRemaining:v.healing_ward_hits_to_kill_tooltip,radius:18,speed:v.healing_ward_movespeed_tooltip,range:0,damage:0,expiresAt:g.time+s.duration,healPct:v.healing_ward_heal_amount,healRadius:v.healing_ward_aura_radius+areaBonus(h),statuses:{}});g.entities.push(ward);
   }else if(index===3){dispel(h);addStatus(g,h,'invulnerable',{name:'无敌斩',description:'无敌，跳跃攻击附近敌人。',duration:v.duration,positive:true,icon:'swords'});h.omnislash={skill:s,targetId:target.id,firstSlash:true,nextSlash:g.time,until:g.time+v.duration};h.destination=null;h.explicitTarget=null;h.navPath=null;}
  }else if(heroId==='windranger'){
-  if(index===0)g.pendingSpells.push({type:'shackle',sourceId:h.id,targetId:target.id,skill:s,origin:{x:h.x,y:h.y},landAt:g.time+distance(h,target)/v.arrow_speed});
+  if(index===0){const life=distance(h,target)/v.arrow_speed;g.pendingSpells.push({type:'shackle',sourceId:h.id,targetId:target.id,skill:s,origin:{x:h.x,y:h.y},landAt:g.time+life});spellEffect(g,h,'projectile',h.x,h.y,{visual:'shackleShot',targetId:target.id,tx:target.x,ty:target.y,life:Math.max(.01,life),lift:35,targetLift:30,color:'#dcdf86'});}
   else if(index===1){h.channel={kind:'powershot',index,skill:s,startedAt:g.time,until:g.time+s.channelTime,point};addStatus(g,h,'channel',{name:'强力击蓄力',description:'蓄力最多 1 秒；提前停止按蓄力比例造成伤害。',positive:true,duration:s.channelTime,icon:'arrow'});}
   else if(index===2)addStatus(g,h,'windrun',{name:'风行',description:`移动速度 +${v.movespeed_bonus_pct}%，闪避普通攻击。`,positive:true,duration:s.duration,movePercent:v.movespeed_bonus_pct,evasion:100,icon:'wind'});
   else {h.focusTargetId=target.id;h.focusSkill=s;addStatus(g,h,'focus',{name:'集中火力',description:`对指定目标攻击速度 +${v.bonus_attack_speed}，攻击伤害降低 ${Math.abs(v.focusfire_damage_reduction)}%。`,positive:true,duration:s.duration,icon:'target',targetId:target.id});h.explicitTarget=target.id;}
  }else if(heroId==='kunkka'){
-  if(index===0){g.pendingSpells.push({type:'torrent',sourceId:h.id,...point,skill:s,landAt:g.time+v.delay});g._effect('torrentWarning',point.x,point.y,{radius:v.radius,life:v.delay,team:h.team,color:'#8bc9da'});}
+  if(index===0){g.pendingSpells.push({type:'torrent',sourceId:h.id,...point,skill:s,landAt:g.time+v.delay});spellEffect(g,h,'torrentWarning',point.x,point.y,{radius:v.radius,life:v.delay,color:'#8bc9da'});}
   else if(index===2){const duration=target.team===h.team?v.allied_duration:v.duration;h.xMark={targetId:target.id,x:target.x,y:target.y,expiresAt:g.time+duration};addStatus(g,target,'xmark',{name:'X 标记',description:'标记结束或昆卡提前返回时，被带回标记位置。',duration,sourceId:h.id,icon:'xmark',positive:target.team===h.team});}
   else if(index===3)summonGhostships(g,h,s,point);
  }
@@ -260,15 +263,14 @@ function releaseExtraAbility(g,h,s,point,target){
   const to=g.navigation.nearestWalkable({x:h.x+dir.x*v.hop_distance,y:h.y+dir.y*v.hop_distance});
   h.cloneHop={from:{x:h.x,y:h.y},to,startedAt:g.time,until:g.time+v.hop_duration};
   g.pendingSpells=g.pendingSpells.filter(spell=>!(spell.targetId===h.id&&spell.type==='shackle'));
-  g._effect('ring',clone.x,clone.y,{radius:60,life:v.clone_duration,color:'#b4e6f1'});
  }else if(s.id==='windrunner_gale_force'){
   const vector=point.direction,vd=vector&&Math.hypot(vector.x,vector.y);const windDir=vd?{x:vector.x/vd,y:vector.y/vd}:dir;
   g.pendingSpells.push({type:'gale',sourceId:h.id,skill:s,x:point.x,y:point.y,dir:windDir,lastTick:g.time,startedAt:g.time,landAt:g.time+v.duration});
-  g._effect('ring',point.x,point.y,{radius:v.radius,life:v.duration,color:'#bfd69d'});
+  spellEffect(g,h,'ring',point.x,point.y,{visual:'galeForce',radius:v.radius,life:v.duration,color:'#bfd69d',direction:windDir});
  }else if(s.id==='kunkka_tidal_wave'){
   const origin={x:h.x-dir.x*v.radius,y:h.y-dir.y*v.radius},travel=v.wave_distance_tooltip;
   g.pendingSpells.push({type:'tidal',sourceId:h.id,skill:s,origin,dir,traveled:0,hits:[],startedAt:g.time,landAt:g.time+travel/v.speed});
-  g._effect('beam',origin.x,origin.y,{tx:origin.x+dir.x*travel,ty:origin.y+dir.y*travel,radius:50,life:travel/v.speed,color:'#99d9df'});
+  spellEffect(g,h,'beam',origin.x,origin.y,{visual:'tidalWave',tx:origin.x+dir.x*travel,ty:origin.y+dir.y*travel,radius:v.radius,life:travel/v.speed,color:'#99d9df'});
  }
 }
 function summonGhostships(g,h,s,point){
@@ -283,14 +285,14 @@ function fireCannons(g,h,ship,at){
   const offset=v.initial_cannon_offset+i*v.distance_between_cannons,origin={x:at.x+ship.dir.x*offset,y:at.y+ship.dir.y*offset};
   const angle=Math.atan2(ship.dir.y,ship.dir.x)+side*(90+v.base_cannon_rotation+i*v.rotation_per_cannon)*Math.PI/180,dir={x:Math.cos(angle),y:Math.sin(angle)};
   g.pendingSpells.push({type:'cannon',sourceId:h.id,skill:ship.skill,origin,dir,traveled:0,hits:[],startedAt:g.time,landAt:g.time+v.cannon_ball_distance/v.cannon_ball_speed});
-  g._effect('beam',origin.x,origin.y,{tx:origin.x+dir.x*v.cannon_ball_distance,ty:origin.y+dir.y*v.cannon_ball_distance,life:v.cannon_ball_distance/v.cannon_ball_speed,color:'#adcbc4'});
+  spellEffect(g,h,'projectile',origin.x,origin.y,{visual:'cannonBall',tx:origin.x+dir.x*v.cannon_ball_distance,ty:origin.y+dir.y*v.cannon_ball_distance,life:v.cannon_ball_distance/v.cannon_ball_speed,color:'#adcbc4'});
  }
 }
 
 function firePowershot(g,h,channel,fraction){
  const s=channel.skill,v=s.values,d=distance(h,channel.point)||1,dir={x:(channel.point.x-h.x)/d,y:(channel.point.y-h.y)/d};
  g.pendingSpells.push({type:'powershot',sourceId:h.id,skill:s,origin:{x:h.x,y:h.y},dir,fraction,hits:[],traveled:0,startedAt:g.time,landAt:g.time+v.arrow_range/v.arrow_speed});
- g._effect('beam',h.x,h.y,{tx:h.x+dir.x*v.arrow_range,ty:h.y+dir.y*v.arrow_range,color:'#d3e8a0',life:v.arrow_range/v.arrow_speed});
+ spellEffect(g,h,'beam',h.x,h.y,{visual:'powershot',tx:h.x+dir.x*v.arrow_range,ty:h.y+dir.y*v.arrow_range,color:'#d3e8a0',life:v.arrow_range/v.arrow_speed,fraction});
 }
 function giveRum(g,target,source,factor){
  const a=innate(source),v=a.values,old=active(g,target,'rum');if(old&&old.factor>factor)return;
@@ -343,7 +345,7 @@ export function tickWorldAbilities(g){
  for(const spell of g.pendingSpells)if(spell.type==='ship'){
   const source=g.entities.find(e=>e.id===spell.sourceId);if(!source||g.time<spell.startedAt)continue;
   const progress=Math.min(1,(g.time-spell.startedAt)/(spell.landAt-spell.startedAt)),at={x:spell.start.x+(spell.x-spell.start.x)*progress,y:spell.start.y+(spell.y-spell.start.y)*progress};
-  if(!spell.effectStarted){spell.effectStarted=true;g._effect('ship',spell.start.x,spell.start.y,{tx:spell.x,ty:spell.y,radius:spell.skill.values.ghostship_width,life:spell.landAt-spell.startedAt,team:source.team,color:'#8fcec5'});}
+  if(!spell.effectStarted){spell.effectStarted=true;spellEffect(g,source,'ship',spell.start.x,spell.start.y,{tx:spell.x,ty:spell.y,radius:spell.skill.values.ghostship_width,life:spell.landAt-spell.startedAt,startedAt:spell.startedAt,color:'#8fcec5'});}
   while(spell.volleysFired<spell.cannonVolleys&&spell.nextCannonAt<=g.time+1e-7&&spell.nextCannonAt<spell.landAt){fireCannons(g,source,spell,at);spell.volleysFired++;spell.nextCannonAt+=spell.skill.values.cannon_fire_interval;}
   for(const ally of g.entities)if(alive(ally)&&ally.kind==='hero'&&ally.team===source.team&&!spell.touched.includes(ally.id)&&distance(at,ally)<=spell.skill.values.ghostship_width){giveRum(g,ally,source,spell.skill.values.rum_factor);spell.touched.push(ally.id);}
  }
@@ -354,7 +356,7 @@ export function tickWorldAbilities(g){
    for(const e of targets(g,h,spell,radius)){
     if(spell.type==='torrent'){stun(g,e,v.stun_duration,h);dot(g,e,'torrent',h,v.stun_duration,s.damage*v.damage_tick_interval/v.stun_duration,v.damage_tick_interval,'magical','洪流');slow(g,e,v.slow_duration,v.movespeed_bonus,h,0,'slow',g.time+v.stun_duration);}
     else{g.damage(e,s.damage,h,'magical');stun(g,e,v.stun_duration,h);}
-   }g._effect(spell.type==='torrent'?'torrent':'shipImpact',spell.x,spell.y,{radius,life:.85,team:h.team,color:'#99d9df'});
+   }spellEffect(g,h,spell.type==='torrent'?'torrent':'shipImpact',spell.x,spell.y,{radius,life:.85,color:'#99d9df'});
   }else if(spell.type==='shackle'){
    const target=g.entities.find(e=>e.id===spell.targetId&&alive(e));if(!target)continue;
    const d=distance(spell.origin,target)||1,dir={x:(target.x-spell.origin.x)/d,y:(target.y-spell.origin.y)/d};
@@ -362,7 +364,8 @@ export function tickWorldAbilities(g){
    const candidates=[...g.entities.filter(e=>alive(e)&&fighter(e)&&e.team===target.team&&e!==target),...trees];
    const anchor=candidates.filter(e=>{const r=distance(e,target);return r>1&&r<=v.shackle_distance&&((e.x-target.x)*dir.x+(e.y-target.y)*dir.y)/r>=Math.cos(v.shackle_angle*Math.PI/180);}).sort((a,b)=>distance(a,target)-distance(b,target))[0];
    stun(g,target,anchor?v.stun_duration:v.fail_stun_duration,h);if(anchor?.kind)stun(g,anchor,v.stun_duration,h);
-   g._effect('beam',h.x,h.y,{tx:target.x,ty:target.y,life:.4,color:'#c9d799'});
+   spellEffect(g,h,'burst',target.x,target.y,{visual:'shackleImpact',radius:48,life:.35,color:'#c9d799'});
+   if(anchor)spellEffect(g,h,'beam',target.x,target.y,{visual:'shackleLink',targetId:target.id,anchorId:anchor.kind?anchor.id:null,targetStun:target.statuses?.stun,anchorStun:anchor.kind?anchor.statuses?.stun:null,tx:anchor.x,ty:anchor.y,life:v.stun_duration,color:'#e7d38a'});
   }
  }
 }
@@ -411,7 +414,7 @@ export function tickHeroAbilities(g,h,dt){
      const old={x:h.x,y:h.y};Object.assign(h,g.navigation.nearestWalkable({x:victim.x-30,y:victim.y}));h.navPath=null;
      const before=h.attackCooldown;h.attackCooldown=0;g._attack(h,victim,{omni:true,bonusDamage:v.bonus_damage});h.attackCooldown=before;
      const stats=g.combatStats?.(h)||combatStats(g,h);omni.nextSlash=g.time+h.baseAttackTime*100/Math.min(700,stats.attackSpeed+v.bonus_attack_speed)/v.attack_rate_multiplier;
-     g._effect('slash',old.x,old.y,{tx:victim.x,ty:victim.y,radius:65,life:.2,color:'#ffdfb1'});
+     spellEffect(g,h,'slash',old.x,old.y,{visual:'omnislash',tx:victim.x,ty:victim.y,radius:65,life:.2,color:'#ffdfb1'});
     }
    }
   }
@@ -450,7 +453,7 @@ function tickFreezingField(g,h,field){
  while(field.nextExplosion<=g.time+1e-7&&field.nextExplosion<field.until-1e-7){
   const angle=g._random()*Math.PI*2,r=v.explosion_min_dist+g._random()*(v.explosion_max_dist-v.explosion_min_dist),at={x:h.x+Math.cos(angle)*r,y:h.y+Math.sin(angle)*r};
   for(const e of targets(g,h,at,v.explosion_radius+areaBonus(h)))g.damage(e,v.damage,h,'magical');damageOwnClones(g,h,at,v.explosion_radius+areaBonus(h),v.damage);
-  g._effect('burst',at.x,at.y,{radius:v.explosion_radius,life:.35,color:'#aee4f2'});field.nextExplosion+=interval;
+  spellEffect(g,h,'burst',at.x,at.y,{visual:'frostNova',radius:v.explosion_radius,life:.35,color:'#aee4f2'});field.nextExplosion+=interval;
  }
 }
 export function auraManaRegen(g,h){
@@ -486,7 +489,7 @@ export function afterAttack(g,h,target,result,dealt){
  if(result.cleave){const v=result.cleave.values,dir={x:Math.cos(h.angle),y:Math.sin(h.angle)};
   for(const e of g.entities)if(e!==target&&alive(e)&&fighter(e)&&e.team!==h.team){const x=e.x-h.x,y=e.y-h.y,along=x*dir.x+y*dir.y,across=Math.abs(x*dir.y-y*dir.x);const width=v.cleave_starting_width+(v.cleave_ending_width-v.cleave_starting_width)*along/v.cleave_distance;if(along>=0&&along<=v.cleave_distance&&across<=width){g.damage(e,result.damage*v.cleave_damage/100,h,'physical',{armorIgnorePct:v.pierces_armor||0});if(v.movespeed_slow)slow(g,e,v.movespeed_slow_duration,v.movespeed_slow,h);}}
   if(v.movespeed_slow)slow(g,target,v.movespeed_slow_duration,v.movespeed_slow,h);
-  g._effect('cleave',h.x,h.y,{tx:h.x+dir.x*v.cleave_distance,ty:h.y+dir.y*v.cleave_distance,radius:v.cleave_ending_width,life:.45,color:'#b2e1dc'});
+  spellEffect(g,h,'cleave',h.x,h.y,{tx:h.x+dir.x*v.cleave_distance,ty:h.y+dir.y*v.cleave_distance,radius:v.cleave_ending_width,life:.45,color:'#b2e1dc'});
  }
  if(result.critical){g._effect('text',target.x,target.y-45,{text:`${Math.round(result.damage)}!`,life:.7,color:'#e6ac71'});const s=skillOf(h,2);h.hp=Math.min(h.maxHp,h.hp+dealt*(s.values.blade_dance_lifesteal||0)/100);}
  if(alive(target)&&target.heroId==='axe')countHelix(g,target);
@@ -498,7 +501,7 @@ function countHelix(g,h){
  if(h.helixCounter<s.values.trigger_attacks||(h.cooldowns[2]||0)>0)return;
  h.helixCounter=0;h.cooldowns[2]=s.cooldown;
  for(const e of targets(g,h,h,s.values.radius+areaBonus(h))){g.damage(e,s.values.damage,h,'pure');if(s.values.damage_reduction){const id='helix:'+h.id;addStatus(g,e,id,{name:'反击螺旋削弱',icon:'spin',duration:s.values.debuff_duration,sourceId:h.id,helixReduction:s.values.damage_reduction,stacks:Math.min(s.values.max_stacks||5,(active(g,e,id)?.stacks||0)+1)});}}
- h.buffs.helixUntil=g.time+.55;g._effect('slash',h.x,h.y,{radius:s.values.radius,life:.55,color:'#e1b782'});
+ h.buffs.helixUntil=g.time+.55;spellEffect(g,h,'slash',h.x,h.y,{visual:'counterHelix',radius:s.values.radius,life:.55,color:'#ed7954'});
 }
 export function onUnitKilled(g,target,source){
  if(target.crystalClone)detonateClone(g,target);
