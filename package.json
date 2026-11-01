@@ -20,7 +20,8 @@
     "test:ai": "node tests/browser-ai.mjs",
     "test:ogre": "node tests/browser-ogre.mjs",
     "test:coop": "node tests/browser-coop.mjs",
-    "test:notice": "node tests/browser-notice.mjs"
+    "test:notice": "node tests/browser-notice.mjs",
+    "test:recovery": "node tests/browser-recovery.mjs"
   },
   "devDependencies": {
     "playwright": "^1.56.1",

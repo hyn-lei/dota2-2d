@@ -8,6 +8,7 @@ import { mountSkills, updateSkills, toggleTalents } from './skills-ui.js';
 import { icon, mark } from './icons.js';
 import { mountShop, itemArt } from './shop-ui.js';
 import { mountCoop, exitCoopMatch } from './coop-ui.js';
+import { loadMatch, storeMatch, restoreMatch, clearMatch } from './game-save.js';
 
 const $ = (s) => document.querySelector(s);
 const app = $('#app');
@@ -17,7 +18,22 @@ try{preferences={...preferences,...JSON.parse(localStorage.getItem('af-preferenc
 if(!HEROES[preferences.hero])preferences.hero='juggernaut';
 let chosen=preferences.hero,view='lobby',game=null,renderer=null,modal=null,shopOpen=false,inspectionOpen=false,keys=new Set(),pointer={x:0,y:0},hudAt=0,lastFrame=0,lastStatus='playing',toastTimer,returnFocus;
 let audioContext,shopUI;
+let checkpointAt=0,checkpointError=false;
 const save=()=>{try{localStorage.setItem('af-preferences',JSON.stringify(preferences));localStorage.setItem('af-history',JSON.stringify(history));}catch{}};
+function browserStorage(){try{return localStorage;}catch{return null;}}
+function checkpointMatch(){
+  if(!game||game.isNetwork||game.status!=='playing')return;
+  const result=storeMatch(browserStorage(),game);checkpointAt=performance.now();
+  const label=$('#match-mode');
+  if(label){label.textContent=result.ok?'单机 · 已自动存档':'单机 · 存档失败';label.title=result.ok?`本地保存于 ${new Date(result.savedAt).toLocaleTimeString()}，关闭网页后可在大厅继续`:result.reason;label.classList.toggle('save-failed',!result.ok);}
+  if(!result.ok&&!checkpointError)toast(result.reason);
+  checkpointError=!result.ok;
+}
+function resumeMatch(){
+  const saved=loadMatch(browserStorage());
+  if(!saved.record){toast(saved.error||'没有可继续的单机存档');return;}
+  try{startGame(restoreMatch(saved.record),true);}catch{toast('存档暂时无法恢复，原存档已保留');}
+}
 const clock=(seconds)=>`${Math.floor(seconds/60).toString().padStart(2,'0')}:${Math.floor(seconds%60).toString().padStart(2,'0')}`;
 function sound(type='click'){
   if(!preferences.sound)return;
@@ -28,8 +44,10 @@ function setupRenderer(){renderer?.destroy();renderer=new Renderer($('#battlefie
 function portrait(h,cls=''){return `<img class="${cls}" src="/${h.portrait}" alt="${h.name}" draggable="false" />`;}
 function renderLobby(){
   if(game?.isNetwork){exitCoopMatch();return;}
+  if(game?.status==='playing'){game.clearMovement(game.player);game.setPaused(true);checkpointMatch();}
   cancelItemUse();
   view='lobby';game=null;modal=null;shopOpen=false;keys.clear();
+  const saved=loadMatch(browserStorage()),resume=saved.record;
   app.innerHTML=`<main class="lobby">
     <canvas id="battlefield" class="lobby-canvas" aria-label="远古战场的动态森林背景"></canvas>
     <header class="masthead">
@@ -48,7 +66,7 @@ function renderLobby(){
       <div class="battle-note"><span class="tiny-diamond"></span><div>熟悉的战场，全新的视角。<small>三路争锋 · 英雄成长 · 远古之战</small></div></div>
     </section>
     <section class="selection-dock" aria-label="英雄与对局选项"><div class="roster-label"><span class="eyebrow">YOUR HERO</span><strong>选择英雄</strong><small>01 — ${String(Object.keys(HEROES).length).padStart(2,'0')}</small></div><div class="hero-roster" style="--hero-count:${Object.keys(HEROES).length}">${Object.values(HEROES).map((h,i)=>`<button class="hero-option ${h.id===chosen?'selected':''}" data-hero="${h.id}" aria-pressed="${h.id===chosen}"><span class="roster-art">${portrait(h)}<span class="hero-check">${icon('check')}</span></span><span class="roster-text"><strong>${h.name}</strong><small>${h.role}</small></span><span class="roster-number">0${i+1}</span></button>`).join('')}</div>
-      <div class="launch-area"><div class="match-settings"><span><i></i> 单人人机 <b>5 V 5</b></span><label class="difficulty-label" for="difficulty">难度 <select id="difficulty" aria-label="对局难度"><option value="easy">休闲</option><option value="normal">标准</option><option value="hard">挑战</option></select></label></div><button id="start-game" class="primary-button"><span>进入战场<small>ENTER THE BATTLE</small></span>${icon('arrow')}</button></div>
+      <div class="launch-area"><div class="match-settings"><span><i></i> 单人人机 <b>5 V 5</b></span><label class="difficulty-label" for="difficulty">难度 <select id="difficulty" aria-label="对局难度"><option value="easy">休闲</option><option value="normal">标准</option><option value="hard">挑战</option></select></label></div>${resume?`<button id="resume-game" class="resume-game"><strong>继续上次对局</strong><small>${HEROES[resume.state.heroChoice].name} · ${clock(resume.state.time)} · 等级 ${resume.state.entities.find(e=>e.isPlayer).level}</small></button>`:''}${saved.error?`<p class="save-warning" role="status">${escapeHtml(saved.error)}</p>`:''}<button id="start-game" class="primary-button"><span>${resume?'开始新对局':'进入战场'}<small>ENTER THE BATTLE</small></span>${icon('arrow')}</button></div>
     </section>
     <footer class="lobby-footer"><span>2D MOBA EXPERIENCE <i> / </i> 非官方同人原型</span><button class="history-button">${icon('flag')} 战绩 <strong>${history.wins}</strong> 胜 <span>·</span> ${history.matches} 场</button><span class="footer-version">LOCAL PLAY <i></i> V 1.0</span></footer>
     <div id="toast" role="status"></div><div id="modal-root"></div>
@@ -56,6 +74,7 @@ function renderLobby(){
   setupRenderer();selectHero(chosen,false);$('#difficulty').value=preferences.difficulty;
   document.querySelectorAll('[data-hero]').forEach(b=>b.onclick=()=>selectHero(b.dataset.hero));
   $('#start-game').onclick=startGame;
+  $('#resume-game')?.addEventListener('click',resumeMatch);
   $('#difficulty').onchange=e=>{preferences.difficulty=e.target.value;save();};
   $('.hero-detail').onclick=()=>openModal('hero');
   $('.history-button').onclick=()=>openModal('history');
@@ -78,14 +97,18 @@ function bindShared(){
   $('.sound-toggle').onclick=()=>{preferences.sound=!preferences.sound;save();$('.sound-toggle').innerHTML=icon(preferences.sound?'volume':'mute');toast(preferences.sound?'音效已开启':'音效已关闭');};
   $('.settings-button')?.addEventListener('click',()=>openModal('settings'));
 }
-function startGame(providedGame=null){
+function startGame(providedGame=null,resume=false){
   if(game?.isNetwork&&!providedGame?.isNetwork){exitCoopMatch();return;}
-  if(providedGame?.isNetwork)chosen=providedGame.player.heroId;
+  if(!providedGame?.isNetwork&&!resume){
+    checkpointMatch();const saved=loadMatch(browserStorage());
+    if(saved.hasSave&&!window.confirm('开始新对局将替换上次的单机存档，无法再继续原对局。确定开始吗？'))return;
+  }
+  if(providedGame instanceof Game)chosen=providedGame.player.heroId;
   cancelItemUse();
-  sound('start');view='match';modal=null;shopOpen=false;inspectionOpen=false;keys.clear();game=providedGame?.isNetwork?providedGame:new Game({hero:chosen,difficulty:preferences.difficulty,seed:Math.floor(Math.random()*100000)});lastStatus='playing';
+  sound('start');view='match';modal=null;shopOpen=false;inspectionOpen=false;keys.clear();game=providedGame instanceof Game?providedGame:new Game({hero:chosen,difficulty:preferences.difficulty,seed:Math.floor(Math.random()*100000)});lastStatus='playing';checkpointAt=0;checkpointError=false;
   const h=HEROES[chosen];
   app.innerHTML=`<main class="match"><canvas id="battlefield" aria-label="2D 对战战场，左键查看单位，右键移动与攻击，Q W E R 释放技能" tabindex="0"></canvas>
-    <header class="match-header"><button class="match-brand" aria-label="暂停与菜单">${mark()}<span>ANCIENT<br/>FRONT</span></button><div class="scoreboard"><div class="team-name radiant">天辉 <span>RADIANT</span></div><strong id="radiant-score">0</strong><div class="match-clock">${icon('sun')}<b id="match-time">00:00</b><small>5V5 · 人机对战</small></div><strong id="dire-score">0</strong><div class="team-name dire">夜魇 <span>DIRE</span></div></div><div class="match-tools"><button class="icon-button" id="guide-button" aria-label="作战指南" title="作战指南 H">${icon('help')}</button><button class="icon-button sound-toggle" aria-label="切换音效">${icon(preferences.sound?'volume':'mute')}</button><button class="icon-button" id="pause-button" aria-label="暂停游戏" title="暂停 Esc">${icon('pause')}</button></div></header>
+    <header class="match-header"><button class="match-brand" aria-label="暂停与菜单">${mark()}<span>ANCIENT<br/>FRONT</span></button><div class="scoreboard"><div class="team-name radiant">天辉 <span>RADIANT</span></div><strong id="radiant-score">0</strong><div class="match-clock">${icon('sun')}<b id="match-time">00:00</b><small id="match-mode">5V5 · 人机对战</small></div><strong id="dire-score">0</strong><div class="team-name dire">夜魇 <span>DIRE</span></div></div><div class="match-tools"><button class="icon-button" id="guide-button" aria-label="作战指南" title="作战指南 H">${icon('help')}</button><button class="icon-button sound-toggle" aria-label="切换音效">${icon(preferences.sound?'volume':'mute')}</button><button class="icon-button" id="pause-button" aria-label="暂停游戏" title="暂停 Esc">${icon('pause')}</button></div></header>
     <aside class="objective"><span class="objective-icon">${icon('tower')}</span><div><span class="eyebrow">当前目标</span><strong id="objective-text">跟随兵线，攻破敌方防御塔</strong><small id="tower-count">敌方防御塔 11 / 11 · 兵营 6 / 6</small></div></aside><div id="event-feed" class="event-feed" aria-live="polite"></div>
     <div id="death-overlay" class="death-overlay" hidden><span>你已阵亡</span><strong id="respawn-count">10</strong><small>即将于泉水重生</small></div><div class="recall-progress" id="recall-progress" hidden><span>正在传送回泉水</span><div><i id="recall-fill"></i></div><small>移动、施法或受到伤害会打断回城</small></div>
     <div class="control-hint" id="control-hint"><span><b>左键</b> 属性 / 装备</span><span><b>右键</b> 移动 / 攻击</span><span><b>Q W E R</b> 技能</span><span><b>滚轮</b> 缩放</span><span><b>空格</b> 回到英雄</span><button aria-label="隐藏操作提示">${icon('close')}</button></div>
@@ -135,6 +158,8 @@ function startGame(providedGame=null){
   $('#control-hint button').onclick=()=>$('#control-hint').remove();
   const mini=$('#minimap');mini.oncontextmenu=e=>e.preventDefault();mini.onpointerdown=e=>{e.preventDefault();const r=mini.getBoundingClientRect(),p=renderer.minimapToWorld(mini,e.clientX-r.left,e.clientY-r.top);if(!p)return;if(e.button===2){game.moveTo(p.x,p.y);renderer.mark(p.x,p.y);}else{if(renderer.zoom<.15)renderer.zoom=Math.max(.3,Math.min(.5,renderer.w/3200));renderer.lookAt(p.x,p.y);}};
   toast('你已加入天辉。带领兵线，摧毁夜魇的远古遗迹。');
+  checkpointMatch();
+  if(resume)openModal('restored');
   window.scrollTo(0,0);
 }
 async function cast(i,self=false){if(!game||modal)return;const activeGame=game,target=self?game.player:renderer.screenToWorld(pointer.x||renderer.w/2,pointer.y||renderer.h/2);const r=await activeGame.cast(i,target);if(game!==activeGame)return;if(r.ok){if(game.skill(i).kind==='active'||game.player.heroId==='ogre_magi')keys.clear();sound('cast');updateHud();}else toast(r.reason||'暂时无法施放技能');}
@@ -207,6 +232,7 @@ function toggleShop(){if(!game||modal)return;shopOpen=!shopOpen;$('#shop').hidde
 function updateShop(){shopUI?.update();}
 function openModal(type){
   if(!$('#modal-root'))return;returnFocus=document.activeElement;modal=type;keys.clear();if(game){game.setMovement(0,0);game.setPaused(true);}sound();
+  checkpointMatch();
   let title='',eyebrow='',body='',footer='';
   if(type==='guide'){
     title='从第一刀，到最后一座遗迹。';eyebrow='FIELD MANUAL';
@@ -220,9 +246,10 @@ function openModal(type){
     title='游戏设置';eyebrow='YOUR BATTLE, YOUR WAY';body=`<div class="setting-row"><div><strong>战斗音效</strong><p>技能、购买与界面交互音效</p></div><button id="sound-setting" class="toggle ${preferences.sound?'on':''}" aria-pressed="${preferences.sound}" aria-label="开启或关闭音效"><i></i></button></div><div class="setting-row"><div><strong>对局难度</strong><p>修改将在下一局生效</p></div><select id="setting-difficulty"><option value="easy">休闲</option><option value="normal">标准</option><option value="hard">挑战</option></select></div><div class="guide-tip"><strong>轻量运行，无需下载客户端。</strong><p>游戏与美术资源均在本地运行。偏好和历史战绩保存在当前浏览器中。</p></div>`;footer='<button class="primary-button modal-primary" data-close>保存并返回</button>';
   }else if(type==='history'){
     title='你的远古征途';eyebrow='BATTLE RECORD';body=`<div class="record-stats"><div><strong>${history.matches}</strong><span>累计对局</span></div><div><strong>${history.wins}</strong><span>天辉胜利</span></div><div><strong>${history.bestKills}</strong><span>单局最高击杀</span></div></div><p class="record-caption">${history.matches?'每一场战斗，都是新的故事。':'战场尚未留下你的名字。选择一位英雄，开始第一场对局。'}</p>`;footer='<button class="primary-button modal-primary" data-close>返回战场</button>';
-  }else if(type==='pause'){
+  }else if(type==='pause'||type==='restored'){
     title='稍作休整';eyebrow='BATTLE PAUSED';body=`<p class="pause-copy">兵线与战斗已暂停。准备好后，继续你的征程。</p><div class="pause-summary"><span>对局时间<strong>${clock(game.time)}</strong></span><span>英雄等级<strong>${game.player.level}</strong></span><span>击杀 / 阵亡<strong>${game.player.kills} / ${game.player.deaths}</strong></span></div>`;footer='<button class="primary-button modal-primary" data-close>继续战斗</button><div class="modal-secondary"><button id="restart-match">重新开始</button><button id="back-lobby">返回大厅</button></div>';
     if(game.isNetwork){body=body.replace('兵线与战斗已暂停。准备好后，继续你的征程。','联机比赛仍在继续，菜单只停止你的操作。离开会结束本次对局，不会使用 AI 补位。');footer='<button class="primary-button modal-primary" data-close>返回战场</button><div class="modal-secondary"><button id="back-lobby">离开联机对局</button></div>';}
+    if(type==='restored'){title='已恢复上次对局';eyebrow='BATTLE RESTORED';body=body.replace('兵线与战斗已暂停。准备好后，继续你的征程。','英雄、装备和战斗进度已从本地存档恢复。比赛保持暂停，点击继续战斗后开始。');}
   }else if(type==='result'){
     const won=game.status==='won';title=won?'天辉，赢得胜利。':'遗迹陨落，战意未熄。';eyebrow=won?'RADIANT VICTORY':'THE ANCIENT HAS FALLEN';
     body=`<div class="result-emblem ${won?'victory':''}">${icon(won?'flag':'shield')}</div><p class="record-caption">${won?'敌方远古遗迹已被摧毁，这片战场属于你。':'天辉的远古遗迹已被摧毁。下一次，让我们重新改写战局。'}</p><div class="record-stats"><div><strong>${game.player.kills} / ${game.player.deaths}</strong><span>击杀 / 阵亡</span></div><div><strong>${game.player.lastHits}</strong><span>补刀</span></div><div><strong>${clock(game.time)}</strong><span>对局时长</span></div></div>`;footer='<button id="play-again" class="primary-button modal-primary">再战一局</button><div class="modal-secondary"><button id="back-lobby">返回大厅</button></div>';
@@ -262,13 +289,19 @@ window.addEventListener('keydown',async e=>{
 window.addEventListener('keyup',e=>{keys.delete(e.key.toLowerCase());if(e.key==='Alt'&&renderer)renderer.showCampBounds=$('#camp-bounds')?.classList.contains('active')||false;});
 window.addEventListener('blur',()=>{keys.clear();if(game&&!modal&&game.status==='playing')openModal('pause');});
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&game&&!modal&&game.status==='playing')openModal('pause');});
+window.addEventListener('pagehide',checkpointMatch);
+window.addEventListener('beforeunload',event=>{
+  if(view!=='match'||!game||game.isNetwork||game.status!=='playing')return;
+  checkpointMatch();event.preventDefault();event.returnValue='';
+});
 function tick(ms){
   const dt=Math.min((ms-lastFrame)/1000||0,1/20);lastFrame=ms;
   if(game&&view==='match'){
     const x=(keys.has('arrowright')?1:0)-(keys.has('a')||keys.has('arrowleft')?1:0),y=(keys.has('s')||keys.has('arrowdown')?1:0)-(keys.has('arrowup')?1:0);
     game.setMovement(x,y);game.step(dt);
+    if(!game.isNetwork&&game.status==='playing'&&ms-checkpointAt>=2000)checkpointMatch();
     if(ms-hudAt>100){updateHud();hudAt=ms;}
-    if(game.status!=='playing'&&lastStatus==='playing'){lastStatus=game.status;history.matches++;if(game.status==='won')history.wins++;history.bestKills=Math.max(history.bestKills,game.player.kills);save();updateHud();openModal('result');}
+    if(game.status!=='playing'&&lastStatus==='playing'){lastStatus=game.status;history.matches++;if(game.status==='won')history.wins++;history.bestKills=Math.max(history.bestKills,game.player.kills);save();if(!game.isNetwork){const cleared=clearMatch(browserStorage());if(!cleared.ok)toast(cleared.reason);}updateHud();openModal('result');}
   }
   renderer?.render(game,ms/1000);requestAnimationFrame(tick);
 }

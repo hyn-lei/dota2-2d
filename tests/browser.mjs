@@ -9,6 +9,7 @@ const browser=await chromium.launch({headless:true});
 const page=await browser.newPage({viewport:{width:1440,height:900},deviceScaleFactor:1});
 const errors=[],checks=[];
 page.on('pageerror',e=>errors.push(e.message));
+page.on('dialog',dialog=>dialog.type()==='confirm'&&dialog.message().includes('替换')?dialog.accept():dialog.dismiss());
 page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});
 const check=name=>{checks.push(name);console.log(`PASS ${name}`);};
 const observe=()=>page.evaluate(async()=>{
