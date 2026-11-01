@@ -63,7 +63,7 @@ test('a failed pull restores files and leaves the previous running image intact'
  assert.equal(await readFile(join(f.dir,'state'),'utf8'),'old:stable');assert.deepEqual(await readdir(f.work),[]);
 });
 
-for(const [name,overrides] of [['unhealthy container',{AUTO_FAIL_NEW:'1'}],['public revision mismatch',{AUTO_HEADER_SHA:'e'.repeat(40)}],['inspect failure',{AUTO_FAIL_INSPECT:'1'}],['dotenv persist failure',{AUTO_FAIL_PERSIST:'1'}]]){
+for(const [name,overrides] of [['unhealthy container',{AUTO_FAIL_NEW:'1'}],['public revision mismatch',{AUTO_HEADER_SHA:'e'.repeat(40)}],['public WebSocket failure',{AUTO_FAIL_PUBLIC_WS:'1'}],['inspect failure',{AUTO_FAIL_INSPECT:'1'}],['dotenv persist failure',{AUTO_FAIL_PERSIST:'1'}]]){
  test(`${name} restores the old configuration and immutable image`,async t=>{
   const f=await fixture(t),result=await f.run('rollout',overrides);assert.equal(result.status,1);
   assert.equal(await readFile(join(f.target,'.env'),'utf8'),oldEnv);assert.equal(await readFile(join(f.target,f.composeName),'utf8'),oldCompose);

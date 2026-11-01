@@ -63,7 +63,9 @@ jobs:
           EXPECTED_GAME_REVISION: ${{ github.sha }}
         run: npm run test:container -- http://127.0.0.1:18080
       - name: Verify cooperative HTTP and WebSocket transport
-        run: npm run test:multiplayer-smoke -- http://127.0.0.1:18080
+        run: |
+          npm run test:multiplayer-smoke -- http://127.0.0.1:18080
+          docker exec "$(docker compose ps -q game)" node scripts/check-public-coop.mjs http://127.0.0.1:8080
       - name: Install browser smoke test dependencies
         run: |
           npx playwright install --with-deps chromium
@@ -400,6 +402,9 @@ jobs:
             curl --fail --silent --show-error --location --connect-timeout 10 --max-time 30 --retry 3 --dump-header "$work_dir/headers" "${DEPLOY_PUBLIC_URL%/}/healthz" >/dev/null
             public_revision=$(tr -d '\r' < "$work_dir/headers" | awk 'tolower($1)=="x-game-revision:" { value=$2 } END { print value }')
             [[ "$public_revision" == "$DEPLOY_SHA" ]] || { echo 'Public site did not serve this commit' >&2; exit 1; }
+            # Follow the browser's public TLS/proxy path, including Origin and Upgrade.
+            # A hello probe creates no room and occupies no human seat.
+            docker exec "$current" node scripts/check-public-coop.mjs "$DEPLOY_PUBLIC_URL"
             candidate=$(mktemp "$PWD/.env.deploy.XXXXXXXX")
             temp_files+=("$candidate")
             awk -v image="$DEPLOY_IMAGE" 'BEGIN { written=0 } /^[[:space:]]*(export[[:space:]]+)?IMAGE[[:space:]]*=/ { if(!written) print "IMAGE=" image; written=1; next } { print } END { if(!written) print "IMAGE=" image }' .env > "$candidate"
@@ -413,4 +418,4 @@ jobs:
         if: steps.current.outputs.deploy == 'true'
         env:
           DEPLOY_SHA: ${{ github.sha }}
-        run: echo "Server updated to commit $DEPLOY_SHA; container health and public revision verified." >> "$GITHUB_STEP_SUMMARY"
+        run: echo "Server updated to commit $DEPLOY_SHA; container health, public revision and public WebSocket welcome verified." >> "$GITHUB_STEP_SUMMARY"

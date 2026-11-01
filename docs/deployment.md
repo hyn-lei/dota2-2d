@@ -11,7 +11,7 @@ main 提交后，**Actions → Build, publish and deploy game** 执行：
 3. 使用与参考项目 `E:\works\vps_cost` 一样的 appleboy/ssh-action，通过 root 登录配置好的服务器。
 4. 自动创建部署目录，写入 Docker Compose；没有 .env 时生成默认配置。
 5. 执行 `docker compose up -d --pull always --wait` 拉取本次镜像并启动/更新 game。
-6. 验证容器健康及网站返回的提交版本，记录真实结果。
+6. 验证容器健康、网站返回的提交版本及公网 WebSocket 的 `hello → welcome` 握手，记录真实结果。
 
 部署命令直接位于 workflow 的 SSH `script` 字段。此前两个部署 .sh 文件已删除，不再上传部署脚本。PR 只验证；版本标签只发布镜像，main 和手动运行 main 才部署。
 
@@ -35,6 +35,8 @@ BIND_ADDRESS=0.0.0.0
 ```
 
 默认目录为 /opt/dota2-2d。已有 .env 的端口、绑定和其他设置保留，成功后只把 IMAGE 更新为本次摘要。首次创建可用下表的 DEPLOY_HTTP_PORT / DEPLOY_BIND_ADDRESS 指定默认值。
+
+当前线上站点使用 `/data/dota2/docker-compose.yml`、项目名 `dota2`、容器 `dota2-game-1` 和 8080 端口；仓库 Variable `DEPLOY_PATH=/data/dota2` 已配置。更新时应沿用这个目录，避免在默认目录创建第二个项目并占用相同端口。
 
 已有 Compose 文件会沿用其文件名和已解析的项目名称，并生成本项目的 game 配置。指定目录必须独立用于本游戏；如果现有 Compose 包含其他服务，部署拒绝覆盖，保护其他项目。
 
@@ -64,7 +66,7 @@ BIND_ADDRESS=0.0.0.0
 
 ## 4. 失败恢复与手动回滚
 
-写文件前备份现有 Compose/.env 和当前镜像。拉取失败时恢复生成前的配置，旧容器保持运行；新容器启动、版本验证或文件持久化失败时，恢复配置，再通过临时 Compose 覆盖将 game.image 明确固定为缓存的旧镜像 ID，并核对恢复后的容器 ID。这样旧配置中写死的镜像标签不会影响恢复。首次失败时移除本次生成的服务和配置。
+写文件前备份现有 Compose/.env 和当前镜像。拉取失败时恢复生成前的配置，旧容器保持运行；新容器启动、版本验证、公网 WebSocket 握手或文件持久化失败时，恢复配置，再通过临时 Compose 覆盖将 game.image 明确固定为缓存的旧镜像 ID，并核对恢复后的容器 ID。这样旧配置中写死的镜像标签不会影响恢复。首次失败时移除本次生成的服务和配置。
 
 临时 Docker 登录使用独立目录，任务结束后清除，不永久覆盖服务器原登录。配置恢复失败会保留私有备份并报告位置；不会把它报告成部署成功。旧镜像保留用于回滚。
 
@@ -83,22 +85,39 @@ docker compose up -d --wait --wait-timeout 90 game
 
 容器内的 Node 服务现在同时提供静态网页和 `/ws/coop` 同源 WebSocket，支持五真人对五 AI。房间保存在当前服务内存，没有数据库或跨实例恢复；更新、重启容器会结束现有房间。浏览器设置和战绩保存在对应站点的 localStorage 中，改变域名或端口后浏览器会把它当作另一个站点。
 
-反向代理需要转发 WebSocket Upgrade，并保留原 Host。Nginx 的同域名根路径示例（TLS 配置沿用已有站点）：
+反向代理需要转发 WebSocket Upgrade，并保留原 Host。仅能打开网页或 `/healthz` 不代表联机正常。Nginx 在同一个 HTTPS `server` 中增加以下精确路径（根路径和 TLS 配置沿用已有站点）：
 
 ```nginx
-location / {
-    proxy_pass http://127.0.0.1:8080;
+location = /ws/coop {
+    proxy_pass http://localhost:8080;
     proxy_http_version 1.1;
     proxy_set_header Host $host;
     proxy_set_header Upgrade $http_upgrade;
     proxy_set_header Connection "upgrade";
     proxy_read_timeout 180s;
+    proxy_send_timeout 180s;
 }
+```
+
+2026-11-01 线上故障：`/etc/nginx/conf.d/all.conf` 的游戏站点只设置了 `proxy_pass` 和 Host，公网 WebSocket 请求被当作普通 HTTP，返回 404；容器内部握手正常。已只补上该站点的 `/ws/coop` 规则，通过 `nginx -t` 后平滑重载，并在公网收到 `welcome`。
+
+仓库保留定向修复工具 `scripts/patch-nginx-websocket.py`。它要求配置中恰好一个站点同时匹配域名与上游，备份原文件，验证后重载；失败时恢复原文件，重复运行不会重复添加规则。当前服务器已执行，无需再手动操作。如需在相同配置下重做，可用：
+
+```bash
+python3 scripts/patch-nginx-websocket.py /etc/nginx/conf.d/all.conf
+```
+
+每次自动部署现在通过新容器访问公网域名，使用浏览器同源 Origin 发出 WebSocket `hello`，必须收到 `welcome` 才能报告成功。探测不创建房间或加入真人席位，不输出会话令牌。也可从本地单独运行：
+
+```bash
+npm run test:public-coop -- https://dota2.prismabyss.com
 ```
 
 自动部署通过网站 `/healthz` 的 `X-Game-Revision` 响应头核对运行中的提交 SHA；健康检查正文仍为 `ok`。反向代理应将该路径转发到 Node 容器并保留响应头，不缓存它。镜像构建自动写入 GAME_REVISION，本地开发可以不设置。
 
 ## 6. 本地构建和验证
+
+`npm test` 的 Nginx 修复工具检查需要 Python 3（Windows 使用 `python`，Linux 使用 `python3`），仅使用标准库；游戏运行及 Docker 镜像不需要 Python。
 
 有 Docker 的环境可以直接验证同一套生产配置：
 
@@ -123,5 +142,6 @@ npm run test:deployment
 - **`denied` / `unauthorized`**：确认首次 Actions 发布成功，包是否私有，以及当前服务器账号是否登录 GHCR；仓库权限与包权限应允许读取。
 - **`permission_denied: write_package`**：检查仓库/组织的 Actions 权限。如果同名包此前由其他方式创建，需在包设置中把此仓库加入 Actions 访问权限。
 - **端口占用**：修改 `.env` 中 `HTTP_PORT` 后重新启动。
+- **网页能打开但 `/ws/coop` 连接失败**：检查 Nginx 的 HTTP/1.1、Upgrade、Connection 和 Host 转发；握手返回 404 通常是升级头未传到 Node。用 `test:public-coop` 核对完整握手，不能只查 HTTP 健康。
 - **容器 unhealthy**：查看 `docker compose logs --tail=100`；保留 Compose 的 `/tmp` 挂载和镜像内的健康检查。
 - **更新后浏览器仍显示旧内容**：正常配置要求重新验证静态文件；若使用 CDN 或额外代理缓存，检查其缓存规则并刷新页面。

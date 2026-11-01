@@ -46,6 +46,10 @@ process.stdout.write(name+' '+image);
 original="$*"
 case "$1" in
  login) printf '%s\\n' "$original" >> "$AUTO_LOG"; cat >/dev/null; printf '{}' > "$DOCKER_CONFIG/config.json";;
+ exec)
+  printf '%s\\n' "$original" >> "$AUTO_LOG"
+  [[ "$*" == *'node scripts/check-public-coop.mjs '* ]] || exit 2
+  if [[ "\${AUTO_FAIL_PUBLIC_WS:-}" == 1 ]]; then printf 'Public WebSocket handshake failed: Unexpected server response: 404\\n' >&2; exit 1; fi;;
  inspect)
   cid="\${*: -1}"; project="\${cid%-container}"
   printf '%s\\n' "$original" >> "$AUTO_LOG"

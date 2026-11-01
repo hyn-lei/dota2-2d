@@ -12,6 +12,7 @@
     "test:container": "node scripts/smoke-container.mjs",
     "test:multiplayer-server": "node --test tests/multiplayer-server.test.mjs",
     "test:multiplayer-smoke": "node scripts/smoke-multiplayer.mjs",
+    "test:public-coop": "node scripts/check-public-coop.mjs",
     "test:deployment": "node scripts/smoke-browser.mjs",
     "test": "node --test tests/*.test.mjs",
     "test:browser": "node tests/browser.mjs",

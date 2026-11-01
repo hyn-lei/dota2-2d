@@ -17,6 +17,7 @@ COPY --from=build /app/dist/ ./dist/
 COPY --from=build /app/src/ ./src/
 COPY server/ ./server/
 COPY scripts/server.mjs ./scripts/server.mjs
+COPY scripts/check-public-coop.mjs ./scripts/check-public-coop.mjs
 USER node
 EXPOSE 8080
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
