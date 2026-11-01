@@ -23,6 +23,7 @@ export class CoopConnection extends EventTarget {
         if(this.game&&formerClientId&&formerClientId!==this.clientId){this.game=null;this.room=null;this.frame=-1;this.emit('end',{reason:'server_restart'});return;}
         this.emit('connection',{status:'connected'});this.emit('welcome',message);
       }else if(message.type==='room'){this.room=message.room;this.emit('room',message.room);}
+      else if(message.type==='matchmaking'){this.matchmaking=message;this.emit('matchmaking',message);}
       else if(message.type==='snapshot'){
         if(message.frame<this.frame)return;this.frame=message.frame;
         if(!this.game||this.game.playerId!==message.playerId)this.game=new NetworkGame({state:message.state,playerId:message.playerId,request:(...args)=>this.request(...args)});
@@ -32,7 +33,7 @@ export class CoopConnection extends EventTarget {
       }else if(message.type==='ack'){
         const waiting=this.pending.get(message.id);if(waiting){clearTimeout(waiting.timer);this.pending.delete(message.id);waiting.resolve(message.result);}
       }else if(message.type==='end'){
-        this.game=null;this.frame=-1;this.emit('end',message);
+        this.game=null;this.matchmaking=null;this.frame=-1;this.emit('end',message);
       }else if(message.type==='error'){
         this.emit('error',message);
         // A server restart can expire the former session. Rejoin manually as a fresh identity.

@@ -7,6 +7,7 @@ import { CoopGame } from './coop-game.mjs';
 import { executeCommand, validHero, validName, messageHasOnly } from './commands.mjs';
 import { snapshotState } from './snapshot.mjs';
 import { encodeMessage } from '../src/network-protocol.js';
+import { HEROES } from '../src/data.js';
 
 const defaults = {
   revision:process.env.GAME_REVISION||'',
@@ -18,6 +19,7 @@ const defaults = {
 };
 const tokenPattern=/^[a-f0-9]{64}$/;
 const codePattern=/^[A-Z2-9]{6}$/;
+const validMatchRequestId=value=>value===undefined||Number.isSafeInteger(value)&&value>0;
 const mime={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.png':'image/png','.jpg':'image/jpeg','.jpeg':'image/jpeg','.svg':'image/svg+xml','.json':'application/json','.webp':'image/webp','.woff':'font/woff','.woff2':'font/woff2','.ico':'image/x-icon'};
 
 function consume(socket, kind, rate, now) {
@@ -28,7 +30,7 @@ function consume(socket, kind, rate, now) {
 }
 
 export class RoomManager {
-  constructor(options) {this.options=options;this.rooms=new Map();this.sessions=new Map();this.sockets=new Set();this.pendingSnapshots=new WeakMap();this.deferredSnapshots=new WeakMap();this.frame=0;this.closed=false;}
+  constructor(options) {this.options=options;this.rooms=new Map();this.matchQueue=[];this.sessions=new Map();this.sockets=new Set();this.pendingSnapshots=new WeakMap();this.deferredSnapshots=new WeakMap();this.frame=0;this.closed=false;}
 
   send(socket,message) {
     if(socket?.readyState!==WebSocket.OPEN) return false;
@@ -59,10 +61,11 @@ export class RoomManager {
         this.send(socket,{type:'snapshot',frame:++this.frame,playerId:member.heroEntityId,roomCode:room.code,state:snapshotState(room.game)});
     }
   }
-  error(socket,code,message) {this.send(socket,{type:'error',code,message});}
+  error(socket,code,message,requestId) {this.send(socket,{type:'error',code,message,...(requestId!==undefined?{requestId}:{})});}
   roomView(room) {
     const deadlines=room.members.filter(m=>!m.connected&&m.reconnectDeadline).map(m=>m.reconnectDeadline);
     return {code:room.code,phase:room.phase,hostId:room.hostId,capacity:5,
+      ...(room.matchmade?{matchmade:true}:{}),
       members:room.members.map(({clientId,name,heroId,ready,connected,heroEntityId})=>({clientId,name,heroId,ready,connected,heroEntityId:heroEntityId??null})),
       ...(deadlines.length ? {reconnectDeadline:Math.min(...deadlines)} : {}),};
   }
@@ -101,7 +104,7 @@ export class RoomManager {
     socket.on('error',()=>{});
     socket.on('close',()=>{clearTimeout(timer);this.sockets.delete(socket);this.disconnect(socket);});
   }
-  reject(socket,code,message) {this.error(socket,code,message);if(++socket.coopViolations>=8) socket.close(1008,code);}
+  reject(socket,code,message,requestId) {this.error(socket,code,message,requestId);if(++socket.coopViolations>=8) socket.close(1008,code);}
   handle(socket,message) {
     if(message.type==='hello') return this.hello(socket,message);
     const session=socket.coopSession;
@@ -117,8 +120,11 @@ export class RoomManager {
       return this.send(socket,{type:'pong',sentAt:message.sentAt});
     }
     if(message.type==='command') return this.command(session,message);
-    if(!consume(socket,'lobby',this.options.lobbyRate,Date.now())) return this.reject(socket,'RATE_LIMIT','房间操作过于频繁');
+    const matchRequestId=['matchmake','cancelMatchmaking'].includes(message.type)&&validMatchRequestId(message.requestId)?message.requestId:undefined;
+    if(!consume(socket,'lobby',this.options.lobbyRate,Date.now())) return this.reject(socket,'RATE_LIMIT','房间操作过于频繁',matchRequestId);
     switch(message.type) {
+      case 'matchmake': return this.enqueueMatchmaking(session,message);
+      case 'cancelMatchmaking': if(messageHasOnly(message,['type','requestId'])&&validMatchRequestId(message.requestId))return this.cancelMatchmaking(session,message);break;
       case 'create': return this.create(session,message);
       case 'join': return this.join(session,message);
       case 'chooseHero': return this.chooseHero(session,message);
@@ -141,7 +147,7 @@ export class RoomManager {
     // A delayed close callback from a previous socket cannot detach its replacement.
     const previous=session.socket;session.socket=socket;socket.coopSession=session;session.lastSeenAt=Date.now();
     if(previous && previous!==socket && previous.readyState!==WebSocket.CLOSED) previous.terminate();
-    this.send(socket,{type:'welcome',token:session.token,clientId:session.clientId,lastCommandId:session.lastCommandId});
+    this.send(socket,{type:'welcome',token:session.token,clientId:session.clientId,lastCommandId:session.lastCommandId,roomCode:session.roomCode});
     const room=this.rooms.get(session.roomCode),member=room?.members.find(m=>m.clientId===session.clientId);
     if(!room||!member) {session.roomCode=null;return;}
     if(room.phase==='ended'){const reason=room.abortReason||'match_finished';this.removeMember(session,room);this.send(socket,{type:'end',reason});return;}
@@ -151,17 +157,58 @@ export class RoomManager {
     this.broadcastRoom(room);if(room.game) this.broadcastSnapshot(room);
     if(room.abortReason) this.send(socket,{type:'end',reason:room.abortReason});
   }
-  available(session) {
+  available(session,requestId) {
     const current=this.rooms.get(session.roomCode);if(current?.phase==='ended') this.removeMember(session,current);
-    if(session.roomCode) {this.error(session.socket,'ALREADY_IN_ROOM','请先离开当前房间');return false;}return true;
+    if(session.roomCode) {this.error(session.socket,'ALREADY_IN_ROOM','请先离开当前房间',requestId);return false;}
+    if(this.matchQueue.some(e=>e.session===session)){this.error(session.socket,'ALREADY_MATCHMAKING','请先取消当前匹配',requestId);return false;}return true;
+  }
+  newRoom(hostId,matchmade=false){
+    let code;do {code=Array.from(randomBytes(6),n=>'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'[n%32]).join('');} while(this.rooms.has(code));
+    const room={code,phase:'lobby',hostId,members:[],game:null,matchmade,createdAt:Date.now(),lastActivityAt:Date.now(),lastSnapshotAt:0};
+    this.rooms.set(code,room);return room;
+  }
+  enqueueMatchmaking(session,message){
+    if(!messageHasOnly(message,['type','name','heroId','requestId'])||!validName(message.name)||!validHero(message.heroId)||!validMatchRequestId(message.requestId))return this.reject(session.socket,'INVALID_MATCHMAKING','请输入有效玩家名并选择英雄',validMatchRequestId(message.requestId)?message.requestId:undefined);
+    const queued=this.matchQueue.find(e=>e.session===session);
+    if(queued){queued.requestId=message.requestId;this.broadcastMatchmaking();return;}
+    if(!this.available(session,message.requestId))return;this.cleanup();
+    this.matchQueue.push({session,name:message.name.trim(),heroId:message.heroId,requestId:message.requestId});
+    this.drainMatchmaking();this.broadcastMatchmaking();
+  }
+  removeFromMatchmaking(session){
+    const index=this.matchQueue.findIndex(e=>e.session===session);if(index<0)return false;
+    this.matchQueue.splice(index,1);return true;
+  }
+  cancelMatchmaking(session,message){
+    if(session.roomCode){this.error(session.socket,'MATCH_ALREADY_STARTED','比赛已经匹配成功，请通过对局菜单离开',message.requestId);return;}
+    this.removeFromMatchmaking(session);this.send(session.socket,{type:'matchmaking',status:'canceled',players:0,capacity:5,requestId:message.requestId});
+    this.drainMatchmaking();this.broadcastMatchmaking();
+  }
+  broadcastMatchmaking(){
+    const message={type:'matchmaking',status:'queued',players:Math.min(5,this.matchQueue.length),capacity:5,waitingForServer:this.matchQueue.length>=5&&this.rooms.size>=this.options.maxRooms};
+    for(const entry of this.matchQueue)this.send(entry.session.socket,{...message,requestId:entry.requestId});
+  }
+  drainMatchmaking(){
+    if(this.closed)return;
+    const previous=this.matchQueue.length;
+    this.matchQueue=this.matchQueue.filter(e=>this.sessions.get(e.session.token)===e.session&&!e.session.roomCode&&e.session.socket?.readyState===WebSocket.OPEN);
+    while(this.matchQueue.length>=5&&this.rooms.size<this.options.maxRooms){
+      const batch=this.matchQueue.splice(0,5),room=this.newRoom(batch[0].session.clientId,true),used=new Set();
+      for(const entry of batch){
+        const heroId=used.has(entry.heroId)?Object.keys(HEROES).find(id=>!used.has(id)):entry.heroId;used.add(heroId);
+        const {session}=entry;session.roomCode=room.code;
+        room.members.push({token:session.token,clientId:session.clientId,name:entry.name,heroId,ready:true,connected:true,heroEntityId:null});
+        this.send(session.socket,{type:'matchmaking',status:'matched',players:5,capacity:5,heroId,preferredHeroId:entry.heroId,requestId:entry.requestId});
+      }
+      if(!this.launchMatch(room))this.end(room,'simulation_error');
+    }
+    if(previous!==this.matchQueue.length)this.broadcastMatchmaking();
   }
   create(session,message) {
     if(!messageHasOnly(message,['type','name','heroId'])||!validName(message.name)||!validHero(message.heroId)) return this.reject(session.socket,'INVALID_ROOM','请输入玩家名并选择有效英雄');
     if(!this.available(session)) return;this.cleanup();
     if(this.rooms.size>=this.options.maxRooms) return this.error(session.socket,'SERVER_FULL','服务器房间已满');
-    let code;do {code=Array.from(randomBytes(6),n=>'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'[n%32]).join('');} while(this.rooms.has(code));
-    const room={code,phase:'lobby',hostId:session.clientId,members:[],game:null,createdAt:Date.now(),lastActivityAt:Date.now(),lastSnapshotAt:0};
-    this.rooms.set(code,room);this.addMember(session,room,message);
+    this.addMember(session,this.newRoom(session.clientId),message);
   }
   join(session,message) {
     if(!messageHasOnly(message,['type','code','name','heroId'])||typeof message.code!=='string'||!codePattern.test(message.code)||!validName(message.name)||!validHero(message.heroId)) return this.reject(session.socket,'INVALID_ROOM','无效的房间码、玩家名或英雄');
@@ -194,12 +241,20 @@ export class RoomManager {
     if(!messageHasOnly(message,['type'])) return this.reject(session.socket,'INVALID_START','无效开局请求');
     const found=this.lobbyMember(session);if(!found)return;const {room}=found;
     if(room.hostId!==session.clientId) return this.error(session.socket,'HOST_ONLY','只有房主可以开始');
-    if(room.members.length!==5||!room.members.every(m=>m.connected&&m.ready&&this.sessions.get(m.token)?.socket?.readyState===WebSocket.OPEN)||new Set(room.members.map(m=>m.heroId)).size!==5) return this.error(session.socket,'NOT_READY','必须五名在线成员选择不同英雄并全部准备');
+    this.launchMatch(room);
+  }
+  launchMatch(room){
+    const session=this.sessions.get(room.members[0]?.token);
+    if(room.members.length!==5||!room.members.every(m=>m.connected&&m.ready&&this.sessions.get(m.token)?.socket?.readyState===WebSocket.OPEN)||new Set(room.members.map(m=>m.heroId)).size!==5||new Set(room.members.map(m=>m.clientId)).size!==5){this.error(session?.socket,'NOT_READY','必须五名在线成员选择不同英雄并全部准备');return false;}
     const roster=room.members.map(({heroId,name,clientId})=>({heroId,name,clientId})),options={seed:randomBytes(4).readUInt32LE()};
-    room.game=this.options.gameFactory?this.options.gameFactory(roster,options):new CoopGame(roster,options);
-    for(const member of room.members) member.heroEntityId=room.game.entities.find(e=>e.isHuman&&e.clientId===member.clientId)?.id;
-    if(room.members.some(m=>!m.heroEntityId)) {this.end(room,'simulation_error');return;}
+    try{
+      room.game=this.options.gameFactory?this.options.gameFactory(roster,options):new CoopGame(roster,options);
+      if(!room.game||!Array.isArray(room.game.entities)||typeof room.game.setPaused!=='function'||typeof room.game.clearMovement!=='function')throw new Error('Invalid simulation');
+      for(const member of room.members) member.heroEntityId=room.game.entities.find(e=>e.isHuman&&e.clientId===member.clientId)?.id;
+    }catch{room.game=null;this.end(room,'simulation_error');return false;}
+    if(room.members.some(m=>!m.heroEntityId)) {this.end(room,'simulation_error');return false;}
     room.phase='playing';this.broadcastRoom(room);this.broadcastSnapshot(room);
+    return true;
   }
   command(session,message) {
     if(!Number.isSafeInteger(message.id)||message.id<=0) return this.reject(session.socket,'INVALID_COMMAND','命令序号必须为正整数');
@@ -216,12 +271,15 @@ export class RoomManager {
     if(!room.members.length) this.rooms.delete(room.code);else this.broadcastRoom(room);
   }
   leave(session) {
-    const room=this.rooms.get(session.roomCode);if(!room) {session.roomCode=null;return;}
+    this.removeFromMatchmaking(session);
+    const room=this.rooms.get(session.roomCode);if(!room) {session.roomCode=null;this.drainMatchmaking();this.broadcastMatchmaking();return;}
     if(['playing','reconnecting'].includes(room.phase)) this.end(room,'player_left');this.removeMember(session,room);
+    this.drainMatchmaking();this.broadcastMatchmaking();
   }
   disconnect(socket) {
     const session=socket.coopSession;if(!session||session.socket!==socket) return;
     session.socket=null;session.lastSeenAt=Date.now();if(this.closed) return;
+    if(this.removeFromMatchmaking(session)){this.drainMatchmaking();this.broadcastMatchmaking();}
     const room=this.rooms.get(session.roomCode),member=room?.members.find(m=>m.clientId===session.clientId);if(!room||!member) return;
     if(room.phase==='lobby') return this.removeMember(session,room);member.connected=false;
     if(['playing','reconnecting'].includes(room.phase)) {
@@ -244,6 +302,7 @@ export class RoomManager {
       }
     }
     for(const [token,session] of this.sessions) if(!session.socket&&!session.roomCode&&now-session.lastSeenAt>this.options.sessionTtlMs) this.sessions.delete(token);
+    this.drainMatchmaking();
   }
   tick() {
     if(this.closed)return;const now=Date.now();this.cleanup(now);
@@ -305,7 +364,7 @@ export function createCoopServer(configuration={}) {
       server.once('error',fail);server.once('listening',ready);server.listen(options.port,options.host);
     }),
     close:async()=>{
-      manager.closed=true;clearInterval(tickTimer);clearInterval(heartbeatTimer);for(const socket of manager.sockets)socket.terminate();
+      manager.closed=true;manager.matchQueue.length=0;clearInterval(tickTimer);clearInterval(heartbeatTimer);for(const socket of manager.sockets)socket.terminate();
       await new Promise(resolveClose=>websocket.close(resolveClose));
       if(server.listening)await new Promise((resolveClose,reject)=>server.close(error=>error?reject(error):resolveClose()));
     },
