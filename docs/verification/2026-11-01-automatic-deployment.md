@@ -6,7 +6,7 @@
 
 | 检查 | 实际结果 |
 | --- | --- |
-| `npm test` | **323 / 323**，0 失败，日志 `artifacts/automatic-deploy-node.log` |
+| `npm test` | **323 / 323**，0 失败，最终日志 `artifacts/automatic-deploy-node-final.log` |
 | 部署情境 | **10 / 10**，真实 Bash，SSH/Docker/curl/锁等外部边界替身 |
 | 健康版本接口 | 实际 HTTP 正文保持 `ok`，X-Game-Revision 与配置 SHA 相同；旧实现返回 null，回归先失败再通过 |
 | `npm run build` / `npm run check:build` | **38 模块 / 102 引用**，通过 |
@@ -16,6 +16,8 @@
 | 独立只读审查 | 无 Critical/Important；审查者复跑范围内 **31 / 31** |
 
 部署情境包括配置为空/不完整、非法 SSH 主机、带空格/引号目录的编码传输、临时 SSH 文件清理、拉取失败保留旧服务、成功更新并保留端口、线上版本不符、容器不健康、重建后 inspect 失败和原子 dotenv 写入失败。后两种失败分别复现没有回滚和错误报告成功，修正后回归通过。
+
+测试将 GITHUB_OUTPUT、GITHUB_STEP_SUMMARY 与 TMPDIR 指向独立临时目录，不往 Actions 的真实输出文件写模拟部署结果；另有成功/拉取失败后临时 Docker 认证目录为空的实际文件断言。审查后仅增加这些测试隔离和清理断言，没有改运行时代码。
 
 本地 HTTP 版本检查使用显式测试 SHA，只验证版本头传递机制；Docker 的实际提交 SHA 由 Actions 构建参数写入。没有把该测试值当作已提交镜像版本。
 

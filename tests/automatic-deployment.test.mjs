@@ -13,11 +13,11 @@ const source=name=>posix(resolve('scripts',name));
 async function fixture(t){
  assert.ok(bash,'Bash must be installed to verify deployment behavior');
  const dir=await mkdtemp(join(tmpdir(),'dota-auto-deploy-'));t.after(()=>rm(dir,{recursive:true,force:true}));
- const bin=join(dir,'bin'),target=join(dir,"game space ' quote"),runner=join(dir,'runner');
- for(const path of [bin,target,runner])await mkdir(path);
+ const bin=join(dir,'bin'),target=join(dir,"game space ' quote"),runner=join(dir,'runner'),work=join(dir,'work');
+ for(const path of [bin,target,runner,work])await mkdir(path);
  await writeFile(join(target,'compose.yaml'),'services:\n  game:\n    image: ${IMAGE}\n');
  await writeFile(join(target,'.env'),'# keep these settings\nIMAGE=old:stable\nHTTP_PORT=9184\nBIND_ADDRESS=127.0.0.1\n');
- const env={AUTO_LOG:posix(join(dir,'commands')),AUTO_STATE:posix(join(dir,'state')),AUTO_HEADER_SHA:sha,RUNNER_TEMP:posix(runner),GITHUB_SHA:sha,GITHUB_ACTOR:'hyn-lei',GITHUB_TOKEN:'registry-test-token',DEPLOY_HOST:'server.example.test',DEPLOY_USER:'game',DEPLOY_SSH_KEY:'private-test-key',DEPLOY_KNOWN_HOSTS:'server.example.test ssh-ed25519 public-test-key',DEPLOY_PATH:posix(target),DEPLOY_PUBLIC_URL:'https://dota2.prismabyss.com',DEPLOY_IMAGE:image};
+ const env={AUTO_LOG:posix(join(dir,'commands')),AUTO_STATE:posix(join(dir,'state')),AUTO_HEADER_SHA:sha,RUNNER_TEMP:posix(runner),TMPDIR:posix(work),GITHUB_OUTPUT:posix(join(dir,'outputs')),GITHUB_STEP_SUMMARY:posix(join(dir,'summary')),GITHUB_SHA:sha,GITHUB_ACTOR:'hyn-lei',GITHUB_TOKEN:'registry-test-token',DEPLOY_HOST:'server.example.test',DEPLOY_USER:'game',DEPLOY_SSH_KEY:'private-test-key',DEPLOY_KNOWN_HOSTS:'server.example.test ssh-ed25519 public-test-key',DEPLOY_PATH:posix(target),DEPLOY_PUBLIC_URL:'https://dota2.prismabyss.com',DEPLOY_IMAGE:image};
  await writeFile(join(bin,'ssh'),`#!/usr/bin/env bash
 printf '%s\\n' "$*" >> "$AUTO_LOG"
 case "\${*: -1}" in
@@ -53,7 +53,7 @@ exec /usr/bin/mv "$@"
 `,{mode:0o755});
  const run=(script,args=[],overrides={},input='registry-test-token\n')=>spawnSync(bash,['-c','export PATH="$1:$PATH"; shift; exec bash "$@"','test',posix(bin),source(script),...args],{env:{...process.env,...env,...overrides},input,encoding:'utf8',timeout:15000});
  const log=()=>readFile(join(dir,'commands'),'utf8').catch(()=>'');
- return {dir,target,runner,env,run,log};
+ return {dir,target,runner,work,env,run,log};
 }
 
 test('empty deployment configuration explicitly waits without connecting to a server',async t=>{
@@ -82,12 +82,14 @@ test('failed image pulls leave the existing service and dotenv untouched',async 
  const f=await fixture(t),before=await readFile(join(f.target,'.env'),'utf8');
  const result=f.run('deploy-on-server.sh',[image,sha,posix(f.target),'hyn-lei','https://dota2.prismabyss.com'],{AUTO_FAIL_PULL:'1'});
  assert.equal(result.status,1);assert.doesNotMatch(await f.log(),/compose up/);assert.equal(await readFile(join(f.target,'.env'),'utf8'),before);
+ assert.deepEqual(await readdir(f.work),[],'Registry credentials must be removed after a failed pull');
 });
 
 test('successful deployment verifies the running digest and public revision, preserving server ports',async t=>{
  const f=await fixture(t),result=f.run('deploy-on-server.sh',[image,sha,posix(f.target),'hyn-lei','https://dota2.prismabyss.com']);
  assert.equal(result.status,0,result.stderr);assert.equal(await readFile(join(f.target,'.env'),'utf8'),`# keep these settings\nIMAGE=${image}\nHTTP_PORT=9184\nBIND_ADDRESS=127.0.0.1\n`);
  assert.match(await f.log(),/compose up .*--no-deps.*game/);assert.doesNotMatch(result.stdout+result.stderr,/registry-test-token/);
+ assert.deepEqual(await readdir(f.work),[],'Registry credentials must be removed after deployment');
 });
 
 test('a public revision mismatch restores the previous immutable image and reports failure',async t=>{
