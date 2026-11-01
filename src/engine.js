@@ -639,7 +639,6 @@ export class Game {
     if(this._attack(e,target,{...phase.options,attackReleased:true}))e.attackCooldown=Math.max(0,e.attackCooldown-elapsed);else e.attackCooldown=0;
   }
   _move(e, point, dt, stop = 0) {
-    if(e.attackPhase){e.attackPhase=null;e.attackCooldown=0;}
     if(this.isStunned(e)||this.isRooted(e)||(Skills.isInvulnerable(this,e)&&!Skills.hasStatusFlag(this,e,'canMoveInvulnerable')))return;
     const originalDistance=distance(e,point);
     if(originalDistance<=Math.max(3,stop))return;
@@ -655,6 +654,8 @@ export class Game {
     if(d<3){e.navIndex++;return;}
     const speed = this.combatStats(e).speed;
     const amount = Math.min(speed * dt,d);
+    // In-range chase retries and completed waypoints must not cancel a windup.
+    if(amount>0&&e.attackPhase){e.attackPhase=null;e.attackCooldown=0;}
     const dx=(waypoint.x-e.x)/d,dy=(waypoint.y-e.y)/d;
     e.x = clamp(e.x+dx*amount,25,WORLD.width-25);
     e.y = clamp(e.y+dy*amount,25,WORLD.height-25);
