@@ -1,5 +1,7 @@
 # Automatic Deployment Implementation Plan
 
+此计划保留作为历史记录；当前部署实现执行 [内联 Compose 计划](2026-11-01-inline-compose-deployment.md)。
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** main 提交在通过验证和镜像发布后自动更新现有 Docker Compose 服务器。

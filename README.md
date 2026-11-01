@@ -17,13 +17,7 @@ npm run dev
 
 ## Docker / 服务器部署
 
-推送到 `main` 后，GitHub Actions 会自动验证、编译并发布镜像（amd64 / arm64）。在仓库配置部署 Secrets 后，还会自动通过 SSH 更新现有服务器、验证线上提交版本，失败时恢复旧镜像，日常无需手动登录更新。一次性设置见 [自动部署说明](docs/deployment.md#3-配置一次以后自动更新)。服务器首次准备 `compose.yaml` 和 `.env.example` 后启动：
-
-```bash
-cp .env.example .env
-docker compose pull
-docker compose up -d --wait --wait-timeout 90
-```
+推送到 `main` 后，GitHub Actions 会自动验证、编译并发布镜像（amd64 / arm64）。配置服务器主机和 SSH 私钥后，workflow 的 SSH 步骤会自动创建部署目录、写入 Compose 和首次 `.env`，执行 `docker compose up --pull always` 拉取并启动本次镜像，核对网站版本，失败时恢复旧配置和服务。首次也无需手工上传 Docker 配置。设置见 [自动部署说明](docs/deployment.md#3-配置一次以后自动更新)。
 
 默认访问 `http://服务器IP:8080`。首次使用请先等 Actions 发布完成；私有 GHCR 镜像需要登录。完整步骤、镜像权限、更新和回滚见 [部署说明](docs/deployment.md)。
 

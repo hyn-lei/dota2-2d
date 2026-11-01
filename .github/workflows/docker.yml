@@ -163,7 +163,7 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
   deployment-config:
-    name: Check first-time deployment configuration
+    name: Check server connection settings
     needs: publish
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-24.04
@@ -172,27 +172,41 @@ jobs:
       configured: ${{ steps.config.outputs.configured }}
     env:
       DEPLOY_HOST: ${{ secrets.DEPLOY_HOST || secrets.SERVER_HOST }}
-      DEPLOY_USER: root
       DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY || secrets.SERVER_SSH_KEY }}
-      DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
       DEPLOY_SSH_PORT: ${{ secrets.DEPLOY_SSH_PORT || vars.DEPLOY_SSH_PORT || '22' }}
       DEPLOY_PATH: ${{ secrets.DEPLOY_PATH || vars.DEPLOY_PATH || '/opt/dota2-2d' }}
       DEPLOY_PUBLIC_URL: ${{ secrets.DEPLOY_PUBLIC_URL || vars.DEPLOY_PUBLIC_URL || 'https://dota2.prismabyss.com' }}
+      DEPLOY_SSH_FINGERPRINT: ${{ secrets.DEPLOY_SSH_FINGERPRINT || secrets.SERVER_FINGERPRINT }}
     steps:
-      - name: Check out deployment scripts
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-      - name: Validate server configuration
+      - name: Validate server connection settings
         id: config
-        run: bash scripts/deploy-from-actions.sh --check-config
+        run: |
+          set -euo pipefail
+          missing=()
+          for name in DEPLOY_HOST DEPLOY_SSH_KEY; do
+            [[ -n "${!name:-}" ]] || missing+=("$name")
+          done
+          if (("${#missing[@]}" == 2)); then
+            echo 'configured=false' >> "$GITHUB_OUTPUT"
+            echo 'Server deployment awaits SERVER_HOST and SERVER_SSH_KEY (DEPLOY_ aliases also work). No server was updated.' >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          if (("${#missing[@]}")); then printf 'Missing server setting: %s\n' "${missing[*]}" >&2; exit 2; fi
+          [[ "$DEPLOY_HOST" =~ ^[A-Za-z0-9][A-Za-z0-9.:-]*$ ]] || { echo 'Invalid DEPLOY_HOST' >&2; exit 2; }
+          [[ "$DEPLOY_SSH_PORT" =~ ^[0-9]{1,5}$ ]] && ((10#$DEPLOY_SSH_PORT >= 1 && 10#$DEPLOY_SSH_PORT <= 65535)) || { echo 'Invalid SSH port' >&2; exit 2; }
+          [[ "$DEPLOY_PATH" == /* && "$DEPLOY_PATH" != / && "$DEPLOY_PATH" != *$'\n'* && "$DEPLOY_PATH" != *$'\r'* ]] || { echo 'Invalid DEPLOY_PATH' >&2; exit 2; }
+          [[ "$DEPLOY_PUBLIC_URL" =~ ^https?://[A-Za-z0-9.:-]+/?$ ]] || { echo 'Invalid public URL' >&2; exit 2; }
+          DEPLOY_SSH_FINGERPRINT=${DEPLOY_SSH_FINGERPRINT:-}
+          fingerprint_pattern='^SHA256:[A-Za-z0-9+/]{43}$'
+          [[ -z "$DEPLOY_SSH_FINGERPRINT" || "$DEPLOY_SSH_FINGERPRINT" =~ $fingerprint_pattern ]] || { echo 'Invalid SSH fingerprint' >&2; exit 2; }
+          echo 'configured=true' >> "$GITHUB_OUTPUT"
 
   deploy:
-    name: Update production server and verify deployed commit
+    name: Write Compose, pull published image and update server
     needs: [publish, deployment-config]
     if: github.ref == 'refs/heads/main' && needs.deployment-config.outputs.configured == 'true'
     runs-on: ubuntu-24.04
-    timeout-minutes: 10
+    timeout-minutes: 12
     environment:
       name: production
       url: https://dota2.prismabyss.com/
@@ -203,10 +217,6 @@ jobs:
       contents: read
       packages: read
     steps:
-      - name: Check out deployment scripts
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
       - name: Skip commits already superseded on main
         id: current
         env:
@@ -219,16 +229,188 @@ jobs:
             echo 'deploy=false' >> "$GITHUB_OUTPUT"
             echo 'A newer main commit exists; this old commit will not update the server.' >> "$GITHUB_STEP_SUMMARY"
           fi
-      - name: Deploy exact image and verify public revision
+      - name: Deploy to server via SSH
+        id: rollout
         if: steps.current.outputs.deploy == 'true'
+        uses: appleboy/ssh-action@0ff4204d59e8e51228ff73bce53f80d53301dee2 # v1.2.5
         env:
           DEPLOY_IMAGE: ghcr.io/hyn-lei/dota2-2d@${{ needs.publish.outputs.digest }}
-          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST || secrets.SERVER_HOST }}
-          DEPLOY_USER: root
-          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY || secrets.SERVER_SSH_KEY }}
-          DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
-          DEPLOY_SSH_PORT: ${{ secrets.DEPLOY_SSH_PORT || vars.DEPLOY_SSH_PORT || '22' }}
+          DEPLOY_SHA: ${{ github.sha }}
           DEPLOY_PATH: ${{ secrets.DEPLOY_PATH || vars.DEPLOY_PATH || '/opt/dota2-2d' }}
           DEPLOY_PUBLIC_URL: ${{ secrets.DEPLOY_PUBLIC_URL || vars.DEPLOY_PUBLIC_URL || 'https://dota2.prismabyss.com' }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: bash scripts/deploy-from-actions.sh
+          DEPLOY_HTTP_PORT: ${{ secrets.DEPLOY_HTTP_PORT || vars.DEPLOY_HTTP_PORT }}
+          DEPLOY_BIND_ADDRESS: ${{ secrets.DEPLOY_BIND_ADDRESS || vars.DEPLOY_BIND_ADDRESS }}
+          GH_TOKEN: ${{ secrets.GH_TOKEN || secrets.GITHUB_TOKEN }}
+          GH_ACTOR: ${{ github.actor }}
+        with:
+          host: ${{ secrets.DEPLOY_HOST || secrets.SERVER_HOST }}
+          username: root
+          key: ${{ secrets.DEPLOY_SSH_KEY || secrets.SERVER_SSH_KEY }}
+          port: ${{ secrets.DEPLOY_SSH_PORT || vars.DEPLOY_SSH_PORT || '22' }}
+          fingerprint: ${{ secrets.DEPLOY_SSH_FINGERPRINT || secrets.SERVER_FINGERPRINT }}
+          version: 1.8.2
+          command_timeout: 10m
+          envs: DEPLOY_IMAGE,DEPLOY_SHA,DEPLOY_PATH,DEPLOY_PUBLIC_URL,DEPLOY_HTTP_PORT,DEPLOY_BIND_ADDRESS,GH_TOKEN,GH_ACTOR
+          script: |
+            bash -se <<'DEPLOY_SCRIPT'
+            set -euo pipefail
+            DEPLOY_HTTP_PORT=${DEPLOY_HTTP_PORT:-}
+            DEPLOY_BIND_ADDRESS=${DEPLOY_BIND_ADDRESS:-}
+            # This entire script runs on the server via ssh-action.
+            [[ "$DEPLOY_IMAGE" =~ ^ghcr\.io/hyn-lei/dota2-2d@sha256:[a-f0-9]{64}$ && "$DEPLOY_SHA" =~ ^[a-f0-9]{40}$ ]] || { echo 'Invalid published image or commit' >&2; exit 2; }
+            [[ "$DEPLOY_PATH" == /* && "$DEPLOY_PATH" != / && "$DEPLOY_PATH" != *$'\n'* && "$DEPLOY_PATH" != *$'\r'* ]] || { echo 'Invalid deployment directory' >&2; exit 2; }
+            [[ "$DEPLOY_PUBLIC_URL" =~ ^https?://[A-Za-z0-9.:-]+/?$ && -n "$GH_TOKEN" ]] || { echo 'Public URL and registry authentication are required' >&2; exit 2; }
+            [[ -z "$DEPLOY_HTTP_PORT" || "$DEPLOY_HTTP_PORT" =~ ^[0-9]{1,5}$ ]] || { echo 'Invalid HTTP port' >&2; exit 2; }
+            if [[ -n "$DEPLOY_HTTP_PORT" ]]; then ((10#$DEPLOY_HTTP_PORT >= 1 && 10#$DEPLOY_HTTP_PORT <= 65535)) || exit 2; fi
+            [[ -z "$DEPLOY_BIND_ADDRESS" || "$DEPLOY_BIND_ADDRESS" =~ ^[A-Za-z0-9.:-]+$ ]] || { echo 'Invalid bind address' >&2; exit 2; }
+            for command in docker curl flock; do command -v "$command" >/dev/null || { echo "Missing server command: $command" >&2; exit 2; }; done
+            docker compose version >/dev/null
+            mkdir -p -- "$DEPLOY_PATH"
+            cd -- "$DEPLOY_PATH"
+            [[ "$PWD" != / ]] || { echo 'Refusing root deployment directory' >&2; exit 2; }
+            exec 9>.deploy.lock
+            flock -w 300 9
+
+            compose_path=compose.yaml
+            compose_existed=false
+            for name in compose.yaml compose.yml docker-compose.yml docker-compose.yaml; do
+              if [[ -e "$name" ]]; then
+                [[ -f "$name" && ! -L "$name" ]] || { echo 'Compose must be a regular file' >&2; exit 2; }
+                compose_path=$name; compose_existed=true; break
+              fi
+            done
+            env_existed=false
+            if [[ -e .env ]]; then [[ -f .env && ! -L .env ]] || { echo '.env must be a regular file' >&2; exit 2; }; env_existed=true; fi
+            work_dir=$(mktemp -d "${TMPDIR:-/tmp}/dota2-rollout.XXXXXXXX")
+            temp_files=()
+            transaction_started=false
+            preserve_backup=false
+            previous_image=''
+            dc() { docker compose -f "$compose_path" "$@"; }
+            restore_file() {
+              local target=$1 backup=$2 existed=$3 candidate
+              if [[ "$existed" == true ]]; then
+                if [[ -f "$target" ]] && cmp -s -- "$backup" "$target"; then return 0; fi
+                candidate=$(mktemp "$PWD/.restore.XXXXXXXX") || return 1
+                temp_files+=("$candidate")
+                cp -p -- "$backup" "$candidate" || return 1
+                mv -f -- "$candidate" "$target" || return 1
+              else
+                rm -f -- "$target" || return 1
+              fi
+            }
+            rollback() {
+              if [[ -z "$previous_image" ]]; then
+                dc rm --stop --force game || return 1
+              fi
+              restore_file "$compose_path" "$work_dir/compose.before" "$compose_existed" || return 1
+              restore_file .env "$work_dir/env.before" "$env_existed" || return 1
+              if [[ -n "$previous_image" ]]; then
+                local current current_image=''
+                current=$(dc ps -q game) || return 1
+                if [[ -n "$current" ]]; then current_image=$(docker inspect --format '{{.Image}}' "$current") || return 1; fi
+                # A failed pull can leave the old container untouched.
+                if [[ "$current_image" != "$previous_image" ]]; then
+                  local override
+                  override=$(mktemp "$PWD/.rollback.XXXXXXXX.yaml") || return 1
+                  temp_files+=("$override")
+                  printf 'services:\n  game:\n    image: %s\n' "$previous_image" > "$override" || return 1
+                  docker compose -f "$compose_path" -f "$override" up -d --no-deps --no-build --pull never --wait --wait-timeout 90 game || return 1
+                  current=$(dc ps -q game) || return 1
+                  current_image=$(docker inspect --format '{{.Image}}' "$current") || return 1
+                  [[ "$current_image" == "$previous_image" ]] || return 1
+                fi
+                echo 'Previous configuration and service restored.' >&2
+              else
+                echo 'Failed first deployment removed its generated configuration and service.' >&2
+              fi
+            }
+            cleanup() {
+              local status=$?
+              if ((status != 0)) && [[ "$transaction_started" == true ]]; then
+                transaction_started=false
+                if ! rollback; then preserve_backup=true; echo "Recovery failed; configuration backups retained in $work_dir" >&2; fi
+              fi
+              rm -f -- "$work_dir/config.json" "$work_dir/headers" || true
+              if [[ "$preserve_backup" != true ]]; then rm -f -- "$work_dir/compose.before" "$work_dir/env.before" || true; fi
+              for file in "${temp_files[@]}"; do rm -f -- "$file" || true; done
+              rmdir -- "$work_dir" 2>/dev/null || true
+              return "$status"
+            }
+            trap cleanup EXIT
+            trap 'exit 1' HUP INT TERM
+            if [[ "$compose_existed" == true ]]; then cp -p -- "$compose_path" "$work_dir/compose.before"; fi
+            if [[ "$env_existed" == true ]]; then cp -p -- .env "$work_dir/env.before"; fi
+            unset IMAGE HTTP_PORT BIND_ADDRESS
+            project_name=''
+            if [[ "$compose_existed" == true ]]; then
+              services=$(dc config --services)
+              [[ "$services" == game ]] || { echo 'Refusing to overwrite a Compose project containing other services' >&2; exit 2; }
+              project_name=$(dc config | sed -n 's/^name:[[:space:]]*//p' | tr -d '\042\047')
+              current=$(dc ps -q game)
+              if [[ -n "$current" ]]; then previous_image=$(docker inspect --format '{{.Image}}' "$current"); fi
+            else
+              project_name=$(basename "$PWD" | tr '[:upper:]' '[:lower:]' | tr -cd 'a-z0-9_-' | sed 's/^[^a-z0-9]*//')
+              if [[ -z "$project_name" ]]; then project_name="dota2-$(printf '%s' "$PWD" | sha256sum | cut -c1-12)"; fi
+            fi
+            [[ "$project_name" =~ ^[a-z0-9][a-z0-9_-]*$ ]] || { echo 'Cannot resolve a valid Compose project name' >&2; exit 2; }
+            export COMPOSE_PROJECT_NAME="$project_name"
+            [[ -z "$previous_image" || "$previous_image" =~ ^sha256:[a-f0-9]{64}$ ]] || { echo 'Invalid previous image ID' >&2; exit 1; }
+            export DOCKER_CONFIG="$work_dir"
+            printf '%s' "$GH_TOKEN" | docker login ghcr.io --username "$GH_ACTOR" --password-stdin
+            unset GH_TOKEN
+            export IMAGE="$DEPLOY_IMAGE"
+            transaction_started=true
+
+            # Generate server configuration during deploy; no manual file upload is needed.
+            candidate=$(mktemp "$PWD/.compose.deploy.XXXXXXXX")
+            temp_files+=("$candidate")
+            printf 'name: "%s"\n' "$project_name" > "$candidate"
+            cat >> "$candidate" <<'COMPOSE'
+            services:
+              game:
+                image: ${IMAGE}
+                ports:
+                  - "${BIND_ADDRESS:-0.0.0.0}:${HTTP_PORT:-8080}:8080"
+                restart: unless-stopped
+                init: true
+                read_only: true
+                tmpfs:
+                  - /tmp:size=64m,mode=1777
+                cap_drop:
+                  - ALL
+                security_opt:
+                  - no-new-privileges:true
+                logging:
+                  driver: json-file
+                  options:
+                    max-size: "10m"
+                    max-file: "3"
+            COMPOSE
+            mv -f -- "$candidate" "$compose_path"
+            if [[ "$env_existed" != true ]]; then
+              (umask 077; printf 'IMAGE=%s\nHTTP_PORT=%s\nBIND_ADDRESS=%s\n' "$IMAGE" "${DEPLOY_HTTP_PORT:-8080}" "${DEPLOY_BIND_ADDRESS:-0.0.0.0}" > .env)
+            fi
+            dc config --quiet
+            # Compose performs the image pull and rebuilds the changed game service.
+            dc up -d --no-deps --pull always --wait --wait-timeout 90 game
+            current=$(dc ps -q game)
+            running_ref=$(docker inspect --format '{{.Config.Image}}' "$current")
+            [[ "$running_ref" == "$DEPLOY_IMAGE" ]] || { echo 'Container image differs from the published image' >&2; exit 1; }
+            curl --fail --silent --show-error --location --connect-timeout 10 --max-time 30 --retry 3 --dump-header "$work_dir/headers" "${DEPLOY_PUBLIC_URL%/}/healthz" >/dev/null
+            public_revision=$(tr -d '\r' < "$work_dir/headers" | awk 'tolower($1)=="x-game-revision:" { value=$2 } END { print value }')
+            [[ "$public_revision" == "$DEPLOY_SHA" ]] || { echo 'Public site did not serve this commit' >&2; exit 1; }
+            candidate=$(mktemp "$PWD/.env.deploy.XXXXXXXX")
+            temp_files+=("$candidate")
+            awk -v image="$DEPLOY_IMAGE" 'BEGIN { written=0 } /^[[:space:]]*(export[[:space:]]+)?IMAGE[[:space:]]*=/ { if(!written) print "IMAGE=" image; written=1; next } { print } END { if(!written) print "IMAGE=" image }' .env > "$candidate"
+            chmod --reference=.env "$candidate"
+            mv -f -- "$candidate" .env
+            dc ps
+            transaction_started=false
+            printf 'Server updated to commit %s\n' "$DEPLOY_SHA"
+            DEPLOY_SCRIPT
+      - name: Record server deployment
+        if: steps.current.outputs.deploy == 'true'
+        env:
+          DEPLOY_SHA: ${{ github.sha }}
+        run: echo "Server updated to commit $DEPLOY_SHA; container health and public revision verified." >> "$GITHUB_STEP_SUMMARY"

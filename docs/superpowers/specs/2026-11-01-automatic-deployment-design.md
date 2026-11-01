@@ -1,5 +1,7 @@
 # 自动部署设计
 
+此设计记录前一版方案；后续用户要求已改为 workflow 内生成 Compose，以 [新设计](2026-11-01-inline-compose-deployment-design.md) 为准。
+
 用户要求每次代码提交后自动编译并自动更新现有服务器，日常更新不再登录服务器执行命令。保留 main → GitHub Actions → GHCR → Docker Compose 的现有链路与游戏端口、目录配置。
 
 ## 方案选择

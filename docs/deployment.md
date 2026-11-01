@@ -1,113 +1,81 @@
 # Docker 镜像发布与服务器部署
 
-仓库：[hyn-lei/dota2-2d](https://github.com/hyn-lei/dota2-2d)。默认镜像为 `ghcr.io/hyn-lei/dota2-2d:latest`，支持 Linux amd64 和 arm64 服务器。
+仓库：[hyn-lei/dota2-2d](https://github.com/hyn-lei/dota2-2d)。默认镜像 `ghcr.io/hyn-lei/dota2-2d:latest`，支持 Linux amd64/arm64。
 
-## 1. GitHub 自动构建
+## 1. 自动编译、发布、部署
 
-推送到 `main` 后，进入仓库 **Actions → Build, publish and deploy game** 查看执行结果。也可以点击 **Run workflow**，选择 `main` 手动运行。
+main 提交后，**Actions → Build, publish and deploy game** 执行：
 
-工作流先运行全部规则测试、构建和静态检查，再以生产 Compose 启动测试容器，验证 HTTP、真实 WebSocket 与浏览器流程；全部通过才发布镜像。配置服务器 Secrets 后，main 还会自动更新服务器并核对线上提交版本。PR 只做验证，版本标签只发布镜像。
+1. 运行游戏测试、静态构建、生产容器、HTTP/WebSocket 和浏览器检查。
+2. 将编译好的 Docker 镜像发布到 GHCR，输出本次不可变摘要。
+3. 使用与参考项目 `E:\works\vps_cost` 一样的 appleboy/ssh-action，通过 root 登录配置好的服务器。
+4. 自动创建部署目录，写入 Docker Compose；没有 .env 时生成默认配置。
+5. 执行 `docker compose up -d --pull always --wait` 拉取本次镜像并启动/更新 game。
+6. 验证容器健康及网站返回的提交版本，记录真实结果。
 
-发布使用 GitHub 自动提供的 `GITHUB_TOKEN` 和工作流声明的 `packages: write` 权限，无需另建 Docker Hub 账号或添加发布密码。仓库或组织的 Actions 策略仍需允许这些官方 Actions 和包发布。配置参考 [GitHub 镜像发布文档](https://docs.github.com/en/actions/tutorials/publish-packages/publish-docker-images)。
+部署命令直接位于 workflow 的 SSH `script` 字段。此前两个部署 .sh 文件已删除，不再上传部署脚本。PR 只验证；版本标签只发布镜像，main 和手动运行 main 才部署。
 
-| 触发方式 | 镜像标签 |
+| 发布方式 | 标签 |
 | --- | --- |
-| 推送 main，或手动运行 main | `latest`、`sha-完整的40位提交SHA` |
-| 推送 `v1.0.0` 这样的版本标签 | `1.0.0`、`sha-完整的40位提交SHA` |
-| PR 或手动运行其他分支 | 只验证，不发布 |
+| main 或手动运行 main | latest、sha-完整40位提交 |
+| v1.0.0 等版本标签 | 1.0.0、sha-完整40位提交 |
+| PR 或其他分支 | 不发布、不部署 |
 
-版本标签不会覆盖 `latest`。每次发布的 Summary 中还会输出 `IMAGE=ghcr.io/hyn-lei/dota2-2d@sha256:...`，使用该摘要可精确固定一个镜像。相同提交重新构建时基础镜像可能更新，因此摘要比 SHA 标签更适合严格回滚。
+实际部署使用本次发布的 `@sha256:...` 摘要，避免排队时拉到另一个版本。旧 main 提交准备部署时发现新提交就跳过。
 
-## 2. 服务器首次启动
+## 2. 服务器首次准备
 
-服务器安装 [Docker Engine](https://docs.docker.com/engine/install/) 与 [Docker Compose 插件](https://docs.docker.com/compose/install/linux/)。确认 `docker version` 和 `docker compose version` 可用。以下命令在服务器的 Bash 中执行。
+服务器需要已安装 Docker Engine、Docker Compose v2（支持 --wait/--pull）、Bash、curl 和 util-linux 的 flock；root 对应的 SSH 公钥已被服务器允许登录。
 
-把仓库根目录的 `compose.yaml` 和 `.env.example` 放入同一目录，例如 `/opt/dota2-2d`。服务器只运行镜像，无需安装 Node.js、下载游戏源码或自行构建。
-
-```bash
-cd /opt/dota2-2d
-cp .env.example .env
-```
-
-默认 `.env`：
+**目录、Compose 和 .env 由 deploy 阶段自动生成**，不用预先传文件。默认：
 
 ```dotenv
-IMAGE=ghcr.io/hyn-lei/dota2-2d:latest
 HTTP_PORT=8080
 BIND_ADDRESS=0.0.0.0
 ```
 
-先等 GitHub Actions 成功完成首次发布。GHCR 新包默认是私有包，即使源码仓库公开，也应检查包的可见性。公开镜像可以匿名拉取；私有镜像需要有访问权限的 GitHub 账号和 **classic PAT 的 `read:packages` 权限**。见 [GHCR 访问与认证说明](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry)。
+默认目录为 /opt/dota2-2d。已有 .env 的端口、绑定和其他设置保留，成功后只把 IMAGE 更新为本次摘要。首次创建可用下表的 DEPLOY_HTTP_PORT / DEPLOY_BIND_ADDRESS 指定默认值。
 
-私有镜像先登录；下方会隐藏令牌输入，不要把令牌写到 `.env` 或 Compose 中：
-
-```bash
-read -rsp 'GitHub token (read:packages): ' GHCR_TOKEN
-printf '\n'
-printf '%s' "$GHCR_TOKEN" | docker login ghcr.io -u hyn-lei --password-stdin
-unset GHCR_TOKEN
-```
-
-使用与日后运行 Compose 相同的系统账号登录。然后启动：
-
-```bash
-docker compose config --quiet
-docker compose pull
-docker compose up -d --wait --wait-timeout 90
-docker compose ps
-curl --fail http://127.0.0.1:8080/healthz
-```
-
-健康检查返回 `ok`。放行服务器防火墙/云安全组中所选的 TCP 端口后，浏览器访问 `http://服务器IP:8080`。如果修改了 `HTTP_PORT`，地址和检查命令也要对应修改。
+已有 Compose 文件会沿用其文件名和已解析的项目名称，并生成本项目的 game 配置。指定目录必须独立用于本游戏；如果现有 Compose 包含其他服务，部署拒绝覆盖，保护其他项目。
 
 ## 3. 配置一次，以后自动更新
 
-在 [仓库 Actions Secrets](https://github.com/hyn-lei/dota2-2d/settings/secrets/actions) 添加以下 Repository secrets，名称必须一致。用户选择自行在仓库填写，私钥不进入代码。
+在 [游戏仓库 Actions Secrets](https://github.com/hyn-lei/dota2-2d/settings/secrets/actions) 设置。另一个仓库的 Secrets 不会自动共享。
 
-SSH 登录用户名按用户要求固定为 `root`，与参考项目 `E:\works\vps_cost` 的工作流一致；不用设置 DEPLOY_USER，也不是让用户填写 GitHub 登录名。GitHub 镜像登录由 github.actor 和任务令牌自动处理。
-
-| Secret | 内容 | 必须填写 |
+| 设置 | 内容 | 必填 |
 | --- | --- | --- |
-| `DEPLOY_HOST` | 服务器 SSH 主机名或 IP；不带协议和端口 | 是 |
-| `DEPLOY_SSH_KEY` | 用于该用户的 SSH 私钥完整内容；对应公钥已在服务器 authorized_keys | 是 |
-| `DEPLOY_KNOWN_HOSTS` | 服务器已验证的 SSH 主机公钥 known_hosts 内容 | 是 |
-| `DEPLOY_SSH_PORT` | SSH 端口，默认 `22` | 否 |
-| `DEPLOY_PATH` | 服务器已有 Compose 目录，默认 `/opt/dota2-2d` | 否 |
-| `DEPLOY_PUBLIC_URL` | 网站根地址，默认 `https://dota2.prismabyss.com` | 否 |
+| SERVER_HOST 或 DEPLOY_HOST | 服务器 SSH 主机名/IP，不含协议或端口 | 是 |
+| SERVER_SSH_KEY 或 DEPLOY_SSH_KEY | root 登录的 SSH 私钥完整内容 | 是 |
+| DEPLOY_SSH_PORT | SSH 端口，默认 22 | 否 |
+| DEPLOY_PATH | 部署目录，默认 /opt/dota2-2d | 否 |
+| DEPLOY_PUBLIC_URL | 网站根地址，默认 https://dota2.prismabyss.com | 否 |
+| DEPLOY_HTTP_PORT | 首次生成 .env 的 HTTP 端口，默认 8080 | 否 |
+| DEPLOY_BIND_ADDRESS | 首次生成 .env 的绑定地址，默认 0.0.0.0 | 否 |
+| DEPLOY_SSH_FINGERPRINT 或 SERVER_FINGERPRINT | 可选 SHA256 SSH 主机指纹 | 否 |
+| GH_TOKEN | 可选 GHCR 读取令牌，默认使用任务的短期 GITHUB_TOKEN | 否 |
 
-兼容参考工作流的名称：`SERVER_HOST` 可替代 `DEPLOY_HOST`，`SERVER_SSH_KEY` 可替代 `DEPLOY_SSH_KEY`。同时设置时 DEPLOY_ 名称优先；这些 Secrets 仍需放在游戏仓库中，不会自动读取另一个仓库的 Secrets。
+用户名固定 **root**，不用设置 DEPLOY_USER，GitHub 镜像登录自动使用 github.actor。两套主机/私钥名称同时存在时 DEPLOY_ 名称优先。
 
-后三项也可放在同名 Actions Variables 中；Secrets 优先。无需另设 GHCR 密码：部署使用当前任务的短期 `GITHUB_TOKEN` 和 `packages: read` 权限，服务器的临时 Docker 认证目录在结束后清除，原有 Docker 登录不改写。
+端口、目录和网站地址也支持同名 Actions Variables，Secrets 优先。原 DEPLOY_KNOWN_HOSTS 已不再使用。ssh-action 的 fingerprint 可选：填写 SHA256 主机指纹就固定核验；留空时按参考工作流默认连接，不进行固定指纹比对。
 
-服务器一次性准备：Linux/Bash、Docker Compose v2（支持 `--wait`）、curl、util-linux 的 flock；指定目录已包含本仓库 `compose.yaml` 和普通文件 `.env`。沿用已有目录即可。`.env` 的 HTTP_PORT 和 BIND_ADDRESS 保持不变，仅 IMAGE 在成功更新后原子改为本次摘要。
+保存配置后手动运行 main 工作流一次，就会部署现有代码；以后 main 提交自动完成所有步骤。主机和私钥都没设置时明确报告等待配置并跳过部署；仅缺一项时配置检查失败并列出名称。
 
-`DEPLOY_KNOWN_HOSTS` 保存服务器的 SSH 主机公钥，确认连接目标的身份；它不是登录私钥。可以在可信环境用 `ssh-keyscan -p SSH端口 SSH主机` 获取，再与服务器控制台提供的主机密钥指纹核对；自定义端口的主机项为 `[主机]:端口`。Actions 使用 `StrictHostKeyChecking=yes`，不在部署时临时接受未知主机。参考工作流的 ssh-action 没有配置 fingerprint，因此没有这项显式核验。
+部署成功以 **Write Compose, pull published image and update server** 的结果为准。镜像发布成功不等于服务器已经更新。
 
-配置完成后推送 main，或手动运行 main 工作流。顺序为 **验证 → 发布不可变镜像 → SSH 拉取 → 重建 game → 容器健康检查 → 网站 /healthz 提交版本检查**，以后无需登录服务器更新。准备部署时 main 已有新提交的旧任务会跳过更新。
+## 4. 失败恢复与手动回滚
 
-全部三个必填 Secrets 都缺失时，配置检查明确显示等待首次配置，服务器部署任务跳过；只填写一部分时，配置检查报缺失名称并失败。不要把前两项任务通过理解为网站已经更新；以 **Update production server and verify deployed commit** 的结果和 Summary 为准。Secrets 保存后可手动运行 main 来部署已有代码。
+写文件前备份现有 Compose/.env 和当前镜像。拉取失败时恢复生成前的配置，旧容器保持运行；新容器启动、版本验证或文件持久化失败时，恢复配置，再通过临时 Compose 覆盖将 game.image 明确固定为缓存的旧镜像 ID，并核对恢复后的容器 ID。这样旧配置中写死的镜像标签不会影响恢复。首次失败时移除本次生成的服务和配置。
 
-## 4. 回滚与手动更新
+临时 Docker 登录使用独立目录，任务结束后清除，不永久覆盖服务器原登录。配置恢复失败会保留私有备份并报告位置；不会把它报告成部署成功。旧镜像保留用于回滚。
 
-拉取失败时旧容器保持运行。新容器、线上版本或 IMAGE 写入检查失败时，脚本尝试以更新前缓存的不可变镜像 ID 自动恢复 game，并仍让部署任务失败，方便排查。脚本不执行 compose down 或镜像 prune；保留缓存镜像以支持回滚。
-
-手动指定版本也仍可用：把 `.env` 的 IMAGE 改成发布 Summary 中的旧摘要，再运行：
-
-```bash
-docker compose pull
-docker compose up -d --wait --wait-timeout 90
-```
-
-单实例更新会短暂中断服务，并结束服务器内存中的联机房间；网页每次打开/刷新已有开发提醒。这不是零停机部署。
-
-回滚时，将 `.env` 中的 `IMAGE` 改成先前发布 Summary 里的摘要地址，再运行相同命令。也可用明确的版本号或 `sha-完整提交SHA` 标签。不要依赖 `latest` 指向旧版本。
-
-查看日志或停止：
+手动回滚仍可把 .env 的 IMAGE 改成旧发布 Summary 中的摘要，再执行：
 
 ```bash
-docker compose logs -f --tail=100
-docker compose down
+docker compose pull game
+docker compose up -d --wait --wait-timeout 90 game
 ```
+
+单实例更新会短暂中断服务并结束内存联机房间，已有开发提醒保留。
 
 ## 5. 域名和 HTTPS
 
