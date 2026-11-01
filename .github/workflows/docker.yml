@@ -1,4 +1,4 @@
-name: Build and publish Docker image
+name: Build, publish and deploy game
 
 on:
   push:
@@ -51,6 +51,7 @@ jobs:
           push: false
           platforms: linux/amd64
           tags: ${{ env.IMAGE }}
+          build-args: GAME_REVISION=${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
       - name: Start with production Compose settings
@@ -58,6 +59,8 @@ jobs:
           docker compose config --quiet
           docker compose up -d --pull never --wait --wait-timeout 90
       - name: Verify HTTP and static assets
+        env:
+          EXPECTED_GAME_REVISION: ${{ github.sha }}
         run: npm run test:container -- http://127.0.0.1:18080
       - name: Verify cooperative HTTP and WebSocket transport
         run: npm run test:multiplayer-smoke -- http://127.0.0.1:18080
@@ -94,6 +97,8 @@ jobs:
     permissions:
       contents: read
       packages: write
+    outputs:
+      digest: ${{ steps.build.outputs.digest }}
     steps:
       - name: Check out source
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -134,6 +139,7 @@ jobs:
           context: .
           platforms: linux/amd64,linux/arm64
           push: true
+          build-args: GAME_REVISION=${{ github.sha }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
@@ -155,3 +161,74 @@ jobs:
             echo "IMAGE=$IMAGE_NAME@$DIGEST"
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
+
+  deployment-config:
+    name: Check first-time deployment configuration
+    needs: publish
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    outputs:
+      configured: ${{ steps.config.outputs.configured }}
+    env:
+      DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+      DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+      DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+      DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+      DEPLOY_SSH_PORT: ${{ secrets.DEPLOY_SSH_PORT || vars.DEPLOY_SSH_PORT || '22' }}
+      DEPLOY_PATH: ${{ secrets.DEPLOY_PATH || vars.DEPLOY_PATH || '/opt/dota2-2d' }}
+      DEPLOY_PUBLIC_URL: ${{ secrets.DEPLOY_PUBLIC_URL || vars.DEPLOY_PUBLIC_URL || 'https://dota2.prismabyss.com' }}
+    steps:
+      - name: Check out deployment scripts
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Validate server configuration
+        id: config
+        run: bash scripts/deploy-from-actions.sh --check-config
+
+  deploy:
+    name: Update production server and verify deployed commit
+    needs: [publish, deployment-config]
+    if: github.ref == 'refs/heads/main' && needs.deployment-config.outputs.configured == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    environment:
+      name: production
+      url: https://dota2.prismabyss.com/
+    concurrency:
+      group: dota2-2d-production
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - name: Check out deployment scripts
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Skip commits already superseded on main
+        id: current
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          current=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/main" --jq '.object.sha')
+          if [ "$current" = "$GITHUB_SHA" ]; then
+            echo 'deploy=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'deploy=false' >> "$GITHUB_OUTPUT"
+            echo 'A newer main commit exists; this old commit will not update the server.' >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - name: Deploy exact image and verify public revision
+        if: steps.current.outputs.deploy == 'true'
+        env:
+          DEPLOY_IMAGE: ghcr.io/hyn-lei/dota2-2d@${{ needs.publish.outputs.digest }}
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+          DEPLOY_SSH_PORT: ${{ secrets.DEPLOY_SSH_PORT || vars.DEPLOY_SSH_PORT || '22' }}
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH || vars.DEPLOY_PATH || '/opt/dota2-2d' }}
+          DEPLOY_PUBLIC_URL: ${{ secrets.DEPLOY_PUBLIC_URL || vars.DEPLOY_PUBLIC_URL || 'https://dota2.prismabyss.com' }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: bash scripts/deploy-from-actions.sh

@@ -17,7 +17,7 @@ npm run dev
 
 ## Docker / 服务器部署
 
-推送到 `main` 后，GitHub Actions 会验证容器并发布 `ghcr.io/hyn-lei/dota2-2d:latest`（amd64 / arm64）。服务器将 `compose.yaml` 和 `.env.example` 放在同一目录，复制后启动：
+推送到 `main` 后，GitHub Actions 会自动验证、编译并发布镜像（amd64 / arm64）。在仓库配置部署 Secrets 后，还会自动通过 SSH 更新现有服务器、验证线上提交版本，失败时恢复旧镜像，日常无需手动登录更新。一次性设置见 [自动部署说明](docs/deployment.md#3-配置一次以后自动更新)。服务器首次准备 `compose.yaml` 和 `.env.example` 后启动：
 
 ```bash
 cp .env.example .env

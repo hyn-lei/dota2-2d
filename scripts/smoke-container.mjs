@@ -10,6 +10,7 @@ const cases = [
 const health = await fetch(new URL('/healthz', base), { signal: AbortSignal.timeout(10000) });
 assert.equal(health.status, 200);
 assert.equal(await health.text(), 'ok\n');
+if(process.env.EXPECTED_GAME_REVISION)assert.equal(health.headers.get('x-game-revision'),process.env.EXPECTED_GAME_REVISION,'Container must run the commit being verified');
 for (const [path, mime, content] of cases) {
   const response = await fetch(new URL(path, base), { signal: AbortSignal.timeout(15000) });
   assert.equal(response.status, 200, path);

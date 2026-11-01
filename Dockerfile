@@ -8,7 +8,8 @@ COPY assets/ ./assets/
 RUN npm ci && npm run build && npm run check:build && npm prune --omit=dev
 
 FROM node:24-alpine AS runtime
-ENV NODE_ENV=production HOST=0.0.0.0 PORT=8080 STATIC_ROOT=/app/dist
+ARG GAME_REVISION=""
+ENV NODE_ENV=production HOST=0.0.0.0 PORT=8080 STATIC_ROOT=/app/dist GAME_REVISION=${GAME_REVISION}
 WORKDIR /app
 COPY --from=build /app/package.json /app/package-lock.json ./
 COPY --from=build /app/node_modules/ ./node_modules/

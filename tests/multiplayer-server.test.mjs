@@ -10,6 +10,13 @@ const backend = await import('../server/coop-server.mjs').catch(() => ({}));
 const codec = await import('../src/network-protocol.js').catch(() => ({}));
 const heroes = ['juggernaut','crystal_maiden','windranger','axe','ogre_magi','kunkka'];
 
+test('health responses expose the deployed commit without changing the health body',async t=>{
+  const revision='a'.repeat(40),fixture=await setup(t,{revision});
+  const response=await fetch(fixture.base+'/healthz');
+  assert.equal(response.status,200);assert.equal(await response.text(),'ok\n');
+  assert.equal(response.headers.get('x-game-revision'),revision);
+});
+
 async function setup(t, options = {}) {
   assert.equal(typeof backend.createCoopServer, 'function', 'server factory must exist');
   const service = backend.createCoopServer({root:process.cwd(),host:'127.0.0.1',port:0,autoTick:false,...options});

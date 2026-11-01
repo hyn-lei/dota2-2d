@@ -9,6 +9,7 @@ import { snapshotState } from './snapshot.mjs';
 import { encodeMessage } from '../src/network-protocol.js';
 
 const defaults = {
+  revision:process.env.GAME_REVISION||'',
   host:'127.0.0.1',port:5184,autoTick:true,tickMs:50,snapshotMs:100,reconnectMs:120000,
   maxRooms:20,maxConnections:120,maxSessions:600,maxMessageBytes:8192,
   maxBufferedBytes:2*1024*1024,heartbeatMs:15000,helloTimeoutMs:10000,snapshotAckMs:30000,
@@ -266,11 +267,12 @@ export class RoomManager {
 
 export function createCoopServer(configuration={}) {
   const options={...defaults,...configuration};if(!options.root) throw new Error('A public frontend root is required');
+  if(typeof options.revision!=='string'||options.revision&&!/^[a-f0-9]{40}$/.test(options.revision))throw new Error('GAME_REVISION must be empty or a 40-character commit SHA');
   const root=resolve(options.root),manager=new RoomManager(options);
   const server=http.createServer(async (request,response)=>{
     try {
       const pathname=decodeURIComponent(new URL(request.url,'http://localhost').pathname);
-      if(pathname==='/healthz') {response.writeHead(200,{'Content-Type':'text/plain; charset=utf-8','Cache-Control':'no-store'}).end('ok\n');return;}
+      if(pathname==='/healthz') {response.writeHead(200,{'Content-Type':'text/plain; charset=utf-8','Cache-Control':'no-store',...(options.revision?{'X-Game-Revision':options.revision}:{})}).end('ok\n');return;}
       if(!['GET','HEAD'].includes(request.method)) {response.writeHead(405,{'Allow':'GET, HEAD'}).end();return;}
       const publicPath=pathname==='/'?'/index.html':pathname;
       if(publicPath!=='/index.html'&&!publicPath.startsWith('/src/')&&!publicPath.startsWith('/assets/')) {response.writeHead(404).end('Not found');return;}
