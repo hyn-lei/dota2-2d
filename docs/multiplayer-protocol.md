@@ -25,6 +25,8 @@ Supported command actions: moveTo, setMovement, attackTarget, cast, castExtra, u
 
 Points may include `self:true`; the server resolves this to the authenticated actor, never a client-selected entity ID. Self Bloodlust and Fire Shield disambiguate overlapping allies. Large snapshots negotiate permessage-deflate, with no context takeover, a 1024-byte threshold and bounded compression concurrency.
 
+Each socket has at most one snapshot send outstanding. Broadcasts skip stale intermediate states while that send is pending and project the current state on the next eligible broadcast. If the match finishes during a pending send, retain one terminal room/member reference and deliver the final state after drain only if that socket still owns the original connected seat. Control messages, including ACKs, do not request compression; they still follow an already queued frame and have no absolute WAN latency guarantee. The outgoing byte limit and transport-error disconnect remain in force.
+
 Snapshot encoding preserves recursive Infinity/-Infinity through a dedicated numeric tag and restores it client-side. Commands use ordinary JSON plus strict validators; server must not trust numeric tags as command numbers. Exclude navPath/navGoal/skillCache/innateCache/botState/botShop and Map/cache objects except explicit cutTrees entries. Include pendingSpells identifiers/times needed by active projectile visuals, no AI plans or secrets.
 
 Integration interfaces:

@@ -8,13 +8,15 @@ const heroes=['ogre_magi','juggernaut','crystal_maiden','windranger','axe'];
 await mkdir('artifacts',{recursive:true});const browser=await chromium.launch({headless:true});
 const contexts=[],pages=[],errors=[],checks=[],networkEvents=[];
 const check=name=>{checks.push(name);console.log(`PASS ${name}`);};
-async function observe(page){await page.evaluate(async()=>{const {Renderer}=await import('/src/renderer.js'),render=Renderer.prototype.render;Renderer.prototype.render=function(g,t){if(g)window.observedGame=g;window.observedRenderer=this;return render.call(this,g,t);};});}
+async function observe(page){await page.evaluate(async()=>{
+  const {Renderer}=await import('/src/renderer.js'),render=Renderer.prototype.render;let lastDraw=-Infinity;
+  // Five devices share this test machine. Limit only Canvas drawing, keeping input polling and HUD updates unchanged.
+  Renderer.prototype.render=function(g,t){if(g)window.observedGame=g;window.observedRenderer=this;const now=performance.now();if(now-lastDraw<200)return;lastDraw=now;return render.call(this,g,t);};
+});}
 async function open(page){await page.goto(base,{waitUntil:'networkidle'});await closeDevelopmentNotice(page);await observe(page);await page.locator('#open-coop').click();await page.waitForFunction(()=>document.querySelector('#coop-connection').textContent.includes('已连接'));}
 async function purchase(page,id){await page.keyboard.press('f');await page.locator('#item-search').fill(id);await page.locator(`[data-item="${id}"]`).dblclick();await page.waitForFunction(id=>window.observedGame.player.inventory.includes(id),id);await page.keyboard.press('f');}
 try{
   for(let i=0;i<5;i++){const context=await browser.newContext({viewport:{width:1366,height:768}}),page=await context.newPage();
-    // Five devices share this test machine. Limit only client drawing; the real server clock and input protocol stay unchanged.
-    await page.addInitScript(()=>{window.requestAnimationFrame=callback=>setTimeout(()=>callback(performance.now()),50);window.cancelAnimationFrame=clearTimeout;});
     contexts.push(context);pages.push(page);page.on('pageerror',e=>errors.push(e.message));page.on('websocket',socket=>{socket.on('framesent',frame=>{try{const m=JSON.parse(frame.payload);if(m.type==='command')networkEvents.push({client:i,direction:'sent',id:m.id,action:m.action,args:m.args});}catch{}});socket.on('framereceived',frame=>{try{const m=JSON.parse(frame.payload);if(m.type==='ack'||m.type==='error')networkEvents.push({client:i,direction:'received',...m});else if(m.type==='welcome')networkEvents.push({client:i,direction:'received',type:'welcome',lastCommandId:m.lastCommandId});}catch{}});});await open(page);await page.locator('#coop-name').fill(`真人客户端 ${i+1}`);await page.locator('#coop-join-hero').selectOption(heroes[i]);}
   await pages[0].locator('#coop-create').click();await pages[0].waitForSelector('#coop-room-code');const code=await pages[0].locator('#coop-room-code').textContent();assert.match(code,/^[A-Z2-9]{6}$/);
   for(let i=1;i<4;i++){await pages[i].locator('#coop-code').fill(code);await pages[i].locator('#coop-join').click();await pages[i].waitForSelector('#coop-room-code');}

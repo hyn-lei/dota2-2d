@@ -27,12 +27,31 @@ function consume(socket, kind, rate, now) {
 }
 
 export class RoomManager {
-  constructor(options) {this.options=options;this.rooms=new Map();this.sessions=new Map();this.sockets=new Set();this.frame=0;this.closed=false;}
+  constructor(options) {this.options=options;this.rooms=new Map();this.sessions=new Map();this.sockets=new Set();this.pendingSnapshots=new WeakSet();this.terminalSnapshots=new WeakMap();this.frame=0;this.closed=false;}
 
   send(socket,message) {
     if(socket?.readyState!==WebSocket.OPEN) return false;
     if(socket.bufferedAmount>this.options.maxBufferedBytes) {socket.terminate();return false;}
-    try {socket.send(encodeMessage(message));return true;} catch {socket.terminate();return false;}
+    const snapshot=message.type==='snapshot';
+    if(snapshot&&this.pendingSnapshots.has(socket)) return false;
+    if(snapshot)this.pendingSnapshots.add(socket);
+    try {
+      // Keep one snapshot in flight. Small replies add no compression jobs behind it.
+      socket.send(encodeMessage(message),{compress:snapshot},error=>{
+        if(error)socket.terminate();
+        if(snapshot){
+          this.pendingSnapshots.delete(socket);
+          const terminal=this.terminalSnapshots.get(socket);this.terminalSnapshots.delete(socket);
+          if(!error&&terminal){
+            const {room,member}=terminal,session=socket.coopSession;
+            // A terminal result has no next tick. Deliver it after drain, only to the same active seat.
+            if(session?.socket===socket&&session.roomCode===room.code&&member.connected&&room.members.includes(member))
+              this.send(socket,{type:'snapshot',frame:++this.frame,playerId:member.heroEntityId,roomCode:room.code,state:snapshotState(room.game)});
+          }
+        }
+      });
+      return true;
+    } catch {if(snapshot){this.pendingSnapshots.delete(socket);this.terminalSnapshots.delete(socket);}socket.terminate();return false;}
   }
   error(socket,code,message) {this.send(socket,{type:'error',code,message});}
   roomView(room) {
@@ -47,9 +66,18 @@ export class RoomManager {
   }
   broadcastSnapshot(room) {
     if(!room.game) return;
-    const state=snapshotState(room.game),frame=++this.frame;
-    for(const member of room.members) if(member.connected) this.send(this.sessions.get(member.token)?.socket,{type:'snapshot',frame,playerId:member.heroEntityId,roomCode:room.code,state});
     room.lastSnapshotAt=Date.now();
+    const recipients=[];
+    for(const member of room.members) {
+      const socket=this.sessions.get(member.token)?.socket;
+      if(!member.connected||socket?.readyState!==WebSocket.OPEN)continue;
+      if(socket.bufferedAmount>this.options.maxBufferedBytes){socket.terminate();continue;}
+      if(!this.pendingSnapshots.has(socket))recipients.push({member,socket});
+      else if(room.phase==='ended'&&room.game.status!=='playing')this.terminalSnapshots.set(socket,{room,member});
+    }
+    if(!recipients.length)return;
+    const state=snapshotState(room.game),frame=++this.frame;
+    for(const {member,socket} of recipients)this.send(socket,{type:'snapshot',frame,playerId:member.heroEntityId,roomCode:room.code,state});
   }
   attach(socket) {
     this.sockets.add(socket);socket.coopRates={};socket.coopAlive=true;socket.coopViolations=0;
