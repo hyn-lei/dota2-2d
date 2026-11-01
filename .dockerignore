@@ -2,13 +2,15 @@
 **
 !Dockerfile
 !package.json
+!package-lock.json
 !index.html
 !scripts/
 !scripts/build.mjs
 !scripts/check-static-build.mjs
+!scripts/server.mjs
+!server/
+!server/**
 !src/
 !src/**
 !assets/
 !assets/**
-!deploy/
-!deploy/nginx.conf

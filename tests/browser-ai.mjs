@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { chromium } from 'playwright';
+import { closeDevelopmentNotice } from './browser-helpers.mjs';
 
 await mkdir('artifacts',{recursive:true});
 const browser=await chromium.launch({headless:true});
@@ -9,6 +10,7 @@ page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()
 const check=name=>{checks.push(name);console.log(`PASS ${name}`);};
 try{
   await page.goto(process.env.GAME_URL||'http://localhost:5184',{waitUntil:'networkidle'});
+  await closeDevelopmentNotice(page);
   await page.evaluate(async()=>{
     const {Renderer}=await import('/src/renderer.js'),render=Renderer.prototype.render;
     Renderer.prototype.render=function(g,t){window.observedGame=g;window.observedRenderer=this;return render.call(this,g,t);};

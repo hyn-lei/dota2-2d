@@ -121,7 +121,7 @@ export function castAbility(g,h,index,point){
  const unitTarget=(h.heroId==='axe'&&(index===1||index===3))||(h.heroId==='crystal_maiden'&&index===1)||(h.heroId==='juggernaut'&&index===3)||(h.heroId==='windranger'&&(index===0||index===3))||(h.heroId==='kunkka'&&index===2)||(h.heroId==='ogre_magi'&&index<3);
  let target;
  if(unitTarget){
-  target=g.entities.filter(e=>alive(e)&&(ogreAlly&&structure(e)||!isInvulnerable(g,e))&&g.canSee(h,e)&&distance(e,aim)<=Math.max(e.radius||24,90)&&
+  target=ogreAlly&&point?.id===h.id&&!isInvulnerable(g,h)?h:g.entities.filter(e=>alive(e)&&(ogreAlly&&structure(e)||!isInvulnerable(g,e))&&g.canSee(h,e)&&distance(e,aim)<=Math.max(e.radius||24,90)&&
    (ogreAlly?e.team===h.team&&(fighter(e)||structure(e)):h.heroId==='kunkka'?e.kind==='hero':e.team!==h.team&&(fighter(e)||(h.heroId==='windranger'&&index===3&&structure(e))))).sort((a,b)=>distance(a,aim)-distance(b,aim))[0];
   if(!target)return {ok:false,reason:h.heroId==='kunkka'?'请指向友方或敌方英雄':'请指向有效敌方目标'};
   if(distance(h,target)>s.range+target.radius)return {ok:false,reason:`目标超过 ${s.range} 施法距离`};
@@ -129,7 +129,7 @@ export function castAbility(g,h,index,point){
  const pointTarget=(h.heroId==='kunkka'&&(index===0||index===3))||(h.heroId==='crystal_maiden'&&index===0)||(h.heroId==='juggernaut'&&index===1);
  if(pointTarget&&distance(h,aim)>s.range+1)return {ok:false,reason:`目标超过 ${s.range} 施法距离`};
  interruptCast(g,h,true);h.recallTimer=0;h.destination=null;h.navPath=null;
- if(h.isPlayer)g.keyboard={x:0,y:0};
+ if(h.isPlayer)g.clearMovement(h);
  const phase={index,skill:s,point:aim,targetId:target?.id,executeAt:g.time+s.castPoint};
  h.castPhase=phase;
  if(s.castPoint>0)addStatus(g,h,'casting',{name:`施放${s.name}`,description:'移动或被控制会取消施法。',positive:true,icon:s.icon,duration:s.castPoint});
@@ -150,7 +150,7 @@ export function castExtraAbility(g,h,id,point){
  let target;
  if(id==='ogre_magi_unrefined_fireblast'||id==='ogre_magi_smash'){
   const ally=id==='ogre_magi_smash';
-  target=g.entities.filter(e=>alive(e)&&!isInvulnerable(g,e)&&g.canSee(h,e)&&distance(e,aim)<=Math.max(e.radius||24,90)&&(ally?e.team===h.team&&(fighter(e)||structure(e)):e.team!==h.team&&fighter(e))).sort((a,b)=>distance(a,aim)-distance(b,aim))[0];
+  target=ally&&point?.id===h.id&&!isInvulnerable(g,h)?h:g.entities.filter(e=>alive(e)&&!isInvulnerable(g,e)&&g.canSee(h,e)&&distance(e,aim)<=Math.max(e.radius||24,90)&&(ally?e.team===h.team&&(fighter(e)||structure(e)):e.team!==h.team&&fighter(e))).sort((a,b)=>distance(a,aim)-distance(b,aim))[0];
   if(!target)return {ok:false,reason:ally?'请指向友方单位或建筑':'请指向敌方单位'};
   if(distance(h,target)>s.range+target.radius)return {ok:false,reason:`目标超过 ${s.range} 施法距离`};
  }else if(id==='juggernaut_swift_slash'){
@@ -160,7 +160,7 @@ export function castExtraAbility(g,h,id,point){
  }else if(id!=='crystal_maiden_crystal_clone'&&distance(h,aim)>s.range+1)return {ok:false,reason:`目标超过 ${s.range} 施法距离`};
  // Crystal Clone is explicitly usable without cancelling Freezing Field.
  if(id!=='crystal_maiden_crystal_clone')interruptCast(g,h,true);
- h.recallTimer=0;h.destination=null;h.navPath=null;if(h.isPlayer)g.keyboard={x:0,y:0};
+ h.recallTimer=0;h.destination=null;h.navPath=null;if(h.isPlayer)g.clearMovement(h);
  const phase={extraId:id,skill:s,point:aim,targetId:target?.id,executeAt:g.time+s.castPoint};h.castPhase=phase;
  if(s.castPoint>0)addStatus(g,h,'casting',{name:`施放${s.name}`,description:'移动或被控制会取消施法。',positive:true,icon:s.icon,duration:s.castPoint});
  else releaseCast(g,h,phase);return {ok:true};
@@ -203,7 +203,7 @@ function applyAbilityEffect(g,h,phase,heroId){
   if(index===0){
    addStatus(g,h,'call',{name:'狂战士之吼',description:`护甲增加 ${v.bonus_armor}。`,duration:v.duration,positive:true,icon:'roar',armor:v.bonus_armor});h.buffs.callUntil=g.time+v.duration;
    for(const e of targets(g,h,h,v.radius+areaBonus(h)).filter(e=>!isInvulnerable(g,e))){
-    addStatus(g,e,'taunt',{name:'嘲讽',description:'被迫攻击斧王。',duration:v.duration,icon:'roar',sourceId:h.id});Object.assign(e.buffs,{tauntUntil:g.time+v.duration,tauntSourceId:h.id});interruptCast(g,e,false);e.recallTimer=0;e.destination=null;e.explicitTarget=null;if(e.isPlayer)g.keyboard={x:0,y:0};
+    addStatus(g,e,'taunt',{name:'嘲讽',description:'被迫攻击斧王。',duration:v.duration,icon:'roar',sourceId:h.id});Object.assign(e.buffs,{tauntUntil:g.time+v.duration,tauntSourceId:h.id});interruptCast(g,e,false);e.recallTimer=0;e.destination=null;e.explicitTarget=null;if(e.isPlayer)g.clearMovement(e);
     if(v.applies_battle_hunger)applyHunger(g,h,e);
    }spellEffect(g,h,'burst',h.x,h.y,{visual:'berserkerCall',radius:v.radius,life:.6,color:'#e85b3e'});
   }else if(index===1)applyHunger(g,h,target,s);
@@ -316,7 +316,7 @@ export function returnMark(g,h){
  if(!target)return {ok:false,reason:'标记已失效'};removeStatus(target,'xmark');
  if(isInvulnerable(g,target)||debuffImmune(g,target))return {ok:false,reason:'目标当前免疫返回效果'};
  interruptCast(g,target,true);Object.assign(target,{x:mark.x,y:mark.y,destination:null,targetId:null,explicitTarget:null,recallTimer:0,navPath:null});
- if(target.isPlayer)g.keyboard={x:0,y:0};g._effect('burst',mark.x,mark.y,{radius:48,life:.5,color:'#c4d9d1'});return {ok:true};
+ if(target.isPlayer)g.clearMovement(target);g._effect('burst',mark.x,mark.y,{radius:48,life:.5,color:'#c4d9d1'});return {ok:true};
 }
 export function tickWorldAbilities(g){
  Ogre.tickOgreWorld(g);

@@ -17,7 +17,7 @@ concurrency:
 
 jobs:
   verify:
-    name: Verify static build and container
+    name: Verify game, multiplayer service and container
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     env:
@@ -34,6 +34,8 @@ jobs:
         with:
           node-version: '24'
           package-manager-cache: false
+      - name: Install locked dependencies
+        run: npm ci
       - name: Validate game rules and static build
         run: |
           npm test
@@ -57,9 +59,10 @@ jobs:
           docker compose up -d --pull never --wait --wait-timeout 90
       - name: Verify HTTP and static assets
         run: npm run test:container -- http://127.0.0.1:18080
+      - name: Verify cooperative HTTP and WebSocket transport
+        run: npm run test:multiplayer-smoke -- http://127.0.0.1:18080
       - name: Install browser smoke test dependencies
         run: |
-          npm ci
           npx playwright install --with-deps chromium
       - name: Verify the game opens in a browser
         run: npm run test:deployment -- http://127.0.0.1:18080
@@ -72,6 +75,9 @@ jobs:
           node tests/browser-vfx.mjs
           node tests/browser-ai.mjs
           node tests/browser-ogre.mjs
+          node tests/browser-notice.mjs
+          node tests/browser-coop.mjs
+          node tests/browser-coop-review.mjs
       - name: Show container logs
         if: failure()
         run: docker compose logs --no-color --tail=100

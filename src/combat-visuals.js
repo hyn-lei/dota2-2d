@@ -1,5 +1,6 @@
 // Visual-only profiles. Speeds shape animation; ordinary attacks still settle on release.
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
+const sameStatus=(actual,expected)=>actual===expected||!!(actual&&expected&&actual.id===expected.id&&actual.sourceId===expected.sourceId&&actual.startedAt===expected.startedAt&&actual.until===expected.until);
 export function effectIsActive(effect,game){
   if(effect.visual==='shackleShot'&&game.pendingSpells){
     return game.pendingSpells.some(s=>s.type==='shackle'&&s.sourceId===effect.sourceId&&s.targetId===effect.targetId);
@@ -7,8 +8,8 @@ export function effectIsActive(effect,game){
   if(effect.visual==='shackleLink'){
     const target=game.entities.find(e=>e.id===effect.targetId&&!e.dead);
     const anchor=effect.anchorId&&game.entities.find(e=>e.id===effect.anchorId&&!e.dead);
-    return !!(target&&effect.targetStun&&target.statuses?.stun===effect.targetStun&&effect.targetStun.until>game.time&&
-      (!effect.anchorId||anchor&&effect.anchorStun&&anchor.statuses?.stun===effect.anchorStun&&effect.anchorStun.until>game.time));
+    return !!(target&&effect.targetStun&&sameStatus(target.statuses?.stun,effect.targetStun)&&effect.targetStun.until>game.time&&
+      (!effect.anchorId||anchor&&effect.anchorStun&&sameStatus(anchor.statuses?.stun,effect.anchorStun)&&effect.anchorStun.until>game.time));
   }
   return true;
 }

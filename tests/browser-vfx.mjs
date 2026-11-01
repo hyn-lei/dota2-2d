@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { chromium } from 'playwright';
+import { closeDevelopmentNotice } from './browser-helpers.mjs';
 
 const base=process.env.GAME_URL||'http://localhost:5184';
 await mkdir('artifacts',{recursive:true});
@@ -11,6 +12,7 @@ page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});
 const checks=[];const check=name=>{checks.push(name);console.log(`PASS ${name}`);};
 try{
   await page.goto(base,{waitUntil:'networkidle'});
+  await closeDevelopmentNotice(page);
   await page.evaluate(async()=>{
     const {Renderer}=await import('/src/renderer.js'),render=Renderer.prototype.render;
     Renderer.prototype.render=function(game,t){window.vfxRenderer=this;window.liveGame=game;return render.call(this,window.vfxGame||game,window.vfxGame?.time??t);};

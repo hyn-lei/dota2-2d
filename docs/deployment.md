@@ -86,7 +86,22 @@ docker compose down
 
 如果服务器已有 Nginx、Caddy 等反向代理，将 `BIND_ADDRESS=127.0.0.1`，把域名根路径代理到 `http://127.0.0.1:8080`，由代理处理 TLS。游戏使用 `/src/` 和 `/assets/` 等根路径，建议使用独立域名或子域名，不要直接挂在 `/dota/` 这样的子目录下。
 
-这是浏览器端单人人机游戏，容器没有数据库和存档卷；部署不会自动变成多人联机。浏览器设置和战绩保存在对应站点的 localStorage 中，改变域名或端口后浏览器会把它当作另一个站点。
+容器内的 Node 服务现在同时提供静态网页和 `/ws/coop` 同源 WebSocket，支持五真人对五 AI。房间保存在当前服务内存，没有数据库或跨实例恢复；更新、重启容器会结束现有房间。浏览器设置和战绩保存在对应站点的 localStorage 中，改变域名或端口后浏览器会把它当作另一个站点。
+
+反向代理需要转发 WebSocket Upgrade，并保留原 Host。Nginx 的同域名根路径示例（TLS 配置沿用已有站点）：
+
+```nginx
+location / {
+    proxy_pass http://127.0.0.1:8080;
+    proxy_http_version 1.1;
+    proxy_set_header Host $host;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "upgrade";
+    proxy_read_timeout 180s;
+}
+```
+
+用户最新明确本次只提交上传代码，不处理服务器连接或实际站点更新。下面保留通用部署操作，不能把 Actions 镜像发布当作站点已经更新。
 
 ## 5. 本地构建和验证
 
@@ -96,6 +111,7 @@ docker compose down
 docker build --pull -t dota2-2d:local .
 IMAGE=dota2-2d:local docker compose up -d --pull never --wait --wait-timeout 90
 npm run test:container
+npm run test:multiplayer-smoke
 npm ci
 npx playwright install chromium
 npm run test:deployment
@@ -105,7 +121,7 @@ npm run test:deployment
 
 没有 Docker 时仍可运行 `npm run build` 和 `npm run check:build`，但这两项不能替代容器启动检查。后者使用 Node 的实验性 VM 模块接口，只做语法和静态导入校验，不执行浏览器代码。
 
-镜像只包含构建后的网页和资源，使用非 root Nginx，Compose 将根文件系统设为只读并为临时文件提供 `/tmp`。`.env`、文档、测试、开发工具和 node_modules 不会被复制到镜像。运行方式参考 [Nginx unprivileged 官方说明](https://github.com/nginx/docker-nginx-unprivileged)。
+镜像包含静态构建、共享模拟代码、联机服务器及 `ws` 生产依赖，以 Node 镜像的非 root `node` 用户运行。Compose 保持只读根文件系统与 `/tmp` 临时目录；`.env`、文档、测试和浏览器开发依赖不会进入运行镜像。HTTP 只公开 `index.html`、`src/`、`assets/` 和健康检查，服务器文件及包配置不可通过网页下载。
 
 ## 常见问题
 

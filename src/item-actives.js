@@ -134,12 +134,12 @@ define('harpoon','enemyUnit',(g,h,e,p,target)=>{const d=distance(h,target)||1,dx
 define('crellas_crozier','self',(g,h,e)=>{buff(g,h,e.item,v(e.item,'duration'),{crozierActive:true,ethereal:true,disarmed:true,magicResistancePct:Math.abs(v(e.item,'extra_spell_damage_percent'))});g.nextItemAuraAt=0;});
 define('meteor_hammer','point',(g,h,e,p)=>{
  h.itemChannel={kind:'meteor',itemId:e.id,uid:e.meta.uid,startedAt:g.time,until:g.time+(e.item.channelTime||v(e.item,'max_duration')),point:{...p},origin:{x:h.x,y:h.y}};
- status(g,h,'itemChannel',e.item,{positive:true,duration:e.item.channelTime||v(e.item,'max_duration'),channeling:true});h.destination=null;h.explicitTarget=null;g.keyboard={x:0,y:0};
+ status(g,h,'itemChannel',e.item,{positive:true,duration:e.item.channelTime||v(e.item,'max_duration'),channeling:true});h.destination=null;h.explicitTarget=null;g.clearMovement(h);
 });
 define('tpscroll','point',(g,h,e,p,target)=>{
  const boots=C.equipped(g,h).filter(x=>['travel_boots','travel_boots_2'].includes(x.id)).sort((a,b)=>b.id.length-a.id.length)[0];const duration=v(boots?.item,'tp_channel_time',e.item.channelTime||3);
  h.itemChannel={kind:'teleport',itemId:e.id,uid:e.meta.uid,startedAt:g.time,until:g.time+duration,targetId:target.id,point:{x:target.x,y:target.y},origin:{x:h.x,y:h.y}};
- status(g,h,'itemChannel',e.item,{positive:true,duration,channeling:true});h.destination=null;h.explicitTarget=null;g.keyboard={x:0,y:0};
+ status(g,h,'itemChannel',e.item,{positive:true,duration,channeling:true});h.destination=null;h.explicitTarget=null;g.clearMovement(h);
  h.recallTimer=duration;h.recallDuration=duration;g._effect('recall',h.x,h.y,{radius:65,life:duration,color:'#8adbe9',team:h.team});
  if(!boots)consume(g,h,e);
 },(g,h,e,p,target)=>!target?reject('传送需要指向友方建筑或旅行靴允许的友军'):g.isRooted(h)?reject('定身期间无法传送'):null);

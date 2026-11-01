@@ -20,7 +20,7 @@ const fighter = e => ['hero','creep','neutral','summon','illusion'].includes(e?.
 
 /** Deterministic game state. Positions use Source world units; time is real seconds. */
 export class Game {
-  constructor({ hero = 'juggernaut', difficulty = 'normal', seed = 42 } = {}) {
+  constructor({ hero = 'juggernaut', difficulty = 'normal', seed = 42, humanHeroes = null } = {}) {
     this.time = 0;
     this.status = 'playing';
     this.paused = false;
@@ -42,11 +42,16 @@ export class Game {
     this.nextNeutralSpawn = 60;
     this.nextBuildingCheck=0;
     this.selectedId = null;
-    this.heroChoice = HEROES[hero] ? hero : 'juggernaut';
-    this._makeHero(this.heroChoice, 0, 1, true, 0);
+    if(humanHeroes!==null&&(!Array.isArray(humanHeroes)||humanHeroes.length!==5||humanHeroes.some(h=>!HEROES[h?.heroId])||new Set(humanHeroes.map(h=>h.heroId)).size!==5))throw new Error('联机必须有五名真人及五个不同英雄');
+    this.heroChoice = humanHeroes?.[0].heroId || (HEROES[hero] ? hero : 'juggernaut');
     const choices = Object.keys(HEROES);
     const allies = choices.length >= 5 ? choices.filter(id=>id!==this.heroChoice) : choices;
-    for (let i = 0; i < 4; i++) this._makeHero(allies[i % allies.length], 0, [0,2,1,0][i], false, i + 1);
+    if(humanHeroes){
+      humanHeroes.forEach((member,i)=>{const h=this._makeHero(member.heroId,0,[1,0,2,1,2][i],true,i);Object.assign(h,{isHuman:true,controller:'human',clientId:member.clientId,playerName:member.name,movementInput:{x:0,y:0},x:BASES[0].x+(i%3-1)*70,y:BASES[0].y+Math.floor(i/3)*70});});
+    }else{
+      this._makeHero(this.heroChoice, 0, 1, true, 0);
+      for (let i = 0; i < 4; i++) this._makeHero(allies[i % allies.length], 0, [0,2,1,0][i], false, i + 1);
+    }
     for (let i = 0; i < 5; i++) this._makeHero(choices[(i + 1) % choices.length], 1, [0,1,2,1,2][i], false, i);
     for(const h of [...this.entities])if(h.kind==='hero')Courier.ensureCourier(this,h);
     for (const layout of BUILDING_LAYOUT) {
@@ -65,7 +70,7 @@ export class Game {
     this._spawnRoshan();
   }
 
-  get player() { return this.entities.find(e => e.isPlayer); }
+  get player() { return this.entities.find(e => e.id===this.controlledHeroId)||this.entities.find(e => e.isPlayer); }
   get selected() { return this.entities.find(e=>e.id===this.selectedId) || this.player; }
   get courier() { return Courier.ensureCourier(this,this.player); }
   courierCommand(command) { return Courier.courierCommand(this,this.player,command); }
@@ -93,7 +98,7 @@ export class Game {
   _makeHero(heroId, team, lane, isPlayer, index) {
     const data = HEROES[heroId], base = BASES[team], stats=calculateHeroStats(heroId,1,[]);
     const h = this._unit('hero', team, base.x + (isPlayer ? 0 : (index % 3 - 1) * 34), base.y + (isPlayer ? 0 : (index % 2) * 30 - 15), {
-      ...stats, heroId, name:data.name, isPlayer, lane, mana:stats.maxMana, radius:24,
+      ...stats, heroId, name:data.name, isPlayer, controller:isPlayer?'human':'ai', lane, mana:stats.maxMana, radius:24,
       level:1, xp:0, xpNext:XP_TO_NEXT[1] || 230, gold:600, inventory:[], kills:0, deaths:0,
       assists:0, lastHits:0, cooldowns:[0,0,0,0], respawnTimer:0, recallTimer:0,
       buffs:{}, xMark:null, pathIndex:1, aiTimer:index * .05, retreating:false, lastDamagers:{}
@@ -165,12 +170,18 @@ export class Game {
     const length = Math.hypot(x, y);
     if (length && (!this._canAct().ok || this._tauntSource(this.player))) return;
     this.keyboard = length && Number.isFinite(length) ? {x:x / length, y:y / length} : {x:0, y:0};
+    if(this.player)this.player.movementInput={...this.keyboard};
     if (length && this.player && !this.player.dead) {
       Skills.interruptCast(this,this.player,true);
       this.player.recallTimer = 0;
       this.player.explicitTarget = null;
       this.player.targetId = null;
     }
+  }
+
+  clearMovement(hero){
+    if(!hero)return;hero.movementInput={x:0,y:0};
+    if(hero===this.player)this.keyboard={x:0,y:0};
   }
 
   attackTarget(id) {
@@ -202,11 +213,19 @@ export class Game {
   sellItem(area,index) { return Inventory.sellItem(this,this.player,area,index); }
   collectStash() { return Inventory.collectStash(this,this.player); }
   queueItem(id,append=false) { return Inventory.queueItem(this,this.player,id,append); }
+  clearQuickbuy() { if(this.paused||this.status!=='playing')return {ok:false,reason:'当前无法操作'};this.player.quickbuy=[];return {ok:true}; }
   buyQuick() { return Inventory.buyQuick(this,this.player); }
   setCombineLock(area,index,locked) { return Inventory.setCombineLock(this,this.player,area,index,locked); }
   disassembleItem(area,index) { return Inventory.disassembleItem(this,this.player,area,index); }
   dropItem(area,index,point) { return Inventory.dropItem(this,this.player,area,index,point); }
   pickupItem(id) { return Inventory.pickupItem(this,this.player,id); }
+  pickupOrApproach(id){
+    const target=this.entities.find(e=>e.id===id&&e.kind==='droppedItem'&&alive(e));
+    if(!target)return {ok:false,reason:'物品已经不存在'};
+    const result=this.pickupItem(id);if(result.ok)return result;
+    if(this._canAct().ok&&distance(this.player,target)>250){this.moveTo(target.x,target.y);this.player.pickupTargetId=id;return {ok:true,approaching:true};}
+    return result;
+  }
 
   _buy(h, itemId) {
     return Inventory.buyItem(this,h,itemId);
@@ -722,8 +741,9 @@ export class Game {
     }
     let target = h.explicitTarget ? this.entities.find(e => e.id === h.explicitTarget && alive(e)) : null;
     if (h.explicitTarget && !target) { h.explicitTarget = null; h.targetId = null; }
-    if (this.keyboard.x || this.keyboard.y) {
-      this._move(h,{x:h.x+this.keyboard.x*100,y:h.y+this.keyboard.y*100},dt);
+    const input=h.movementInput||this.keyboard;
+    if (input.x || input.y) {
+      this._move(h,{x:h.x+input.x*100,y:h.y+input.y*100},dt);
     } else if (target) {
       if (!this._attack(h,target)) this._move(h,target,dt,h.range+target.radius-3);
     } else if (h.destination) {
@@ -745,7 +765,7 @@ export class Game {
     h.targetId = null; h.explicitTarget = null; h.destination = null;
     h.xMark=null;
     h.buffs = {};h.statuses={};h.castPhase=null;h.channel=null;h.omnislash=null; h.lastDamagers = {}; h.retreating = false; h.pathIndex = 1;
-    if (h.isPlayer) this.keyboard = {x:0,y:0};
+    if (h.isPlayer) this.clearMovement(h);
     this._effect('heal',h.x,h.y,{radius:65,color:TEAM_COLORS[h.team],life:1});
   }
 }

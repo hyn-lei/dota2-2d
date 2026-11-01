@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { mkdir } from 'node:fs/promises';
 import { chromium } from 'playwright';
+import { closeDevelopmentNotice } from './browser-helpers.mjs';
 
 await mkdir('artifacts',{recursive:true});
 const browser=await chromium.launch({headless:true}),page=await browser.newPage({viewport:{width:1440,height:900}}),errors=[];
@@ -12,6 +13,7 @@ const buy=async id=>{await select(id);await page.locator('#buy-selected').click(
 const aim=async offset=>{const at=await page.evaluate(offset=>{const p=window.game.player,r=window.renderer,rect=r.canvas.getBoundingClientRect(),point=r.worldToScreen(p.x+offset,p.y);return {x:rect.x+point.x,y:rect.y+point.y};},offset);await page.mouse.move(at.x,at.y);return at;};
 try{
  await page.goto(process.env.GAME_URL||'http://127.0.0.1:5184',{waitUntil:'networkidle'});
+ await closeDevelopmentNotice(page);
  await page.evaluate(async()=>{const {Renderer}=await import('/src/renderer.js'),render=Renderer.prototype.render;Renderer.prototype.render=function(g,t){window.game=g;window.renderer=this;return render.call(this,g,t);};});
  await page.locator('[data-hero="kunkka"]').click();await page.locator('#start-game').click();await page.waitForFunction(()=>window.game?.time>.1);
  await page.evaluate(()=>{const g=window.game;g.entities=g.entities.filter(e=>e.isPlayer||e.ownerId===g.player.id);g.nextWave=g.nextNeutralSpawn=g.roshanRespawnAt=Infinity;g.player.gold=100000;g.player.attackCooldown=9999;});

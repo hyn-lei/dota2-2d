@@ -11,9 +11,9 @@ export function mountShop(panel,inventory,game,actions){
  const state={selected:'boots',category:'all',query:'',slot:null};
  panel.innerHTML=`<div class="panel-heading"><div><span class="eyebrow">DOTA 2 · 7.41f</span><h2>装备商店</h2></div><button class="icon-button" id="close-shop" aria-label="关闭商店">${icon('close')}</button></div><div class="shop-location"></div><label class="shop-search">${icon('search')}<input id="item-search" type="search" placeholder="搜索物品、属性或英文名称" aria-label="搜索商店物品" autocomplete="off" /></label><nav class="shop-categories" aria-label="物品分类">${Object.entries({all:'全部',attributes:'属性',equipment:'装备',secret:'神秘',upgrades:'合成',recipes:'卷轴'}).map(([id,label])=>`<button data-category="${id}">${label}</button>`).join('')}</nav><div class="shop-content"><div class="shop-catalog" aria-label="可购买物品"></div><section class="item-detail" aria-label="物品详情"></section></div><section class="stash-section"><div><h3>储藏处 <span id="stash-used"></span></h3><button id="collect-stash">取出全部</button></div><div class="stash-slots"></div></section><section class="quickbuy-section"><div><h3>快捷购买 <small>Shift + 单击物品添加</small></h3><button id="clear-quickbuy" aria-label="清空快捷购买">清空</button></div><div class="quickbuy-items"></div><button id="buy-quick">购买队列物品 <kbd>G</kbd></button></section><p class="shop-foot"><span id="slots-used"></span><small>双击 / 右键购买 · 单击查看详情</small></p>`;
  const consumables=document.createElement('button');consumables.dataset.category='consumables';consumables.textContent='消耗品';panel.querySelector('[data-category="attributes"]').before(consumables);
- const notify=result=>{if(result.ok){actions.changed();}else actions.notify(result.reason||'无法操作');update();return result;};
+ const notify=async result=>{result=await result;if(result.ok){actions.changed();}else actions.notify(result.reason||'无法操作');update();return result;};
  const courierPanel=document.createElement('section');courierPanel.className='courier-section';panel.querySelector('.quickbuy-section').before(courierPanel);
- panel.addEventListener('click',e=>{
+ panel.addEventListener('click',async e=>{
   const command=e.target.closest('[data-courier]');if(command){notify(game.courierCommand(command.dataset.courier));return;}
   if(e.target.closest('#courier-buy')){notify(game.buyWithCourier(state.selected));return;}
   if(!state.slot)return;const {area,index}=state.slot;
@@ -22,7 +22,7 @@ export function mountShop(panel,inventory,game,actions){
   if(e.target.closest('#disassemble-selected')){state.slot=null;notify(game.disassembleItem(area,index));}
   if(e.target.closest('#drop-selected')){state.slot=null;notify(game.dropItem(area,index));}
  });
- const buy=id=>{const result=notify(game.buy(id));if(result.ok)actions.notify(`已购买 ${ITEM_BY_ID[id].name}${result.area==='stash'?'，放入储藏处':result.area==='backpack'?'，放入背包':''}`);};
+ const buy=async id=>{const result=await notify(game.buy(id));if(result.ok)actions.notify(`已购买 ${ITEM_BY_ID[id].name}${result.area==='stash'?'，放入储藏处':result.area==='backpack'?'，放入背包':''}`);};
  function select(id){state.selected=id;state.slot=null;update();}
  function inspect(area,index){
   const id=game.player[area]?.[index];if(!id)return;
@@ -46,14 +46,14 @@ export function mountShop(panel,inventory,game,actions){
   container.addEventListener('dragover',e=>{if(e.target.closest('[data-slot-area]'))e.preventDefault();});
   container.addEventListener('drop',e=>{const b=e.target.closest('[data-slot-area]');if(!b)return;e.preventDefault();try{const from=JSON.parse(e.dataTransfer.getData('application/x-dota-item'));state.slot=null;notify(game.moveItem(from.area,from.index,b.dataset.slotArea,+b.dataset.slotIndex));}catch{}});
  }
- panel.addEventListener('click',e=>{
+ panel.addEventListener('click',async e=>{
   const category=e.target.closest('[data-category]');if(category){state.category=category.dataset.category;update();return;}
   const item=e.target.closest('[data-item]');if(item){if(e.shiftKey)notify(game.queueItem(item.dataset.item,true));else select(item.dataset.item);return;}
   const transfer=e.target.closest('[data-transfer]');
   if(transfer&&state.slot){const to=transfer.dataset.transfer,p=game.player,index=Array.from({length:SLOT_COUNTS[to]},(_,i)=>i).find(i=>!p[to][i]);if(index===undefined){actions.notify(`${areaNames[to]}已满，可拖动物品交换位置`);return;}const from=state.slot;state.slot=null;notify(game.moveItem(from.area,from.index,to,index));}
   if(e.target.closest('#buy-selected'))buy(state.selected);
   if(e.target.closest('#queue-selected'))notify(game.queueItem(state.selected,e.shiftKey));
-  if(e.target.closest('#sell-selected')&&state.slot){const {area,index}=state.slot;state.slot=null;const result=notify(game.sellItem(area,index));if(result.ok)actions.notify(`已出售，获得 ${result.gold} 金币`);}
+  if(e.target.closest('#sell-selected')&&state.slot){const {area,index}=state.slot;state.slot=null;const result=await notify(game.sellItem(area,index));if(result.ok)actions.notify(`已出售，获得 ${result.gold} 金币`);}
  });
  panel.addEventListener('dblclick',e=>{const b=e.target.closest('[data-item]');if(b&&!e.shiftKey)buy(b.dataset.item);});
  panel.addEventListener('contextmenu',e=>{const b=e.target.closest('[data-item]');if(b){e.preventDefault();buy(b.dataset.item);}});
@@ -61,7 +61,7 @@ export function mountShop(panel,inventory,game,actions){
  panel.querySelector('#item-search').oninput=e=>{state.query=e.target.value.trim().toLocaleLowerCase();update();};
  panel.querySelector('#collect-stash').onclick=()=>notify(game.collectStash());
  panel.querySelector('#buy-quick').onclick=()=>notify(game.buyQuick());
- panel.querySelector('#clear-quickbuy').onclick=()=>{game.player.quickbuy=[];update();};
+ panel.querySelector('#clear-quickbuy').onclick=()=>notify(game.clearQuickbuy());
  function update(){
   const p=game.player,access=shopAccess(p);
   setHTML(inventory,`<div class="equipped-slots">${Array.from({length:6},(_,i)=>slotHTML('inventory',i)).join('')}</div><div class="backpack-label">背包 <span>1–6 使用装备 · 双击选择目标</span></div><div class="backpack-slots">${Array.from({length:3},(_,i)=>slotHTML('backpack',i)).join('')}${slotHTML('tp',0)}</div>`);

@@ -7,6 +7,7 @@ import { mountStatusBar, updateStatusBar } from './status-ui.js';
 import { mountSkills, updateSkills, toggleTalents } from './skills-ui.js';
 import { icon, mark } from './icons.js';
 import { mountShop, itemArt } from './shop-ui.js';
+import { mountCoop, exitCoopMatch } from './coop-ui.js';
 
 const $ = (s) => document.querySelector(s);
 const app = $('#app');
@@ -26,6 +27,7 @@ function toast(message){const el=$('#toast');if(!el)return;el.textContent=messag
 function setupRenderer(){renderer?.destroy();renderer=new Renderer($('#battlefield'));}
 function portrait(h,cls=''){return `<img class="${cls}" src="/${h.portrait}" alt="${h.name}" draggable="false" />`;}
 function renderLobby(){
+  if(game?.isNetwork){exitCoopMatch();return;}
   cancelItemUse();
   view='lobby';game=null;modal=null;shopOpen=false;keys.clear();
   app.innerHTML=`<main class="lobby">
@@ -60,6 +62,7 @@ function renderLobby(){
   $('.brand').onclick=e=>{e.preventDefault();sound();};
   document.querySelectorAll('[data-nav]').forEach(b=>b.onclick=()=>{if(b.dataset.nav!=='battle')openModal(b.dataset.nav==='heroes'?'hero':'guide');});
   bindShared();
+  mountCoop({get heroId(){return chosen;},start:startGame,notify:toast,end:message=>{game=null;renderLobby();toast(message);}});
   window.scrollTo(0,0);
 }
 function selectHero(id,playSound=true){
@@ -75,9 +78,11 @@ function bindShared(){
   $('.sound-toggle').onclick=()=>{preferences.sound=!preferences.sound;save();$('.sound-toggle').innerHTML=icon(preferences.sound?'volume':'mute');toast(preferences.sound?'音效已开启':'音效已关闭');};
   $('.settings-button')?.addEventListener('click',()=>openModal('settings'));
 }
-function startGame(){
+function startGame(providedGame=null){
+  if(game?.isNetwork&&!providedGame?.isNetwork){exitCoopMatch();return;}
+  if(providedGame?.isNetwork)chosen=providedGame.player.heroId;
   cancelItemUse();
-  sound('start');view='match';modal=null;shopOpen=false;inspectionOpen=false;keys.clear();game=new Game({hero:chosen,difficulty:preferences.difficulty,seed:Math.floor(Math.random()*100000)});lastStatus='playing';
+  sound('start');view='match';modal=null;shopOpen=false;inspectionOpen=false;keys.clear();game=providedGame?.isNetwork?providedGame:new Game({hero:chosen,difficulty:preferences.difficulty,seed:Math.floor(Math.random()*100000)});lastStatus='playing';
   const h=HEROES[chosen];
   app.innerHTML=`<main class="match"><canvas id="battlefield" aria-label="2D 对战战场，左键查看单位，右键移动与攻击，Q W E R 释放技能" tabindex="0"></canvas>
     <header class="match-header"><button class="match-brand" aria-label="暂停与菜单">${mark()}<span>ANCIENT<br/>FRONT</span></button><div class="scoreboard"><div class="team-name radiant">天辉 <span>RADIANT</span></div><strong id="radiant-score">0</strong><div class="match-clock">${icon('sun')}<b id="match-time">00:00</b><small>5V5 · 人机对战</small></div><strong id="dire-score">0</strong><div class="team-name dire">夜魇 <span>DIRE</span></div></div><div class="match-tools"><button class="icon-button" id="guide-button" aria-label="作战指南" title="作战指南 H">${icon('help')}</button><button class="icon-button sound-toggle" aria-label="切换音效">${icon(preferences.sound?'volume':'mute')}</button><button class="icon-button" id="pause-button" aria-label="暂停游戏" title="暂停 Esc">${icon('pause')}</button></div></header>
@@ -93,7 +98,8 @@ function startGame(){
     </footer><aside id="shop" class="shop-panel" hidden></aside><div id="toast" role="status"></div><div id="modal-root"></div></main>`;
   setupRenderer();renderer.center(game.player);bindShared();
   shopUI=mountShop($('#shop'),$('#inventory'),game,{close:toggleShop,open:()=>{if(!shopOpen)toggleShop();},notify:toast,useItem:beginItemUse,changed:()=>{sound();updateHud();},locate:point=>{renderer.zoom=.4;renderer.lookAt(point.x,point.y);toast('已定位神秘商店，右键前往金色标记处');}});
-  mountSkills($('.abilities'),game,{cast,castSelf:i=>cast(i,true),autocast:i=>{const result=game.toggleAutocast(i);if(!result.ok)toast(result.reason);updateHud();},learn:i=>learn('learnAbility',i),talent:i=>learn('learnTalent',i),attributes:()=>learn('learnAttributes'),recall});
+  mountSkills($('.abilities'),game,{cast,castSelf:i=>cast(i,true),autocast:async i=>{const activeGame=game,result=await activeGame.toggleAutocast(i);if(game!==activeGame)return;if(!result.ok)toast(result.reason);updateHud();},learn:i=>learn('learnAbility',i),talent:i=>learn('learnTalent',i),attributes:()=>learn('learnAttributes'),recall});
+  if(game.isNetwork)document.querySelector('.match-clock small').textContent='五真人 · 噩梦 AI';
   $('.abilities').addEventListener('click',e=>{const b=e.target.closest('[data-extra]');if(b)castExtra(b.dataset.extra);});
   mountStatusBar($('.hud-vitals'));
   $('#inspection-body').insertAdjacentHTML('beforebegin','<div id="inspection-status"></div>');
@@ -113,12 +119,12 @@ function startGame(){
   canvas.addEventListener('pointerup',()=>dragging=null);
   canvas.addEventListener('pointercancel',()=>dragging=null);
   canvas.addEventListener('wheel',e=>{e.preventDefault();renderer.setZoom(e.deltaY<0?1.12:1/1.12,{x:e.offsetX,y:e.offsetY});},{passive:false});
-  canvas.addEventListener('pointerdown',e=>{
+  canvas.addEventListener('pointerdown',async e=>{
     if(game.status!=='playing')return;e.preventDefault();canvas.focus();const rect=canvas.getBoundingClientRect(),p=renderer.screenToWorld(e.clientX-rect.left,e.clientY-rect.top);pointer={x:e.clientX-rect.left,y:e.clientY-rect.top};
     if(e.button===1){dragging={x:e.clientX,y:e.clientY};canvas.setPointerCapture(e.pointerId);return;}
     const target=hitTest(p,e.button===2);
     if(pendingItem){if(e.button===2){cancelItemUse();return;}if(e.button===0){const {index,area,uid}=pendingItem;if(game.itemState(index,area).meta?.uid!==uid){cancelItemUse();toast('物品位置已改变');return;}useItem(index,area,p);return;}}
-    if(target?.kind==='droppedItem'&&e.button===2){const result=game.pickupItem(target.id);if(!result.ok){game.moveTo(target.x,target.y);game.player.pickupTargetId=target.id;toast('靠近后拾取物品');}else updateHud();return;}
+    if(target?.kind==='droppedItem'&&e.button===2){const result=await game.pickupOrApproach(target.id);if(result.approaching)toast('靠近后拾取物品');else if(!result.ok)toast(result.reason);updateHud();return;}
     if(e.button===0){game.selectEntity(target?.id||game.player.id);inspectionOpen=!!target;updateInspection();return;}
     if(e.button!==2||game.paused||game.player.dead)return;
     if(target&&target.team!==game.player.team){game.attackTarget(target.id);renderer.mark(target.x,target.y);}else{game.moveTo(p.x,p.y);renderer.mark(p.x,p.y);}
@@ -131,7 +137,7 @@ function startGame(){
   toast('你已加入天辉。带领兵线，摧毁夜魇的远古遗迹。');
   window.scrollTo(0,0);
 }
-function cast(i,self=false){if(!game||modal)return;const target=self?game.player:renderer.screenToWorld(pointer.x||renderer.w/2,pointer.y||renderer.h/2);const r=game.cast(i,target);if(r.ok){if(game.skill(i).kind==='active'||game.player.heroId==='ogre_magi')keys.clear();sound('cast');updateHud();}else toast(r.reason||'暂时无法施放技能');}
+async function cast(i,self=false){if(!game||modal)return;const activeGame=game,target=self?game.player:renderer.screenToWorld(pointer.x||renderer.w/2,pointer.y||renderer.h/2);const r=await activeGame.cast(i,target);if(game!==activeGame)return;if(r.ok){if(game.skill(i).kind==='active'||game.player.heroId==='ogre_magi')keys.clear();sound('cast');updateHud();}else toast(r.reason||'暂时无法施放技能');}
 let pendingItem=null;
 function cancelItemUse(){pendingItem=null;$('#battlefield')?.classList.remove('item-targeting');$('#item-target-prompt')?.remove();}
 function beginItemUse(index,area='inventory'){
@@ -143,10 +149,10 @@ function beginItemUse(index,area='inventory'){
  cancelItemUse();pendingItem={index,area,uid:info.meta.uid};$('#battlefield').classList.add('item-targeting');
  $('.match').insertAdjacentHTML('beforeend',`<div id="item-target-prompt" role="status">${escapeHtml(info.item.name)} · 左键选择目标 · 右键 / Esc 取消</div>`);
 }
-function useItem(index,area='inventory',point){if(!game||modal)return;const aim=point||renderer.screenToWorld(pointer.x||renderer.w/2,pointer.y||renderer.h/2),result=game.useItem(index,aim,area);if(result.ok){cancelItemUse();sound('cast');updateHud();}else toast(result.reason);}
-function castExtra(id,self=false){if(!game||modal)return;const target=self?game.player:renderer.screenToWorld(pointer.x||renderer.w/2,pointer.y||renderer.h/2),result=game.castExtra(id,target);if(result.ok){keys.clear();sound('cast');updateHud();}else toast(result.reason);}
-function learn(method,index){if(!game||modal)return;const result=game[method](index);if(result.ok){sound();updateHud();}else toast(result.reason);}
-function recall(){if(!game)return;const r=game.recall();if(!r.ok)toast(r.reason||'暂时无法回城');else sound();}
+async function useItem(index,area='inventory',point){if(!game||modal)return;const activeGame=game,aim=point||renderer.screenToWorld(pointer.x||renderer.w/2,pointer.y||renderer.h/2),result=await activeGame.useItem(index,aim,area);if(game!==activeGame)return;if(result.ok){cancelItemUse();sound('cast');updateHud();}else toast(result.reason);}
+async function castExtra(id,self=false){if(!game||modal)return;const activeGame=game,target=self?game.player:renderer.screenToWorld(pointer.x||renderer.w/2,pointer.y||renderer.h/2),result=await activeGame.castExtra(id,target);if(game!==activeGame)return;if(result.ok){keys.clear();sound('cast');updateHud();}else toast(result.reason);}
+async function learn(method,index){if(!game||modal)return;const activeGame=game,result=await activeGame[method](index);if(game!==activeGame)return;if(result.ok){sound();updateHud();}else toast(result.reason);}
+async function recall(){if(!game)return;const activeGame=game,r=await activeGame.recall();if(game!==activeGame)return;if(!r.ok)toast(r.reason||'暂时无法回城');else sound();}
 let previousFeed='';
 function updateHud(){
   if(!game||view!=='match')return;const p=game.player,h=HEROES[p.heroId];
@@ -216,6 +222,7 @@ function openModal(type){
     title='你的远古征途';eyebrow='BATTLE RECORD';body=`<div class="record-stats"><div><strong>${history.matches}</strong><span>累计对局</span></div><div><strong>${history.wins}</strong><span>天辉胜利</span></div><div><strong>${history.bestKills}</strong><span>单局最高击杀</span></div></div><p class="record-caption">${history.matches?'每一场战斗，都是新的故事。':'战场尚未留下你的名字。选择一位英雄，开始第一场对局。'}</p>`;footer='<button class="primary-button modal-primary" data-close>返回战场</button>';
   }else if(type==='pause'){
     title='稍作休整';eyebrow='BATTLE PAUSED';body=`<p class="pause-copy">兵线与战斗已暂停。准备好后，继续你的征程。</p><div class="pause-summary"><span>对局时间<strong>${clock(game.time)}</strong></span><span>英雄等级<strong>${game.player.level}</strong></span><span>击杀 / 阵亡<strong>${game.player.kills} / ${game.player.deaths}</strong></span></div>`;footer='<button class="primary-button modal-primary" data-close>继续战斗</button><div class="modal-secondary"><button id="restart-match">重新开始</button><button id="back-lobby">返回大厅</button></div>';
+    if(game.isNetwork){body=body.replace('兵线与战斗已暂停。准备好后，继续你的征程。','联机比赛仍在继续，菜单只停止你的操作。离开会结束本次对局，不会使用 AI 补位。');footer='<button class="primary-button modal-primary" data-close>返回战场</button><div class="modal-secondary"><button id="back-lobby">离开联机对局</button></div>';}
   }else if(type==='result'){
     const won=game.status==='won';title=won?'天辉，赢得胜利。':'遗迹陨落，战意未熄。';eyebrow=won?'RADIANT VICTORY':'THE ANCIENT HAS FALLEN';
     body=`<div class="result-emblem ${won?'victory':''}">${icon(won?'flag':'shield')}</div><p class="record-caption">${won?'敌方远古遗迹已被摧毁，这片战场属于你。':'天辉的远古遗迹已被摧毁。下一次，让我们重新改写战局。'}</p><div class="record-stats"><div><strong>${game.player.kills} / ${game.player.deaths}</strong><span>击杀 / 阵亡</span></div><div><strong>${game.player.lastHits}</strong><span>补刀</span></div><div><strong>${clock(game.time)}</strong><span>对局时长</span></div></div>`;footer='<button id="play-again" class="primary-button modal-primary">再战一局</button><div class="modal-secondary"><button id="back-lobby">返回大厅</button></div>';
@@ -229,7 +236,7 @@ function openModal(type){
 }
 function closeModal(){if(modal==='result'){renderLobby();return;}$('#modal-root').innerHTML='';modal=null;if(game)game.setPaused(false);returnFocus?.focus();}
 
-window.addEventListener('keydown',e=>{
+window.addEventListener('keydown',async e=>{
   if(modal){
     if(e.key==='Escape'){e.preventDefault();closeModal();return;}
     if(e.key==='Tab'){const focusable=[...document.querySelectorAll('.modal button:not(:disabled),.modal select')];const first=focusable[0],last=focusable.at(-1);if(e.shiftKey&&document.activeElement===first){e.preventDefault();last?.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first?.focus();}}return;
@@ -242,7 +249,7 @@ window.addEventListener('keydown',e=>{
   if(key==='escape'&&pendingItem){e.preventDefault();cancelItemUse();return;}
   if(/^[1-6]$/.test(key)){e.preventDefault();useItem(Number(key)-1,'inventory',e.altKey?game.player:undefined);return;}
   if(key==='d'||key==='t'){const skill=game.extraAbilities().find(s=>s.key.toLowerCase()===key);if(skill){e.preventDefault();castExtra(skill.id,e.altKey);}return;}
-  if(key==='f3'){e.preventDefault();const result=game.courierCommand('deliver');toast(result.ok?'信使已收到运输指令':result.reason);return;}
+  if(key==='f3'){e.preventDefault();const activeGame=game,result=await activeGame.courierCommand('deliver');if(game!==activeGame)return;toast(result.ok?'信使已收到运输指令':result.reason||'信使操作未完成');return;}
   if(key==='escape'||key==='p'){if(shopOpen)toggleShop();else openModal('pause');return;}
   if(key==='alt'){renderer.showCampBounds=true;return;}
   if(key==='m'){$('#map-overview').click();return;}

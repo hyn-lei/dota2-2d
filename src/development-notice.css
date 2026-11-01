@@ -1,0 +1,91 @@
+html.development-notice-open,
+html.development-notice-open body{overflow:hidden}
+
+.development-notice{
+  --notice-margin:16px;
+  position:fixed;
+  top:var(--notice-margin);
+  left:var(--notice-margin);
+  width:calc(100% - 2 * var(--notice-margin));
+  height:calc(100dvh - 2 * var(--notice-margin));
+  max-width:none;
+  max-height:none;
+  margin:0;
+  padding:0;
+  overflow:auto;
+  border:1px solid #a7ad8659;
+  background:#19231f;
+  color:var(--paper,#eae7dd);
+  box-shadow:0 28px 80px #08151990;
+}
+.development-notice[open]{display:flex;flex-direction:column}
+.development-notice::backdrop{background:#0c1419eb}
+.development-notice-header{
+  position:relative;
+  flex-shrink:0;
+  padding:clamp(24px,4vw,56px) clamp(24px,5vw,72px) 0;
+}
+.development-notice-header::before{
+  content:"";
+  display:block;
+  width:48px;
+  height:2px;
+  margin-bottom:20px;
+  background:var(--gold,#c5ae7a);
+}
+.development-notice-header h2{
+  margin:0;
+  padding-right:52px;
+  font-family:"Songti SC","Noto Serif SC","SimSun",Georgia,serif;
+  font-size:28px;
+  font-weight:400;
+  line-height:1.4;
+  letter-spacing:3px;
+  color:var(--gold,#c5ae7a);
+}
+.development-notice-close{
+  position:absolute;
+  top:24px;
+  right:24px;
+  display:grid;
+  place-items:center;
+  width:48px;
+  height:48px;
+  padding:0;
+  border:1px solid #a7ad8640;
+  background:#233129;
+  color:#e4e6d8;
+  font-family:"Segoe UI",sans-serif;
+  font-size:32px;
+  line-height:1;
+}
+.development-notice-close:hover{background:#354037;border-color:var(--gold,#c5ae7a)}
+.development-notice-close:focus-visible{outline:2px solid var(--gold,#c5ae7a);outline-offset:4px}
+.development-notice-body{
+  display:grid;
+  flex:1;
+  min-height:0;
+  place-items:center;
+  padding:40px clamp(28px,6vw,80px) 72px;
+}
+.development-notice-body p{
+  width:100%;
+  max-width:26em;
+  margin:0;
+  font-size:clamp(20px,2.7vw,38px);
+  font-weight:400;
+  line-height:1.8;
+  letter-spacing:.02em;
+  color:#e4e6d8;
+  text-wrap:pretty;
+  overflow-wrap:anywhere;
+  line-break:strict;
+}
+@media(max-width:600px){
+  .development-notice{--notice-margin:12px}
+  .development-notice-header{padding:28px 28px 0}
+  .development-notice-header h2{font-size:24px;letter-spacing:2px}
+  .development-notice-close{top:16px;right:16px}
+  .development-notice-body{padding:32px 28px 48px}
+  .development-notice-body p{font-size:22px;line-height:1.9}
+}

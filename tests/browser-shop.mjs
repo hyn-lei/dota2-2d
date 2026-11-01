@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { chromium } from 'playwright';
+import { closeDevelopmentNotice } from './browser-helpers.mjs';
 import { ITEMS } from '../src/item-data.js';
 const browser=await chromium.launch({headless:true}),page=await browser.newPage({viewport:{width:1440,height:900}}),errors=[],checks=[];
 page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});
@@ -8,6 +9,7 @@ const select=async id=>{await page.locator('#item-search').fill(id);await page.l
 const buy=async id=>{await select(id);await page.locator('#buy-selected').click();};
 try{
  await page.goto(process.env.GAME_URL||'http://localhost:5184',{waitUntil:'networkidle'});
+ await closeDevelopmentNotice(page);
  await page.evaluate(async()=>{const {Renderer}=await import('/src/renderer.js'),render=Renderer.prototype.render;Renderer.prototype.render=function(g,t){window.game=g;window.renderer=this;return render.call(this,g,t);};});
  await page.locator('[data-hero="crystal_maiden"]').click();await page.locator('#start-game').click();await page.waitForFunction(()=>window.game?.time>.1);
  await page.evaluate(()=>{const g=window.game;g.entities=[g.player];g.nextWave=Infinity;g.nextNeutralSpawn=Infinity;g.roshanRespawnAt=Infinity;g.player.gold=20000;});

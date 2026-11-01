@@ -11,6 +11,7 @@ page.on('response', response => {
 });
 try {
   await page.goto(base, { waitUntil: 'networkidle' });
+  await page.getByRole('button', { name: '关闭温馨提示', exact: true }).click();
   assert.equal(await page.locator('.hero-option').count(), 6);
   await page.waitForFunction(() => {
     const portrait = document.querySelector('#hero-render');

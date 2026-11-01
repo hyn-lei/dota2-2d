@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { mkdir } from 'node:fs/promises';
 import { chromium } from 'playwright';
+import { closeDevelopmentNotice } from './browser-helpers.mjs';
 
 const base=process.env.GAME_URL||'http://localhost:5184';
 await mkdir('artifacts',{recursive:true});
@@ -20,6 +21,7 @@ const start=async()=>{await page.locator('#start-game').click();await page.waitF
 const returnLobby=async()=>{await page.locator('#pause-button').click();await page.locator('#back-lobby').click();};
 try{
   await page.goto(base,{waitUntil:'networkidle'});
+  await closeDevelopmentNotice(page);
   assert.equal(await page.title(),'Ancient Front · Dota 2D');
   assert.equal(await page.locator('.hero-option').count(),6);
   for(const hero of ['juggernaut','crystal_maiden','windranger','axe','ogre_magi','kunkka']){
@@ -33,7 +35,7 @@ try{
 
   await page.locator('.settings-button').click();await page.locator('#setting-difficulty').selectOption('normal');
   await page.locator('#sound-setting').click();await page.locator('.modal-primary').click();
-  await page.reload({waitUntil:'networkidle'});assert.equal(await page.locator('#difficulty').inputValue(),'normal');
+  await page.reload({waitUntil:'networkidle'});await closeDevelopmentNotice(page);assert.equal(await page.locator('#difficulty').inputValue(),'normal');
   check('Preferences persist across reloads');await observe();await start();
   assert.deepEqual(await page.evaluate(()=>window.observedGame.player.abilityLevels),[0,0,0,0]);
   assert.equal(await page.locator('.ability.unlearned').count(),4);
