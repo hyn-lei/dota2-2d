@@ -64,8 +64,8 @@ test('Counter Helix is passive and triggers after seven landed attacks at rank o
   const {g,p,e}=arena('axe',[0,0,1,0]);e.damage=1;p.hp=p.maxHp;
   assert.equal(g.cast(2).ok,false);
   for(let i=0;i<6;i++){e.attackCooldown=0;g._attack(e,p);}
-  assert.equal(e.hp,10000);e.attackCooldown=0;g._attack(e,p);
-  assert.equal(e.hp,9900);assert.equal(p.mana,2000);
+  g.step(.2);assert.equal(e.hp,10000);e.attackCooldown=0;g._attack(e,p);g.step(.2);
+  assert.equal(e.hp,9900);assert.equal(p.mana,p.maxMana);
 });
 
 test('Culling Blade uses flat pure damage and resets only on a hero kill',()=>{

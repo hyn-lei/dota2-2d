@@ -237,6 +237,10 @@ function castBotSkills(g,h,target,ctx,settings,retreating=false){
       if((d>350||controlled(g,target))&&cast(1,predict(g,h,target,.8,settings)))return true;
       if(h.hasShard&&hero&&Skills.castExtraAbility(g,h,'windrunner_gale_force',target).ok)return true;
     }
+  }else if(h.heroId==='drow_ranger'){
+    if(target&&d<800&&(retreating||d<450||hero&&!Skills.hasStatusFlag(g,target,'silenced'))&&cast(1,target))return true;
+    if(!retreating&&target&&d>320&&d<1100&&(hero||ctx.enemies.filter(e=>fighter(e)).length>=3)&&cast(2,predict(g,h,target,.3,settings)))return true;
+    if(h.hasShard&&hero&&d<900&&!retreating&&Skills.castExtraAbility(g,h,'drow_ranger_glacier',h).ok)return true;
   }else if(h.heroId==='axe'){
     if(target&&d<=skill(3).range+target.radius&&target.hp<=skill(3).damage&&cast(3))return true;
     if(target&&d<=skill(0).values.radius&&(hero||ctx.enemies.filter(e=>fighter(e)&&distance(h,e)<315).length>=2)&&!has(g,h,'call')&&(nightmare(g,h)?controlCast(0,h):cast(0,h)))return true;

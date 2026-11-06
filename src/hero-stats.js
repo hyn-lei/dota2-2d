@@ -70,7 +70,7 @@ export function calculateHeroStats(heroId, level = 1, inventory = [], options = 
     hpRegen: (hero.baseHealthRegen + strength * 0.1 + (bonus.hpRegen || 0))*(1+(bonus.healthRegenAmp||0)/100),
     manaRegen: (hero.baseManaRegen + intelligence * 0.05 + (dumbLuck?strength*dumbLuck.mana_regen_per_str:0) + (bonus.manaRegen || 0))*(1+(bonus.manaRegenAmp||0)/100),
     damageMin, damageMax, damage: (damageMin + damageMax) / 2,
-    armor, magicResistance, physicalResistance: 1 - physicalDamageMultiplier(armor),
+    armor, baseArmor:hero.baseArmor+agility/6, magicResistance, physicalResistance: 1 - physicalDamageMultiplier(armor),
     baseAttackTime: hero.baseAttackTime, baseAttackSpeed: hero.baseAttackSpeed,attackPoint:hero.attackPoint||0,
     attackSpeed, attackInterval: hero.baseAttackTime / (attackSpeed / 100),
     range: hero.range+(bonus.attackRange||0), speed: Math.min(550,(hero.moveSpeed + bootSpeed + (bonus.speed || 0))*(1+(bonus.moveSpeedPct||0)/100)),

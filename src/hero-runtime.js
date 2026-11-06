@@ -2,6 +2,7 @@ import { abilityAt, innateAt, talentStats, extraAbilityAt } from './ability-data
 import { EXTRA_ABILITIES } from './upgrade-data.js';
 import { TREES } from './map-data.js';
 import * as Ogre from './ogre-runtime.js';
+import * as Drow from './drow-runtime.js';
 const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
 const alive=e=>e&&!e.dead&&e.hp>0;
 const fighter=e=>['hero','creep','neutral','illusion','summon'].includes(e?.kind);
@@ -98,7 +99,7 @@ export function combatStats(g,h,target=null){
  const maxSpeed=h.heroId==='windranger'?innate(h).values.max_movespeed:550;
  slowPct=hasStatusFlag(g,h,'slowImmune')?0:slowPct*(1-(h.slowResistance||0)/100);
  speed=speed===0?0:Math.max(100,Math.min(maxSpeed,(speed+flatSpeed)*(1+movePercent/100)*(1-slowPct/100)));
- return {armor,speed,attackSpeed,attackInterval:h.baseAttackTime?h.baseAttackTime*100/attackSpeed:h.attackInterval,damage,magicResistance,evasion};
+ return Drow.drowCombatStats(g,h,{armor,speed,attackSpeed,attackInterval:h.baseAttackTime?h.baseAttackTime*100/attackSpeed:h.attackInterval,damage,magicResistance,evasion});
 }
 
 export function castAbility(g,h,index,point){
@@ -118,16 +119,22 @@ export function castAbility(g,h,index,point){
  if(active(g,h,'spin')&&index===3)return {ok:false,reason:'剑刃风暴期间无法使用无敌斩'};
  const aim=point&&Number.isFinite(point.x)&&Number.isFinite(point.y)?{x:point.x,y:point.y}:{x:h.x+Math.cos(h.angle)*100,y:h.y+Math.sin(h.angle)*100};
  const ogreAlly=h.heroId==='ogre_magi'&&index===2;
- const unitTarget=(h.heroId==='axe'&&(index===1||index===3))||(h.heroId==='crystal_maiden'&&index===1)||(h.heroId==='juggernaut'&&index===3)||(h.heroId==='windranger'&&(index===0||index===3))||(h.heroId==='kunkka'&&index===2)||(h.heroId==='ogre_magi'&&index<3);
+ const unitTarget=(h.heroId==='axe'&&(index===1||index===3))||(h.heroId==='crystal_maiden'&&index===1)||(h.heroId==='juggernaut'&&index===3)||(h.heroId==='windranger'&&(index===0||index===3))||(h.heroId==='kunkka'&&index===2)||(h.heroId==='ogre_magi'&&index<3)||(h.heroId==='drow_ranger'&&index===0);
  let target;
  if(unitTarget){
   target=ogreAlly&&point?.id===h.id&&!isInvulnerable(g,h)?h:g.entities.filter(e=>alive(e)&&(ogreAlly&&structure(e)||!isInvulnerable(g,e))&&g.canSee(h,e)&&distance(e,aim)<=Math.max(e.radius||24,90)&&
    (ogreAlly?e.team===h.team&&(fighter(e)||structure(e)):h.heroId==='kunkka'?e.kind==='hero':e.team!==h.team&&(fighter(e)||(h.heroId==='windranger'&&index===3&&structure(e))))).sort((a,b)=>distance(a,aim)-distance(b,aim))[0];
   if(!target)return {ok:false,reason:h.heroId==='kunkka'?'请指向友方或敌方英雄':'请指向有效敌方目标'};
-  if(distance(h,target)>s.range+target.radius)return {ok:false,reason:`目标超过 ${s.range} 施法距离`};
+  const targetRange=h.heroId==='drow_ranger'&&index===0?g.combatStats(h,target).range:s.range;
+  if(distance(h,target)>targetRange+target.radius)return {ok:false,reason:`目标超过 ${targetRange} 施法距离`};
  }
  const pointTarget=(h.heroId==='kunkka'&&(index===0||index===3))||(h.heroId==='crystal_maiden'&&index===0)||(h.heroId==='juggernaut'&&index===1);
  if(pointTarget&&distance(h,aim)>s.range+1)return {ok:false,reason:`目标超过 ${s.range} 施法距离`};
+ if(h.heroId==='drow_ranger'&&index===0){
+  if(hasStatusFlag(g,h,'disarmed'))return {ok:false,reason:'缴械期间无法发射冰箭'};
+  interruptCast(g,h,true);h.recallTimer=0;h.destination=null;h.frostArrowTarget=target.id;h.explicitTarget=target.id;h.targetId=target.id;
+  if(h.isPlayer)g.clearMovement(h);g._attack(h,target,{manualFrost:true});return {ok:true};
+ }
  interruptCast(g,h,true);h.recallTimer=0;h.destination=null;h.navPath=null;
  if(h.isPlayer)g.clearMovement(h);
  const phase={index,skill:s,point:aim,targetId:target?.id,executeAt:g.time+s.castPoint};
@@ -157,15 +164,16 @@ export function castExtraAbility(g,h,id,point){
   target=g.entities.filter(e=>alive(e)&&fighter(e)&&e.team!==h.team&&!isInvulnerable(g,e)&&g.canSee(h,e)&&distance(e,aim)<=Math.max(e.radius||24,90)).sort((a,b)=>distance(a,aim)-distance(b,aim))[0];
   if(!target)return {ok:false,reason:'请指向有效敌方目标'};
   if(distance(h,target)>s.range+(target.radius||0))return {ok:false,reason:`目标超过 ${s.range} 施法距离`};
- }else if(id!=='crystal_maiden_crystal_clone'&&distance(h,aim)>s.range+1)return {ok:false,reason:`目标超过 ${s.range} 施法距离`};
+ }else if(!['crystal_maiden_crystal_clone','drow_ranger_glacier'].includes(id)&&distance(h,aim)>s.range+1)return {ok:false,reason:`目标超过 ${s.range} 施法距离`};
  // Crystal Clone is explicitly usable without cancelling Freezing Field.
- if(id!=='crystal_maiden_crystal_clone')interruptCast(g,h,true);
+ if(!['crystal_maiden_crystal_clone','drow_ranger_glacier'].includes(id))interruptCast(g,h,true);
  h.recallTimer=0;h.destination=null;h.navPath=null;if(h.isPlayer)g.clearMovement(h);
  const phase={extraId:id,skill:s,point:aim,targetId:target?.id,executeAt:g.time+s.castPoint};h.castPhase=phase;
  if(s.castPoint>0)addStatus(g,h,'casting',{name:`施放${s.name}`,description:'移动或被控制会取消施法。',positive:true,icon:s.icon,duration:s.castPoint});
  else releaseCast(g,h,phase);return {ok:true};
 }
 export function interruptCast(g,h,releasePartial=true){
+ h.frostArrowTarget=null;
  if(h.attackPhase){h.attackPhase=null;h.attackCooldown=0;}
  if(h.itemChannel){h.itemChannel=null;h.recallTimer=0;removeStatus(h,'itemChannel');}
  h.castPhase=null;removeStatus(h,'casting');
@@ -183,7 +191,7 @@ function releaseCast(g,h,phase){
  if(phase.extraId&&!extraSkillOf(h,phase.extraId))return;
  if(phase.extraId==='ogre_magi_unrefined_fireblast')s.mana=h.mana*v.scepter_mana/100*(1-(h.manaCostReduction||0)/100);
  if(h.mana<s.mana)return;
- h.mana-=s.mana;const cooldown=s.cooldown*(1-(h.cooldownReduction||0)/100);if(phase.extraId){h.extraCooldowns||={};h.extraCooldowns[phase.extraId]=cooldown;h.extraCooldownTick=g.time;}else h.cooldowns[index]=cooldown;h.angle=Math.atan2(point.y-h.y,point.x-h.x);
+ h.mana-=s.mana;const cooldown=s.cooldown*(1-(h.cooldownReduction||0)/100);if(phase.extraId){h.extraCooldowns||={};h.extraCooldowns[phase.extraId]=cooldown;h.extraCooldownTick=g.time;}else h.cooldowns[index]=cooldown;if(s.id!=='drow_ranger_glacier')h.angle=Math.atan2(point.y-h.y,point.x-h.x);
  if(h.heroId==='crystal_maiden'&&s.mana>0){const a=innate(h);const shield=addStatus(g,h,'barrier',{name:'冰川护体',description:'抵挡物理伤害；由消耗的魔法转化。',positive:true,icon:'shield',duration:a.values.barrier_duration,barrier:(active(g,h,'barrier')?.barrier||0)+s.mana*a.values.mana_multiplier/100});shield.stacks=Math.ceil(shield.barrier);}
  if(h.heroId==='windranger')grantTailwind(g,h);
  g.onSpellCast?.(h,s,target);
@@ -198,7 +206,9 @@ function spellEffect(g,h,type,x,y,fields){
 function applyAbilityEffect(g,h,phase,heroId){
  const s=phase.skill,v=s.values,point=phase.point,index=phase.index,target=phase.targetId&&g.entities.find(e=>e.id===phase.targetId);
  if(heroId==='ogre_magi'){Ogre.releaseOgreAbility(g,h,phase);return;}
+ if(phase.extraId==='drow_ranger_glacier'){Drow.releaseGlacier(g,h,s);return;}
  if(phase.extraId){releaseExtraAbility(g,h,s,point,target);return;}
+ if(heroId==='drow_ranger'){Drow.releaseDrow(g,h,phase);return;}
  if(heroId==='axe'){
   if(index===0){
    addStatus(g,h,'call',{name:'狂战士之吼',description:`护甲增加 ${v.bonus_armor}。`,duration:v.duration,positive:true,icon:'roar',armor:v.bonus_armor});h.buffs.callUntil=g.time+v.duration;
@@ -320,6 +330,7 @@ export function returnMark(g,h){
 }
 export function tickWorldAbilities(g){
  Ogre.tickOgreWorld(g);
+ Drow.tickDrowWorld(g);
  for(const h of g.entities)if(h.kind==='hero'){
   if(h.extraCooldowns){const elapsed=Math.max(0,g.time-(h.extraCooldownTick??g.time));for(const id of Object.keys(h.extraCooldowns))h.extraCooldowns[id]=Math.max(0,h.extraCooldowns[id]-elapsed);h.extraCooldownTick=g.time;}
   if(h.castPhase&&h.castPhase.executeAt<=g.time+1e-7)releaseCast(g,h,h.castPhase);
@@ -449,7 +460,8 @@ export function tickHeroAbilities(g,h,dt){
   else if(h.channel.kind==='freezing'){
    const channel=h.channel;tickFreezingField(g,h,channel);
    if(g.time>=channel.until)interruptCast(g,h,false);
-  }else if(g.time>=h.channel.until)interruptCast(g,h,true);
+  }else if(h.channel.kind==='multishot'){Drow.tickMultishot(g,h);if(g.time>=h.channel.until)interruptCast(g,h,false);}
+  else if(g.time>=h.channel.until)interruptCast(g,h,true);
  }
  return !!h.castPhase||!!h.channel||!!h.omnislash||!!h.cloneHop;
 }
@@ -499,9 +511,11 @@ export function attackModifiers(g,h,target,options={}){
  }
  if(h.heroId==='kunkka'&&fighter(target)&&h.autocast?.[1]!==false&&(h.cooldowns[1]||0)<=0){const s=skillOf(h,1);if(s.level){damage+=s.values.damage_bonus;cleave=s;h.cooldowns[1]=s.cooldown;}}
  for(const s of Object.values(h.statuses||{}))if(s.until>g.time&&s.helixReduction&&s.sourceId===target.id)damage*=1-s.helixReduction*s.stacks/100;
- return {damage,critical,cleave,interval:stats.attackInterval};
+ return Drow.drowAttack(g,h,target,options,{damage,critical,cleave,interval:stats.attackInterval});
 }
+export const attackImpactDamage=(g,target,result)=>result.damage+Drow.frostBonusDamage(g,target,result.frostArrow);
 export function afterAttack(g,h,target,result,dealt){
+ if(result.frostArrow)Drow.frostHit(g,h,target,result.frostArrow);
  Ogre.ogreAttackProc(g,h,target);
  if(result.cleave){const v=result.cleave.values,dir={x:Math.cos(h.angle),y:Math.sin(h.angle)};
   for(const e of g.entities)if(e!==target&&alive(e)&&fighter(e)&&e.team!==h.team){const x=e.x-h.x,y=e.y-h.y,along=x*dir.x+y*dir.y,across=Math.abs(x*dir.y-y*dir.x);const width=v.cleave_starting_width+(v.cleave_ending_width-v.cleave_starting_width)*along/v.cleave_distance;if(along>=0&&along<=v.cleave_distance&&across<=width){g.damage(e,result.damage*v.cleave_damage/100,h,'physical',{armorIgnorePct:v.pierces_armor||0});if(v.movespeed_slow)slow(g,e,v.movespeed_slow_duration,v.movespeed_slow,h);}}
@@ -521,6 +535,7 @@ function countHelix(g,h){
  h.buffs.helixUntil=g.time+.55;spellEffect(g,h,'slash',h.x,h.y,{visual:'counterHelix',radius:s.values.radius,life:.55,color:'#ed7954'});
 }
 export function onUnitKilled(g,target,source){
+ Drow.onDrowTargetKilled(g,target);
  if(target.crystalClone)detonateClone(g,target);
  if(source){for(const [id,s]of Object.entries(source.statuses||{}))if(s.hunger||id==='hunger')removeStatus(source,id);if(source.heroId==='windranger'&&active(g,source,'focus')&&source.focusTargetId===target.id&&target.kind==='hero'){const s=skillOf(source,3);source.cooldowns[3]=Math.max(0,source.cooldowns[3]-(s.values.cooldown_reduction_per_kill||0));}}
  interruptCast(g,target,false);target.statuses={};target.omnislash=null;target.bladeformStacks=0;target.tailwinds=[];target.focusTargetId=null;
@@ -531,3 +546,4 @@ export function onUnitKilled(g,target,source){
   if(e.xMark&&e===target){const victim=g.entities.find(t=>t.id===e.xMark.targetId);if(victim)removeStatus(victim,'xmark');e.xMark=null;}
  }
 }
+export const movementNavigator=(g,e)=>Drow.movementNavigator(g,e);

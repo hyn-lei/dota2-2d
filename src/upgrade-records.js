@@ -263,6 +263,71 @@ export const UPGRADE_EFFECTS={
       "scepterDescription": "很精通的火焰爆轰，冷却时间减少%bonus_AbilityCooldown%秒，施法速度提升%bonus_cast_speed%%%。",
       "shardDescription": ""
     }
+  },
+  "drow_ranger": {
+    "drow_ranger_frost_arrows": {
+      "scepter": [
+        {
+          "field": "shard_regen_reduction_pct_per_stack",
+          "operation": "add",
+          "values": [
+            10
+          ]
+        },
+        {
+          "field": "shard_bonus_damage_per_stack",
+          "operation": "add",
+          "values": [
+            18
+          ]
+        },
+        {
+          "field": "shard_stack_duration",
+          "operation": "add",
+          "values": [
+            7
+          ]
+        },
+        {
+          "field": "shard_burst_radius",
+          "operation": "add",
+          "values": [
+            650
+          ]
+        },
+        {
+          "field": "shard_burst_damage_per_stack",
+          "operation": "add",
+          "values": [
+            60
+          ]
+        },
+        {
+          "field": "shard_burst_move_slow_pct",
+          "operation": "add",
+          "values": [
+            40
+          ]
+        },
+        {
+          "field": "shard_burst_slow_duration",
+          "operation": "add",
+          "values": [
+            2
+          ]
+        },
+        {
+          "field": "shard_max_stacks",
+          "operation": "add",
+          "values": [
+            9
+          ]
+        }
+      ],
+      "shard": [],
+      "scepterDescription": "霜冻之箭现在对敌人施加低温的叠加效果，提升霜冻之箭的伤害，并且每层叠加效果都会降低生命回复。若敌人在低温效果下阵亡，他们将会爆炸，对范围内的敌人造成伤害和减速。",
+      "shardDescription": ""
+    }
   }
 };
 export const EXTRA_ABILITIES={
@@ -666,6 +731,108 @@ export const EXTRA_ABILITIES={
         ]
       },
       "description": "创造一个围绕友军目标的护盾，吸收接下来3次来自敌方英雄攻击的一定百分比伤害。吸收伤害后向攻击者发射火球。可以对防御塔施放。",
+      "damageType": "magical"
+    }
+  ],
+  "drow_ranger": [
+    {
+      "id": "drow_ranger_glacier",
+      "sourceID": 1121,
+      "name": "冰川",
+      "key": "D",
+      "icon": "torrent",
+      "color": "#a6ced4",
+      "kind": "active",
+      "maxLevel": 1,
+      "requiredLevels": [],
+      "upgrade": "shard",
+      "cooldowns": [
+        25
+      ],
+      "manaCosts": [
+        50
+      ],
+      "castRanges": [
+        400
+      ],
+      "castPoints": [
+        0.1,
+        0.1,
+        0.1,
+        0.1
+      ],
+      "channelTimes": [
+        0
+      ],
+      "durations": [
+        0
+      ],
+      "damages": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "values": {
+        "shard_width": [
+          180
+        ],
+        "shard_count": [
+          5
+        ],
+        "shard_speed": [
+          1200
+        ],
+        "shard_duration": [
+          8
+        ],
+        "shard_angle_step": [
+          40
+        ],
+        "shard_distance": [
+          155
+        ],
+        "end_height": [
+          128
+        ],
+        "hilltop_offset": [
+          200
+        ],
+        "ramp_radius": [
+          150
+        ],
+        "attack_range_bonus": [
+          200
+        ],
+        "knockback_duration": [
+          0.1
+        ],
+        "knockback_distance": [
+          225
+        ],
+        "knockback_height": [
+          50
+        ],
+        "z_speed_override": [
+          800
+        ],
+        "damage_bonus": [
+          25
+        ],
+        "AbilityCastRange": [
+          400
+        ],
+        "AbilityCastPoint": [
+          0.1
+        ],
+        "AbilityManaCost": [
+          50
+        ],
+        "AbilityCooldown": [
+          25
+        ]
+      },
+      "description": "卓尔游侠在她脚下创造一片冰山，击退附近的敌人。站在山上的单位会获得飞行视野，而卓尔游侠和她的远程友军会获得攻击距离加成。卓尔游侠站在山上时攻击下方目标时获得额外伤害。山的前面会阻挡视野，并且除了卓尔游侠外无法穿行。施放时不会打断数箭齐发。",
       "damageType": "magical"
     }
   ]

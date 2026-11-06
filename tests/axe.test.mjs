@@ -37,7 +37,8 @@ test('Hunger rejects buildings and empty points without paying mana, and persist
 test('Counter Helix counts received attacks, hits enemy fighters and excludes allies and buildings',()=>{
  const {g,p,e,c}=arena('axe');c.x=p.x+200;const ally={...c,id:'ally',team:0,statuses:{},buffs:{}},tower={...c,id:'tower',kind:'tower',tier:1,lane:0};g.entities.push(ally,tower);
  for(let n=0;n<7;n++){e.attackCooldown=0;g._attack(e,p);}
- assert.equal(e.hp,3900);assert.equal(c.hp,3900);assert.equal(ally.hp,4000);assert.equal(tower.hp,4000);assert.equal(p.cooldowns[2],.3);
+ assert.equal(e.hp,4000);g.step(.2);
+ assert.equal(e.hp,3900);assert.equal(c.hp,3900);assert.equal(ally.hp,4000);assert.equal(tower.hp,4000);assert.ok(p.cooldowns[2]>=.2&&p.cooldowns[2]<=.3);
 });
 test('Culling Blade is flat pure damage and gives permanent armor only on hero kills',()=>{
  const {g,p,e}=arena('axe');e.hp=275;e.armor=500;

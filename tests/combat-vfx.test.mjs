@@ -12,7 +12,8 @@ for (const [hero, visual] of [['crystal_maiden','frostAttack'],['windranger','ar
     assert.equal(effect.visual,visual);
     assert.equal(effect.sourceId,p.id);
     assert.equal(effect.targetId,e.id);
-    assert.ok(e.hp<4000,'visual changes retain immediate basic attack damage');
+    assert.equal(e.hp,4000,'launch does not apply damage');
+    g.step(.2);assert.ok(e.hp<4000,'actual arrival applies damage');
   });
 }
 

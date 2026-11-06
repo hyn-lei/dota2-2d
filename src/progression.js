@@ -1,5 +1,5 @@
 import { ABILITIES, TALENTS } from './ability-data.js';
-export function initializeProgression(h){Object.assign(h,{abilityLevels:[0,0,0,0],skillPoints:1,talentPoints:0,talents:[],attributeBonusLevel:0,autocast:h.heroId==='ogre_magi'?{2:false}:{1:true}});return h;}
+export function initializeProgression(h){Object.assign(h,{abilityLevels:[0,0,0,0],skillPoints:1,talentPoints:0,talents:[],attributeBonusLevel:0,autocast:h.heroId==='ogre_magi'?{2:false}:h.heroId==='drow_ranger'?{0:true}:{1:true}});return h;}
 const fail=reason=>({ok:false,reason});
 function point(h){return h.skillPoints>0?{ok:true}:fail('没有可用技能点');}
 export function canLearnAbility(h,index){
@@ -33,7 +33,7 @@ export function grantLevelPoints(h,previousLevel){
   if(level>=27){const first=(level-27)*2,chosen=h.talents.includes(first)?first:h.talents.includes(first+1)?first+1:null;if(chosen!==null)learnTalent(h,chosen^1);}
  }
 }
-const priorities={juggernaut:[0,2,1],crystal_maiden:[0,1,2],windranger:[1,2,0],axe:[2,0,1],kunkka:[1,0,2],ogre_magi:[1,0,2]};
+const priorities={juggernaut:[0,2,1],crystal_maiden:[0,1,2],windranger:[1,2,0],axe:[2,0,1],kunkka:[1,0,2],ogre_magi:[1,0,2],drow_ranger:[2,0,1]};
 export function autoLearn(h){
  for(let tier=3;tier>=0;tier--)if(h.talentPoints>0&&h.level>=[10,15,20,25][tier]&&!h.talents.some(i=>Math.floor(i/2)===tier))learnTalent(h,tier*2+(h.heroId==='kunkka'?1:0));
  let iterations=40;while(h.skillPoints>0&&iterations--){

@@ -33,7 +33,8 @@ test('Refresher clears shared item cooldowns and item charges cannot be created 
 });
 test('ranged split shot harms secondary targets without recursively triggering attack effects',()=>{
  const {g,p,e,c}=arena('crystal_maiden',[0,0,0,0]);equip(g,p,['specialists_array']);g._random=()=>0;
- p.attackCooldown=0;g._attack(p,e);assert.ok(c.hp<4000);assert.ok(e.hp<4000);
+ p.attackCooldown=0;g._attack(p,e);p.attackCooldown=999;assert.equal(c.hp,4000);assert.equal(e.hp,4000);
+ g.step(.2);assert.equal(c.hp,4000);assert.ok(e.hp<4000);g.step(.5);assert.ok(c.hp<4000);assert.equal(g.pendingSpells.filter(s=>s.type==='attack').length,0);
 });
 test('witch blade poison uses intelligence and Devastator reduces magic resistance',()=>{
  const {g,p,e}=arena('crystal_maiden',[0,0,0,0]);equip(g,p,['devastator']);p.attackCooldown=0;g._attack(p,e);const hp=e.hp;

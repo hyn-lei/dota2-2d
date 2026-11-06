@@ -33,6 +33,11 @@ export const HEROES = {
     id:'kunkka',name:'昆卡',en:'KUNKKA',title:'纵横四海的舰队统帅',role:'近战 / 控制',attribute:'力量',
     description:'潮汐听从号令，幽灵舰队破浪而来。用 X 标记锁定归途，让洪流与炮火准时抵达。',
     color:'#729fbc',portrait:'assets/kunkka.jpg',render:'assets/kunkka.png'
+  },
+  drow_ranger: {
+    id:'drow_ranger',name:'卓尔游侠',en:'DROW RANGER',title:'寂静的冰霜猎手',role:'远程 / 核心 / 推进',attribute:'敏捷',
+    description:'以冰霜之箭减速，以狂风沉默并推开敌人。多重射击覆盖前方，保持距离让射手天赋穿透护甲。',
+    color:'#98cce8',portrait:'assets/drow_ranger_portrait.png',render:'assets/drow_ranger.png'
   }
 };
 const attributeNames={strength:'力量',agility:'敏捷',intelligence:'智力',universal:'全才'};

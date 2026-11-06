@@ -39,10 +39,10 @@ test('Unrefined Fireblast consumes 35 percent current mana and adds strength dam
 test('Fire Shield absorbs three hero attacks, ignores creep attacks, and counters with real projectiles',()=>{
   const {g,p,e,c}=ogre();p.hasShard=true;assert.ok(Skills.castExtraAbility(g,p,'ogre_magi_smash',p).ok);g.step(.3);
   p.armor=0;p.magicResistance=0;e.damage=100;e.attackCooldown=0;const hp=p.hp;
-  assert.ok(g._attack(e,p));assert.ok(Math.abs(hp-p.hp-15)<1e-7);assert.equal(p.statuses.ogreFireShield.stacks,2);
+  assert.ok(g._attack(e,p));assert.equal(p.hp,hp);g.step(.2);assert.ok(Math.abs(hp-p.hp-15)<1e-7);assert.equal(p.statuses.ogreFireShield.stacks,2);
   c.attackCooldown=0;c.x=p.x+50;g._attack(c,p);assert.equal(p.statuses.ogreFireShield.stacks,2);
   const enemyHp=e.hp;g.step(.3);assert.ok(e.hp<enemyHp);
-  for(let i=0;i<2;i++){e.attackCooldown=0;g._attack(e,p);}assert.equal(p.statuses.ogreFireShield,undefined);
+  for(let i=0;i<2;i++){e.attackCooldown=0;g._attack(e,p);}g.step(.2);assert.equal(p.statuses.ogreFireShield,undefined);
 });
 test('Break prevents multicast and strong dispel removes Fireblast stun',()=>{
   const {g,p,e}=ogre([4,1,1,3]);g._random=()=>0;Skills.addStatus(g,p,'break',{duration:5,break:true});g.cast(0,e);g.step(.5);assert.equal(e.hp,3750);

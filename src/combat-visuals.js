@@ -1,4 +1,5 @@
-// Visual-only profiles. Speeds shape animation; ordinary attacks still settle on release.
+import { ATTACK_PROFILES } from './attack-records.js';
+// Visual profiles share official attack speeds with the simulation.
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
 const sameStatus=(actual,expected)=>actual===expected||!!(actual&&expected&&actual.id===expected.id&&actual.sourceId===expected.sourceId&&actual.startedAt===expected.startedAt&&actual.until===expected.until);
 export function effectIsActive(effect,game){
@@ -17,18 +18,29 @@ export function attackVisualFields(source,target){
   const ranged=source.range>200;
   let visual='meleeSlash',color='#ead9b2',speed=900;
   if(source.kind==='tower'||source.kind==='fountain'){
-    visual=source.team?'direTower':'radiantTower';color=source.team?'#ff713b':'#ffd77c';speed=1200;
+    visual=source.team?'direTower':'radiantTower';color=source.team?'#ff713b':'#ffd77c';speed=source.kind==='fountain'?1400:750;
   }else if(source.heroId==='crystal_maiden'){visual='frostAttack';color='#9ae8ff';}
   else if(source.heroId==='windranger'){visual='arrowAttack';color='#bddd8a';speed=1250;}
+  else if(source.heroId==='drow_ranger'){visual='drowArrow';color='#b0d9ed';speed=1250;}
   else if(source.heroId==='juggernaut'){visual='bladeSlash';color='#ffb36b';}
   else if(source.heroId==='axe'){visual='axeSlash';color='#ef6548';}
   else if(source.heroId==='kunkka'){visual='tideSlash';color='#81dfec';}
   else if(source.heroId==='ogre_magi'){visual='ogreSmash';color='#f2bd78';}
   else if(ranged){visual=source.kind==='neutral'?'neutralBolt':source.team?'direBolt':'radiantBolt';color=source.kind==='neutral'?'#cdb1ff':source.team?'#ff8055':'#c9eb91';}
+  speed=ATTACK_PROFILES[source.heroId||source.sourceId]?.speed||speed;
   return {visual,color,sourceId:source.id,targetId:target.id,heroId:source.heroId,sourceKind:source.kind,
     team:source.team,tx:target.x,ty:target.y,angle:Math.atan2(target.y-source.y,target.x-source.x),
     radius:ranged?12:65,life:ranged?clamp(Math.hypot(target.x-source.x,target.y-source.y)/speed,.12,.8):.24,
     lift:source.kind==='tower'?135:source.kind==='hero'?42:24,targetLift:target.kind==='hero'?35:20};
+}
+
+export function unitOpacity(unit,time,floor=.24){
+ let opacity=1;
+ for(const s of Object.values(unit.statuses||{}))if(s.invisible&&s.until>time){
+  const progress=s.startedAt<=time?1:s.fadeStartedAt!=null?clamp((time-s.fadeStartedAt)/(s.fadeDuration||.001),0,1):0;
+  opacity=Math.min(opacity,1-(1-floor)*progress);
+ }
+ return opacity;
 }
 
 export function effectPose(effect,time,entities=[]){
@@ -59,5 +71,10 @@ export function unitVisuals(unit,time){
   if(live('ogreIgnite'))result.push('ogreIgnite');
   if(live('ogreBloodlust'))result.push('ogreBloodlust');
   if(live('ogreFireShield'))result.push('ogreShield');
+  if(Object.values(unit.statuses||{}).some(s=>s.glimmer&&s.until>time))result.push('glimmer');
+  if(live('drowFrost'))result.push('drowFrost');
+  if(live('drowHypothermia'))result.push('drowHypothermia');
+  if(unit.channel?.kind==='multishot'&&unit.channel.until>time)result.push('multishotCharge');
+  if(unit.heroId==='drow_ranger'&&unit.marksmanshipEnabled)result.push('marksmanship');
   return result;
 }

@@ -8,6 +8,13 @@ export const HERO_DATA_META = Object.freeze({
   "scope": "Base hero stats and natural attribute growth, without talents, facets, innate effects, skill bonuses or temporary modifiers."
 });
 
+export const DROW_DATA_META = Object.freeze({
+  "patch": "7.41f",
+  "retrieved": "2026-11-06",
+  "trackingCommit": "3f630cc18bfa63f63b3ce259be52209d922558c3",
+  "source": "https://www.dota2.com/datafeed/herodata?language=english&hero_id=6"
+});
+
 export const HERO_STATS = Object.freeze({
   "axe": {
     "id": "axe",
@@ -156,6 +163,33 @@ export const HERO_STATS = Object.freeze({
     "baseAttackSpeed": 100,
     "moveSpeed": 290,
     "range": 150,
+    "visionDay": 1800,
+    "visionNight": 800,
+    "baseMagicResistance": 0.25
+  },
+  "drow_ranger": {
+    "id": "drow_ranger",
+    "dotaId": 6,
+    "primaryAttribute": "agility",
+    "baseStrength": 16,
+    "strengthGain": 1.9,
+    "baseAgility": 24,
+    "agilityGain": 2.8,
+    "baseIntelligence": 15,
+    "intelligenceGain": 1.4,
+    "baseHealth": 120,
+    "baseMana": 75,
+    "baseHealthRegen": 0.25,
+    "baseManaRegen": 0,
+    "baseDamageMin": 27,
+    "baseDamageMax": 34,
+    "baseArmor": 0,
+    "baseAttackTime": 1.7,
+    "attackPoint": 0.5,
+    "projectileSpeed": 1250,
+    "baseAttackSpeed": 100,
+    "moveSpeed": 310,
+    "range": 625,
     "visionDay": 1800,
     "visionNight": 800,
     "baseMagicResistance": 0.25

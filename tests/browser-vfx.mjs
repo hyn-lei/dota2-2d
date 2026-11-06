@@ -42,9 +42,10 @@ try{
       assert(g.effects.some(f=>f.visual===expected||f.type===expected),`${hero} team ${team} ${expected}`);cases.push(`${hero}:${expected}:${team}`);
     }
     const {g,p,e}=arena('windranger');p.attackCooldown=0;g._attack(p,e);const attack=g.effects.findLast(f=>f.type==='projectile');
-    const pose=effectPose(attack,attack.startedAt+attack.maxLife*.5,g.entities);
-    assert(Math.abs(pose.x-(attack.x+attack.tx)/2)<1e-7,'flight midpoint');
-    const drawAt=progress=>snapshot(()=>drawCombatEffect(c,{...attack,x:50,y:150,tx:300,ty:150,startedAt:0},{time:attack.maxLife*progress,entities:[]},.6));
+    assert(attack.tracked&&e.hp===10000,'ordinary attack launch has no early damage');
+    g.step(.05);const pose=effectPose(attack,g.time,g.entities);
+    assert(pose.x===g.pendingSpells.find(s=>s.type==='attack').x,'render follows actual simulated flight');
+    const drawAt=progress=>snapshot(()=>drawCombatEffect(c,{...attack,tracked:false,x:50,y:150,tx:300,ty:150,startedAt:0,maxLife:.5,life:.5},{time:.5*progress,entities:[]},.6));
     assert(drawAt(.1)!==drawAt(.5)&&drawAt(.5)!==drawAt(.95),'distinct launch, flight and impact frames');
     const seed=g.seed,serial=g.serial,effects=JSON.stringify(g.effects);
     drawAt(.5);drawAt(.5);assert(seed===g.seed&&serial===g.serial&&effects===JSON.stringify(g.effects),'drawing cannot mutate simulation');

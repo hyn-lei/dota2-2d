@@ -1,6 +1,7 @@
 import { HEROES, TEAM_COLORS } from './data.js';
 import { WORLD, BASES, MAP_IMAGE, CAMP_LAYOUT, MAP_OBJECTIVES, TREES } from './map-data.js';
 import { drawCombatEffect, drawUnitCombatEffects, unitAuraRadius } from './combat-effects.js';
+import { unitOpacity } from './combat-visuals.js';
 
 const TAU = Math.PI * 2;
 const clamp = (n,a,b) => Math.max(a,Math.min(b,n));
@@ -200,7 +201,10 @@ export class Renderer {
   }
   healthbar(c,x,y,value,width,color,height=5){c.fillStyle='#1b2522';c.fillRect(x-width/2-1,y-1,width+2,height+2);c.fillStyle=color;c.fillRect(x-width/2,y,width*clamp(value,0,1),height);c.fillStyle='rgba(255,255,255,.16)';c.fillRect(x-width/2,y,width*clamp(value,0,1),1);}
   drawUnit(c,e,game,t){
-    const hero=e.kind==='hero',neutral=e.kind==='neutral',color=unitColor(e);c.save();c.translate(e.x,e.y);
+    const hero=e.kind==='hero',neutral=e.kind==='neutral',color=unitColor(e);
+    const invisible=Object.values(e.statuses||{}).some(s=>s.invisible&&s.startedAt<=game.time&&s.until>game.time);
+    const floor=(e.team===game.player?.team||(invisible&&game.canSee?.(game.player,e))) ? 0.24 : 0;
+    c.save();c.translate(e.x,e.y);c.globalAlpha*=unitOpacity(e,game.time,floor);
     if(neutral){this.drawNeutral(c,e,t);c.restore();return;}
     if(e.kind==='droppedItem'){poly(c,[[0,-22],[25,0],[0,22],[-25,0]],'#8b713c','#ead08c',3);circle(c,0,0,7,'#f3dfa8');c.restore();return;}
     if(e.kind==='courier'){
@@ -230,6 +234,14 @@ export class Renderer {
         for(const x of [-12,11]){circle(c,x,-18,12,'#75aad4','#31546b',1.5);poly(c,[[x-8,-13],[x-6,-5],[x+5,-4],[x+9,-12]],'#c1ad8a','#5c695f',1);line(c,[{x:x-6,y:-19},{x:x+6,y:-19}],'#253b4b',2);poly(c,[[x-8,-26],[x-2,-34],[x+6,-29],[x+8,-24]],'#3b5364');}
         line(c,[{x:-21,y:14},{x:20,y:14}],'#d6b678',3);
         c.save();c.translate(31,3);c.rotate(e.attackFlash>0?-1.25:-.3);line(c,[{x:0,y:23},{x:0,y:-28}],'#8a633a',6);poly(c,[[-9,-25],[-14,-40],[-6,-51],[8,-49],[14,-36],[9,-24]],'#957249','#493a28',2);for(const [x,y]of [[-13,-38],[-4,-50],[12,-37]])poly(c,[[x-3,y],[x,y-7],[x+3,y]],'#ddd8b9');c.restore();
+      }else if(e.heroId==='drow_ranger'){
+        poly(c,[[-19,-14],[-28,29],[-12,24],[0,31],[15,26],[27,29],[18,-16]],'#25446b','#92bddd',1.5);
+        poly(c,[[-16,8],[-14,-15],[-5,-24],[9,-23],[17,-12],[15,10],[6,18],[-6,18]],'#68889f','#192d48',2);
+        poly(c,[[-14,-20],[-20,-12],[-22,-26]],'#a1c8e3');poly(c,[[14,-20],[20,-12],[22,-26]],'#a1c8e3');
+        circle(c,0,-20,11,'#b9d3e4','#395169',1);poly(c,[[-15,-13],[-13,-29],[0,-37],[14,-29],[16,-13],[8,-23],[0,-28],[-8,-23]],'#d7e6ed','#537288',1.5);
+        line(c,[{x:-8,y:-21},{x:-2,y:-20}],'#53c9ed',2);line(c,[{x:3,y:-20},{x:9,y:-21}],'#53c9ed',2);
+        poly(c,[[-14,13],[-12,28],[-5,28],[-2,15]],'#415b77');poly(c,[[3,15],[6,28],[13,28],[14,12]],'#415b77');
+        c.save();c.translate(28,-4);c.rotate(e.attackFlash>0?-.2:.18);c.beginPath();c.moveTo(0,-31);c.quadraticCurveTo(28,0,0,31);c.strokeStyle='#c5dde9';c.lineWidth=3;c.stroke();line(c,[{x:0,y:-31},{x:e.attackFlash>0?-10:1,y:0},{x:0,y:31}],'#d1edff',1);line(c,[{x:-10,y:0},{x:30,y:0}],'#cceaf5',1.5);poly(c,[[34,0],[25,-4],[25,4]],'#b2eaff');c.restore();
       }else if(e.heroId==='juggernaut'){
         poly(c,[[-14,8],[-17,-7],[-6,-18],[7,-18],[17,-7],[12,12],[3,7]],'#9c5a3f','#303b30',2);
         poly(c,[[-12,12],[-15,22],[-5,19],[0,11],[5,19],[14,22],[11,10]],'#b57148');

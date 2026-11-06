@@ -8,14 +8,14 @@ const page=await browser.newPage({viewport:{width:1440,height:900},deviceScaleFa
 page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});
 const check=name=>{checks.push(name);console.log(`PASS ${name}`);};
 try{
-  await page.goto(process.env.GAME_URL||'http://localhost:5184',{waitUntil:'networkidle'});await closeDevelopmentNotice(page);assert.equal(await page.locator('.hero-option').count(),6);
+  await page.goto(process.env.GAME_URL||'http://localhost:5184',{waitUntil:'networkidle'});await closeDevelopmentNotice(page);assert.equal(await page.locator('.hero-option').count(),7);
   await page.locator('[data-hero="ogre_magi"]').click();await page.waitForFunction(()=>document.querySelector('#hero-render').complete&&document.querySelector('#hero-render').naturalWidth>0);
   assert.match(await page.locator('#selected-info').textContent(),/食人魔魔法师/);await page.screenshot({path:'artifacts/ogre-lobby.png'});
   await page.evaluate(async()=>{const {Renderer}=await import('/src/renderer.js'),render=Renderer.prototype.render;Renderer.prototype.render=function(g,t){window.g=g;window.r=this;return render.call(this,g,t);};});
   await page.locator('#start-game').click();await page.waitForFunction(()=>window.g?.time>.1);
   const opening=await page.evaluate(()=>{const g=window.g;return {hero:g.player.heroId,int:g.player.intelligence,mana:g.player.maxMana,teams:[0,1].map(t=>g.entities.filter(e=>e.kind==='hero'&&e.team===t).map(e=>e.heroId))};});
   assert.equal(opening.hero,'ogre_magi');assert.equal(opening.int,0);assert.equal(opening.mana,276);assert.ok(opening.teams.every(t=>t.length===5&&new Set(t).size===5));
-  check('Six-hero roster and official art load; Ogre has zero INT, innate mana and 5v5 drafting');
+  check('Seven-hero roster and official art load; Ogre has zero INT, innate mana and 5v5 drafting');
   await page.locator('#ability-0').hover();
   const tooltip=await page.locator('.skill-tooltip').textContent();
   assert.match(tooltip,/火焰爆轰伤害/);assert.match(tooltip,/施法前摇/);assert.ok(!tooltip.includes('???'));
@@ -54,8 +54,8 @@ try{
   assert.equal(await page.evaluate(()=>window.g.player.mana),650);await page.keyboard.press('Alt+t');await page.waitForFunction(()=>window.g.player.statuses.ogreFireShield);
   const shield=await page.evaluate(async()=>{
     const {physicalDamageMultiplier}=await import('/src/hero-stats.js'),g=window.g,p=g.player,e=window.enemy;e.statuses={};e.buffs={};e.attackCooldown=0;e.damage=100;
-    const before=p.hp,expected=100*physicalDamageMultiplier(g.combatStats(p).armor)*.15;g._attack(e,p);return {damage:before-p.hp,expected,stacks:p.statuses.ogreFireShield.stacks};
-  });assert.ok(Math.abs(shield.damage-shield.expected)<1e-6);assert.equal(shield.stacks,2);
+    const before=p.hp,expected=100*physicalDamageMultiplier(g.combatStats(p).armor)*.15;g._attack(e,p);const earlyDamage=before-p.hp,earlyStacks=p.statuses.ogreFireShield.stacks;e.attackCooldown=999;p.hpRegen=0;g.step(.25);return {earlyDamage,earlyStacks,damage:before-p.hp,expected,stacks:p.statuses.ogreFireShield.stacks};
+  });assert.equal(shield.earlyDamage,0);assert.equal(shield.earlyStacks,3);assert.ok(Math.abs(shield.damage-shield.expected)<1e-6);assert.equal(shield.stacks,2);
   await page.screenshot({path:'artifacts/ogre-upgrades.png'});check('D uses 35% current mana; T absorbs a real attack and consumes one shield charge');
   await page.evaluate(()=>window.g.setPaused(true));
   for(const viewport of [{width:1366,height:768},{width:390,height:844}]){

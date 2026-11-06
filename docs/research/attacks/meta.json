@@ -1,0 +1,6 @@
+{
+  "patch": "7.41f",
+  "retrieved": "2026-11-06",
+  "trackingCommit": "3f630cc18bfa63f63b3ce259be52209d922558c3",
+  "source": "https://github.com/SteamTracking/GameTracking-Dota2/blob/3f630cc18bfa63f63b3ce259be52209d922558c3/game/dota/pak01_dir/scripts/npc/npc_units.txt"
+}

@@ -19,6 +19,7 @@
     "test:vfx": "node tests/browser-vfx.mjs",
     "test:ai": "node tests/browser-ai.mjs",
     "test:ogre": "node tests/browser-ogre.mjs",
+    "test:drow": "node tests/browser-drow.mjs",
     "test:coop": "node tests/browser-coop.mjs",
     "test:notice": "node tests/browser-notice.mjs",
     "test:recovery": "node tests/browser-recovery.mjs",

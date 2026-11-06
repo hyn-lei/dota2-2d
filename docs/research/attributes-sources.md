@@ -2,6 +2,8 @@
 
 快照获取日期：2026-10-24。最新版本由 [Valve 补丁列表](https://www.dota2.com/datafeed/patchnoteslist?language=english) 确认。
 
+后续新增食人魔和卓尔游侠的快照、继承公式及生成器分别见 [食人魔来源](../ogre-runtime-sources.md) 和 [卓尔游侠来源](../drow-runtime-sources.md)；原有五英雄记录保留。2026-11-06 再次核对的当前版本仍为 7.41f。
+
 ## 原始资料
 
 - 五名英雄的 [Valve Hero Datafeed](https://www.dota2.com/datafeed/herodata?language=english&hero_id=23)：`heroes/{2,5,8,21,23}.json`。

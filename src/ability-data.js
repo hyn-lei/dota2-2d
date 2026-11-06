@@ -8,7 +8,7 @@ function resolve(record,rank,talents,heroId,heroLevel=0,upgrades={}){
  for(const index of new Set(talents||[]))for(const effect of TALENTS[heroId]?.[index]?.effects||[]){
   if(effect.abilityId!==record.id)continue;
   const old=values[effect.field]||0,v=effect.value;
-  values[effect.field]=effect.operation===2?old-v:effect.operation===3?old*(1+v/100):effect.operation===5?v:old+v;
+  values[effect.field]=effect.operation===2?old-v:effect.operation===3?old*(1+v/100):effect.operation===4?old*(1-v/100):effect.operation===5?v:old+v;
  }
  applyUpgradeValues(heroId,record.id,values,rank,upgrades);
  const get=(key,field)=>values[key]??rankValue(record[field],rank);

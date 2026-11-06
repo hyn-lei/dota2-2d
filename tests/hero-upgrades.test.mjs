@@ -71,7 +71,7 @@ test('Crystal Clone leaves a damageable clone, moves the caster and explodes int
 test('Juggernaut Shard ward heals an extra 1.5 percent and takes exactly two hits',()=>{
  const {g,p,e}=arena('juggernaut');p.hasShard=true;g.cast(1,p);g.step(.31);
  const ward=g.entities.find(u=>u.kind==='ward');assert.equal(ward.healPct,3.5);assert.equal(ward.hitsRemaining,2);
- e.attackCooldown=0;g._attack(e,ward);assert.equal(ward.dead,false);e.attackCooldown=0;g._attack(e,ward);assert.equal(ward.dead,true);
+ e.attackCooldown=0;g._attack(e,ward);g.step(.2);assert.equal(ward.dead,false);e.attackCooldown=0;g._attack(e,ward);g.step(.2);assert.equal(ward.dead,true);
 });
 
 test('Swift Slash shares Omnislash attack rules with separate duration and cooldown',()=>{
@@ -82,7 +82,7 @@ test('Swift Slash shares Omnislash attack rules with separate duration and coold
 });
 
 test('Windranger Scepter attack Tailwind lasts 3.5 seconds and survives dispels',()=>{
- const {g,p,e}=arena('windranger');p.hasScepter=true;p.attackCooldown=0;g._attack(p,e);
+ const {g,p,e}=arena('windranger');p.hasScepter=true;p.attackCooldown=0;g._attack(p,e);g.step(.2);
  assert.equal(p.tailwinds.length,1);assert.equal(p.tailwinds[0].duration,3.5);assert.equal(p.statuses.tailwind.undispellable,true);
  assert.equal(p.statuses.invisible,undefined);p.hasScepter=false;p.attackCooldown=0;g._attack(p,e);assert.equal(p.tailwinds.length,1);
 });

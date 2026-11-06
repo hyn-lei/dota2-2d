@@ -2174,6 +2174,389 @@ export const ABILITIES={
         "指向性技能和物品额外对食人魔周围一定作用范围内敌人和中立生物生效。火焰爆轰和未精通的火焰爆轰将对同个目标生效多次。"
       ]
     }
+  ],
+  "drow_ranger": [
+    {
+      "id": "drow_ranger_frost_arrows",
+      "sourceID": 5019,
+      "name": "霜冻之箭",
+      "key": "Q",
+      "icon": "snow",
+      "color": "#9dc0be",
+      "kind": "autocast",
+      "maxLevel": 4,
+      "requiredLevels": [
+        1,
+        3,
+        5,
+        7
+      ],
+      "cooldowns": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "manaCosts": [
+        9,
+        10,
+        11,
+        12
+      ],
+      "castRanges": [
+        625
+      ],
+      "castPoints": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "channelTimes": [
+        0
+      ],
+      "durations": [
+        1.5
+      ],
+      "damages": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "values": {
+        "frost_arrows_movement_speed": [
+          -15,
+          -25,
+          -35,
+          -45
+        ],
+        "damage": [
+          12,
+          18,
+          24,
+          30
+        ],
+        "shard_regen_reduction_pct_per_stack": [
+          0
+        ],
+        "shard_bonus_damage_per_stack": [
+          0
+        ],
+        "shard_stack_duration": [
+          0
+        ],
+        "shard_burst_radius": [
+          0
+        ],
+        "shard_burst_damage_per_stack": [
+          0
+        ],
+        "shard_burst_move_slow_pct": [
+          0
+        ],
+        "shard_burst_slow_duration": [
+          0
+        ],
+        "shard_max_stacks": [
+          0
+        ],
+        "AbilityCastRange": [
+          625
+        ],
+        "AbilityDuration": [
+          1.5
+        ],
+        "AbilityManaCost": [
+          9,
+          10,
+          11,
+          12
+        ]
+      },
+      "scaling": {},
+      "description": "卓尔游侠在箭矢中附上冰冻效果，减缓敌人的移动速度并造成额外伤害。持续1.5秒。",
+      "damageType": "physical",
+      "targetTeam": "DOTA_UNIT_TARGET_TEAM_ENEMY",
+      "targetType": "DOTA_UNIT_TARGET_HERO | DOTA_UNIT_TARGET_BASIC",
+      "targetFlags": "",
+      "notes": [
+        "减速的持续时间在下一支冰箭射中后刷新。"
+      ]
+    },
+    {
+      "id": "drow_ranger_wave_of_silence",
+      "sourceID": 5632,
+      "name": "狂风",
+      "key": "W",
+      "icon": "wind",
+      "color": "#99bda0",
+      "kind": "active",
+      "maxLevel": 4,
+      "requiredLevels": [
+        1,
+        3,
+        5,
+        7
+      ],
+      "cooldowns": [
+        19,
+        17,
+        15,
+        13
+      ],
+      "manaCosts": [
+        55
+      ],
+      "castRanges": [
+        900
+      ],
+      "castPoints": [
+        0.25
+      ],
+      "channelTimes": [
+        0
+      ],
+      "durations": [
+        0
+      ],
+      "damages": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "values": {
+        "wave_speed": [
+          2000
+        ],
+        "wave_width": [
+          250
+        ],
+        "silence_duration": [
+          3,
+          4,
+          5,
+          6
+        ],
+        "knockback_distance_max": [
+          450
+        ],
+        "knockback_duration": [
+          0.6,
+          0.7,
+          0.8,
+          0.9
+        ],
+        "knockback_duration_min": [
+          0.4
+        ],
+        "wave_length": [
+          900
+        ],
+        "bonus_movespeed": [
+          0
+        ],
+        "gust_reveals_invis": [
+          1
+        ],
+        "AbilityCastRange": [
+          900
+        ],
+        "AbilityCastPoint": [
+          0.25
+        ],
+        "AbilityManaCost": [
+          55
+        ],
+        "AbilityCooldown": [
+          19,
+          17,
+          15,
+          13
+        ],
+        "knockback_height": [
+          0
+        ],
+        "miss_chance": [
+          0
+        ]
+      },
+      "scaling": {},
+      "description": "释放一阵狂风，沉默敌方单位并将其击退，同时使隐身敌人显形。击退距离与敌人和卓尔游侠的距离成反比。",
+      "damageType": "magical",
+      "targetFlags": "",
+      "notes": []
+    },
+    {
+      "id": "drow_ranger_multishot",
+      "sourceID": 343,
+      "name": "数箭齐发",
+      "key": "E",
+      "icon": "arrow",
+      "color": "#d1b47e",
+      "kind": "active",
+      "maxLevel": 4,
+      "requiredLevels": [
+        1,
+        3,
+        5,
+        7
+      ],
+      "cooldowns": [
+        24,
+        21,
+        18,
+        15
+      ],
+      "manaCosts": [
+        70,
+        85,
+        100,
+        115
+      ],
+      "castRanges": [
+        0
+      ],
+      "castPoints": [
+        0
+      ],
+      "channelTimes": [
+        1.75
+      ],
+      "durations": [
+        0
+      ],
+      "damages": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "values": {
+        "wave_count": [
+          3
+        ],
+        "arrow_count_per_wave": [
+          4
+        ],
+        "arrow_damage_pct": [
+          80,
+          100,
+          120,
+          140
+        ],
+        "arrow_width": [
+          90
+        ],
+        "arrow_speed": [
+          1300
+        ],
+        "arrow_range_multiplier": [
+          1
+        ],
+        "arrow_range_base": [
+          475
+        ],
+        "arrow_angle": [
+          50
+        ],
+        "bypass_block": [
+          1
+        ],
+        "multishot_movespeed": [
+          35
+        ],
+        "AbilityChannelTime": [
+          1.75
+        ],
+        "AbilityManaCost": [
+          70,
+          85,
+          100,
+          115
+        ],
+        "AbilityCooldown": [
+          24,
+          21,
+          18,
+          15
+        ]
+      },
+      "scaling": {},
+      "description": "持续施法 - 卓尔游侠在最多1.75秒内不断地射出阵阵箭矢，对卓尔游侠攻击距离 + 475的距离内击中的敌人造成额外伤害，并施加霜冻之箭效果。卓尔游侠在施放数箭齐发时可以缓慢移动和使用物品。",
+      "damageType": "physical",
+      "targetTeam": "DOTA_UNIT_TARGET_TEAM_ENEMY",
+      "targetType": "DOTA_UNIT_TARGET_HERO | DOTA_UNIT_TARGET_BASIC",
+      "targetFlags": "",
+      "notes": [
+        "箭矢的基础伤害无视减益免疫。",
+        "霜冻之箭的额外伤害和减速效果不无视减益免疫。"
+      ]
+    },
+    {
+      "id": "drow_ranger_marksmanship",
+      "sourceID": 5022,
+      "name": "射手天赋",
+      "key": "R",
+      "icon": "target",
+      "color": "#8ebcca",
+      "kind": "passive",
+      "maxLevel": 3,
+      "requiredLevels": [
+        6,
+        12,
+        18
+      ],
+      "cooldowns": [
+        0
+      ],
+      "manaCosts": [
+        0
+      ],
+      "castRanges": [
+        0
+      ],
+      "castPoints": [
+        0
+      ],
+      "channelTimes": [
+        0
+      ],
+      "durations": [
+        0
+      ],
+      "damages": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "values": {
+        "chance": [
+          30,
+          35,
+          40
+        ],
+        "bonus_damage": [
+          50,
+          70,
+          90
+        ],
+        "disable_range": [
+          300
+        ]
+      },
+      "scaling": {},
+      "description": "卓尔游侠的战斗经验使她有概率发出极其精准高效的箭矢。箭矢将穿透敌人的防御，无视他们的基础护甲。如果300范围内有敌方英雄，本技能没有效果。",
+      "damageType": "physical",
+      "targetTeam": "DOTA_UNIT_TARGET_TEAM_ENEMY",
+      "targetType": "DOTA_UNIT_TARGET_HERO | DOTA_UNIT_TARGET_BASIC",
+      "targetFlags": "",
+      "notes": [
+        "射手天赋的触发效果拥有克敌机先。"
+      ]
+    }
   ]
 };
 export const INNATES={
@@ -2531,6 +2914,64 @@ export const INNATES={
     "scaling": {},
     "description": "食人魔魔法师的智力值上限为0。他通过力量来获得魔法和魔法恢复。",
     "damageType": "none",
+    "targetFlags": "",
+    "notes": []
+  },
+  "drow_ranger": {
+    "id": "drow_ranger_trueshot",
+    "sourceID": 1205,
+    "name": "精准光环",
+    "key": "",
+    "icon": "aura",
+    "color": "#b9c19a",
+    "kind": "innate",
+    "maxLevel": 1,
+    "requiredLevels": [
+      1,
+      3,
+      5,
+      7
+    ],
+    "cooldowns": [
+      0
+    ],
+    "manaCosts": [
+      0
+    ],
+    "castRanges": [
+      0
+    ],
+    "castPoints": [
+      0
+    ],
+    "channelTimes": [
+      0
+    ],
+    "durations": [
+      0
+    ],
+    "damages": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "values": {
+      "radius": [
+        1200
+      ],
+      "trueshot_agi_bonus": [
+        10
+      ],
+      "trueshot_agi_bonus_allies_pct": [
+        50
+      ]
+    },
+    "scaling": {
+      "trueshot_agi_bonus": 1
+    },
+    "description": "卓尔游侠根据她自身的当前敏捷和英雄等级获得敏捷加成。附近远程英雄获得50%敏捷加成。",
+    "damageType": "magical",
     "targetFlags": "",
     "notes": []
   }
@@ -3299,6 +3740,127 @@ export const TALENTS={
           "abilityId": "ogre_magi_multicast",
           "field": "multicast_4_times",
           "value": 10,
+          "operation": 0
+        }
+      ]
+    }
+  ],
+  "drow_ranger": [
+    {
+      "id": "special_bonus_unique_drow_ranger_7",
+      "sourceID": 580,
+      "index": 0,
+      "requiredLevel": 10,
+      "name": "-18% 霜冻之箭魔法消耗",
+      "effects": [
+        {
+          "abilityId": "drow_ranger_frost_arrows",
+          "field": "AbilityManaCost",
+          "value": 18,
+          "operation": 4
+        }
+      ]
+    },
+    {
+      "id": "special_bonus_unique_drow_ranger_2",
+      "sourceID": 6209,
+      "index": 1,
+      "requiredLevel": 10,
+      "name": "+1 数箭齐发每波箭矢",
+      "effects": [
+        {
+          "abilityId": "drow_ranger_multishot",
+          "field": "arrow_count_per_wave",
+          "value": 1,
+          "operation": 0
+        }
+      ]
+    },
+    {
+      "id": "special_bonus_attack_range_75",
+      "sourceID": 6027,
+      "index": 2,
+      "requiredLevel": 15,
+      "name": "+75 攻击距离",
+      "effects": [
+        {
+          "stat": "attackRange",
+          "value": 75,
+          "operation": 0
+        }
+      ]
+    },
+    {
+      "id": "special_bonus_unique_drow_ranger_6",
+      "sourceID": 486,
+      "index": 3,
+      "requiredLevel": 15,
+      "name": "-6秒 数箭齐发冷却",
+      "effects": [
+        {
+          "abilityId": "drow_ranger_multishot",
+          "field": "AbilityCooldown",
+          "value": 6,
+          "operation": 2
+        }
+      ]
+    },
+    {
+      "id": "special_bonus_unique_drow_ranger_gust_selfmovespeed",
+      "sourceID": 1088,
+      "index": 4,
+      "requiredLevel": 20,
+      "name": "50% 狂风自身移速加成",
+      "effects": [
+        {
+          "abilityId": "drow_ranger_wave_of_silence",
+          "field": "bonus_movespeed",
+          "value": 50,
+          "operation": 0
+        }
+      ]
+    },
+    {
+      "id": "special_bonus_unique_drow_ranger_1",
+      "sourceID": 6202,
+      "index": 5,
+      "requiredLevel": 20,
+      "name": "+25% 数箭齐发伤害",
+      "effects": [
+        {
+          "abilityId": "drow_ranger_multishot",
+          "field": "arrow_damage_pct",
+          "value": 25,
+          "operation": 0
+        }
+      ]
+    },
+    {
+      "id": "special_bonus_unique_drow_ranger_3",
+      "sourceID": 6280,
+      "index": 6,
+      "requiredLevel": 25,
+      "name": "+8% 射手天赋几率",
+      "effects": [
+        {
+          "abilityId": "drow_ranger_marksmanship",
+          "field": "chance",
+          "value": 8,
+          "operation": 0
+        }
+      ]
+    },
+    {
+      "id": "special_bonus_unique_drow_ranger_8",
+      "sourceID": 739,
+      "index": 7,
+      "requiredLevel": 25,
+      "name": "+2 数箭齐发波数",
+      "effects": [
+        {
+          "abilityId": "drow_ranger_multishot",
+          "field": "wave_count",
+          "value": 2,
           "operation": 0
         }
       ]

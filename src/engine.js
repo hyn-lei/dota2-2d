@@ -10,6 +10,7 @@ import * as Inventory from './inventory.js';
 import * as ItemRuntime from './item-runtime.js';
 import * as Courier from './courier.js';
 import { attackVisualFields } from './combat-visuals.js';
+import { launchAttack, tickAttacks, attackProfile, isRangedAttack } from './attack-projectiles.js';
 import * as Bots from './bot-ai.js';
 
 const distance = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
@@ -124,7 +125,7 @@ export class Game {
   _refreshHero(h) {
     const hp=h.hp, mana=h.mana, oldHp=h.maxHp, oldMana=h.maxMana;
     const bonus={...talentStats(h.heroId,h.talents||[]),allAttributes:(h.attributeBonusLevel||0)*2};
-    bonus.strength=(bonus.strength||0)+(h.innateStrength||0);bonus.agility=(bonus.agility||0)+(h.innateAgility||0);
+    bonus.strength=(bonus.strength||0)+(h.innateStrength||0);bonus.agility=(bonus.agility||0)+(h.innateAgility||0)+(h.trueshotAgility||0);
     Object.assign(h,calculateHeroStats(h.heroId,h.level,[...ItemRuntime.statItems(this,h),{stats:bonus}],h));
     h.hp=h.dead?0:clamp(hp+h.maxHp-oldHp,1,h.maxHp);
     h.mana=clamp(mana+h.maxMana-oldMana,0,h.maxMana);
@@ -166,7 +167,7 @@ export class Game {
   moveTo(x, y) {
     const p = this.player;
     if (!this._canAct().ok || this._tauntSource(p) || !Number.isFinite(x) || !Number.isFinite(y)) return;
-    Skills.interruptCast(this,p,true);
+    if(p.channel?.kind!=='multishot')Skills.interruptCast(this,p,true);
     p.recallTimer = 0;
     p.targetId = null;
     p.explicitTarget = null;
@@ -181,7 +182,7 @@ export class Game {
     this.keyboard = length && Number.isFinite(length) ? {x:x / length, y:y / length} : {x:0, y:0};
     if(this.player)this.player.movementInput={...this.keyboard};
     if (length && this.player && !this.player.dead) {
-      Skills.interruptCast(this,this.player,true);
+      if(this.player.channel?.kind!=='multishot')Skills.interruptCast(this,this.player,true);
       this.player.recallTimer = 0;
       this.player.explicitTarget = null;
       this.player.targetId = null;
@@ -266,7 +267,8 @@ export class Game {
     }
     amount=ItemRuntime.outgoingDamage(this,source,amount,type,options);
     const stats=this.combatStats(target);
-    let value = amount * (type==='pure'?1:type==='magical'?magicalDamageMultiplier(stats.magicResistance):physicalDamageMultiplier(stats.armor*(1-(options.armorIgnorePct||0)/100)));
+    const armor=stats.armor-(options.ignoreBaseArmor?(target.baseArmor??target.armor??0):0);
+    let value = amount * (type==='pure'?1:type==='magical'?magicalDamageMultiplier(stats.magicResistance):physicalDamageMultiplier(armor*(1-(options.armorIgnorePct||0)/100)));
     if (building(target) && type==='physical' && source) {
       const attackType=source.attackType || (source.kind==='hero'?'hero':'basic');
       value *= attackType==='siege'?2.5:attackType==='hero'?.5:attackType==='pierce'?.35:.7;
@@ -546,6 +548,7 @@ export class Game {
   _tick(dt) {
     this.time += dt;
     ItemRuntime.tickWorld(this,dt);
+    tickAttacks(this);
     this._resolveDelayedSpells();
     if (this.time + 1e-7 >= this.nextWave) { this._spawnWave(); this.nextWave += RULES.laneWaveInterval; }
     if (this.time + 1e-7 >= this.nextNeutralSpawn) {this._spawnCamps();this.nextNeutralSpawn+=60;}
@@ -640,23 +643,31 @@ export class Game {
     if(!target||!alive(target)||!alive(e)||this.isStunned(e)||Skills.hasStatusFlag(this,e,'disarmed')||!this.canSee(e,target)||
       (e.castPhase||e.channel||e.omnislash)&&!options.omni||Skills.isInvulnerable(this,target)||
       distance(e,target)>(this.combatStats(e,target).range||e.range)+target.radius+8||e.attackCooldown>0&&!options.attackReleased)return false;
-    if(e.heroId==='ogre_magi'&&!options.attackReleased&&!options.omni){
-      const stats=this.combatStats(e,target),duration=e.attackPoint*100/stats.attackSpeed;
+    if((e.heroId==='ogre_magi'||e.heroId==='drow_ranger')&&!options.attackReleased&&!options.omni){
+      const stats=this.combatStats(e,target),duration=(e.attackPoint||attackProfile(e).attackPoint)*100/stats.attackSpeed;
       e.angle=Math.atan2(target.y-e.y,target.x-e.x);e.attackFlash=duration+.1;e.targetId=target.id;
       e.attackPhase={targetId:target.id,startedAt:this.time,executeAt:this.time+duration,options};e.attackCooldown=stats.attackInterval;return true;
     }
     e.angle=Math.atan2(target.y-e.y,target.x-e.x);e.attackFlash=.24;e.targetId=target.id;
-    const targetStats=this.combatStats(target);
     const trueStrike=ItemRuntime.trueStrike(this,e,target);
-    if(targetStats.evasion&&!trueStrike&&this._random()*100<targetStats.evasion){e.attackCooldown=this.combatStats(e,target).attackInterval;this._effect('text',target.x,target.y-40,{text:'MISS',life:.5,color:'#bfcdb1'});return true;}
     const result=ItemRuntime.attackModifiers(this,e,target,Skills.attackModifiers(this,e,target,options));e.attackCooldown=result.interval;
+    result.trueStrike=trueStrike||result.marksmanship;result.itemAttackProcs=[...(e.itemAttackProcs||[])];
+    if(isRangedAttack(e))launchAttack(this,e,target,result);
+    else{this._hitAttack(e,target,result);this._effect('slash',e.x,e.y,attackVisualFields(e,target));}
+    return true;
+  }
+
+  _hitAttack(e,target,result){
+    if(!alive(target)||Skills.isInvulnerable(this,target))return;
+    const evasion=this.combatStats(target).evasion;
+    if(!result.trueStrike&&evasion&&this._random()*100<evasion){this._effect('text',target.x,target.y-40,{text:'MISS',life:.5,color:'#bfcdb1'});return;}
+    result.damage=Skills.attackImpactDamage(this,target,result);
     let dealt=0;
     if(target.kind==='ward'){target.hitsRemaining--;target.hp=target.hitsRemaining;if(target.hp<=0)this._kill(target,e);}
-    else dealt=this.damage(target,result.damage,e,'physical',{attack:true});
+    else dealt=this.damage(target,result.damage,e,'physical',{attack:true,ignoreBaseArmor:result.marksmanship});
     Skills.afterAttack(this,e,target,result,dealt);
     ItemRuntime.afterAttack(this,e,target,result,dealt);
-    this._effect(e.range>200?'projectile':'slash',e.x,e.y,attackVisualFields(e,target));
-    return true;
+    if(isRangedAttack(e))this._effect('burst',target.x,target.y,{visual:'attackImpact',radius:e.kind==='tower'?70:45,life:.28,color:attackVisualFields(e,target).color});
   }
 
   _resolveOgreAttack(e){
@@ -670,10 +681,11 @@ export class Game {
     if(this.isStunned(e)||this.isRooted(e)||(Skills.isInvulnerable(this,e)&&!Skills.hasStatusFlag(this,e,'canMoveInvulnerable')))return;
     const originalDistance=distance(e,point);
     if(originalDistance<=Math.max(3,stop))return;
+    const navigator=Skills.movementNavigator(this,e);
     const goal=stop?{x:point.x+(e.x-point.x)/originalDistance*stop,y:point.y+(e.y-point.y)/originalDistance*stop}:point;
     if(!e.navPath||!e.navGoal||distance(e.navGoal,goal)>96||e.navIndex>=e.navPath.length){
       if(e.navRetryAt>this.time)return;
-      e.navPath=this.navigation.findPath(e,goal);e.navIndex=0;e.navGoal={...goal};
+      e.navPath=navigator.findPath(e,goal);e.navIndex=0;e.navGoal={...goal};
       if(!e.navPath.length){e.navRetryAt=this.time+1;return;}
     }
     while(e.navIndex<e.navPath.length-1&&distance(e,e.navPath[e.navIndex])<8)e.navIndex++;
@@ -738,7 +750,13 @@ export class Game {
     const busy=Skills.tickHeroAbilities(this,h,dt);
     if(this.isStunned(h))return;
     if(this._tauntedTick(h,dt))return;
-    if(busy){if(!h.isPlayer)Bots.tickBusyBot(this,h);return;}
+    if(busy){
+      if(h.channel?.kind==='multishot'){
+        const input=h.movementInput||{x:0,y:0};if(input.x||input.y)this._move(h,{x:h.x+input.x*100,y:h.y+input.y*100},dt);
+        else if(h.destination)this._move(h,h.destination,dt);
+      }
+      if(!h.isPlayer)Bots.tickBusyBot(this,h);return;
+    }
     if(h.isPlayer)this._playerTick(h,dt);else this._botTick(h,dt);
   }
 

@@ -30,8 +30,8 @@ try{
       const match=new Game({difficulty}),bot=match.entities.find(h=>h.kind==='hero'&&h.team===1);bot.gold=0;match.step(.05);intervals.push(bot.aiTimer);
     }
     const routes=[];
-    for(const hero of ['juggernaut','crystal_maiden','windranger','axe','ogre_magi','kunkka']){
-      // Six heroes cannot all be drafted into the five opponent slots.
+    for(const hero of ['juggernaut','crystal_maiden','windranger','axe','ogre_magi','kunkka','drow_ranger']){
+      // Exercise each hero's build independently of the five opponent slots.
       const match=new Game({hero}),bot=match._makeHero(hero,1,1,false,0);Object.assign(bot,BASES[1]);bot.gold=15000;
       for(let i=0;i<15;i++){match.time+=.6;bot.aiTimer=0;match._botTick(bot,0);}
       routes.push({hero,equipment:bot.inventory.filter(Boolean),purchases:bot.botShop.purchases,spent:bot.botShop.spent});

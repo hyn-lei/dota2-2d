@@ -61,9 +61,10 @@ function validHero(hero){
     hero.abilityLevels.every(rank=>Number.isInteger(rank)&&rank>=0&&rank<=4)&&
     Array.isArray(hero.cooldowns)&&hero.cooldowns.length===4&&hero.cooldowns.every(timer);
 }
-const skillSpellTypes=new Set(['shackle','torrent','gale','tidal','ship','cannon','powershot','ogre:fireblast','ogre:igniteCast','ogre:ignite']);
+const skillSpellTypes=new Set(['shackle','torrent','gale','tidal','ship','cannon','powershot','ogre:fireblast','ogre:igniteCast','ogre:ignite','drowGust','drowMultishot']);
 function validSpell(spell){
   if(!object(spell)||typeof spell.sourceId!=='string'||!timer(spell.landAt))return false;
+  if(spell.type==='attack')return typeof spell.targetId==='string'&&object(spell.result)&&Number.isFinite(spell.result.damage)&&Number.isFinite(spell.x)&&Number.isFinite(spell.y)&&Number.isFinite(spell.speed)&&spell.speed>0&&Number.isFinite(spell.lastTick);
   if(spell.type==='ogre:shieldCounter')return typeof spell.targetId==='string'&&Number.isFinite(spell.x)&&Number.isFinite(spell.y)&&Number.isFinite(spell.damage)&&Number.isFinite(spell.speed)&&spell.speed>0;
   return skillSpellTypes.has(spell.type)&&object(spell.skill)&&object(spell.skill.values);
 }
