@@ -11,6 +11,8 @@ function setup(){const server=new Game({humanHeroes:roster,difficulty:'nightmare
 }
 test('network rendering selects its own human without running local simulation',()=>{
  const {client,humans}=setup();assert.equal(client.player.id,humans[1].id);assert.equal(client.entities.filter(e=>e.isPlayer).length,1);
+ assert.equal(client.selected.id,client.player.id);
+ for(const human of humans){const own=new NetworkGame({state:setup().state,playerId:human.id,request:async()=>({ok:true})});assert.equal(own.selected.id,human.id);}
  assert.equal(client.entities.filter(e=>e.isHuman).length,5);const time=client.time,positions=client.entities.map(e=>[e.x,e.y]);client.step(10);assert.equal(client.time,time);assert.deepEqual(client.entities.map(e=>[e.x,e.y]),positions);
 });
 test('purchase success waits for the server and never changes local economy optimistically',async()=>{

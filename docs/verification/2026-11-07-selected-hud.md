@@ -19,11 +19,14 @@
 - `npm run test:recovery`：4 组通过，覆盖刷新/关闭恢复、返回大厅、重开对局与存储失败提示。
 - `npm run build` 与 `npm run check:build`：通过；44 个 JS 模块、134 个本地引用检查通过。
 - `scripts/extract-client-hud.py`：重新导出 10 张贴图后 SHA-256 与来源清单完全一致。
+- 2026-11-08 联机初始选择修复后：随机匹配 6 组、五真人联机 6 组及联机审查 3 组通过；构建与静态检查重新通过。Windows 并行运行中的 Bash 启动超时后，`npm test -- --test-concurrency=1` 全部重跑：412 通过、1 跳过、0 失败。
 
 浏览器报告与截图在 `artifacts/`；本次固定截图另存 `selected-hud-images/`。新检查已加入 GitHub Actions 的生产容器验证。
 
 [桌面底部栏](selected-hud-images/selected-hud-1920.png) · [敌方英雄](selected-hud-images/selected-enemy-1920.png) · [天赋树](selected-hud-images/selected-talents-1920.png) · [商店](selected-hud-images/selected-shop-1920.png) · [笔记本](selected-hud-images/selected-hud-1366.png) · [手机](selected-hud-images/selected-hud-390.png)
 
 ## 参照与边界
+
+首次发布验证发现：联机初始化会沿用本地第一名英雄的选中 ID，随机匹配玩家因此可能看到其他真人的只读底部栏。已将 `NetworkGame` 首次选择设为当前客户端 `playerId`；后续明确选择仍跨快照保留。规则测试覆盖五个客户端的初始选择，随机匹配浏览器检查逐人核对底部栏所属英雄。
 
 官方最新补丁接口仍为 7.41f。客户端源来自 Steam build 26139613 的指定 Panorama 资源；版本和纹理校验见 `../research/hud/client-sources.json`。这是本项目对原版结构、交互和可用状态的修正，尚未完成固定 HUD 设置下的客户端逐像素截图差分；静态头像、手机布局等边界见 [来源说明](../hud-status-sources.md)。

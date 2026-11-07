@@ -4,7 +4,7 @@ import { Game } from './engine.js';
 export class NetworkGame extends Game {
   constructor({state,playerId,request}){
     super({hero:state.entities.find(e=>e.id===playerId)?.heroId,difficulty:'nightmare'});
-    this.isNetwork=true;this.playerId=playerId;this.request=request;this.applySnapshot(state);
+    this.isNetwork=true;this.playerId=playerId;this.selectedId=playerId;this.request=request;this.applySnapshot(state);
   }
   get player(){return this.entities.find(e=>e.id===this.playerId)||super.player;}
   applySnapshot(state){

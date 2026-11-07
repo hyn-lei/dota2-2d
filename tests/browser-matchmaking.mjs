@@ -60,6 +60,7 @@ try{
   assert.equal(new Set(states.map(s=>s.playerId)).size,5);assert.equal(new Set(states.map(s=>s.heroId)).size,5);
   assert.ok(states.every(s=>s.humans.length===5&&s.humans.every(h=>h.controller==='human')&&s.status.includes('随机匹配')));
   assert.match(states[4].name,/玩家/);
+  for(let i=0;i<pages.length;i++)await pages[i].waitForFunction(id=>document.querySelector('.game-hud').dataset.unitId===id,states[i].playerId);
   console.log('PASS The fifth click automatically starts five distinct human heroes, including duplicate preferred heroes');
 
   await pages[0].locator('[data-learn="0"]').click();await pages[0].waitForFunction(()=>window.observedGame.player.abilityLevels[0]===1);
