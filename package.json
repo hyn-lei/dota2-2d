@@ -17,6 +17,7 @@
     "test": "node --test tests/*.test.mjs",
     "test:browser": "node tests/browser.mjs",
     "test:hud": "node tests/browser-hud.mjs",
+    "test:selected-hud": "node tests/browser-selected-hud.mjs",
     "test:vfx": "node tests/browser-vfx.mjs",
     "test:ai": "node tests/browser-ai.mjs",
     "test:ogre": "node tests/browser-ogre.mjs",

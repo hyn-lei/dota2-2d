@@ -76,12 +76,13 @@ try{
   check('Real map, 22 towers, 12 barracks, 28 camps, square minimap and camera zoom work');
 
   await page.locator('.roster-team.dire button').first().click();
-  assert.equal(await page.locator('#selection-panel').isVisible(),true);
-  assert.match(await page.locator('.inspected-unit').textContent(),/夜魇/);
+  assert.equal(await page.locator('#selection-panel').count(),0);
+  assert.equal(await page.locator('.game-hud').getAttribute('data-ownership'),'enemy');
+  await page.locator('#hero-details').hover();await page.waitForSelector('#hero-stat-tooltip:not([hidden])');
   assert.equal(await page.locator('.attribute-trio>div').count(),3);
-  assert.equal(await page.locator('.inspected-slot').count(),6);
-  assert.match(await page.locator('#inspection-body').textContent(),/魔法抗性.*白天视野.*夜晚视野/s);
-  await page.waitForFunction(()=>document.querySelector('.inspected-slot.filled'));
+  assert.equal(await page.locator('.equipped-slots .inventory-slot').count(),6);
+  assert.match(await page.locator('#hero-stat-tooltip').textContent(),/魔法抗性.*白天视野.*夜晚视野/s);
+  await page.waitForFunction(()=>document.querySelector('.equipped-slots .inventory-slot.filled'));
   await page.screenshot({path:'artifacts/enemy-attributes-741f.png'});
   const enemyInventory=await page.evaluate(()=>window.observedGame.selected.inventory.slice());
   await page.evaluate(()=>window.observedGame.player.gold=1400);
@@ -89,7 +90,7 @@ try{
   assert.ok(await page.evaluate(()=>window.observedGame.player.inventory.includes('blade')));
   assert.deepEqual(await page.evaluate(()=>window.observedGame.selected.inventory.slice()),enemyInventory);
   await page.locator('.shop-catalog [data-item="relic"]').click();assert.equal(await page.locator('#buy-selected').isDisabled(),true);assert.match(await page.locator('#buy-selected').textContent(),/神秘商店/);
-  await page.locator('#close-shop').click();await page.locator('#close-inspection').click();
+  await page.locator('#close-shop').click();await page.keyboard.press('Space');
   check('Enemy attributes and six equipment slots are visible; purchases still affect only our hero');
 
   await page.evaluate(()=>{
@@ -102,7 +103,7 @@ try{
   let p=await aim(10720,10400);await page.mouse.click(p.x,p.y);
   assert.equal(await page.evaluate(()=>window.observedGame.selected.team),1);
   assert.equal(await page.evaluate(()=>window.observedGame.player.destination),null);
-  await page.locator('#close-inspection').click();
+  await page.keyboard.press('Space');
   check('Canvas left-click selects an enemy without issuing movement');
 
   p=await aim(10580,10580);await page.mouse.click(p.x,p.y,{button:'right'});
@@ -117,8 +118,8 @@ try{
   await aim(10720,10400);await page.keyboard.press('e');await page.waitForSelector('#ability-2.recast-ready');
   await page.evaluate(()=>{window.observedGame.entities[1].x=11100;window.observedGame.player.mana=0;});
   await page.waitForTimeout(120);assert.equal(await page.locator('#ability-2 .ability-cost').textContent(),'0');
-  await page.locator('.roster-team.dire button').first().click();await page.waitForSelector('#inspection-status [data-status-id="xmark"]');
-  await page.screenshot({path:'artifacts/skill-status-enemy.png'});await page.locator('#close-inspection').click();
+  await page.locator('.roster-team.dire button').first().click();await page.waitForSelector('.hud-vitals [data-status-id="xmark"]');
+  await page.screenshot({path:'artifacts/skill-status-enemy.png'});await page.keyboard.press('Space');
   await page.locator('#ability-2').click();
   assert.equal(await page.evaluate(()=>window.observedGame.entities[1].x),10720);
   check('Kunkka free E recast returns its marked target with zero mana');
@@ -159,9 +160,10 @@ try{
   assert.ok(await page.evaluate(()=>window.observedGame.entities.some(e=>e.kind==='neutral'&&!e.isRoshan)));
   const neutralPoint=await page.evaluate(()=>{const g=window.observedGame,e=g.entities.find(e=>e.kind==='neutral'&&!e.isRoshan);window.observedRenderer.lookAt(e.x,e.y);return {x:e.x,y:e.y};});
   p=await aim(neutralPoint.x,neutralPoint.y);await page.mouse.click(p.x,p.y);
-  assert.match(await page.locator('#inspection-body').textContent(),/中立/);assert.match(await page.locator('#inspection-body').textContent(),/击杀奖励/);
+  await page.waitForSelector('.selected-unit-info');assert.match(await page.locator('.selected-unit-info').textContent(),/中立/);
+  await page.locator('#hero-details').hover();await page.waitForSelector('#hero-stat-tooltip:not([hidden])');assert.match(await page.locator('#hero-stat-tooltip').textContent(),/击杀奖励/);
   await page.locator('#camp-bounds').click();await page.screenshot({path:'artifacts/neutral-camp-741f.png'});
-  await page.locator('#close-inspection').click();
+  await page.keyboard.press('Space');
   check('Live neutral packs spawn, can be selected, and expose attributes, rewards and camp boundaries');
   await page.evaluate(()=>{const g=window.observedGame,p=g.player;for(const tier of [1,2,3])g.damage(g.entities.find(e=>e.kind==='tower'&&e.team===1&&e.lane===1&&e.tier===tier),1e7,p,'pure');for(const e of g.entities.filter(e=>e.kind==='tower'&&e.team===1&&e.tier===4))g.damage(e,1e7,p,'pure');g.damage(g.entities.find(e=>e.kind==='ancient'&&e.team===1),1e7,p,'pure');});
   await page.waitForSelector('.result-emblem.victory');await page.screenshot({path:'artifacts/victory-741f.png'});
@@ -177,10 +179,10 @@ try{
     await start();await page.waitForTimeout(200);
     assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
     const m=await page.locator('#minimap').boundingBox();assert.equal(m.width,m.height);
-    await page.locator('.roster-team.dire button').first().click();assert.ok(await page.locator('#selection-panel').isVisible());
+    await page.locator('.roster-team.dire button').first().click();assert.equal(await page.locator('.game-hud').getAttribute('data-ownership'),'enemy');
     await page.screenshot({path:`artifacts/inspection-${viewport.width}.png`});
-    const panel=await page.locator('#selection-panel').boundingBox();assert.ok(panel.x>=0&&panel.x+panel.width<=viewport.width);
-    await page.locator('#close-inspection').click();await page.screenshot({path:`artifacts/match-${viewport.width}.png`});
+    const panel=await page.locator('.hud-portrait').boundingBox();assert.ok(panel.x>=0&&panel.x+panel.width<=viewport.width);
+    await page.keyboard.press('Space');await page.screenshot({path:`artifacts/match-${viewport.width}.png`});
     await page.locator('[data-learn="0"]').click();await page.keyboard.press('u');assert.ok(await page.locator('.talent-panel').isVisible());await page.screenshot({path:`artifacts/talents-${viewport.width}.png`});await page.locator('.talent-close').click();
     await page.locator('#shop-button').click();await page.screenshot({path:`artifacts/shop-${viewport.width}.png`});await page.locator('#close-shop').click();
     await returnLobby();

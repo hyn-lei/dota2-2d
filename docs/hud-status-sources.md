@@ -7,7 +7,16 @@
 - [Valve New Journey HUD 介绍](https://www.dota2.com/700/hud)及[官方 HUD 示例图](https://cdn.steamstatic.com/apps/dota2/images/700/hud/carousel_01.jpg)提供默认界面的结构参照：上方两队头像与比分/时钟，左下小地图，中央英雄头像、技能、生命/魔法，右侧六格物品与购买区。该页面为 7.00 历史资料，不能当作当前 7.41f 客户端逐像素截图。
 - 技能、先天、升级技能和状态图标由 Valve Steam CDN 获取，原始下载地址及替代情况见 `research/hud/icon-sources.json`；生成器为 `scripts/fetch-status-icons.mjs`。英雄图像继续使用现有本地 Valve 素材。
 - 网页 CDN 没有提供 `axe_one_man_army` 和 `juggernaut_bladeform` 的独立图标，分别明确采用狂战士之吼和剑舞图标；记录中的 `fallback: true` 标识这两项替代。通用控制、建筑和位移使用项目 SVG 图标。
-- HUD 外框、天赋树按钮、圆形状态边缘和计时环由 CSS/SVG 绘制，不是从客户端导出的 Panorama 材质。`src/dota-ui.css` 在现有样式之后统一调整布局，保留原生 JavaScript/Canvas、英雄/地图/物品 ID 和发布方式。
+- 2026-11-07 后续调整直接读取本机已安装的 Valve 客户端 **Steam build 26139613** 的 `dota/pak01_dir.vpk`，用 Source 2 Viewer CLI 20.1.0 解码 `dota_hud_shop`、`hud_reborn`、`dota_hud_stat_branch` 的 Panorama 布局/样式。商店按客户端 ShopV2 同时展示基础与升级两栏，每栏按原版分组及顺序排列四列图标；默认目录不混入卷轴及多级装备的额外等级。
+- 官方商店排序快照独立保存在 `research/hud/shops-client.txt`；`scripts/generate-shop-layout.mjs` 将官方物品名映射到既有项目 ID，生成 `src/shop-layout.js`。182 个原版分组物品、6 个额外升级等级、80 张卷轴均保留；后两类可从合成路径和搜索找到，卷轴还提供单独入口。该快照只定义排列，不改写物品数值与购买权限。
+- 底部头像使用客户端 `panorama/images/heroes/selection/` 的七张竖版头肩肖像；天赋树按钮的框、树形贴图和层级背景取自 `panorama/images/hud/reborn/`。导出工具为 `scripts/extract-client-hud.py`，路径、SHA-256 及构建信息见 `research/hud/client-sources.json`。外围 HUD、方形加点按钮、圆形状态边缘和计时环继续由 CSS/SVG 绘制。
+- `src/dota-ui.css` 在现有样式之后统一调整布局，保留原生 JavaScript/Canvas、英雄/地图/物品 ID 和发布方式。
+
+## 选中单位与天赋交互
+
+选中队友、敌人或中立单位时，直接替换同一底部 HUD：头像、名称、等级、生命/魔法、战斗属性、技能等级/冷却、物品充能/冷却及增益/减益共同切换。完整属性为该栏上的悬停说明，不再另开单位检查窗口。左键空白战场或空格恢复自己的英雄；自己的技能/物品快捷键也先恢复自己的 HUD。商店、金币与信使始终使用操作者自己的数据。
+
+查看其他英雄时技能、装备、天赋为只读；权限按 `unit.id === game.player.id` 判断，联机中的其他真人即使 `isPlayer` 为真也不能从此栏执行技能/换装。自己的天赋树位于常规技能左侧，使用独立大号控件；有符合等级/层级条件的天赋点时，其正上方显示方形“+”，学习后立即重算显示。树上左右分支分别表示实际已学天赋。
 
 ## 状态数据入口
 
@@ -33,8 +42,10 @@
 
 ## 不能据此宣称完整 1:1 的范围
 
-用户的目标是原版 1:1。本轮修正布局和当前引擎的状态显示，但没有当前 7.41f 客户端在固定分辨率、HUD 缩放、默认皮肤下的逐像素对照，也没有完整客户端字体、HUD 材质、三维动态头像及全部 modifier 定义。手机布局为可操作的适配布局，原版没有同等手机界面。
+用户的目标是原版 1:1。本轮已核对安装客户端的布局、商店分组与部分贴图，但仍没有当前 7.41f 客户端在固定分辨率、HUD 缩放、默认皮肤下的逐像素截图对照。头像是静态头肩肖像，未包含三维动态头像、完整客户端字体与 HUD 材质、全部 modifier 定义。属性说明和合成购买控件仍使用网页实现。手机布局为可操作的适配布局，原版没有同等手机界面。
 
 原版光环残留时间、隐藏状态、叠加优先级及未实现的技能/物品例外继续受既有运行时边界限制。状态栏覆盖当前引擎已有数据，不代表补齐 Dota 2 全量客户端机制。详见 [README](../README.md)、[物品运行时](item-runtime-sources.md)、[Drow 来源](drow-runtime-sources.md)。
 
 验收见 [2026-11-07 HUD 与状态栏记录](verification/2026-11-07-hud-status.md)。
+
+选中单位、头部头像、天赋和商店的后续验收见 [2026-11-07 选中单位 HUD 记录](verification/2026-11-07-selected-hud.md)。

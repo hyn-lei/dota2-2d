@@ -76,6 +76,7 @@ jobs:
           GAME_URL: http://127.0.0.1:18080
         run: |
           node tests/browser-hud.mjs
+          node tests/browser-selected-hud.mjs
           node tests/browser-shop.mjs
           node tests/browser-items.mjs
           node tests/browser-vfx.mjs

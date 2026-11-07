@@ -22,8 +22,8 @@ try{
   for(const e of g.entities)Object.assign(e,{x:10400+(e.team?2000:0),y:10400,aiTimer:Infinity,attackCooldown:999,destination:null,abilityLevels:[0,0,0,0],cooldowns:[999,999,999,999]});
   Object.assign(p,{abilityLevels:[4,4,4,3],cooldowns:[0,0,0,0],skillPoints:0,level:20,gold:9876,consumedShard:true,consumedScepter:true,hasShard:true,hasScepter:true});
   const cm=g.entities.find(e=>e.team===0&&e.heroId==='crystal_maiden');cm.abilityLevels[2]=4;
-  p.inventory=['power_treads','hurricane_pike','black_king_bar','butterfly','satanic','swift_blink'];p.inventoryMeta=p.inventory.map(id=>createMeta(g,p,id));
-  p.backpack=['tango','clarity','magic_wand'];p.backpackMeta=p.backpack.map(id=>createMeta(g,p,id));
+  p.inventory=['power_treads','hurricane_pike','black_king_bar','butterfly','satanic','swift_blink'];p.inventoryMeta=p.inventory.map(id=>createMeta(p,id));
+  p.backpack=['tango','clarity','magic_wand'];p.backpackMeta=p.backpack.map(id=>createMeta(p,id));
   p.quickbuy=['ultimate_scepter','moon_shard'];g._refreshHero(p);g._index();g.step(.3);
   addStatus(g,p,'ogreBloodlust',{name:'嗜血术',description:'攻击速度和移动速度提升。',positive:true,duration:30,stacks:2,sourceId:g.entities.find(e=>e.heroId==='ogre_magi')?.id});
   addStatus(g,p,'drowFrost',{name:'冰霜之箭',description:'移动速度降低 45%。',duration:10,slowPct:45});
@@ -73,9 +73,14 @@ try{
  await page.evaluate(()=>window.hudGame.time+=40);
  await page.waitForFunction(()=>!document.querySelector('.hud-vitals [data-status-id="ogreBloodlust"]'));
  check('Actual source death, Marksmanship near/far transition, dispel and simulation expiry remove the corresponding icons');
- await page.locator('.roster-team.dire button').first().click();assert.ok(await page.locator('#selection-panel').isVisible());await page.locator('#close-inspection').click();
+ await page.locator('.roster-team.dire button').first().click();
+ assert.equal(await page.locator('#selection-panel').count(),0);
+ assert.equal(await page.locator('.game-hud').getAttribute('data-ownership'),'enemy');
+ assert.equal(await page.locator('#ability-0').getAttribute('aria-readonly'),'true');
+ await page.keyboard.press('Space');
+ assert.equal(await page.locator('.game-hud').getAttribute('data-ownership'),'own');
  await page.locator('#shop-button').click();await page.fill('#item-search','奥术');assert.ok(await page.locator('.shop-item').count()>0);await page.locator('#close-shop').click();
- check('Hero inspection and shop remain interactive after HUD rearrangement');
+ check('Selecting an enemy replaces the shared HUD; Space restores our hero and shop remains interactive');
  assert.deepEqual(errors,[]);
  await writeFile('artifacts/hud-browser-report.json',JSON.stringify({checks,errors},null,2)+'\n');
 }finally{await browser.close();}

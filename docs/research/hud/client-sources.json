@@ -1,0 +1,75 @@
+{
+  "retrieved": "2026-11-07",
+  "steamApp": 570,
+  "steamBuild": "26139613",
+  "archive": "game/dota/pak01_dir.vpk",
+  "decoder": "Source 2 Viewer CLI 20.1.0",
+  "layoutReferences": [
+    "panorama/layout/hud/dota_hud_portrait.vxml_c",
+    "panorama/layout/hud/dota_hud_shop.vxml_c",
+    "panorama/layout/hud/dota_hud_talentdisplay.vxml_c",
+    "panorama/styles/hud/dota_hud_shop.vcss_c",
+    "panorama/styles/hud/hud_reborn.vcss_c",
+    "panorama/styles/hud/dota_hud_stat_branch.vcss_c"
+  ],
+  "shopSnapshot": {
+    "resource": "scripts/shops.txt",
+    "file": "docs/research/hud/shops-client.txt",
+    "sha256": "1869a641bca30efd6eb11f2042330b7475e83756acd35a42937d70c9d3007a7f",
+    "rawSha256": "c9a71989c3404b0b646ee434cc98ad0a9fdd8ea078b1aede284dd8a22eb26c02",
+    "normalization": "Whitespace normalized to LF/spaces; trailing whitespace removed; tokens and order retained."
+  },
+  "assets": [
+    {
+      "file": "assets/hud/portraits/axe.png",
+      "resource": "panorama/images/heroes/selection/npc_dota_hero_axe_png.vtex_c",
+      "sha256": "ae5b7874d21190689175366bbcc40141ba1228c968828bf9b57d47835cf2527c"
+    },
+    {
+      "file": "assets/hud/portraits/crystal_maiden.png",
+      "resource": "panorama/images/heroes/selection/npc_dota_hero_crystal_maiden_png.vtex_c",
+      "sha256": "dc166bd4203145f783f8c2f5638b033b351b15afa4fa5b99b18975ae0107885e"
+    },
+    {
+      "file": "assets/hud/portraits/drow_ranger.png",
+      "resource": "panorama/images/heroes/selection/npc_dota_hero_drow_ranger_png.vtex_c",
+      "sha256": "22e5575e445c9980adc22766843e33f8a2229b1d9045bcf353d7f59f62d6944f"
+    },
+    {
+      "file": "assets/hud/portraits/juggernaut.png",
+      "resource": "panorama/images/heroes/selection/npc_dota_hero_juggernaut_png.vtex_c",
+      "sha256": "f920079b633d3d4e139993525a505764d5d1e2dfc85c53b79da0c1d9b36fc0c2"
+    },
+    {
+      "file": "assets/hud/portraits/kunkka.png",
+      "resource": "panorama/images/heroes/selection/npc_dota_hero_kunkka_png.vtex_c",
+      "sha256": "20005b02fb9e3fa18893de8cc265e678037e9d37002ba2c918a742a39b5a0d15"
+    },
+    {
+      "file": "assets/hud/portraits/ogre_magi.png",
+      "resource": "panorama/images/heroes/selection/npc_dota_hero_ogre_magi_png.vtex_c",
+      "sha256": "c6c2af565296f0da9693f887ee1312ab825c767d59833dc3083a6fc70b260e65"
+    },
+    {
+      "file": "assets/hud/portraits/windranger.png",
+      "resource": "panorama/images/heroes/selection/npc_dota_hero_windrunner_png.vtex_c",
+      "sha256": "bec7defd2295eff68d4dabebc4f0ad3ee1c43a370c8522cc75d4c30eeddee251"
+    },
+    {
+      "file": "assets/hud/talent-frame.png",
+      "resource": "panorama/images/hud/reborn/statbranch_button_bg_psd.vtex_c",
+      "sha256": "74bf7cf6ae87fab1bda93556a0c179f4baff303c84d3fabcb8c3ed19fc8d21df"
+    },
+    {
+      "file": "assets/hud/talent-level.png",
+      "resource": "panorama/images/hud/reborn/statbranch_levelbg_psd.vtex_c",
+      "sha256": "754cd821e2ca841b924fce1b915148fbf5f8bf626f513a9f51b1b5255dbe4dde"
+    },
+    {
+      "file": "assets/hud/talent-tree.png",
+      "resource": "panorama/images/hud/reborn/statbranch_button_bg_all_off_psd.vtex_c",
+      "sha256": "3c64077163edd2829eb6cb5c91a1001a5298d6fa3889eb68bb7e03fff160ce8e"
+    }
+  ],
+  "scope": "Valve static head-and-shoulder portraits and talent textures; layouts referenced, not a pixel parity claim."
+}
