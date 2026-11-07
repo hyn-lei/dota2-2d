@@ -1,0 +1,81 @@
+import assert from 'node:assert/strict';
+import { mkdir,writeFile } from 'node:fs/promises';
+import { chromium } from 'playwright';
+import { closeDevelopmentNotice } from './browser-helpers.mjs';
+const base=process.env.GAME_URL||'http://localhost:5184';
+await mkdir('artifacts',{recursive:true});
+const browser=await chromium.launch(),page=await browser.newPage({viewport:{width:1920,height:1080}}),errors=[],checks=[];
+page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});
+page.on('dialog',d=>d.accept());
+const check=message=>{checks.push(message);console.log(`PASS ${message}`);};
+try{
+ await page.goto(base,{waitUntil:'networkidle'});await closeDevelopmentNotice(page);
+ await page.locator('[data-hero="drow_ranger"]').click();await page.waitForTimeout(700);
+ assert.equal(await page.locator('#lobby-hero-name').textContent(),'卓尔游侠');
+ await page.screenshot({path:'artifacts/hud-lobby-1920.png'});
+ await page.evaluate(async()=>{const {Renderer}=await import('/src/renderer.js'),render=Renderer.prototype.render;Renderer.prototype.render=function(g,t){window.hudGame=g;return render.call(this,g,t);};});
+ await page.locator('#start-game').click();await page.waitForFunction(()=>window.hudGame?.time>.1);
+ await page.evaluate(async()=>{
+  const g=window.hudGame,p=g.player,{createMeta}=await import('/src/inventory.js');
+  const {addStatus}=await import('/src/hero-runtime.js');
+  g.entities=g.entities.filter(e=>e.kind==='hero');g.nextWave=g.nextNeutralSpawn=g.roshanRespawnAt=Infinity;
+  for(const e of g.entities)Object.assign(e,{x:10400+(e.team?2000:0),y:10400,aiTimer:Infinity,attackCooldown:999,destination:null,abilityLevels:[0,0,0,0],cooldowns:[999,999,999,999]});
+  Object.assign(p,{abilityLevels:[4,4,4,3],cooldowns:[0,0,0,0],skillPoints:0,level:20,gold:9876,consumedShard:true,consumedScepter:true,hasShard:true,hasScepter:true});
+  const cm=g.entities.find(e=>e.team===0&&e.heroId==='crystal_maiden');cm.abilityLevels[2]=4;
+  p.inventory=['power_treads','hurricane_pike','black_king_bar','butterfly','satanic','swift_blink'];p.inventoryMeta=p.inventory.map(id=>createMeta(g,p,id));
+  p.backpack=['tango','clarity','magic_wand'];p.backpackMeta=p.backpack.map(id=>createMeta(g,p,id));
+  p.quickbuy=['ultimate_scepter','moon_shard'];g._refreshHero(p);g._index();g.step(.3);
+  addStatus(g,p,'ogreBloodlust',{name:'嗜血术',description:'攻击速度和移动速度提升。',positive:true,duration:30,stacks:2,sourceId:g.entities.find(e=>e.heroId==='ogre_magi')?.id});
+  addStatus(g,p,'drowFrost',{name:'冰霜之箭',description:'移动速度降低 45%。',duration:10,slowPct:45});
+  addStatus(g,p,'drowGustSilence',{name:'狂风沉默',description:'无法施放技能。',duration:8,silenced:true});
+  g.paused=true;
+ });
+ const buff='.hud-vitals [data-status-id="arcaneAura"]',marksman='.hud-vitals [data-status-id="marksmanship"]';
+ await page.waitForSelector(buff);await page.waitForSelector(marksman);
+ assert.ok(await page.locator('.status-buffs [data-status-id="trueshot"]').count());
+ assert.equal(await page.locator('.status-debuffs [data-status-id="drowFrost"]').count(),1);
+ assert.equal(await page.locator('.equipped-slots .inventory-slot').count(),6);
+ assert.equal(await page.locator('.backpack-slots .inventory-slot').count(),3);
+ assert.equal(await page.locator('.tp-slot .inventory-slot').count(),1);
+ const slots=await page.locator('.equipped-slots .inventory-slot').evaluateAll(nodes=>nodes.map(n=>{const r=n.getBoundingClientRect();return {x:r.x,y:r.y};}));
+ assert.equal(new Set(slots.map(s=>s.x)).size,3);assert.equal(new Set(slots.map(s=>s.y)).size,2);
+ check('Original item geometry: six equipment slots in 3×2, three backpack slots and separate TP');
+ await page.locator(buff).hover();await page.waitForSelector('.hud-vitals .status-tooltip:not([hidden])');
+ assert.match(await page.locator('.hud-vitals .status-tooltip').textContent(),/奥术光环.*增益.*魔法恢复/s);
+ await page.locator(buff).evaluate(n=>n.dataset.testIdentity='retained');await page.waitForTimeout(350);
+ assert.equal(await page.locator(buff).getAttribute('data-test-identity'),'retained');
+ check('Buff/debuff rows, Valve icons, stacking, tooltip and stable nodes through HUD updates');
+ await page.mouse.move(900,300);await page.waitForTimeout(300);
+ for(const size of [{width:1920,height:1080},{width:1366,height:768},{width:390,height:844}]){
+  await page.setViewportSize(size);await page.waitForTimeout(200);
+  await page.locator('#battlefield').focus();await page.mouse.move(20,200);await page.waitForTimeout(200);
+  assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+  for(const selector of ['#minimap','#ability-0','#ability-3','.equipped-slots','.backpack-slots','.tp-slot','#shop-button',buff]){
+   const rect=await page.locator(selector).boundingBox();assert.ok(rect&&rect.x>=0&&rect.y>=0&&rect.x+rect.width<=size.width+1&&rect.y+rect.height<=size.height+1,`${size.width}: ${selector} stays visible`);
+  }
+  const mini=await page.locator('#minimap').boundingBox();assert.equal(mini.width,mini.height);
+  await page.screenshot({path:`artifacts/hud-game-${size.width}.png`});
+  await page.locator(buff).click();await page.waitForSelector('.hud-vitals .status-tooltip:not([hidden])');
+  const tip=await page.locator('.hud-vitals .status-tooltip').boundingBox();assert.ok(tip.x>=0&&tip.y>=0&&tip.x+tip.width<=size.width+1&&tip.y+tip.height<=size.height+1);
+  await page.keyboard.press('Escape');
+ }
+ check('1920×1080, 1366×768 and 390×844: visible HUD, square map, clamped tooltip, no overflow');
+ await page.setViewportSize({width:1366,height:768});
+ await page.evaluate(()=>{const g=window.hudGame,p=g.player,e=g.entities.find(e=>e.team===1);e.x=p.x+200;e.y=p.y;});
+ await page.waitForFunction(()=>!document.querySelector('.hud-vitals [data-status-id="marksmanship"]'));
+ assert.ok(await page.locator('#ability-3.passive-disabled').count());
+ await page.evaluate(()=>window.hudGame.entities.find(e=>e.team===1).x+=600);
+ await page.waitForSelector(marksman);
+ await page.evaluate(()=>{const g=window.hudGame;g.entities.find(e=>e.team===0&&e.heroId==='crystal_maiden').dead=true;});
+ await page.waitForFunction(()=>!document.querySelector('.hud-vitals [data-status-id="arcaneAura"]'));
+ await page.evaluate(async()=>{const {applyDispel}=await import('/src/hero-runtime.js');applyDispel(window.hudGame,window.hudGame.player);});
+ await page.waitForFunction(()=>!document.querySelector('.hud-vitals [data-status-id="drowGustSilence"]'));
+ await page.evaluate(()=>window.hudGame.time+=40);
+ await page.waitForFunction(()=>!document.querySelector('.hud-vitals [data-status-id="ogreBloodlust"]'));
+ check('Actual source death, Marksmanship near/far transition, dispel and simulation expiry remove the corresponding icons');
+ await page.locator('.roster-team.dire button').first().click();assert.ok(await page.locator('#selection-panel').isVisible());await page.locator('#close-inspection').click();
+ await page.locator('#shop-button').click();await page.fill('#item-search','奥术');assert.ok(await page.locator('.shop-item').count()>0);await page.locator('#close-shop').click();
+ check('Hero inspection and shop remain interactive after HUD rearrangement');
+ assert.deepEqual(errors,[]);
+ await writeFile('artifacts/hud-browser-report.json',JSON.stringify({checks,errors},null,2)+'\n');
+}finally{await browser.close();}

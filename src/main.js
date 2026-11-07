@@ -3,6 +3,7 @@ import { Renderer } from './renderer.js';
 import { HEROES, ITEMS, WORLD } from './data.js';
 import { ITEM_BY_ID } from './item-data.js';
 import { physicalDamageMultiplier } from './hero-stats.js';
+import { auraManaRegen } from './hero-runtime.js';
 import { mountStatusBar, updateStatusBar } from './status-ui.js';
 import { mountSkills, updateSkills, toggleTalents } from './skills-ui.js';
 import { icon, mark } from './icons.js';
@@ -56,7 +57,7 @@ function renderLobby(){
       <div class="header-tools"><span class="online-label"><i></i> 本地战场已就绪</span><button class="icon-button sound-toggle" aria-label="切换音效" title="切换音效">${icon(preferences.sound?'volume':'mute')}</button><button class="icon-button settings-button" aria-label="游戏设置" title="游戏设置">${icon('settings')}</button></div>
     </header>
     <section class="hero-stage" aria-label="选择你的英雄">
-      <div class="hero-stage-copy"><div class="eyebrow"><span></span> THE ANCIENT AWAITS</div><h1>远古战场</h1><p class="main-subtitle">每一条兵线，都通往胜利。</p>
+      <div class="hero-stage-copy"><div class="eyebrow"><span></span> 选择英雄</div><h1 id="lobby-hero-name"></h1><p class="main-subtitle" id="lobby-hero-english"></p>
         <div class="selected-info" id="selected-info"></div>
         <div class="lobby-skills" id="lobby-skills"></div>
         <button class="text-button hero-detail">查看英雄技能 ${icon('chevron')}</button>
@@ -86,9 +87,10 @@ function renderLobby(){
 }
 function selectHero(id,playSound=true){
   chosen=id;preferences.hero=id;save();const h=HEROES[id];if(playSound)sound();
+  $('#lobby-hero-name').textContent=h.name;$('#lobby-hero-english').textContent=h.en;
   document.querySelectorAll('[data-hero]').forEach(b=>{b.classList.toggle('selected',b.dataset.hero===id);b.setAttribute('aria-pressed',String(b.dataset.hero===id));});
   $('#selected-info').innerHTML=`<div class="hero-attribute"><span>${icon(h.attribute==='智力'?'crystal':h.attribute==='力量'?'shield':'swords')} ${h.attribute}</span><i></i>${h.role}</div><h2>${h.name}<span>${h.en}</span></h2><p>${h.description}</p>`;
-  $('#lobby-skills').innerHTML=h.skills.map(s=>`<button class="lobby-skill" style="--skill-color:${s.color}" aria-label="${s.name}：${s.description}" title="${s.key} · ${s.name} — ${s.description}">${icon(s.icon)}<kbd>${s.key}</kbd></button>`).join('');
+  $('#lobby-skills').innerHTML=h.skills.map(s=>`<button class="lobby-skill" style="--skill-color:${s.color}" aria-label="${s.name}：${s.description}" title="${s.key} · ${s.name} — ${s.description}"><img src="/assets/abilities/${s.id}.png" alt=""/><kbd>${s.key}</kbd></button>`).join('');
   document.querySelectorAll('.lobby-skill').forEach(b=>b.onclick=()=>openModal('hero'));
   const img=$('#hero-render');img.src='/'+h.render;img.alt=h.name+'英雄立绘';img.classList.remove('arrive');void img.offsetWidth;img.classList.add('arrive');
   $('#hero-ghost').textContent=h.en;$('#hero-index').textContent='0'+(Object.keys(HEROES).indexOf(id)+1);document.documentElement.style.setProperty('--hero-color',h.color);
@@ -115,9 +117,12 @@ function startGame(providedGame=null,resume=false){
     <div class="map-tools"><span>7.41f <i>标准地图</i></span><button id="map-overview" title="M · 查看全图">全图 M</button><button id="map-center" title="空格 · 返回英雄">跟随英雄</button><button id="camp-bounds" title="Alt · 显示野怪刷新范围">营地范围</button></div>
     <aside id="selection-panel" class="selection-panel" aria-label="所选单位属性与装备" hidden><div class="inspection-heading"><span>单位详情</span><button class="icon-button" id="close-inspection" aria-label="关闭单位详情">${icon('close')}</button></div><div id="inspection-body"></div></aside>
     <footer class="game-hud"><div class="minimap-wrap"><canvas id="minimap" width="240" height="240" aria-label="小地图，单击查看区域，右键移动"></canvas><span>DOTA 2 · 7.41f</span></div>
-      <section class="hero-hud" aria-label="英雄状态"><div class="hud-portrait">${portrait(h)}<span id="hero-level">1</span></div><div class="hud-vitals"><div class="hud-hero-title"><strong>${h.name}</strong><small id="kda">0 / 0 / 0</small></div><div class="vital-bar health"><i id="hp-fill"></i><span id="hp-label"></span></div><div class="vital-bar mana"><i id="mana-fill"></i><span id="mana-label"></span></div><div class="xp-bar" title="经验值"><i id="xp-fill"></i></div><div class="hero-stats"><span title="攻击力">${icon('sword')}<b id="stat-damage">${h.damage}</b></span><span title="护甲">${icon('shield')}<b id="stat-armor">${h.armor}</b></span><span title="移动速度">${icon('boots')}<b id="stat-speed">${h.speed}</b></span><span title="补刀">LH <b id="last-hits">0</b></span></div></div></section>
+      <section class="hero-hud" aria-label="英雄状态"><div class="hud-hero-title"><strong>${h.name}</strong></div><div class="hud-portrait"><img src="/${h.render}" alt="${h.name}" draggable="false"/><span id="hero-level">1</span><div class="xp-bar" title="经验值"><i id="xp-fill"></i></div></div><div class="hero-stats"><span title="攻击力">${icon('sword')}<b id="stat-damage">${h.damage}</b></span><span title="护甲">${icon('shield')}<b id="stat-armor">${h.armor}</b></span><span title="移动速度">${icon('boots')}<b id="stat-speed">${h.speed}</b></span></div></section>
       <section class="abilities" aria-label="英雄技能"></section>
-      <section class="inventory-section" aria-label="装备与商店"><div id="inventory" class="inventory"></div><button id="shop-button" class="shop-button">${icon('coin')}<strong id="gold">600</strong><span>装备商店</span>${icon('bag')}</button></section>
+      <div class="hud-vitals"><div class="vital-bar health"><i id="hp-fill"></i><span id="hp-label"></span><small id="hp-regen"></small></div><div class="vital-bar mana"><i id="mana-fill"></i><span id="mana-label"></span><small id="mana-regen"></small></div></div>
+      <section class="inventory-section" aria-label="装备与商店"><div id="inventory" class="inventory"></div></section>
+      <section class="hud-economy" aria-label="经济与信使"><div class="hud-courier"><button data-hud-courier="deliver" title="信使运送物品">${icon('bag')}</button><button data-hud-courier="return" title="信使返回泉水">${icon('home')}</button><button id="hud-quickbuy" title="G · 快捷购买">${icon('coin')}</button></div><div id="hud-quickbuy-items" aria-label="快捷购买队列"></div><button id="shop-button" class="shop-button">${icon('coin')}<strong id="gold">600</strong><span>商店</span>${icon('bag')}</button></section>
+      <div class="match-player-stats"><span>K / D / A <b id="kda">0 / 0 / 0</b></span><span>正补 <b id="last-hits">0</b></span></div>
     </footer><aside id="shop" class="shop-panel" hidden></aside><div id="toast" role="status"></div><div id="modal-root"></div></main>`;
   setupRenderer();renderer.center(game.player);bindShared();
   shopUI=mountShop($('#shop'),$('#inventory'),game,{close:toggleShop,open:()=>{if(!shopOpen)toggleShop();},notify:toast,useItem:beginItemUse,changed:()=>{sound();updateHud();},locate:point=>{renderer.zoom=.4;renderer.lookAt(point.x,point.y);toast('已定位神秘商店，右键前往金色标记处');}});
@@ -125,6 +130,8 @@ function startGame(providedGame=null,resume=false){
   if(game.isNetwork){const ai=game.entities.filter(e=>e.kind==='hero'&&e.team===0&&e.controller==='ai').length;document.querySelector('.match-clock small').textContent=ai?`${5-ai} 真人 + ${ai} 困难 AI`:'五真人 · 噩梦 AI';}
   $('.abilities').addEventListener('click',e=>{const b=e.target.closest('[data-extra]');if(b)castExtra(b.dataset.extra);});
   mountStatusBar($('.hud-vitals'));
+  $('.hud-economy').addEventListener('click',async e=>{const command=e.target.closest('[data-hud-courier]');if(command){const result=await game.courierCommand(command.dataset.hudCourier);if(!result.ok)toast(result.reason);}});
+  $('#hud-quickbuy').onclick=async()=>{const result=await game.buyQuick();if(!result.ok)toast(result.reason);updateHud();};
   $('#inspection-body').insertAdjacentHTML('beforebegin','<div id="inspection-status"></div>');
   mountStatusBar($('#inspection-status'));updateHud();
   $('.match-header').insertAdjacentHTML('afterend',`<div class="match-roster" aria-label="点击英雄头像查看属性与装备">${[0,1].map(team=>`<div class="roster-team ${team?'dire':'radiant'}"><span>${team?'夜魇':'天辉'}</span>${game.entities.filter(e=>e.kind==='hero'&&e.team===team).map(e=>`<button data-inspect-hero="${e.id}" title="查看${e.name}${game.isNetwork&&e.team===0&&e.controller==='ai'?'（困难 AI 队友）':''}的属性和装备" aria-label="查看${team?'敌方':'友方'}${e.name}">${portrait(HEROES[e.heroId])}${game.isNetwork&&e.team===0&&e.controller==='ai'?'<small class="roster-ai-label">AI</small>':''}</button>`).join('')}</div>`).join('')}</div>`);
@@ -188,7 +195,11 @@ function updateHud(){
   $('#stat-damage').textContent=Math.round(p.damage);$('#stat-armor').textContent=Math.round(p.armor||0);$('#stat-speed').textContent=Math.round(p.speed);$('#last-hits').textContent=p.lastHits;
   if($('#attribute-summary'))$('#attribute-summary').innerHTML=`<b class="strength">力 ${Math.floor(p.strength)}</b><b class="agility">敏 ${Math.floor(p.agility)}</b><b class="intelligence">智 ${Math.floor(p.intelligence)}</b>`;
   updateSkills($('.abilities'),game);
-  updateStatusBar(mountStatusBar($('.hud-vitals')),p,game.time);
+  updateStatusBar(mountStatusBar($('.hud-vitals')),p,game.time,game);
+  $('#hp-regen').textContent=`+${Number(((p.hpRegen||0)+(p.itemAura?.hpRegen||0)).toFixed(1))}`;$('#mana-regen').textContent=`+${Number((auraManaRegen(game,p)+(p.itemAura?.manaRegen||0)).toFixed(1))}`;
+  const queue=(p.quickbuy||[]).map(id=>ITEM_BY_ID[id]).filter(Boolean).slice(0,6),queueHtml=queue.map(item=>`<img src="/${item.image}" alt="${item.name}" title="${item.name}"/>`).join('');
+  if($('#hud-quickbuy-items').innerHTML!==queueHtml)$('#hud-quickbuy-items').innerHTML=queueHtml;
+  document.querySelectorAll('[data-inspect-hero]').forEach(button=>{const unit=game.entities.find(e=>e.id===button.dataset.inspectHero);button.classList.toggle('hero-dead',!!unit?.dead);button.dataset.respawn=unit?.dead?Math.ceil(unit.respawnTimer):'';});
   const combat=game.combatStats(p);
   $('#stat-damage').textContent=Math.round(combat.damage);$('#stat-armor').textContent=Number(combat.armor.toFixed(1));$('#stat-speed').textContent=Math.round(combat.speed);
   $('.xp-bar').title=p.level===30?'Level 30':Math.floor(p.xp)+' / '+p.xpNext+' XP';
@@ -224,7 +235,7 @@ function updateInspection(){
     const equipment=body.querySelector('.inspection-equipment'),attributes=body.querySelector('.attribute-trio');
     if(equipment&&attributes)body.insertBefore(equipment,attributes);
   }
-  updateStatusBar(mountStatusBar($('#inspection-status')),game.selected,game.time);
+  updateStatusBar(mountStatusBar($('#inspection-status')),game.selected,game.time,game);
   panel.dataset.unitId=e.id;
 }
 function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}

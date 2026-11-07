@@ -7,8 +7,7 @@ const fighter=e=>['hero','creep','neutral','illusion','summon'].includes(e?.kind
 const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
 const effect=(g,h,type,x,y,fields)=>g._effect(type,x,y,{sourceId:h.id,heroId:h.heroId,team:h.team,...fields});
 const glacierAt=(g,h)=>(g.itemZones||[]).find(z=>z.type==='drowGlacier'&&z.team===h.team&&z.until>g.time&&distance(z,h)<=z.radius);
-export function marksmanshipActive(g,h){
- const s=Skills.skillOf(h,3);
+export function marksmanshipActive(g,h,s=Skills.skillOf(h,3)){
  return h.kind==='hero'&&s.level>0&&!Skills.hasStatusFlag(g,h,'break')&&(!!glacierAt(g,h)||
   !g.entities.some(e=>alive(e)&&e.kind==='hero'&&e.team!==h.team&&!Skills.isInvulnerable(g,e)&&g.canSee(h,e)&&distance(h,e)<=s.values.disable_range));
 }

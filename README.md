@@ -151,6 +151,8 @@ src/drow-runtime.js  冰箭、狂风、多重射击、精准光环、低温与�
 src/attack-projectiles.js  远程普攻实际追踪弹与到达结算
 src/attack-records.js 官方攻击弹速与前摇的生成记录
 src/status-ui.js     增益/减益状态栏及说明
+src/status-catalog.js 光环、射手天赋、永久/装备/区域状态的显示数据
+src/dota-ui.css      默认 HUD、英雄选择、物品格与响应式布局
 src/skills-ui.js     技能加点、等级、数值对比与天赋树
 src/unit-data.js     建筑、兵线、野怪数据
 src/engine.js        不依赖 DOM 的确定性对局模拟与独立真人输入
@@ -173,6 +175,8 @@ docs/                设计、接口约定、实现计划与审查记录
 ```
 
 ## 素材说明
+
+当前 HUD 将增益放在上排、减益放在下排，显示技能/物品图标、层数和实际剩余时间；奥术光环、精准光环、射手天赋、治疗守卫和物品光环随实际来源与条件显示/移除。六格物品使用 3×2 排列，背包和 TP 分开。浏览器检查入口为 `npm run test:hud`。来源、两项先天图标替代及逐像素对照边界见 [HUD 与状态栏说明](docs/hud-status-sources.md)，验收见 [2026-11-07 记录](docs/verification/2026-11-07-hud-status.md)。
 
 非官方同人学习原型，与 Valve 无关联。Dota 2、英雄名称、英雄立绘、头像和游戏地图素材属于 Valve。英雄图片来自 Steam CDN；地图图片来自 gem-dota 收录的 Liquipedia 7.41 地图，原图未编辑，来源和许可说明见上述地图文档。所有资源保存在本地，运行时不访问外部图片地址。二维移动单位与技能特效由 Canvas 绘制。
 

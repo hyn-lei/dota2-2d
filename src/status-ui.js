@@ -1,4 +1,5 @@
 import { icon } from './icons.js';
+import { derivedStatusEffects, statusImage, statusDescription } from './status-catalog.js';
 
 const INFO = {
   dead:{name:'已阵亡',description:'等待复活后返回战场。',positive:false,icon:'skull',order:0},
@@ -34,7 +35,7 @@ const canonical = value => {
 
 function normalizeStatus(id, raw, time) {
   if (!raw || raw.active === false) return null;
-  if(Number.isFinite(raw.startedAt)&&raw.startedAt>time)return null;
+  if(Number.isFinite(raw.startedAt)&&raw.startedAt>time&&!(raw.invisible&&raw.fadeStartedAt<=time))return null;
   const defaults = INFO[id] || {};
   const until = raw.until;
   if (until != null && until !== Infinity && !Number.isFinite(until)) return null;
@@ -45,15 +46,16 @@ function normalizeStatus(id, raw, time) {
     Number.isFinite(raw.startedAt) ? until - raw.startedAt : defaults.duration || remaining);
   return {
     id, name:String(raw.name || defaults.name || id),
-    description:String(raw.description || defaults.description || '当前生效的状态。'),
+    description:String(statusDescription(raw) || defaults.description || '当前生效的状态。'),
     remaining, duration, positive:raw.positive ?? defaults.positive ?? true,
     icon:String(raw.icon || defaults.icon || 'relic'),
-    stacks:Number.isFinite(raw.stacks) ? Math.max(1, Math.floor(raw.stacks)) : 1
+    stacks:Number.isFinite(raw.stacks) ? Math.max(1, Math.floor(raw.stacks)) : 1,
+    ...(raw.image?{image:raw.image}:{})
   };
 }
 
 /** Read combat state using simulation seconds. This function never mutates a unit. */
-export function statusEffects(unit, time = 0) {
+export function statusEffects(unit, time = 0, game = null) {
   if (!unit) return [];
   const now = Number.isFinite(time) ? time : 0;
   if (unit.dead) {
@@ -66,12 +68,14 @@ export function statusEffects(unit, time = 0) {
     if (!id || (!authoritative && claimed.has(id))) return;
     // An expired authoritative entry also suppresses a stale legacy mirror.
     claimed.add(id);
-    const effect = normalizeStatus(id, raw, now);
+    const picture=statusImage(id,raw,unit,game);
+    const effect = normalizeStatus(id, {...raw,...(picture?{image:picture}:{})}, now);
     if (effect) effects.set(id, effect);
   };
   for (const [key, raw] of Object.entries(unit.statuses || {})) {
     if (raw && typeof raw === 'object') add(raw.id || key, raw, true);
   }
+  for(const raw of derivedStatusEffects(game,unit))add(raw.id,raw);
   const buffs = unit.buffs || {};
   for (const id of TIMED) {
     const field = `${id}Until`;
@@ -89,7 +93,7 @@ export function statusEffects(unit, time = 0) {
   const channel = unit.channel || (typeof unit.channeling === 'object' ? unit.channeling : null);
   if (channel) add('channel', channel);
   else if (unit.channeling === true) add('channel', {until:Infinity});
-  if (unit.recallTimer > 0) add('recall', {until:now + unit.recallTimer, duration:3});
+  if (unit.recallTimer > 0&&!unit.statuses?.itemChannel) add('recall', {until:now + unit.recallTimer, duration:unit.recallDuration||3});
   if (unit.aegisUntil > now) add('aegis', {until:unit.aegisUntil, startedAt:unit.aegisStartedAt});
   return [...effects.values()].sort((a, b) =>
     Number(a.positive) - Number(b.positive) || (INFO[a.id]?.order ?? 10) - (INFO[b.id]?.order ?? 10) || a.id.localeCompare(b.id));
@@ -158,12 +162,12 @@ export function mountStatusBar(container) {
   bar.setAttribute('role', 'group');
   bar.setAttribute('aria-label', '当前状态');
   const tooltipId = `unit-status-tooltip-${++nextTooltipId}`;
-  bar.innerHTML = `<span class="status-bar-label" aria-hidden="true">状态</span><span class="status-empty">状态正常</span><div class="status-effects" aria-label="生效中的状态"></div><div class="status-tooltip" id="${tooltipId}" role="tooltip" hidden><div class="status-tooltip-heading"><strong></strong><span></span></div><p></p><small></small></div>`;
+  bar.innerHTML = `<span class="status-bar-label" aria-hidden="true">状态</span><span class="status-empty">状态正常</span><div class="status-effects" aria-label="生效中的状态"><div class="status-buffs" aria-label="增益"></div><div class="status-debuffs" aria-label="减益"></div></div><div class="status-tooltip" id="${tooltipId}" role="tooltip" hidden><div class="status-tooltip-heading"><strong></strong><span></span></div><p></p><small></small></div>`;
   const tooltip = bar.querySelector('.status-tooltip');
   const state = {bar, list:bar.querySelector('.status-effects'), empty:bar.querySelector('.status-empty'),
     tooltip, tooltipName:tooltip.querySelector('strong'), tooltipKind:tooltip.querySelector('.status-tooltip-heading span'),
     tooltipDescription:tooltip.querySelector('p'), tooltipTime:tooltip.querySelector('small'),
-    nodes:new Map(), openId:null, hoveredId:null, focusedId:null, overTooltip:false, unitKey:null};
+    buffs:bar.querySelector('.status-buffs'),debuffs:bar.querySelector('.status-debuffs'),nodes:new Map(), openId:null, hoveredId:null, focusedId:null, overTooltip:false, unitKey:null};
   tooltip.addEventListener('pointerenter', () => { state.overTooltip = true; clearTimeout(state.hideTimer); });
   tooltip.addEventListener('pointerleave', () => { state.overTooltip = false; releaseTooltip(state); });
   bar.addEventListener('keydown', event => {
@@ -196,10 +200,10 @@ function createEffectNode(state, effect) {
 }
 
 /** Update in place so hovering or focusing an active effect survives HUD ticks. */
-export function updateStatusBar(element, unit, time = 0) {
+export function updateStatusBar(element, unit, time = 0, game = null) {
   const state = bars.get(element);
   if (!state) throw new TypeError('Call mountStatusBar before updateStatusBar.');
-  const effects = statusEffects(unit, time), unitKey = unit?.id ?? unit;
+  const effects = statusEffects(unit, time, game), unitKey = unit?.id ?? unit;
   if (state.unitKey !== unitKey) {
     state.unitKey = unitKey;
     state.openId = state.hoveredId = state.focusedId = null;
@@ -214,13 +218,21 @@ export function updateStatusBar(element, unit, time = 0) {
       if (state.focusedId === id) state.focusedId = null;
     }
   }
-  effects.forEach((effect, index) => {
+  const positions={true:0,false:0};
+  effects.forEach(effect => {
     let entry = state.nodes.get(effect.id);
     if (!entry) { entry = createEffectNode(state, effect); state.nodes.set(effect.id, entry); }
     entry.effect = effect;
-    if (state.list.children[index] !== entry.button) state.list.insertBefore(entry.button, state.list.children[index] || null);
-    if (entry.icon !== effect.icon) { entry.symbol.innerHTML = icon(effect.icon); entry.icon = effect.icon; }
-    const timer = effect.remaining === null ? '∞' : effect.remaining < 10 ? effect.remaining.toFixed(1) : String(Math.ceil(effect.remaining));
+    const list=effect.positive?state.buffs:state.debuffs,index=positions[String(Boolean(effect.positive))]++;
+    if (list.children[index] !== entry.button) list.insertBefore(entry.button, list.children[index] || null);
+    const artKey=effect.image||effect.icon;
+    if (entry.icon !== artKey) {
+      entry.symbol.innerHTML='';
+      if(effect.image){const img=state.bar.ownerDocument.createElement('img');img.src='/'+effect.image;img.alt='';img.draggable=false;img.addEventListener('error',()=>{entry.symbol.innerHTML=icon(effect.icon);},{once:true});entry.symbol.append(img);}
+      else entry.symbol.innerHTML=icon(effect.icon);
+      entry.icon=artKey;
+    }
+    const timer = effect.remaining === null ? '' : effect.remaining < 10 ? effect.remaining.toFixed(1) : String(Math.ceil(effect.remaining));
     setText(entry.time, timer);
     setText(entry.stacks, effect.stacks > 1 ? String(effect.stacks) : '');
     entry.stacks.hidden = effect.stacks <= 1;
@@ -233,6 +245,7 @@ export function updateStatusBar(element, unit, time = 0) {
   });
   state.empty.hidden = effects.length > 0;
   state.list.hidden = effects.length === 0;
+  state.buffs.hidden=positions.true===0;state.debuffs.hidden=positions.false===0;
   setAttr(element, 'data-count', String(effects.length));
   if (state.openId) refreshTooltip(state);
   return element;

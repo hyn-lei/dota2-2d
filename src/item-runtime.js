@@ -251,9 +251,12 @@ export function tickWorld(g,dt){
  if(g.plantedTrees?.some(t=>t.until<=g.time)){g.plantedTrees=g.plantedTrees.filter(t=>t.until>g.time);treesChanged=true;}
  if(treesChanged)C.rebuildTrees(g);
  if(g.time>=(g.nextItemAuraAt||0)){
-  g.nextItemAuraAt=g.time+.25;for(const unit of g.entities)unit.itemAura={};const sources=g.entities.filter(e=>alive(e)&&e.kind==='hero');
+  g.nextItemAuraAt=g.time+.25;for(const unit of g.entities)unit.itemAura={displayEffects:[]};const sources=g.entities.filter(e=>alive(e)&&e.kind==='hero');
   for(const h of sources)for(const e of passive(g,h)){const i=e.item,radius=i.id==='crellas_crozier'?v(i,'radius'):v(i,['aura_radius','bonus_aoe_radius'],v(i,'aura_movement_speed')?v(i,'radius'):0);if(!radius)continue;
    for(const target of g.entities)if(alive(target)&&distance(h,target)<=radius){const a=target.itemAura;
+    const positive=target.team===h.team;
+    const values=positive?[v(i,['armor_aura','aura_positive_armor','bonus_aoe_armor']),v(i,'aura_attack_speed'),v(i,'damage_aura'),v(i,'lifesteal_aura'),v(i,'aura_health_regen'),v(i,['mana_regen_aura','aura_mana_regen']),v(i,['aura_magic_resistance','magic_resistance_aura']),v(i,'aura_movement_speed')]:[v(i,'aura_negative_armor'),i.id==='shivas_guard'?v(i,'aura_attack_speed'):0,v(i,'aura_spell_vulnerability'),i.id==='crellas_crozier'&&target.kind==='hero'?v(i,'health_steal'):0];
+    if((positive?values.some(n=>n>0):values.some(n=>n!==0))&&(positive||C.fighter(target)||C.building(target)))a.displayEffects.push({itemId:i.id,sourceId:h.id,positive});
     if(target.team===h.team){a.armor=Math.max(a.armor||0,v(i,['armor_aura','aura_positive_armor','bonus_aoe_armor']));a.attackSpeed=Math.max(a.attackSpeed||0,v(i,'aura_attack_speed'));a.damagePct=Math.max(a.damagePct||0,v(i,'damage_aura'));a.lifesteal=Math.max(a.lifesteal||0,v(i,'lifesteal_aura'));a.hpRegen=Math.max(a.hpRegen||0,v(i,'aura_health_regen'));if(i.id==='guardian_greaves'&&target===h&&h.hp/h.maxHp<v(i,'aura_bonus_threshold')/100)a.hpRegen=Math.max(a.hpRegen,v(i,'aura_health_regen_bonus'));a.manaRegen=Math.max(a.manaRegen||0,v(i,['mana_regen_aura','aura_mana_regen']));a.magicResistance=Math.max(a.magicResistance||0,v(i,['aura_magic_resistance','magic_resistance_aura']));a.speed=Math.max(a.speed||0,v(i,'aura_movement_speed'));}
     else if(C.fighter(target)||C.building(target)){if(v(i,'aura_negative_armor'))a.armor=Math.min(a.armor||0,v(i,'aura_negative_armor'));if(i.id==='shivas_guard')a.attackSpeed=Math.min(a.attackSpeed||0,v(i,'aura_attack_speed'));
      a.spellVulnerability=Math.max(a.spellVulnerability||0,v(i,'aura_spell_vulnerability'));

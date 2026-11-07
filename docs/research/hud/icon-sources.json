@@ -1,0 +1,182 @@
+[
+  {
+    "id": "axe_berserkers_call",
+    "url": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/abilities/axe_berserkers_call.png",
+    "fallback": false
+  },
+  {
+    "id": "axe_battle_hunger",
+    "url": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/abilities/axe_battle_hunger.png",
+    "fallback": false
+  },
+  {
+    "id": "axe_counter_helix",
+    "url": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/abilities/axe_counter_helix.png",
+    "fallback": false
+  },
+  {
+    "id": "axe_culling_blade",
+    "url": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/abilities/axe_culling_blade.png",
+    "fallback": false
+  },
+  {
+    "id": "axe_one_man_army",
+    "url": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/abilities/axe_berserkers_call.png",
+    "fallback": true
+  },
+  {
+    "id": "crystal_maiden_crystal_nova",
+    "url": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/abilities/crystal_maiden_crystal_nova.png",
+    "fallback": false
+  },
+  {
+    "id": "crystal_maiden_frostbite",
+    "url": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/abilities/crystal_maiden_frostbite.png",
+    "fallback": false
+  },
+  {
+    "id": "crystal_maiden_glacial_guard",
+    "url": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/abilities/crystal_maiden_glacial_guard.png",
+    "fallback": false
+  },
+  {
+    "id": "crystal_maiden_freezing_field",
+    "url": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/abilities/crystal_maiden_freezing_field.png",
+    "fallback": false
+  },
+  {
+    "id": "crystal_maiden_brilliance_aura",
+    "url": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/abilities/crystal_maiden_brilliance_aura.png",
+    "fallback": false
+  },
+  {
+    "id": "juggernaut_blade_fury",
+    "url": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/abilities/juggernaut_blade_fury.png",
+    "fallback": false
+  },
+  {
+    "id": "juggernaut_bladeform",
+    "url": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/abilities/juggernaut_blade_dance.png",
+    "fallback": true
+  },
+  {
+    "id": "juggernaut_healing_ward",
+    "url": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/abilities/juggernaut_healing_ward.png",
+    "fallback": false
+  },
+  {
+    "id": "windrunner_windrun",
+    "url": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/abilities/windrunner_windrun.png",
+    "fallback": false
+  },
+  {
+    "id": "windrunner_focusfire",
+    "url": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/abilities/windrunner_focusfire.png",
+    "fallback": false
+  },
+  {
+    "id": "windrunner_powershot",
+    "url": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/abilities/windrunner_powershot.png",
+    "fallback": false
+  },
+  {
+    "id": "windrunner_tailwind",
+    "url": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/abilities/windrunner_tailwind.png",
+    "fallback": false
+  },
+  {
+    "id": "kunkka_torrent",
+    "url": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/abilities/kunkka_torrent.png",
+    "fallback": false
+  },
+  {
+    "id": "kunkka_x_marks_the_spot",
+    "url": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/abilities/kunkka_x_marks_the_spot.png",
+    "fallback": false
+  },
+  {
+    "id": "kunkka_ghostship",
+    "url": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/abilities/kunkka_ghostship.png",
+    "fallback": false
+  },
+  {
+    "id": "kunkka_tidebringer",
+    "url": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/abilities/kunkka_tidebringer.png",
+    "fallback": false
+  },
+  {
+    "id": "ogre_magi_ignite",
+    "url": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/abilities/ogre_magi_ignite.png",
+    "fallback": false
+  },
+  {
+    "id": "ogre_magi_bloodlust",
+    "url": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/abilities/ogre_magi_bloodlust.png",
+    "fallback": false
+  },
+  {
+    "id": "ogre_magi_smash",
+    "url": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/abilities/ogre_magi_smash.png",
+    "fallback": false
+  },
+  {
+    "id": "drow_ranger_frost_arrows",
+    "url": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/abilities/drow_ranger_frost_arrows.png",
+    "fallback": false
+  },
+  {
+    "id": "drow_ranger_wave_of_silence",
+    "url": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/abilities/drow_ranger_wave_of_silence.png",
+    "fallback": false
+  },
+  {
+    "id": "drow_ranger_glacier",
+    "url": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/abilities/drow_ranger_glacier.png",
+    "fallback": false
+  },
+  {
+    "id": "drow_ranger_trueshot",
+    "url": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/abilities/drow_ranger_trueshot.png",
+    "fallback": false
+  },
+  {
+    "id": "drow_ranger_marksmanship",
+    "url": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/abilities/drow_ranger_marksmanship.png",
+    "fallback": false
+  },
+  {
+    "id": "kunkka_admirals_rum",
+    "url": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/abilities/kunkka_admirals_rum.png",
+    "fallback": false
+  },
+  {
+    "id": "ogre_magi_dumb_luck",
+    "url": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/abilities/ogre_magi_dumb_luck.png",
+    "fallback": false
+  },
+  {
+    "id": "crystal_maiden_crystal_clone",
+    "url": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/abilities/crystal_maiden_crystal_clone.png",
+    "fallback": false
+  },
+  {
+    "id": "juggernaut_swift_slash",
+    "url": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/abilities/juggernaut_swift_slash.png",
+    "fallback": false
+  },
+  {
+    "id": "windrunner_gale_force",
+    "url": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/abilities/windrunner_gale_force.png",
+    "fallback": false
+  },
+  {
+    "id": "kunkka_tidal_wave",
+    "url": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/abilities/kunkka_tidal_wave.png",
+    "fallback": false
+  },
+  {
+    "id": "ogre_magi_unrefined_fireblast",
+    "url": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/abilities/ogre_magi_unrefined_fireblast.png",
+    "fallback": false
+  }
+]

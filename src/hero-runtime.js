@@ -484,9 +484,16 @@ function tickFreezingField(g,h,field){
 }
 export const fireShieldDamage=(g,target,amount,source,options,type)=>Ogre.fireShieldDamage(g,target,amount,source,options,type);
 export const ogreMulticastItem=(g,h,entry,target,meta)=>Ogre.multicastItem(g,h,entry,target,meta);
+export function auraManaSources(g,h){
+ return g.entities.filter(maiden=>alive(maiden)&&maiden.heroId==='crystal_maiden'&&maiden.team===h.team).flatMap(maiden=>{
+  const s=abilityAt(maiden.heroId,2,maiden.abilityLevels?.[2]||0,maiden.talents||[],maiden);
+  if(!s.level)return [];
+  return [{sourceId:maiden.id,name:maiden.name,value:s.values.base_mana_regen*(distance(h,maiden)<=s.values.proximity_bonus_radius?s.values.proximity_bonus_factor:1),amp:h===maiden?s.values.mana_regen_amp:0}];
+ });
+}
 export function auraManaRegen(g,h){
  let extra=0,amp=0;
- for(const maiden of g.entities)if(alive(maiden)&&maiden.heroId==='crystal_maiden'&&maiden.team===h.team){const s=skillOf(maiden,2);if(!s.level)continue;const value=s.values.base_mana_regen*(distance(h,maiden)<=s.values.proximity_bonus_radius?s.values.proximity_bonus_factor:1);extra=Math.max(extra,value);if(h===maiden)amp=s.values.mana_regen_amp;}
+ for(const source of auraManaSources(g,h)){extra=Math.max(extra,source.value);amp=Math.max(amp,source.amp);}
  return (h.manaRegen+extra)*(1+amp/100);
 }
 export function tickWard(g,ward,dt){

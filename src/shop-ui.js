@@ -64,7 +64,7 @@ export function mountShop(panel,inventory,game,actions){
  panel.querySelector('#clear-quickbuy').onclick=()=>notify(game.clearQuickbuy());
  function update(){
   const p=game.player,access=shopAccess(p);
-  setHTML(inventory,`<div class="equipped-slots">${Array.from({length:6},(_,i)=>slotHTML('inventory',i)).join('')}</div><div class="backpack-label">背包 <span>1–6 使用装备 · 双击选择目标</span></div><div class="backpack-slots">${Array.from({length:3},(_,i)=>slotHTML('backpack',i)).join('')}${slotHTML('tp',0)}</div>`);
+  setHTML(inventory,`<div class="equipped-slots">${Array.from({length:6},(_,i)=>slotHTML('inventory',i)).join('')}</div><div class="backpack-label">背包 <span>1–6 使用装备 · 双击选择目标</span></div><div class="backpack-slots">${Array.from({length:3},(_,i)=>slotHTML('backpack',i)).join('')}</div><div class="tp-slot">${slotHTML('tp',0)}</div>`);
   inventory.querySelectorAll('[data-slot-area]').forEach(b=>b.classList.toggle('selected-slot',state.slot?.area===b.dataset.slotArea&&state.slot.index===+b.dataset.slotIndex));
   if(panel.hidden)return;
   setHTML(panel.querySelector('.shop-location'),`<span class="${access.shop?'at-shop':''}">${p.dead?'阵亡中 · 购买放入储藏处':access.base?'泉水商店 · 可取放储藏物品':access.secret?'神秘商店 · 可购买专属组件':'远离商店 · 普通物品放入储藏处'}</span><button id="locate-secret">定位神秘商店</button>`);
