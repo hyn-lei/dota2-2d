@@ -242,7 +242,7 @@ function applyAbilityEffect(g,h,phase,heroId){
  }else if(heroId==='windranger'){
   if(index===0){const life=distance(h,target)/v.arrow_speed;g.pendingSpells.push({type:'shackle',sourceId:h.id,targetId:target.id,skill:s,origin:{x:h.x,y:h.y},landAt:g.time+life});spellEffect(g,h,'projectile',h.x,h.y,{visual:'shackleShot',targetId:target.id,tx:target.x,ty:target.y,life:Math.max(.01,life),lift:35,targetLift:30,color:'#dcdf86'});}
   else if(index===1){h.channel={kind:'powershot',index,skill:s,startedAt:g.time,until:g.time+s.channelTime,point};addStatus(g,h,'channel',{name:'强力击蓄力',description:'蓄力最多 1 秒；提前停止按蓄力比例造成伤害。',positive:true,duration:s.channelTime,icon:'arrow'});}
-  else if(index===2)addStatus(g,h,'windrun',{name:'风行',description:`移动速度 +${v.movespeed_bonus_pct}%，闪避普通攻击。`,positive:true,duration:s.duration,movePercent:v.movespeed_bonus_pct,evasion:100,icon:'wind'});
+  else if(index===2)addStatus(g,h,'windrun',{name:'风行',description:`移动速度 +${v.movespeed_bonus_pct}%，闪避普通攻击，穿过单位。`,positive:true,duration:s.duration,movePercent:v.movespeed_bonus_pct,evasion:100,phased:true,icon:'wind'});
   else {h.focusTargetId=target.id;h.focusSkill=s;addStatus(g,h,'focus',{name:'集中火力',description:`对指定目标攻击速度 +${v.bonus_attack_speed}，攻击伤害降低 ${Math.abs(v.focusfire_damage_reduction)}%。`,positive:true,duration:s.duration,icon:'target',targetId:target.id});h.explicitTarget=target.id;}
  }else if(heroId==='kunkka'){
   if(index===0){g.pendingSpells.push({type:'torrent',sourceId:h.id,...point,skill:s,landAt:g.time+v.delay});spellEffect(g,h,'torrentWarning',point.x,point.y,{radius:v.radius,life:v.delay,color:'#8bc9da'});}

@@ -14,6 +14,7 @@ import { launchAttack, tickAttacks, attackProfile, isRangedAttack } from './atta
 import * as Bots from './bot-ai.js';
 import {flagbearerAura} from './unit-auras.js';
 import {armletHealthBonus} from './armlet-runtime.js';
+import {CollisionWorld} from './collision.js';
 
 const distance = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
 const clamp = (n, low, high) => Math.max(low, Math.min(high, n));
@@ -45,6 +46,7 @@ export class Game {
     this.keyboard = { x:0, y:0 };
     this.grid = new Map();
     this.navigation=new Navigator(undefined,undefined,BUILDING_LAYOUT);
+    this.collisions=new CollisionWorld();
     this.camps = CAMP_LAYOUT.map(c=>({...c, spawnCount:0, blocked:false, nextSpawn:60}));
     this.nextNeutralSpawn = 60;
     this.nextBuildingCheck=0;
@@ -80,6 +82,7 @@ export class Game {
     this.roshanPit=1;
     this.roshanRespawnAt=0;
     this._spawnRoshan();
+    this.collisions.rebuild(this.entities,this.time);
   }
 
   get player() { return (this.controlledHeroId&&this.entities.find(e => e.id===this.controlledHeroId))||this.entities.find(e => e.isPlayer); }
@@ -104,6 +107,7 @@ export class Game {
       targetId:null, destination:null, magicResistance:0, hpRegen:0, buffs:{}, statuses:{}, ...stats
     };
     unit.hp = unit.maxHp;
+    if(!building(unit))unit.collisionRadius=stats.collisionRadius??unit.radius;
     return unit;
   }
 
@@ -575,6 +579,7 @@ export class Game {
       if(e.attackPhase)this._resolveOgreAttack(e);
       ItemRuntime.tickUnit(this,e,dt);
       if(alive(e))Skills.tickStatuses(this,e,dt);
+      this.collisions.update(e);
       if (e.kind === 'hero') {
         e.gold += 100 / 60 * dt;
         e.cooldowns = e.cooldowns.map(c => Math.max(0,c - dt));
@@ -597,6 +602,7 @@ export class Game {
       if (e.kind === 'creep') this._creepTick(e,dt);
       if (e.kind === 'neutral') this._neutralTick(e,dt);
       if (e.kind === 'ward') Skills.tickWard(this,e,dt);
+      this.collisions.update(e);
     }
     Courier.tickCouriers(this,dt);
     this._flagSources=null;
@@ -605,6 +611,7 @@ export class Game {
   }
 
   _index() {
+    this.collisions.rebuild(this.entities,this.time);
     this.grid.clear();
     for (const e of this.entities) if (alive(e)) {
       const key = `${Math.floor(e.x/500)},${Math.floor(e.y/500)}`;
@@ -710,11 +717,17 @@ export class Game {
     const amount = Math.min(speed * dt,d);
     // In-range chase retries and completed waypoints must not cancel a windup.
     if(amount>0&&e.attackPhase){e.attackPhase=null;e.attackCooldown=0;}
-    const dx=(waypoint.x-e.x)/d,dy=(waypoint.y-e.y)/d;
-    e.x = clamp(e.x+dx*amount,25,WORLD.width-25);
-    e.y = clamp(e.y+dy*amount,25,WORLD.height-25);
+    const dx=(waypoint.x-e.x)/d,dy=(waypoint.y-e.y)/d,before={x:e.x,y:e.y};
+    const contact=this.collisions.move(e,dx*amount,dy*amount,navigator);
+    e.x=clamp(e.x,25,WORLD.width-25);e.y=clamp(e.y,25,WORLD.height-25);
+    if(contact.blocked&&distance(before,e)<amount*.6&&this.time>=(e.collisionRetryAt||0)){
+      const detour=this.collisions.detour(e,contact.obstacle,goal,navigator);
+      if(detour){e.navPath=[detour,...e.navPath.slice(e.navIndex)];e.navIndex=0;}
+      else if(!contact.obstacle){e.navPath=null;e.navRetryAt=this.time+.25;}
+      e.collisionRetryAt=this.time+.25;
+    }
     e.angle = Math.atan2(dy,dx);
-    e.moving = amount > .05;
+    e.moving = distance(before,e) > .05;
   }
 
   _followLane(e,dt) {

@@ -3,6 +3,7 @@ import { SLOT_COUNTS, shopAccess, sellValue, SECRET_SHOPS, stockStatus } from '.
 import { icon } from './icons.js';
 import { itemState } from './item-runtime.js';
 import { SHOP_GROUPS } from './shop-layout.js';
+import {itemKey} from './keybindings.js';
 
 const escape=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const areaNames={inventory:'装备栏',backpack:'背包',stash:'储藏处',tp:'回城卷轴',cargo:'信使'};
@@ -39,7 +40,7 @@ export function mountShop(panel,inventory,game,actions){
  }
  const slotHTML=(area,index,p=game.player)=>{
   const id=p[area]?.[index],item=ITEM_BY_ID[id],meta=p[area+'Meta']?.[index],info=p.kind==='hero'?itemState(game,p,index,area):{ready:0,cooldown:0},remaining=Math.ceil(Math.max(info.ready,info.cooldown));
-  return `<button class="inventory-slot ${item?'filled':''} ${remaining?'item-inactive':''}" data-slot-area="${area}" data-slot-index="${index}" data-slot-owner="${p.id}" draggable="${!!item&&p.id===game.player.id}" aria-readonly="${p.id!==game.player.id}" title="${escape(item?item.name+' · '+item.description:areaNames[area]+'空位')}" aria-label="${areaNames[area]} ${index+1}：${escape(item?.name||'空位')}">${item?itemArt(item):'<span>·</span>'}${area==='inventory'?`<kbd>${index+1}</kbd>`:area==='tp'?'<kbd>B</kbd>':''}${item&&(item.charges||item.abilityCharges||item.displayCharges||item.requiresCharges)?`<em class="item-charges">${meta?.charges||0}</em>`:''}${meta?.combineLocked?'<span class="item-lock">锁</span>':''}${remaining?`<b class="item-reactivation">${remaining}</b>`:''}</button>`;
+  return `<button class="inventory-slot ${item?'filled':''} ${remaining?'item-inactive':''}" data-slot-area="${area}" data-slot-index="${index}" data-slot-owner="${p.id}" draggable="${!!item&&p.id===game.player.id}" aria-readonly="${p.id!==game.player.id}" title="${escape(item?item.name+' · '+item.description:areaNames[area]+'空位')}" aria-label="${areaNames[area]} ${index+1}：${escape(item?.name||'空位')}">${item?itemArt(item):'<span>·</span>'}${area==='inventory'?`<kbd>${itemKey(index)}</kbd>`:area==='tp'?'<kbd>B</kbd>':''}${item&&(item.charges||item.abilityCharges||item.displayCharges||item.requiresCharges)?`<em class="item-charges">${meta?.charges||0}</em>`:''}${meta?.combineLocked?'<span class="item-lock">锁</span>':''}${remaining?`<b class="item-reactivation">${remaining}</b>`:''}</button>`;
  };
  function handleSlot(e){
   const button=e.target.closest('[data-slot-area]');if(!button)return;
@@ -75,7 +76,7 @@ export function mountShop(panel,inventory,game,actions){
  function update(){
   const p=game.player,shown=game.selected,access=shopAccess(p);
   if(state.displayedId!==shown.id){state.displayedId=shown.id;state.slot=null;itemTooltip.hidden=true;}
-  setHTML(inventory,`<div class="equipped-slots">${Array.from({length:6},(_,i)=>slotHTML('inventory',i,shown)).join('')}</div><div class="backpack-label">背包 <span>1–6 使用装备 · 双击选择目标</span></div><div class="backpack-slots">${Array.from({length:3},(_,i)=>slotHTML('backpack',i,shown)).join('')}</div><div class="tp-slot">${slotHTML('tp',0,shown)}</div>`);
+  setHTML(inventory,`<div class="equipped-slots">${Array.from({length:6},(_,i)=>slotHTML('inventory',i,shown)).join('')}</div><div class="backpack-label">背包 <span>${Array.from({length:6},(_,i)=>itemKey(i)).join(' ')} 使用装备 · 双击选择目标</span></div><div class="backpack-slots">${Array.from({length:3},(_,i)=>slotHTML('backpack',i,shown)).join('')}</div><div class="tp-slot">${slotHTML('tp',0,shown)}</div>`);
   inventory.querySelectorAll('[data-slot-area]').forEach(b=>b.classList.toggle('selected-slot',state.slot?.area===b.dataset.slotArea&&state.slot.index===+b.dataset.slotIndex));
   if(panel.hidden)return;
   setHTML(panel.querySelector('.shop-location'),`<span class="${access.shop?'at-shop':''}">${p.dead?'阵亡中 · 购买放入储藏处':access.base?'泉水商店 · 可取放储藏物品':access.secret?'神秘商店 · 可购买专属组件':'远离商店 · 普通物品放入储藏处'}</span><button id="locate-secret">定位神秘商店</button>`);

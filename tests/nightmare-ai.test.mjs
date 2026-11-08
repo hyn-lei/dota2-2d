@@ -110,6 +110,7 @@ test('nightmare caches peaceful team decisions instead of scanning distant units
   const {g,bots}=battlefield('nightmare',['axe']),ambient=g._unit('neutral',2,19000,19000);
   let inspections=0;Object.defineProperty(ambient,'kind',{get(){inspections++;return 'neutral';}});
   g.entities=[...bots,ambient];g._index();
+  inspections=0; // Measure AI decisions, independently of the required collision/index rebuild.
   for(let i=0;i<10;i++){g.time=i*.01;g._botTick(bots[0],0);}
   assert.ok(inspections<=4,`distant unit was scanned ${inspections} times within one director interval`);
 });

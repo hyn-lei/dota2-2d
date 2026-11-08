@@ -1,0 +1,34 @@
+{
+  "baseRevision": "1209a2abd36ba6aec90d9347327a56c5be4d3d17",
+  "change": "Ground unit collisions, local detours and phase movement intentionally replace the previous movement state.",
+  "cases": [
+    {
+      "config": {
+        "hero": "juggernaut",
+        "seed": 42
+      },
+      "steps": 1800,
+      "dt": 0.05,
+      "sha256": "4ae5579064514cb9f924513629701146f717e3dd43ca516a519f0206d5e90517"
+    },
+    {
+      "config": {
+        "hero": "drow_ranger",
+        "difficulty": "hard",
+        "seed": 51
+      },
+      "steps": 1800,
+      "dt": 0.05,
+      "sha256": "575d267f097b16b5a41c1d2c904c46cb0ef47aced03b174c1fda9a312092d439"
+    },
+    {
+      "config": {
+        "hero": "ogre_magi",
+        "seed": 99
+      },
+      "steps": 1800,
+      "dt": 0.05,
+      "sha256": "e31a1d2b709077642e43ed1c3ef9123bc8dd6d6320532ff4d7898c5706f8c339"
+    }
+  ]
+}

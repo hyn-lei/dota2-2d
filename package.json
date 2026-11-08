@@ -20,6 +20,8 @@
     "test:selected-hud": "node tests/browser-selected-hud.mjs",
     "test:unit-skills": "node tests/browser-unit-skills.mjs",
     "test:economy": "node tests/browser-economy.mjs",
+    "test:keybindings": "node tests/browser-keybindings.mjs",
+    "test:collision": "node tests/browser-collision.mjs",
     "test:vfx": "node tests/browser-vfx.mjs",
     "test:ai": "node tests/browser-ai.mjs",
     "test:ogre": "node tests/browser-ogre.mjs",

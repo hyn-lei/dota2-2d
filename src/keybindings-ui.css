@@ -1,0 +1,27 @@
+.match-header>.match-settings-button{width:42px;height:42px;flex:0 0 42px;margin-left:8px;display:grid;place-items:center;background:#17232ddd;border:1px solid #647580;color:#d3dce1;position:absolute;left:40px;top:4px;z-index:10}
+.match-settings-button>.icon{width:29px;height:29px}
+.match-settings-button:hover{background:#344552;border-color:#baa76b}
+.keybindings-modal{width:min(660px,calc(100vw - 24px));max-height:calc(100dvh - 24px);overflow:auto}
+.keybindings-modal .modal-body{overflow:visible;max-height:none}
+.keybindings-modal h2{margin-bottom:20px}
+.keybindings-modal .setting-row{padding:12px 0}
+.keybindings-modal .guide-tip{display:none}
+.keybindings-modal .modal-footer{position:sticky;bottom:0;background:#1b2924;padding:12px 0 0;margin-top:12px;z-index:2}
+.keybinding-settings{border-top:1px solid #4c5d68;padding-top:16px;margin-top:8px}
+.keybinding-settings h3{font-size:18px;margin:0 0 8px;color:#e0d6b3}
+.keybinding-settings p{color:#b1c0c9;font-size:12px;line-height:1.7;margin:0 0 12px}
+.keybinding-settings fieldset{border:0;margin:14px 0;padding:0;min-width:0}
+.keybinding-settings legend{font-size:13px;color:#d5dde2;margin-bottom:8px}
+.keybinding-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px}
+.keybinding-grid.skills{grid-template-columns:repeat(4,minmax(0,1fr))}
+.keybinding-slot{height:68px;background:#14212a;border:1px solid #526671;color:#d8e0e5;display:flex;flex-direction:column;gap:8px;align-items:center;justify-content:center}
+.keybinding-slot>span{font-size:11px;color:#9dabb5}
+.keybinding-slot>kbd{font:600 22px/1 Arial;background:none;border:0;padding:0}
+.keybinding-slot.capturing{border-color:#e0be6c;background:#3a3525;box-shadow:0 0 0 2px #b2955140}
+.keybinding-slot.capturing>kbd{font-size:14px;color:#ead397}
+.keybinding-status{min-height:22px;color:#b6cc9a!important}
+.keybinding-status.invalid{color:#f0ad91!important}
+.keybinding-actions{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.keybinding-actions button{background:#283742;border:1px solid #556a78;color:#d0dbe1;padding:9px 12px;font-size:12px}
+.keybinding-actions span{font-size:11px;color:#99abb7}
+@media(max-width:700px){.match-header>.match-settings-button{width:36px;height:36px;flex-basis:36px;margin-left:5px;left:28px;top:5px}.match-settings-button>.icon{width:25px;height:25px}.keybindings-modal{padding:20px 16px}.keybinding-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.keybinding-slot{height:60px}.keybindings-modal .setting-row{gap:12px}.match-roster{top:51px!important}.match-player-stats{top:76px}.objective{top:95px}}
