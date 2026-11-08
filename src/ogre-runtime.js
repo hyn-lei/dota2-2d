@@ -1,5 +1,6 @@
 import * as Skills from './hero-runtime.js';
 import { ACTIVE_ITEM_HANDLERS, findItemTarget } from './item-actives.js';
+import {resolveTargetItem} from './item-runtime.js';
 
 const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
 const alive=e=>e&&!e.dead&&e.hp>0;
@@ -167,8 +168,6 @@ export function multicastItem(g,h,entry,target,originalMeta){
       candidate={unit,extra,selection};break;
     }
     if(!candidate)break;const {unit,extra,selection}=candidate;used.push(unit.id);
-    if(!ally&&g.blockTargetSpell?.(h,unit,{itemId:entry.id}))continue;
-    if(!ally&&Skills.hasStatusFlag(g,unit,'spellReflect'))handler.run(g,unit,extra,h,h);
-    handler.run(g,h,extra,selection.point,unit);
+    resolveTargetItem(g,h,extra,selection.point,unit);
   }
 }

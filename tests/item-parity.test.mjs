@@ -35,9 +35,9 @@ test('Aeon Disk activates only from player damage and strictly below its thresho
  p.hp=1000;p.statuses.shield={id:'shield',itemId:'consecrated_wraps',positive:true,startedAt:0,until:10,barrier:500,barrierType:'all'};g.damage(p,400,e,'pure');assert.equal(p.hp,1000);assert.equal(p.statuses.aeonDisk,undefined);delete p.statuses.shield;
  p.hp=1000;g.damage(p,301,e,'pure');assert.equal(p.hp,700);assert.ok(p.statuses.aeonDisk);assert.ok(p.inventoryMeta[0].cooldownRemaining>0);
 });
-test('Nullifier can target and purge an invulnerable enemy self-cyclone',()=>{
- const {g,p,e}=equipped('nullifier');e.statuses.cyclone={startedAt:0,until:10,positive:true,invulnerable:true};assert.equal(g.useItem(0,e).ok,true);
- assert.equal(e.statuses.cyclone,undefined);assert.ok(e.statuses['itemDebuff:nullifier']);
+test('Nullifier follows the 7.40 removal of targeting invulnerable units despite the stale item note',()=>{
+ const {g,p,e}=equipped('nullifier');e.statuses.cyclone={startedAt:0,until:10,positive:true,invulnerable:true};assert.equal(g.useItem(0,e).ok,false);
+ assert.ok(e.statuses.cyclone);assert.equal(e.statuses['itemDebuff:nullifier'],undefined);assert.equal(p.inventoryMeta[0].cooldownRemaining,0);
 });
 test('Quelling Blade adds 8/4 damage to nonheroes and duplicate blades do not stack',()=>{
  for(const [hero,bonus]of [['crystal_maiden',4],['ogre_magi',8]]){

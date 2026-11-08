@@ -25,6 +25,7 @@
     "test:illusions": "node tests/browser-illusions.mjs",
     "test:tidebringer": "node tests/browser-tidebringer.mjs",
     "test:mana-status": "node tests/browser-mana-status.mjs",
+    "test:item-tracking": "node tests/browser-item-tracking.mjs",
     "test:vfx": "node tests/browser-vfx.mjs",
     "test:ai": "node tests/browser-ai.mjs",
     "test:ogre": "node tests/browser-ogre.mjs",

@@ -5,7 +5,7 @@ import { ITEM_BY_ID } from './item-data.js';
 import { BASES } from './map-data.js';
 import * as C from './item-common.js';
 import {toggleArmlet} from './armlet-runtime.js';
-import {queueHarpoon,startShiva} from './item-projectiles.js';
+import {queueHarpoon,resolveHarpoon,startShiva} from './item-projectiles.js';
 const {alive,distance,value:v,status,active,immune,invulnerable,heal,regen,allies,enemies,slow,dot,stun,dispel,forceMove,teleport,consume,refresh}=C;
 const handlers={};
 function define(ids,target,run,validate){for(const id of ids.split(' '))handlers[id]={target,run,validate};}
@@ -122,7 +122,7 @@ define('shivas_guard veil_of_discord','self',(g,h,e)=>{
 });
 define('bloodstone satanic','self',(g,h,e)=>{dispel(g,h);buff(g,h,e.item,v(e.item,['buff_duration','unholy_duration']),e.id==='satanic'?{lifesteal:v(e.item,'unholy_lifesteal_percent')}:{spellLifesteal:v(e.item,'spell_lifesteal_while_active')-(e.item.stats.spellLifesteal||0)});});
 define('sphere lotus_orb','allyHero',(g,h,e,p,target)=>{if(e.id==='lotus_orb')dispel(g,target);buff(g,target,e.item,v(e.item,['active_duration','upgrade_absorb_duration'],14),e.id==='sphere'?{spellBlock:true}:{spellReflect:true});});
-define('nullifier','enemyUnit',(g,h,e,p,target)=>{for(const [id,s]of Object.entries(target.statuses||{}))if(s.positive&&!s.undispellable)delete target.statuses[id];disable(g,target,e.item,v(e.item,'mute_duration'),{purged:true,slowPct:v(e.item,'slow_pct')},h);});
+define('nullifier','enemyUnit',(g,h,e,p,target)=>{if(!immune(g,target))for(const [id,s]of Object.entries(target.statuses||{}))if(s.positive&&!s.undispellable)delete target.statuses[id];status(g,target,'itemDebuff:nullifier',e.item,{duration:v(e.item,'mute_duration'),positive:false,purged:true,slowPct:v(e.item,'slow_pct'),sourceId:h.id,suppressedByDebuffImmunity:true,undispellable:true});});
 define('blade_mail','self',(g,h,e)=>buff(g,h,e.item,v(e.item,'duration'),{reflectPct:v(e.item,'active_reflection_pct')}));
 define('mask_of_madness','self',(g,h,e)=>buff(g,h,e.item,v(e.item,'berserk_duration'),{silenced:true,attackSpeed:v(e.item,'berserk_bonus_attack_speed'),movePercent:v(e.item,h.range>300?'berserk_bonus_movement_speed':'berserk_bonus_movement_speed_melee'),slowResistance:v(e.item,h.range>300?'berserk_slow_resist':'berserk_slow_resist_melee'),armor:-v(e.item,'berserk_armor_reduction')}));
 define('manta','self',(g,h,e)=>{dispel(g,h);buff(g,h,e.item,v(e.item,'invuln_duration'),{invulnerable:true});h.projectileDisjoint=(h.projectileDisjoint||0)+1;C.illusion(g,h,v(e.item,'images_count'),v(e.item,'illusion_duration'),v(e.item,h.range>300?'tooltip_damage_outgoing_ranged':'tooltip_damage_outgoing_melee'),v(e.item,'tooltip_damage_incoming_total_pct'));});
@@ -152,7 +152,7 @@ define('diffusal_blade disperser','anyUnit',(g,h,e,p,target)=>{
  }
  if(target.team!==h.team)disable(g,target,i,v(i,['enemy_effect_duration','purge_slow_duration']),{slowPct:100,decayingSlow:true,decayRate:v(i,'purge_rate')},h);
 },(g,h,e,p,target)=>e.id==='diffusal_blade'&&target?.team===h.team?reject('净魂之刃只能对敌军使用'):null);
-define('harpoon','enemyOrTree',(g,h,e,p,target)=>queueHarpoon(g,h,e.item,target));
+define('harpoon','enemyOrTree',(g,h,e,p,target)=>{if(C.fighter(target))resolveHarpoon(g,h,e.item,target);else queueHarpoon(g,h,e.item,target);});
 define('crellas_crozier','self',(g,h,e)=>{buff(g,h,e.item,v(e.item,'duration'),{crozierActive:true,ethereal:true,disarmed:true,magicResistancePct:Math.abs(v(e.item,'extra_spell_damage_percent'))});g.nextItemAuraAt=0;});
 define('meteor_hammer','point',(g,h,e,p)=>{
  h.itemChannel={kind:'meteor',itemId:e.id,uid:e.meta.uid,startedAt:g.time,until:g.time+(e.item.channelTime||v(e.item,'max_duration')),point:{...p},origin:{x:h.x,y:h.y}};
@@ -182,7 +182,7 @@ export function findItemTarget(g,h,entry,point){
  }else if(['allyOptional','allyHero','allyUnit','anyUnit','enemyUnit','enemyCreep','unitOrPoint'].includes(type)){
   const team=type.startsWith('ally')?'ally':type.startsWith('enemy')?'enemy':'both';
   const targetRange=t=>{const r=t.team!==h.team?v(entry.item,['enemy_cast_range','cast_range_enemy'],entry.item.range):entry.item.range;return r?r+(h.castRangeBonus||0):Infinity;};
-  target=C.targetAt(g,h,p,team,type==='allyHero'?['hero']:type==='enemyCreep'?['creep','neutral','summon']:undefined,targetRange,entry.id==='nullifier');
+  target=C.targetAt(g,h,p,team,type==='allyHero'?['hero']:type==='enemyCreep'?['creep','neutral','summon']:undefined,targetRange);
   if(!target&&type==='allyOptional')target=h;
  }
  if(['allyHero','allyUnit','anyUnit','enemyUnit','enemyCreep','tree','enemyOrTree'].includes(type)&&!target)return reject(type==='tree'?'请指向附近的树木':'请指向距离内的有效目标');

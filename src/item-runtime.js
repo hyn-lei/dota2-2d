@@ -5,7 +5,7 @@ import { ACTIVE_ITEM_HANDLERS, findItemTarget } from './item-actives.js';
 import * as C from './item-common.js';
 import { launchAttack } from './attack-projectiles.js';
 import {tickArmlet} from './armlet-runtime.js';
-import {startItemChain,queueMeteor,tickItemProjectiles} from './item-projectiles.js';
+import {startItemChain,queueMeteor,tickItemProjectiles,queueTargetItem} from './item-projectiles.js';
 import {weakIllusion} from './illusions.js';
 import {spendMana,restoreMana,expireTemporaryMana} from './mana-runtime.js';
 const {alive,distance,value:v,equipped,active,hasFlag,status,heal,enemies,slow,dot,stun}=C;
@@ -65,11 +65,19 @@ export function useItem(g,h,index,point,area='inventory',options={}){
  const cooldown=(travel?v(travel.item,'tp_cooldown'):item.id==='holy_locket'?v(item,'use_cooldown'):item.id==='armlet'?v(item,'toggle_cooldown'):item.cooldown)*(1-(h.cooldownReduction||0)/100);
  meta.cooldownRemaining=cooldown;h.itemCooldowns||={};h.itemCooldowns[item.sharedCooldown||item.id]=cooldown;
  if(item.abilityCharges&&item.id!=='holy_locket'){meta.charges--;meta.rechargeRemaining||=item.chargeRestoreTime*(1-(h.cooldownReduction||0)/100);}
- const blocked=target&&target.team!==h.team&&!options.reflected&&blockTargetSpell(g,h,target,{itemId:item.id});
- if(target&&target.team!==h.team&&!options.reflected&&hasFlag(g,target,'spellReflect')&&alive(target)&&alive(h))handler.run(g,target,{...entry,meta:{...meta}},h,h);
- if(!blocked)handler.run(g,h,entry,selection.point,target);
+ const outcome=resolveTargetItem(g,h,entry,selection.point,target,options);
  if(!options.reflected)Skills.ogreMulticastItem(g,h,entry,target,multicastMeta);
- meta.uses=(meta.uses||0)+1;return {ok:true,blocked:!!blocked};
+ meta.uses=(meta.uses||0)+1;return {ok:true,...outcome};
+}
+export function resolveTargetItem(g,h,entry,point,target,options={}){
+ if(!options.impact&&target&&target!==h&&['nullifier','ethereal_blade','harpoon'].includes(entry.id)&&C.fighter(target)){
+  queueTargetItem(g,h,entry,target,options);return {blocked:false,projectile:true};
+ }
+ const handler=ACTIVE_ITEM_HANDLERS[entry.id],hostile=target&&target.team!==h.team;
+ const blocked=hostile&&blockTargetSpell(g,h,target,{itemId:entry.id});
+ if(hostile&&!options.reflected&&hasFlag(g,target,'spellReflect')&&alive(target)&&alive(h))resolveTargetItem(g,target,{...entry,meta:{...entry.meta}},h,h,{reflected:true});
+ if(!blocked)handler.run(g,h,entry,point,target);
+ return {blocked:!!blocked};
 }
 export function blockTargetSpell(g,caster,target,spell){
  if(!target||target.team===caster.team)return false;
@@ -261,7 +269,7 @@ export function tickUnit(g,h,dt){
   if(s.manaPerSec)restoreMana(h,s.manaPerSec*duration);
   if(s.healthPercentDps&&duration)g.damage(h,h.maxHp*s.healthPercentDps/100*duration,g.entities.find(e=>e.id===s.sourceId),'magical');
   if(s.smoked&&g.entities.some(e=>alive(e)&&e.team!==h.team&&(e.kind==='hero'||e.kind==='tower')&&distance(e,h)<=s.breakRadius))delete h.statuses[s.id];
-  if(s.purged)for(const [id,b]of Object.entries(h.statuses))if(b.positive&&!b.undispellable)delete h.statuses[id];
+  if(s.purged&&!C.immune(g,h)&&!C.invulnerable(g,h))for(const [id,b]of Object.entries(h.statuses))if(b.positive&&!b.undispellable)delete h.statuses[id];
  }
  for(const e of passive(g,h)){
   if(e.id==='heart')heal(g,h,(h.maxHp*v(e.item,'hp_regen')+(h.maxHp-h.hp)*v(e.item,'missing_health_regen'))/100*dt,h,true);
@@ -323,7 +331,7 @@ export function tickWorld(g,dt){
   target.itemAura||={};target.itemAura.radiance={sourceId:source.id,dps};g.damage(target,dps*dt,source,'magical',{itemProc:true});
  }
  for(const zone of g.itemZones||[]){const h=g.entities.find(e=>e.id===zone.sourceId),i=ITEM_BY_ID[zone.itemId];if(!h||zone.until<=g.time)continue;
-  if(['itemChain','itemMeteor','itemHarpoon','itemShiva'].includes(zone.type))tickItemProjectiles(g,zone,h,i);
+  if(['itemChain','itemMeteor','itemHarpoon','itemShiva','itemTracking'].includes(zone.type))tickItemProjectiles(g,zone,h,i,resolveTargetItem);
   if(zone.type==='reveal')for(const target of enemies(g,h,zone,zone.radius))status(g,target,'revealed',i,{duration:1,revealed:true});
   if(zone.type==='distiller'){const target=enemies(g,h,zone,zone.radius).find(e=>e.kind==='hero');if(target){dot(g,target,i,v(i,'duration'),v(i,'soul_damage_amount'),h);zone.until=g.time;}}
   if(zone.type==='itemSmoke'){

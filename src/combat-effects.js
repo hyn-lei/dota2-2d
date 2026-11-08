@@ -45,6 +45,15 @@ function projectile(c,e,pose,zoom){
       polygon(c,[[-42,0],[-55,-7],[-32,-3],[-25,0]],'#9da56d');polygon(c,[[-42,0],[-55,7],[-32,3],[-25,0]],'#d9d2a2');}
     if(frost){glow(c,19,0,28,'#b0eeff8a');polygon(c,[[33,0],[11,-10],[18,0],[11,10]],'#dbfaff','#72cfea',1.5);for(let i=0;i<4;i++)crystal(c,-25-i*17,(noise(i)-.5)*15,7,Math.PI/2);}
     if(v==='shackleShot'){circle(c,0,0,12,null,'#eddd95',2);stroke(c,[[-32,-9],[-18,7],[-4,-9],[9,6]],'#c6aa65',2);}
+  }else if(v==='harpoon'){
+    stroke(c,[[-55,0],[22,0]],'#bdc9d1',4);polygon(c,[[32,0],[12,-9],[17,0],[12,9]],'#e5e8ed','#6b808d',1.5);
+    stroke(c,[[4,-1],[-7,-12],[-18,-11],[-22,-5]],'#a5bdcd',3);stroke(c,[[-55,0],[-75,4],[-90,-3]],'#9ca18c',1.5);
+  }else if(v==='ethereal_blade'){
+    glow(c,0,0,30,'#67e5b570');polygon(c,[[22,0],[0,-13],[-35,-8],[-17,0],[-35,8],[0,13]],'#9cf3dca0','#c9fff4',1.5);
+    for(let i=0;i<5;i++)stroke(c,[[-12-i*13,-8],[-24-i*13,Math.sin(i*2)*15],[-32-i*13,8]],'#a8f8dd80',2);
+  }else if(v==='nullifier'){
+    glow(c,0,0,28,'#e2b35670');circle(c,0,0,13,'#775c49','#efce8b',2);circle(c,1,0,7,'#a487c3','#e7d9ff',1);
+    for(let i=0;i<5;i++)circle(c,-18-i*11,Math.sin(i*2)*8,3,'#c3a9df90');
   }else if(v==='frostAttack'){
     c.save();c.rotate(Math.PI/2);crystal(c,0,0,29);c.restore();
     for(let i=0;i<5;i++){c.globalAlpha=.65*(1-i/5);crystal(c,-18-i*13,Math.sin(i*2.4)*8,7-i*.7,Math.PI/2);}
