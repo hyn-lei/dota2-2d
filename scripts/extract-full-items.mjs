@@ -35,7 +35,7 @@ const fields = {
   spell_lifesteal:'spellLifesteal', spell_amp:'spellAmp',
   movement_speed_percent_bonus:'moveSpeedPct', hp_regen_amp:'healthRegenAmp',
   mana_regen_multiplier:'manaRegenAmp', bonus_cooldown:'cooldownReduction',
-  bonus_aoe:'spellAoE', manacost_reduction:'manaCostReduction', cast_speed_pct:'castSpeed', slow_resistance:'slowResistance',
+  bonus_aoe:'spellAoE', aoe_bonus:'spellAoE', manacost_reduction:'manaCostReduction', cast_speed_pct:'castSpeed', slow_resistance:'slowResistance',
 };
 // These names are ambiguous across items: only map their verified permanent uses.
 const extraFields = {

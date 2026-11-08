@@ -16,6 +16,7 @@ import {flagbearerAura} from './unit-auras.js';
 import {armletHealthBonus} from './armlet-runtime.js';
 import {CollisionWorld} from './collision.js';
 import {ownsIllusion,weakIllusion} from './illusions.js';
+import {manaState,spendMana,restoreMana} from './mana-runtime.js';
 
 const distance = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
 const clamp = (n, low, high) => Math.max(low, Math.min(high, n));
@@ -145,11 +146,14 @@ export class Game {
   }
 
   _refreshHero(h) {
-    const hp=h.hp, mana=h.mana, oldHp=h.maxHp, oldMana=h.maxMana;
+    const hp=h.hp, mana=h.mana, oldHp=h.maxHp, oldMana=h.maxMana,temporary=manaState(h);
     const bonus={...talentStats(h.heroId,h.talents||[]),allAttributes:(h.attributeBonusLevel||0)*2};
+    const talentArea=bonus.spellAoE||0;delete bonus.spellAoE;
     bonus.strength=(bonus.strength||0)+(h.innateStrength||0);bonus.agility=(bonus.agility||0)+(h.innateAgility||0)+(h.trueshotAgility||0);
     const items=ItemRuntime.statItems(this,h);
     Object.assign(h,calculateHeroStats(h.heroId,h.level,[...items,{stats:bonus}],h));
+    h.spellAoE+=talentArea;
+    h.maxMana+=temporary.capacity;
     if(items.some(i=>i.id==='armlet')||h.armletHealthBonus!==undefined)h.armletHealthBonus=armletHealthBonus(items);
     h.hp=h.dead?0:clamp(hp+h.maxHp-oldHp,1,h.maxHp);
     h.mana=clamp(mana+h.maxMana-oldMana,0,h.maxMana);
@@ -558,12 +562,12 @@ export class Game {
         this._effect('burst',e.x,e.y,{radius,life:.7,color:'#d6aa72'});used=true;
       }else if(['harpy_storm_chain_lightning','mud_golem_hurl_boulder','satyr_hellcaller_shockwave','satyr_soulstealer_mana_burn'].includes(name)&&distanceToTarget<=Number(a.castRange||600)){
         const amount=rankValue(a.damage)||value(a,'damage',value(a,'initial_damage'));
-        if(name==='satyr_soulstealer_mana_burn'&&target.mana!==undefined){const burn=Math.min(target.mana,value(a,'mana_burn',100));target.mana-=burn;this.damage(target,burn,e,'magical');}
+        if(name==='satyr_soulstealer_mana_burn'&&target.mana!==undefined){const burn=spendMana(target,value(a,'mana_burn',100));this.damage(target,burn,e,'magical');}
         else this.damage(target,amount,e,'magical');
         if(name==='mud_golem_hurl_boulder')target.buffs.stunUntil=this.time+value(a,'stun_duration',.6);
         this._effect('beam',e.x,e.y,{tx:target.x,ty:target.y,color:'#b9c8dc',life:.3});used=true;
       }
-      if(used){e.mana=(e.mana||0)-manaCost;e.abilityCooldowns[name]=this.time+rankValue(a.cooldown,10);return;}
+      if(used){spendMana(e,manaCost);e.abilityCooldowns[name]=this.time+rankValue(a.cooldown,10);return;}
     }
   }
 
@@ -616,7 +620,7 @@ export class Game {
         const aura=flagbearerAura(this,e,flagSources);
         e.hp=Math.min(e.maxHp,e.hp+((e.hpRegen||0)+(aura?.hpRegen||0))*dt);
         if(e.backdoorActive){e.backdoorHealth=Math.max(e.backdoorHealth,e.hp);e.hp=Math.min(e.backdoorHealth,e.hp+90*dt);}
-        if(e.maxMana)e.mana=Math.min(e.maxMana,(e.mana||0)+(e.manaRegen||0)*dt);
+        if(e.maxMana)restoreMana(e,(e.manaRegen||0)*dt);
       }
       if (e.kind === 'tower'||e.kind==='fountain') this._towerTick(e);
       if (e.kind === 'creep') this._creepTick(e,dt);
@@ -793,9 +797,9 @@ export class Game {
   _heroTick(h,dt) {
     Inventory.tickInventory(this,h);
     ItemRuntime.regenerate(this,h,h.hpRegen*dt);
-    h.mana=Math.min(h.maxMana,h.mana+Skills.auraManaRegen(this,h)*dt);
+    restoreMana(h,Skills.auraManaRegen(this,h)*dt);
     const ownBase=BASES[h.team];
-    if(distance(h,ownBase)<1200){h.hp=Math.min(h.maxHp,h.hp+h.maxHp*.05*dt);h.mana=Math.min(h.maxMana,h.mana+(h.maxMana*.06+14)*dt);}
+    if(distance(h,ownBase)<1200){h.hp=Math.min(h.maxHp,h.hp+h.maxHp*.05*dt);restoreMana(h,(h.maxMana*.06+14)*dt);}
     if(h.dead)return;
     if(h.itemChannel||h.forcedMotion)return;
     const busy=Skills.tickHeroAbilities(this,h,dt);

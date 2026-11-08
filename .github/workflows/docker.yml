@@ -84,6 +84,7 @@ jobs:
           node tests/browser-illusions.mjs
           node tests/browser-illusion-coop.mjs
           node tests/browser-tidebringer.mjs
+          node tests/browser-mana-status.mjs
           node tests/browser-shop.mjs
           node tests/browser-items.mjs
           node tests/browser-vfx.mjs

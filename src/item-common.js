@@ -3,6 +3,7 @@ import * as Inventory from './inventory.js';
 import * as Skills from './hero-runtime.js';
 import { TREES, BASES } from './map-data.js';
 import {refreshedHealth} from './armlet-runtime.js';
+import {manaState,restoreManaRatio} from './mana-runtime.js';
 
 export const alive=e=>!!e&&!e.dead&&e.hp>0;
 export const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
@@ -50,9 +51,9 @@ export function equipped(g,h){
  return Inventory.itemEntries(h,['inventory','tp']).filter(e=>(e.meta.readyAt||0)<=g.time).map(e=>({...e,item:ITEM_BY_ID[e.id]})).filter(e=>e.item);
 }
 export function refresh(g,h){
- if(h.kind!=='hero')return;
- const hp=h.hp/h.maxHp,mana=h.maxMana?h.mana/h.maxMana:0,armletBonus=h.armletHealthBonus||0;g._refreshHero(h);
- h.hp=refreshedHealth(h,hp,armletBonus);h.mana=Math.max(0,Math.min(h.maxMana,mana*h.maxMana));
+ if(!['hero','illusion'].includes(h.kind))return;
+ const hp=h.hp/h.maxHp,mana=manaState(h),armletBonus=h.armletHealthBonus||0;g._refreshHero(h);
+ h.hp=refreshedHealth(h,hp,armletBonus);restoreManaRatio(h,mana);
 }
 export function consume(g,h,entry,count=1){
  if(Inventory.consumeItemCharge)return Inventory.consumeItemCharge(g,h,entry.area,entry.index,count);

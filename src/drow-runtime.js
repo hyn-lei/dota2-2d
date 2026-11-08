@@ -3,6 +3,7 @@ import { innateAt } from './ability-data.js';
 import { Navigator } from './navigation.js';
 import { allTrees } from './item-common.js';
 import {weakIllusion} from './illusions.js';
+import {spendMana} from './mana-runtime.js';
 const alive=e=>e&&!e.dead&&e.hp>0;
 const fighter=e=>['hero','creep','neutral','illusion','summon'].includes(e?.kind);
 const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
@@ -16,7 +17,7 @@ export function drowAttack(g,h,target,options,result){
  if(h.heroId!=='drow_ranger'||!['hero','illusion'].includes(h.kind))return result;
  const s=Skills.castingStats(h,Skills.skillOf(h,0));
  if(!weakIllusion(h)&&s.level&&fighter(target)&&(options.manualFrost||h.frostArrowTarget===target.id||h.autocast?.[0])&&h.mana>=s.mana){
-  h.mana-=s.mana;h.frostArrowTarget=null;result.frostArrow=s;
+  spendMana(h,s.mana);h.frostArrowTarget=null;result.frostArrow=s;
  }
  if(fighter(target)&&marksmanshipActive(g,h)&&g._random()*100<Skills.skillOf(h,3).values.chance){result.marksmanship=true;result.damage+=Skills.skillOf(h,3).values.bonus_damage;}
  if(glacierAt(g,h)&&!glacierAt(g,target))result.damage*=1+(Skills.extraSkillOf(h,'drow_ranger_glacier')?.values.damage_bonus||0)/100;

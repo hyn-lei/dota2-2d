@@ -1,4 +1,5 @@
 import * as Skills from './hero-runtime.js';
+import {grantTemporaryMana,expireTemporaryMana,restoreMana} from './mana-runtime.js';
 import * as Inventory from './inventory.js';
 import { ITEM_BY_ID } from './item-data.js';
 import { BASES } from './map-data.js';
@@ -20,10 +21,10 @@ define('blink overwhelming_blink swift_blink arcane_blink','point',(g,h,e,p)=>{
  g._effect('beam',old.x,old.y,{tx:h.x,ty:h.y,life:.25,color:'#a4c8e0'});
  if(item.id==='overwhelming_blink')for(const target of enemies(g,h,h,v(item,'radius'))){g.damage(target,v(item,'damage_base')+h.strength*v(item,'damage_pct_instant')/100,h,'magical');dot(g,target,item,v(item,'duration'),h.strength*v(item,'damage_pct_over_time')/100/v(item,'duration'),h);slow(g,target,item,v(item,'duration'),v(item,'movement_slow'),h,{attackSlow:v(item,'attack_slow')});}
  if(item.id==='swift_blink'){buff(g,h,item,v(item,'duration'),{movePercent:v(item,'bonus_movement'),bonusAgility:v(item,'bonus_agi_active'),phased:true});refresh(g,h);}
- if(item.id==='arcane_blink'){heal(g,h,v(item,'heal_amount'),h);h.mana=Math.min(h.maxMana,h.mana+v(item,'mana_amount'));}
+ if(item.id==='arcane_blink'){heal(g,h,v(item,'heal_amount'),h);restoreMana(h,v(item,'mana_amount'));}
 },(g,h,e)=>g.isRooted(h)?reject('定身期间无法闪烁'):(h.lastHeroDamageAt??-Infinity)+v(e.item,'blink_damage_cooldown',3)>g.time?reject('受到英雄伤害后暂时无法闪烁'):null);
 
-define('faerie_fire enchanted_mango','allyOptional',(g,h,e,p,target)=>{if(e.id==='faerie_fire')heal(g,h,v(e.item,'hp_restore'),h);else target.mana=Math.min(target.maxMana||0,(target.mana||0)+v(e.item,'replenish_amount'));consume(g,h,e);});
+define('faerie_fire enchanted_mango','allyOptional',(g,h,e,p,target)=>{if(e.id==='faerie_fire')heal(g,h,v(e.item,'hp_restore'),h);else restoreMana(target,v(e.item,'replenish_amount'));consume(g,h,e);});
 define('flask clarity bottle','allyOptional',(g,h,e,p,target)=>{
  const i=e.item;if(e.id==='flask')regen(g,target,i,v(i,'buff_duration'),v(i,'health_regen')*(target===h?1:.5),0,h,true);
  if(e.id==='clarity')regen(g,target,i,v(i,'buff_duration'),0,v(i,'mana_regen'),h,true);
@@ -32,7 +33,7 @@ define('flask clarity bottle','allyOptional',(g,h,e,p,target)=>{
 },(g,h,e)=>e.id==='bottle'&&!(e.meta.charges>0)?reject('魔瓶为空，回泉水补满'):null);
 define('magic_stick magic_wand holy_locket','allyOptional',(g,h,e,p,target)=>{
  const count=e.meta.charges||0,i=e.item,health=v(i,['health_restore_per_charge','restore_per_charge']),mana=v(i,['mana_restore_per_charge','restore_per_charge']);
- heal(g,e.id==='holy_locket'?target:h,count*health,h);const recipient=e.id==='holy_locket'?target:h;recipient.mana=Math.min(recipient.maxMana,recipient.mana+count*mana);e.meta.charges=0;
+ heal(g,e.id==='holy_locket'?target:h,count*health,h);const recipient=e.id==='holy_locket'?target:h;restoreMana(recipient,count*mana);e.meta.charges=0;
  if(e.id==='holy_locket')buff(g,target,i,v(i,'active_buff_duration'),{healReceivedAmp:v(i,'incoming_heal_increase_active')});
 },(g,h,e)=>!(e.meta.charges>0)?reject('尚未积累能量'):null);
 define('tango quelling_blade bfury','tree',(g,h,e,p,tree)=>{C.cutTree(g,tree);if(e.id==='tango'){regen(g,h,e.item,v(e.item,'buff_duration')*(tree.treeIndex===undefined?2:1),v(e.item,'health_regen'),0,h);consume(g,h,e);}});
@@ -60,11 +61,11 @@ define('power_treads','self',(g,h,e)=>{const modes=['strength','agility','intell
 define('phase_boots','self',(g,h,e)=>buff(g,h,e.item,v(e.item,'phase_duration'),{movePercent:v(e.item,h.range>300?'phase_movement_speed_range':'phase_movement_speed'),phased:true}));
 define('armlet','self',toggleArmlet);
 define('radiance rapier','self',(g,h,e)=>{e.meta.mode=e.id==='rapier'?(e.meta.mode==='spell'?'attack':'spell'):(e.meta.mode==='off'?'on':'off');refresh(g,h);});
-define('soul_ring','self',(g,h,e)=>{const amount=v(e.item,'mana_gain');h.hp=Math.max(1,h.hp-(e.item.healthCost||170));h.mana=Math.min(h.maxMana,h.mana+amount);buff(g,h,e.item,v(e.item,'duration'),{temporaryMana:amount,startedMana:h.mana});},(g,h,e)=>h.hp<=(e.item.healthCost||170)?reject('生命不足以使用灵魂之戒'):null);
+define('soul_ring','self',(g,h,e)=>{const old=h.statuses['itemBuff:soul_ring'];if(old)expireTemporaryMana(h,old);h.hp=Math.max(1,h.hp-(e.item.healthCost||170));const s=buff(g,h,e.item,v(e.item,'duration'),{undispellable:true});grantTemporaryMana(h,s,v(e.item,'mana_gain'));},(g,h,e)=>h.hp<=(e.item.healthCost||170)?reject('生命不足以使用灵魂之戒'):null);
 define('mekansm guardian_greaves arcane_boots','self',(g,h,e)=>{
  const i=e.item,radius=v(i,['replenish_radius','heal_radius'],1200),hp=v(i,['replenish_health','heal_amount']),mana=v(i,['replenish_mana','replenish_amount']);
  if(e.id==='guardian_greaves')dispel(g,h);
- for(const ally of allies(g,h,radius)){if(hp&&!active(g,ally,'mendLock')){heal(g,ally,hp,h);status(g,ally,'mendLock',i,{positive:true,duration:e.id==='mekansm'?50:40,hidden:true});}if(mana)ally.mana=Math.min(ally.maxMana||0,(ally.mana||0)+mana);}
+ for(const ally of allies(g,h,radius)){if(hp&&!active(g,ally,'mendLock')){heal(g,ally,hp,h);status(g,ally,'mendLock',i,{positive:true,duration:e.id==='mekansm'?50:40,hidden:true});}if(mana)restoreMana(ally,mana);}
  pulse(g,h,i,radius);
 });
 define('pipe crimson_guard','self',(g,h,e)=>{
@@ -97,7 +98,8 @@ define('sheepstick','enemyUnit',(g,h,e,p,target)=>{dispel(g,target);disable(g,ta
 define('orchid bloodthorn','enemyUnit',(g,h,e,p,target)=>disable(g,target,e.item,v(e.item,'silence_duration'),{silenced:true,accumulatedDamage:0,burstPct:v(e.item,'silence_damage_percent'),trueStrike:e.id==='bloodthorn',attackProcDamage:e.id==='bloodthorn'?v(e.item,'proc_damage_heroes'):0},h));
 define('cyclone wind_waker','anyUnit',(g,h,e,p,target)=>{
  const i=e.item;if(target.team===h.team)dispel(g,target);else if(immune(g,target))return;
- status(g,target,'cyclone',i,{positive:target.team===h.team,duration:v(i,'cyclone_duration'),invulnerable:true,stunned:e.id==='cyclone'||target.team!==h.team,disarmed:true,silenced:true,sourceId:h.id,dropDamage:target.team!==h.team?v(i,'tooltip_drop_damage'):0,canMoveInvulnerable:e.id==='wind_waker'&&target.team===h.team,moveOverride:e.id==='wind_waker'&&target.team===h.team?v(i,'tornado_speed'):0});Skills.interruptCast(g,target,false);
+ const movable=e.id==='wind_waker'&&target===h;
+ status(g,target,'cyclone',i,{positive:target.team===h.team,duration:v(i,'cyclone_duration'),invulnerable:true,stunned:!movable,disarmed:true,silenced:true,sourceId:h.id,dropDamage:target.team!==h.team?v(i,'tooltip_drop_damage'):0,canMoveInvulnerable:movable,moveOverride:movable?v(i,'tornado_speed'):0});Skills.interruptCast(g,target,false);
 },(g,h,e,p,target)=>e.id==='cyclone'&&target?.team===h.team&&target!==h?reject('Eul 只能对自己或敌方使用'):null);
 define('force_staff hurricane_pike','anyUnit',(g,h,e,p,target)=>{
  const i=e.item;if(e.id==='hurricane_pike'&&target.team!==h.team){const d=distance(h,target)||1,dx=(target.x-h.x)/d,dy=(target.y-h.y)/d,n=v(i,'enemy_length');forceMove(g,target,{x:target.x+dx*n,y:target.y+dy*n},v(i,'push_time'));forceMove(g,h,{x:h.x-dx*n,y:h.y-dy*n},v(i,'push_time'));buff(g,h,i,v(i,'range_duration'),{pikeTarget:target.id,attacksLeft:v(i,'max_attacks'),attackSpeed:v(i,'bonus_attack_speed')});h.explicitTarget=target.id;}
@@ -126,7 +128,7 @@ define('mask_of_madness','self',(g,h,e)=>buff(g,h,e.item,v(e.item,'berserk_durat
 define('manta','self',(g,h,e)=>{dispel(g,h);buff(g,h,e.item,v(e.item,'invuln_duration'),{invulnerable:true});h.projectileDisjoint=(h.projectileDisjoint||0)+1;C.illusion(g,h,v(e.item,'images_count'),v(e.item,'illusion_duration'),v(e.item,h.range>300?'tooltip_damage_outgoing_ranged':'tooltip_damage_outgoing_melee'),v(e.item,'tooltip_damage_incoming_total_pct'));});
 define('invis_sword silver_edge shadow_amulet glimmer_cape','allyOptional',(g,h,e,p,target)=>{
  const i=e.item,recipient=['invis_sword','silver_edge'].includes(e.id)?h:target,duration=v(i,['windwalk_duration','fade_duration','duration'],5),delay=v(i,['windwalk_fade_time','fade_time','initial_fade_delay']);
- buff(g,recipient,i,duration,{startedAt:g.time+delay,fadeStartedAt:g.time,fadeDuration:delay,invisible:true,phased:['invis_sword','silver_edge'].includes(e.id),glimmer:e.id==='glimmer_cape',secondaryFade:v(i,'secondary_fade_delay'),movePercent:v(i,['windwalk_movement_speed','active_movement_speed'])-v(i,'movement_speed_reduction'),attackBonus:v(i,'windwalk_bonus_damage'),breakDuration:e.id==='silver_edge'?v(i,'backstab_duration'):0});
+ buff(g,recipient,i,duration,{startedAt:g.time+delay,fadeStartedAt:g.time,fadeDuration:delay,invisible:true,phased:['invis_sword','silver_edge'].includes(e.id),glimmer:e.id==='glimmer_cape',secondaryFade:v(i,'secondary_fade_delay'),flatSpeed:v(i,'active_movement_speed'),movePercent:v(i,'windwalk_movement_speed')-v(i,'movement_speed_reduction'),attackBonus:v(i,'windwalk_bonus_damage'),breakDuration:e.id==='silver_edge'?v(i,'backstab_duration'):0});
  if(e.id==='glimmer_cape')barrier(g,target,i,v(i,'barrier_block'),duration,'magical');
 });
 define('mjollnir','allyUnit',(g,h,e,p,target)=>buff(g,target,e.item,v(e.item,'static_duration'),{staticShield:true,sourceId:h.id,nextProc:0}));

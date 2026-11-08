@@ -1,9 +1,10 @@
-import { abilityAt, innateAt, talentStats, extraAbilityAt } from './ability-data.js';
+import { abilityAt, innateAt, extraAbilityAt } from './ability-data.js';
 import { EXTRA_ABILITIES } from './upgrade-data.js';
 import { TREES } from './map-data.js';
 import * as Ogre from './ogre-runtime.js';
 import * as Drow from './drow-runtime.js';
 import {weakIllusion,strongIllusion} from './illusions.js';
+import {spendMana,clearTemporaryMana} from './mana-runtime.js';
 const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
 const alive=e=>e&&!e.dead&&e.hp>0;
 const fighter=e=>['hero','creep','neutral','illusion','summon'].includes(e?.kind);
@@ -24,7 +25,7 @@ export function extraSkillOf(h,id){
 export function extraAbilities(h){return (EXTRA_ABILITIES[h.heroId]||[]).map(s=>extraSkillOf(h,s.id)).filter(Boolean);}
 export const castingStats=(h,s)=>s&&({...s,range:s.range+(h.castRangeBonus||0),mana:s.mana*(1-(h.manaCostReduction||0)/100),castPoint:s.castPoint*(1-(h.castSpeed||0)/100)*(s.id==='ogre_magi_fireblast'?1-(s.values.bonus_cast_speed||0)/100:1)});
 const targets=(g,h,center,radius)=>g.entities.filter(e=>alive(e)&&fighter(e)&&e.team!==h.team&&distance(e,center)<=radius+e.radius);
-const areaBonus=h=>(talentStats(h.heroId,h.talents||[]).spellAoE||0)+(h.spellAoE||0);
+const areaBonus=h=>h.spellAoE||0;
 export function hasStatusFlag(g,e,flag){
  const aliases={stunned:'stun',rooted:'root',silenced:'silence',disarmed:'disarm',muted:'mute',break:'break',hex:'hex',invulnerable:'invulnerable',debuffImmune:'spin'};
  const statuses=Object.values(e?.statuses||{}),immune=statuses.some(s=>s.startedAt<=g.time+1e-7&&s.until>g.time+1e-7&&(s.debuffImmune||s.id==='spin'));
@@ -196,7 +197,7 @@ function releaseCast(g,h,phase){
  if(phase.extraId&&!extraSkillOf(h,phase.extraId))return;
  if(phase.extraId==='ogre_magi_unrefined_fireblast')s.mana=h.mana*v.scepter_mana/100*(1-(h.manaCostReduction||0)/100);
  if(h.mana<s.mana)return;
- h.mana-=s.mana;const cooldown=s.cooldown*(1-(h.cooldownReduction||0)/100);if(phase.extraId){h.extraCooldowns||={};h.extraCooldowns[phase.extraId]=cooldown;h.extraCooldownTick=g.time;}else h.cooldowns[index]=cooldown;if(s.id!=='drow_ranger_glacier')h.angle=Math.atan2(point.y-h.y,point.x-h.x);
+ spendMana(h,s.mana);const cooldown=s.cooldown*(1-(h.cooldownReduction||0)/100);if(phase.extraId){h.extraCooldowns||={};h.extraCooldowns[phase.extraId]=cooldown;h.extraCooldownTick=g.time;}else h.cooldowns[index]=cooldown;if(s.id!=='drow_ranger_glacier')h.angle=Math.atan2(point.y-h.y,point.x-h.x);
  if(h.heroId==='crystal_maiden'&&s.mana>0){const a=innate(h);const shield=addStatus(g,h,'barrier',{name:'冰川护体',description:'抵挡物理伤害；由消耗的魔法转化。',positive:true,icon:'shield',duration:a.values.barrier_duration,barrier:(active(g,h,'barrier')?.barrier||0)+s.mana*a.values.mana_multiplier/100});shield.stacks=Math.ceil(shield.barrier);}
  if(h.heroId==='windranger')grantTailwind(g,h);
  g.onSpellCast?.(h,s,target);
@@ -551,7 +552,7 @@ export function onUnitKilled(g,target,source){
  Drow.onDrowTargetKilled(g,target);
  if(target.crystalClone)detonateClone(g,target);
  if(source){for(const [id,s]of Object.entries(source.statuses||{}))if(s.hunger||id==='hunger')removeStatus(source,id);if(source.heroId==='windranger'&&active(g,source,'focus')&&source.focusTargetId===target.id&&target.kind==='hero'){const s=skillOf(source,3);source.cooldowns[3]=Math.max(0,source.cooldowns[3]-(s.values.cooldown_reduction_per_kill||0));}}
- interruptCast(g,target,false);target.statuses={};target.omnislash=null;target.bladeformStacks=0;target.tailwinds=[];target.focusTargetId=null;
+ interruptCast(g,target,false);clearTemporaryMana(target);target.statuses={};target.omnislash=null;target.bladeformStacks=0;target.tailwinds=[];target.focusTargetId=null;
  if(target.kind==='hero'&&(target.innateStrength||target.innateAgility)){target.innateStrength=0;target.innateAgility=0;g._refreshHero(target);}
  for(const e of g.entities){
   if(e.statuses?.taunt?.sourceId===target.id||e.buffs?.tauntSourceId===target.id)removeStatus(e,'taunt');

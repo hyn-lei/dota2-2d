@@ -7,6 +7,7 @@ import { launchAttack } from './attack-projectiles.js';
 import {tickArmlet} from './armlet-runtime.js';
 import {startItemChain,queueMeteor,tickItemProjectiles} from './item-projectiles.js';
 import {weakIllusion} from './illusions.js';
+import {spendMana,restoreMana,expireTemporaryMana} from './mana-runtime.js';
 const {alive,distance,value:v,equipped,active,hasFlag,status,heal,enemies,slow,dot,stun}=C;
 const reject=reason=>({ok:false,reason});
 const statuses=(g,h)=>Object.values(h.statuses||{}).filter(s=>s.startedAt<=g.time&&s.until>g.time);
@@ -59,7 +60,7 @@ export function useItem(g,h,index,point,area='inventory',options={}){
  const {handler,target}=selection;
  if(target?.team!==h.team&&target&&C.immune(g,target)&&!['abyssal_blade','nullifier'].includes(item.id))return reject('目标处于减益免疫状态');
  if(!item.behaviors.includes('DOTA_ABILITY_BEHAVIOR_IGNORE_CHANNEL')){Skills.interruptCast(g,h,true);h.itemChannel=null;delete h.statuses.itemChannel;}
- h.mana-=manaCost;meta.used=true;
+ spendMana(h,manaCost);meta.used=true;
  const travel=item.id==='tpscroll'&&passive(g,h).find(e=>e.id.startsWith('travel_boots'));
  const cooldown=(travel?v(travel.item,'tp_cooldown'):item.id==='holy_locket'?v(item,'use_cooldown'):item.id==='armlet'?v(item,'toggle_cooldown'):item.cooldown)*(1-(h.cooldownReduction||0)/100);
  meta.cooldownRemaining=cooldown;h.itemCooldowns||={};h.itemCooldowns[item.sharedCooldown||item.id]=cooldown;
@@ -162,7 +163,7 @@ export function afterAttack(g,h,target,result,dealt){
    else if((entry.meta.echoReadyAt||0)<=g.time){for(const echo of entries)if(['echo_sabre','harpoon'].includes(echo.id))echo.meta.echoReadyAt=g.time+v(i,'passive_cooldown',i.cooldown||5);h.attackCooldown=Math.min(h.attackCooldown,.2);h.echoSecondAttack=true;slow(g,target,i,v(i,'slow_duration'),v(i,'movement_slow'),h);}
   }
   if(entry.id==='tranquil_boots'&&target.kind==='hero'){entry.meta.brokenUntil=g.time+v(i,'break_time');C.refresh(g,h);}
-  if(v(i,'feedback_mana_burn')&&!burned){burned=true;const burn=Math.min(target.mana||0,v(i,'feedback_mana_burn'));target.mana-=burn;g.damage(target,burn*v(i,'damage_per_burn',1),h,'physical',{itemProc:true,attackDamage:true});}
+  if(v(i,'feedback_mana_burn')&&!burned){burned=true;const burn=spendMana(target,v(i,'feedback_mana_burn'));g.damage(target,burn*v(i,'damage_per_burn',1),h,'physical',{itemProc:true,attackDamage:true});}
   if(entry===corrosion){const old=active(g,target,'corruption');if(!old||v(i,'corruption_armor')<=(old.armor||0))status(g,target,'corruption',i,{duration:v(i,['corruption_duration','duration']),armor:v(i,'corruption_armor'),sourceId:h.id,keepLonger:false});}
   if(entry.id==='mage_slayer'){dot(g,target,i,v(i,'duration'),v(i,'dps'),h);status(g,target,'mageSlayer',i,{duration:v(i,'duration'),outgoingSpellReduction:v(i,'spell_amp_debuff')});}
   if(entry.id==='skadi')slow(g,target,i,v(i,'cold_duration'),Math.abs(v(i,target.range>300?'cold_slow_ranged':'cold_slow_melee')),h,{attackSlow:Math.abs(v(i,target.range>300?'cold_attack_slow_ranged':'cold_attack_slow_melee')),healReduction:v(i,'restoration_reduction')});
@@ -239,7 +240,7 @@ export function expiredStatus(g,h,s){
  const source=g.entities.find(e=>e.id===s.sourceId);
  if(s.burstPct&&source&&alive(h))g.damage(h,(s.accumulatedDamage||0)*s.burstPct/100,source,'magical',{burst:true});
  if(s.dropDamage&&source&&alive(h))g.damage(h,s.dropDamage,source,'magical');
- if(s.temporaryMana)h.mana=Math.max(0,h.mana-s.temporaryMana);
+ expireTemporaryMana(h,s);
  if(s.bonusAgility)C.refresh(g,h);
 }
 export function tickUnit(g,h,dt){
@@ -257,7 +258,7 @@ export function tickUnit(g,h,dt){
  for(const s of Object.values(h.statuses||{})){
   const duration=Math.max(0,Math.min(g.time,s.until)-Math.max(g.time-dt,s.startedAt));
   if(s.hpPerSec)heal(g,h,s.hpPerSec*duration,g.entities.find(e=>e.id===s.sourceId),true);
-  if(s.manaPerSec)h.mana=Math.min(h.maxMana,h.mana+s.manaPerSec*duration);
+  if(s.manaPerSec)restoreMana(h,s.manaPerSec*duration);
   if(s.healthPercentDps&&duration)g.damage(h,h.maxHp*s.healthPercentDps/100*duration,g.entities.find(e=>e.id===s.sourceId),'magical');
   if(s.smoked&&g.entities.some(e=>alive(e)&&e.team!==h.team&&(e.kind==='hero'||e.kind==='tower')&&distance(e,h)<=s.breakRadius))delete h.statuses[s.id];
   if(s.purged)for(const [id,b]of Object.entries(h.statuses))if(b.positive&&!b.undispellable)delete h.statuses[id];
@@ -265,7 +266,7 @@ export function tickUnit(g,h,dt){
  for(const e of passive(g,h)){
   if(e.id==='heart')heal(g,h,(h.maxHp*v(e.item,'hp_regen')+(h.maxHp-h.hp)*v(e.item,'missing_health_regen'))/100*dt,h,true);
  }
- const aura=h.itemAura||{};if(aura.hpRegen)heal(g,h,aura.hpRegen*dt,h,true);if(aura.manaRegen)h.mana=Math.min(h.maxMana,h.mana+aura.manaRegen*dt);
+ const aura=h.itemAura||{};if(aura.hpRegen)heal(g,h,aura.hpRegen*dt,h,true);if(aura.manaRegen)restoreMana(h,aura.manaRegen*dt);
  if(h.forcedMotion){const m=h.forcedMotion,t=Math.min(1,(g.time-m.startedAt)/(m.until-m.startedAt));Object.assign(h,{x:m.from.x+(m.to.x-m.from.x)*t,y:m.from.y+(m.to.y-m.from.y)*t});h.moving=true;if(t>=1)h.forcedMotion=null;}
  if(h.itemChannel){
   const channel=h.itemChannel,target=g.entities.find(e=>e.id===channel.targetId),i=ITEM_BY_ID[channel.itemId];

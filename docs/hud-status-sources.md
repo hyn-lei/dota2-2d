@@ -53,3 +53,5 @@
 验收见 [2026-11-07 HUD 与状态栏记录](verification/2026-11-07-hud-status.md)。
 
 选中单位、头部头像、天赋和商店的后续验收见 [2026-11-07 选中单位 HUD 记录](verification/2026-11-07-selected-hud.md)。
+
+2026-11-08 补齐幻象继承的派生状态与潮汐使者就绪状态，去除重复臂章图标；来源和实际浏览器验证见 [本次说明](mana-area-status-sources.md)。

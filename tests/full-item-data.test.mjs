@@ -57,6 +57,7 @@ test('temporary effects are not granted as permanent equipment bonuses', () => {
   assert.equal(ITEM_BY_ID.armlet?.stats.damage, 15);
   assert.equal(ITEM_BY_ID.moon_shard?.stats.attackSpeed, 140);
   assert.equal(ITEM_BY_ID.consecrated_wraps?.stats.magicResistance, 12);
+  assert.equal(ITEM_BY_ID.chasm_stone?.stats.spellAoE, 40);
 });
 
 test('every purchasable entry has readable Chinese data and a cached valid official icon', async () => {

@@ -1,0 +1,11 @@
+{
+  "retrieved": "2026-11-08",
+  "patch": "7.41f",
+  "source": "https://www.dota2.com/datafeed/itemdata?language=schinese&item_id={id}",
+  "items": [
+    178,
+    254,
+    610,
+    1872
+  ]
+}

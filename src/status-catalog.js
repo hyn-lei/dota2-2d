@@ -30,10 +30,14 @@ export function derivedStatusEffects(g,h){
   const meta=h.inventoryMeta?.[index],item=ITEM_BY_ID.armlet;
   if(meta?.mode==='on'&&meta.ownerId===h.id&&(meta.readyAt||0)<=g.time)effects.push(persistent('armletUnholy','邪恶之力',`力量 +${num(meta.armletStrength??item.values.unholy_bonus_strength)}，攻击力 +${item.values.unholy_bonus_damage}，护甲 +${item.values.unholy_bonus_armor}。每秒失去 ${item.values.unholy_health_drain_per_second} 生命。`,{itemId:id}));
  }
- if(h.kind==='hero'){
+ if(h.kind==='hero'||h.kind==='illusion'){
   const mana=auraManaSources(g,h);
   if(mana.length)effects.push(persistent('arcaneAura','奥术光环',`魔法恢复 +${num(Math.max(...mana.map(s=>s.value)))}/秒。${mana.some(s=>s.amp)?`自身魔法恢复增强 ${num(Math.max(...mana.map(s=>s.amp)))}%。`:''}`));
   if(h.trueshotAgility>0)effects.push(persistent('trueshot','精准光环',`敏捷 +${num(h.trueshotAgility)}。来自卓尔游侠的精准光环。`));
+  if(h.heroId==='kunkka'&&(h.cooldowns?.[1]||0)<=0&&h.autocast?.[1]!==false&&!hasStatusFlag(g,h,'break')){
+   const s=abilityAt(h.heroId,1,h.abilityLevels?.[1]||0,h.talents||[],h);
+   if(s.level)effects.push(persistent('tide','潮汐使者',`下次有效攻击增加 ${s.values.damage_bonus} 伤害，并造成 ${s.values.cleave_damage}% 分裂伤害。`,{sourceId:h.id}));
+  }
   if(h.heroId==='axe'&&h.cullingStacks>0){const s=abilityAt(h.heroId,3,h.abilityLevels?.[3]||0,h.talents||[],h);effects.push(persistent('cullingArmor','淘汰之刃永久护甲',`永久护甲 +${num(h.cullingStacks*s.values.armor_per_stack)}。`,{stacks:h.cullingStacks}));}
   if(h.heroId==='drow_ranger'){
    const s=abilityAt(h.heroId,3,h.abilityLevels?.[3]||0,h.talents||[],h);
@@ -45,7 +49,6 @@ export function derivedStatusEffects(g,h){
   for(const [index,itemId]of (h.inventory||[]).entries()){
    const meta=h.inventoryMeta?.[index];if(!meta||meta.ownerId!==h.id||(meta.readyAt||0)>g.time)continue;
    if(itemId==='sphere'&&!(meta.cooldownRemaining>0))effects.push(persistent('spellBlock','林肯法球','抵挡下一次敌方指向性法术。',{itemId}));
-   if(itemId==='armlet'&&meta.mode==='on')effects.push(persistent('armlet','邪恶之力',ITEM_BY_ID.armlet.description,{itemId}));
    if(itemId==='tranquil_boots'&&meta.brokenUntil>g.time)effects.push({id:'tranquilBroken',name:'静谧之鞋失效',description:'暂时失去生命恢复与部分移动速度加成。',positive:false,until:meta.brokenUntil,duration:ITEM_BY_ID[itemId].values.break_time,itemId});
   }
  }
