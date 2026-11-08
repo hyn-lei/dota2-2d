@@ -77,6 +77,8 @@ jobs:
         run: |
           node tests/browser-hud.mjs
           node tests/browser-selected-hud.mjs
+            node tests/browser-unit-skills.mjs
+            node tests/browser-economy.mjs
           node tests/browser-shop.mjs
           node tests/browser-items.mjs
           node tests/browser-vfx.mjs

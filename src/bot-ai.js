@@ -291,7 +291,7 @@ function macroGoal(g,h,ctx){
   // Help an actual nearby fight or defend a pressured allied tower before farming.
   if(!nightmare(g,h)){
     const allies=g.entities.filter(e=>e.kind==='hero'&&e.team===h.team&&e!==h&&alive(e));
-    for(const ally of allies){const enemy=g.entities.find(e=>e.id===ally.targetId&&e.kind==='hero'&&e.team!==h.team&&alive(e)&&g.canSee(h,e));
+    for(const ally of allies){const enemy=ally.targetId&&g.entities.find(e=>e.id===ally.targetId&&e.kind==='hero'&&e.team!==h.team&&alive(e)&&g.canSee(h,e));
       if(enemy&&distance(h,ally)<2400&&distance(ally,enemy)<900&&ally.hp/ally.maxHp>.25){state.mode='assist';return state.goal={x:enemy.x,y:enemy.y};}}
     const defense=g.entities.filter(t=>t.kind==='tower'&&t.team===h.team&&alive(t)&&distance(h,t)<3200).find(t=>g.entities.some(e=>e.team!==h.team&&fighter(e)&&alive(e)&&distance(t,e)<650));
     if(defense){state.mode='defend';h.lane=defense.lane??h.lane;return state.goal={x:defense.x+(BASES[h.team].x-defense.x)*.03,y:defense.y+(BASES[h.team].y-defense.y)*.03};}

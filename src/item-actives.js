@@ -3,6 +3,7 @@ import * as Inventory from './inventory.js';
 import { ITEM_BY_ID } from './item-data.js';
 import { BASES } from './map-data.js';
 import * as C from './item-common.js';
+import {toggleArmlet} from './armlet-runtime.js';
 const {alive,distance,value:v,status,active,immune,invulnerable,heal,regen,allies,enemies,slow,dot,stun,dispel,forceMove,teleport,consume,refresh}=C;
 const handlers={};
 function define(ids,target,run,validate){for(const id of ids.split(' '))handlers[id]={target,run,validate};}
@@ -50,7 +51,8 @@ define('smoke_of_deceit','self',(g,h,e)=>{for(const ally of allies(g,h,v(e.item,
 define('moon_shard','allyHero',(g,h,e,p,target)=>{target.moonShard=true;refresh(g,target);Inventory.consumeItem(g,h,e.area,e.index);},(g,h,e,p,target)=>target?.moonShard?reject('目标已经吞服银月之晶'):null);
 define('power_treads','self',(g,h,e)=>{const modes=['strength','agility','intelligence'];e.meta.mode=modes[(modes.indexOf(e.meta.mode||'strength')+1)%3];refresh(g,h);});
 define('phase_boots','self',(g,h,e)=>buff(g,h,e.item,v(e.item,'phase_duration'),{movePercent:v(e.item,h.range>300?'phase_movement_speed_range':'phase_movement_speed'),phased:true}));
-define('armlet radiance rapier','self',(g,h,e)=>{e.meta.mode=e.id==='rapier'?(e.meta.mode==='spell'?'attack':'spell'):(e.meta.mode==='off'?'on':e.meta.mode==='on'?'off':e.id==='armlet'?'on':'off');refresh(g,h);});
+define('armlet','self',toggleArmlet);
+define('radiance rapier','self',(g,h,e)=>{e.meta.mode=e.id==='rapier'?(e.meta.mode==='spell'?'attack':'spell'):(e.meta.mode==='off'?'on':'off');refresh(g,h);});
 define('soul_ring','self',(g,h,e)=>{const amount=v(e.item,'mana_gain');h.hp=Math.max(1,h.hp-(e.item.healthCost||170));h.mana=Math.min(h.maxMana,h.mana+amount);buff(g,h,e.item,v(e.item,'duration'),{temporaryMana:amount,startedMana:h.mana});},(g,h,e)=>h.hp<=(e.item.healthCost||170)?reject('生命不足以使用灵魂之戒'):null);
 define('mekansm guardian_greaves arcane_boots','self',(g,h,e)=>{
  const i=e.item,radius=v(i,['replenish_radius','heal_radius'],1200),hp=v(i,['replenish_health','heal_amount']),mana=v(i,['replenish_mana','replenish_amount']);

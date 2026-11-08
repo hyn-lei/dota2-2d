@@ -12,6 +12,8 @@ import * as Courier from './courier.js';
 import { attackVisualFields } from './combat-visuals.js';
 import { launchAttack, tickAttacks, attackProfile, isRangedAttack } from './attack-projectiles.js';
 import * as Bots from './bot-ai.js';
+import {flagbearerAura} from './unit-auras.js';
+import {armletHealthBonus} from './armlet-runtime.js';
 
 const distance = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
 const clamp = (n, low, high) => Math.max(low, Math.min(high, n));
@@ -80,7 +82,7 @@ export class Game {
     this._spawnRoshan();
   }
 
-  get player() { return this.entities.find(e => e.id===this.controlledHeroId)||this.entities.find(e => e.isPlayer); }
+  get player() { return (this.controlledHeroId&&this.entities.find(e => e.id===this.controlledHeroId))||this.entities.find(e => e.isPlayer); }
   get selected() { return this.entities.find(e=>e.id===this.selectedId) || this.player; }
   get courier() { return Courier.ensureCourier(this,this.player); }
   courierCommand(command) { return Courier.courierCommand(this,this.player,command); }
@@ -126,7 +128,9 @@ export class Game {
     const hp=h.hp, mana=h.mana, oldHp=h.maxHp, oldMana=h.maxMana;
     const bonus={...talentStats(h.heroId,h.talents||[]),allAttributes:(h.attributeBonusLevel||0)*2};
     bonus.strength=(bonus.strength||0)+(h.innateStrength||0);bonus.agility=(bonus.agility||0)+(h.innateAgility||0)+(h.trueshotAgility||0);
-    Object.assign(h,calculateHeroStats(h.heroId,h.level,[...ItemRuntime.statItems(this,h),{stats:bonus}],h));
+    const items=ItemRuntime.statItems(this,h);
+    Object.assign(h,calculateHeroStats(h.heroId,h.level,[...items,{stats:bonus}],h));
+    if(items.some(i=>i.id==='armlet')||h.armletHealthBonus!==undefined)h.armletHealthBonus=armletHealthBonus(items);
     h.hp=h.dead?0:clamp(hp+h.maxHp-oldHp,1,h.maxHp);
     h.mana=clamp(mana+h.maxMana-oldMana,0,h.maxMana);
   }
@@ -134,7 +138,11 @@ export class Game {
   setPaused(value) { this.paused = !!value; }
 
   skill(index,hero=this.player) { return Skills.skillOf(hero,index); }
-  combatStats(unit,target=null) { return ItemRuntime.combatStats(this,unit,Skills.combatStats(this,unit,target),target); }
+  combatStats(unit,target=null) {
+    const stats=ItemRuntime.combatStats(this,unit,Skills.combatStats(this,unit,target),target);
+    if(unit.kind==='creep'){const aura=flagbearerAura(this,unit,this._flagSources||this.entities);if(aura)stats.magicResistance=1-(1-(stats.magicResistance||0))*(1-aura.magicResistance);}
+    return stats;
+  }
   extraAbilities(hero=this.player) { return Skills.extraAbilities(hero); }
   castExtra(id,point) { return Skills.castExtraAbility(this,this.player,id,point); }
   useItem(index,point,area='inventory') { return ItemRuntime.useItem(this,this.player,index,point,area); }
@@ -488,7 +496,7 @@ export class Game {
   _neutralTick(e,dt) {
     if(e.buffs.stunUntil>this.time)return;
     if(this._tauntedTick(e,dt))return;
-    let target=this.entities.find(t=>t.id===e.targetId&&alive(t));
+    let target=e.targetId?this.entities.find(t=>t.id===e.targetId&&alive(t)):null;
     if(target&&(this.time>e.aggroUntil||distance(e,e.campCenter)>(e.isRoshan?1000:1600))){e.returning=true;target=null;e.targetId=null;}
     if(e.returning){
       this._move(e,e.home,dt,12);
@@ -555,6 +563,7 @@ export class Game {
     if (this.time>=this.roshanRespawnAt) this._spawnRoshan();
     this.effects = this.effects.filter(fx => (fx.life = fx.startedAt==null ? fx.life-dt : fx.maxLife-(this.time-fx.startedAt)) > 0);
     this._index();
+    const flagSources=this._flagSources=this.entities.filter(e=>e.abilities?.includes('flagbearer_creep_aura_effect'));
     if(this.time>=this.nextBuildingCheck){this._updateBackdoor();this.nextBuildingCheck=this.time+.25;}
     for (const e of this.entities) {
       e.attackCooldown = Math.max(0,e.attackCooldown - dt);
@@ -576,7 +585,8 @@ export class Game {
       }
       if (!alive(e) || this.status !== 'playing') continue;
       if(e.kind!=='hero'){
-        e.hp=Math.min(e.maxHp,e.hp+(e.hpRegen||0)*dt);
+        const aura=flagbearerAura(this,e,flagSources);
+        e.hp=Math.min(e.maxHp,e.hp+((e.hpRegen||0)+(aura?.hpRegen||0))*dt);
         if(e.backdoorActive){e.backdoorHealth=Math.max(e.backdoorHealth,e.hp);e.hp=Math.min(e.backdoorHealth,e.hp+90*dt);}
         if(e.maxMana)e.mana=Math.min(e.maxMana,(e.mana||0)+(e.manaRegen||0)*dt);
       }
@@ -586,6 +596,7 @@ export class Game {
       if (e.kind === 'ward') Skills.tickWard(this,e,dt);
     }
     Courier.tickCouriers(this,dt);
+    this._flagSources=null;
     // Keep persistent heroes/buildings for scoreboards; discarded creep corpses fade briefly.
     this.entities = this.entities.filter(e => !['creep','neutral','ward','droppedItem','illusion','summon'].includes(e.kind) || !e.dead || this.time - e.deathTime < 1.1);
   }

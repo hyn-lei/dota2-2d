@@ -101,8 +101,7 @@ export class Renderer {
       circle(c,mark.x,mark.y,52,null,col,2/this.zoom);line(c,[{x:mark.x-25,y:mark.y-25},{x:mark.x+25,y:mark.y+25}],col,3/this.zoom);line(c,[{x:mark.x+25,y:mark.y-25},{x:mark.x-25,y:mark.y+25}],col,3/this.zoom);
       c.font=`${11/this.zoom}px Consolas,monospace`;c.textAlign='center';c.fillStyle=col;c.fillText(`${Math.max(0,mark.expiresAt-game.time).toFixed(1)}s`,mark.x,mark.y+52+14/this.zoom);c.restore();
     }
-    const entities=game.entities.filter(e=>(!e.dead||BUILDINGS.has(e.kind))&&(e.team===game.player?.team||!game.canSee||game.canSee(game.player,e))&&Math.abs(e.x-this.camera.x)<=halfW+450&&Math.abs(e.y-this.camera.y)<=halfH+450).sort((a,b)=>a.y-b.y);
-    const auraEntities=game.entities.filter(e=>!e.dead&&(e.team===game.player?.team||!game.canSee||game.canSee(game.player,e))&&Math.abs(e.x-this.camera.x)<=halfW+Math.max(450,unitAuraRadius(e,game.time))&&Math.abs(e.y-this.camera.y)<=halfH+Math.max(450,unitAuraRadius(e,game.time)));
+    const {entities,auraEntities}=visibleRenderUnits(game,p,this.camera,halfW,halfH);
     for(const e of auraEntities)drawUnitCombatEffects(c,e,game,this.zoom,'ground');
     for(const e of entities){if(this.zoom<.15)this.drawOverviewEntity(c,e);else if(BUILDINGS.has(e.kind))this.drawBuilding(c,e,game,time);else this.drawUnit(c,e,game,time);}
     for(const e of auraEntities)drawUnitCombatEffects(c,e,game,this.zoom,'above');
@@ -330,7 +329,8 @@ export class Renderer {
     c.save();c.translate(offsetX,offsetY);c.beginPath();c.rect(0,0,side,side);c.clip();c.drawImage(this.terrain,0,0,side,side);
     c.fillStyle='rgba(7,15,14,.19)';c.fillRect(0,0,side,side);
     for(const camp of game.camps||CAMP_LAYOUT){const x=camp.x*scale,y=camp.y*scale,r=camp.type==='ancient'?2.2:1.6;poly(c,[[x,y-r],[x+r,y],[x,y+r],[x-r,y]],CAMP_COLORS[camp.type]||'#d9bb7c','#263227',.6);}
-    const entities=game.entities.filter(e=>(!e.dead||BUILDINGS.has(e.kind))&&(e.team===game.player?.team||!game.canSee||game.canSee(game.player,e)));
+    const player=game.player;
+    const entities=game.entities.filter(e=>(!e.dead||BUILDINGS.has(e.kind))&&(e.team===player?.team||!game.canSee||game.canSee(player,e)));
     for(const e of entities){
       const x=e.x*scale,y=e.y*scale,color=e.dead?'#77766b':e.isPlayer?'#fff1b7':unitColor(e);
       c.fillStyle=color;
@@ -352,4 +352,23 @@ export class Renderer {
     return {x:clamp((px-bounds.x)/bounds.side,0,1)*WORLD.width,y:clamp((py-bounds.y)/bounds.side,0,1)*WORLD.height};
   }
   destroy(){this.resizeObserver.disconnect();}
+}
+
+// Bounds reject invisible work before querying visibility; aura sources keep
+// their full radius even when the source model itself is outside the viewport.
+export function visibleRenderUnits(game,player,camera,halfW,halfH){
+  const entities=[],auraEntities=[];
+  for(const e of game.entities){
+    if(e.dead&&!BUILDINGS.has(e.kind))continue;
+    const dx=Math.abs(e.x-camera.x),dy=Math.abs(e.y-camera.y);
+    const model=dx<=halfW+450&&dy<=halfH+450;
+    const padding=e.dead?0:Math.max(450,unitAuraRadius(e,game.time));
+    const aura=!e.dead&&dx<=halfW+padding&&dy<=halfH+padding;
+    if(!model&&!aura)continue;
+    if(e.team!==player?.team&&game.canSee&&!game.canSee(player,e))continue;
+    if(model)entities.push(e);
+    if(aura)auraEntities.push(e);
+  }
+  entities.sort((a,b)=>a.y-b.y);
+  return {entities,auraEntities};
 }

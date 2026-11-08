@@ -1,0 +1,33 @@
+{
+  "sourceRevision": "310dc6537fc8b27358a90d82e1f64b471618a2c0",
+  "cases": [
+    {
+      "config": {
+        "hero": "juggernaut",
+        "seed": 42
+      },
+      "steps": 1800,
+      "dt": 0.05,
+      "sha256": "ecd8f8f5264403bd858555c95a3d89cb7d8851f44e6f38790ff41e5718a4f874"
+    },
+    {
+      "config": {
+        "hero": "drow_ranger",
+        "difficulty": "hard",
+        "seed": 51
+      },
+      "steps": 1800,
+      "dt": 0.05,
+      "sha256": "0cda8e2862c1e93caedf5e4063e9ccc456e8736794f60c91314674a7e71331f0"
+    },
+    {
+      "config": {
+        "hero": "ogre_magi",
+        "seed": 99
+      },
+      "steps": 1800,
+      "dt": 0.05,
+      "sha256": "e0619ff7a8cdbcaa4d0c2bc00e9f5ddfa5d4f4fd651a810e7555511d27136541"
+    }
+  ]
+}

@@ -6,6 +6,8 @@ import { physicalDamageMultiplier } from './hero-stats.js';
 import { auraManaRegen } from './hero-runtime.js';
 import { mountStatusBar, updateStatusBar } from './status-ui.js';
 import { mountSkills, updateSkills, toggleTalents } from './skills-ui.js';
+import {flagbearerAura} from './unit-auras.js';
+import {purchaseQuote} from './inventory.js';
 import { icon, mark } from './icons.js';
 import { mountShop } from './shop-ui.js';
 import { mountCoop, exitCoopMatch } from './coop-ui.js';
@@ -131,6 +133,8 @@ function startGame(providedGame=null,resume=false){
   mountStatusBar($('.hud-vitals'));
   $('.hud-economy').addEventListener('click',async e=>{const command=e.target.closest('[data-hud-courier]');if(command){const result=await game.courierCommand(command.dataset.hudCourier);if(!result.ok)toast(result.reason);}});
   $('#hud-quickbuy').onclick=async()=>{const result=await game.buyQuick();if(!result.ok)toast(result.reason);updateHud();};
+  const buyHudItem=async e=>{const button=e.target.closest('[data-hud-buy]');if(!button)return;e.preventDefault();const activeGame=game,result=await activeGame.buy(button.dataset.hudBuy);if(game!==activeGame)return;if(!result.ok)toast(result.reason);else sound();updateHud();};
+  $('#hud-quickbuy-items').addEventListener('click',buyHudItem);$('#hud-quickbuy-items').addEventListener('contextmenu',buyHudItem);
   updateHud();
   $('.match-header').insertAdjacentHTML('afterend',`<div class="match-roster" aria-label="点击英雄头像查看属性与装备">${[0,1].map(team=>`<div class="roster-team ${team?'dire':'radiant'}"><span>${team?'夜魇':'天辉'}</span>${game.entities.filter(e=>e.kind==='hero'&&e.team===team).map(e=>`<button data-inspect-hero="${e.id}" title="查看${e.name}${game.isNetwork&&e.team===0&&e.controller==='ai'?'（困难 AI 队友）':''}的属性和装备" aria-label="查看${team?'敌方':'友方'}${e.name}">${portrait(HEROES[e.heroId])}${game.isNetwork&&e.team===0&&e.controller==='ai'?'<small class="roster-ai-label">AI</small>':''}</button>`).join('')}</div>`).join('')}</div>`);
   document.querySelectorAll('[data-inspect-hero]').forEach(b=>b.onclick=()=>{game.selectEntity(b.dataset.inspectHero);updateHud();});
@@ -198,15 +202,15 @@ function updateHud(){
   if(portraitSrc&&portraitImage.getAttribute('src')!==portraitSrc)portraitImage.src=portraitSrc;portraitImage.alt=(p.name||unitLabels[p.kind])+'头部肖像';
   $('#hero-level').hidden=!hero;$('.xp-bar').hidden=!hero;
   $('#match-time').textContent=clock(game.time);$('#radiant-score').textContent=game.score[0];$('#dire-score').textContent=game.score[1];
-  $('#hero-level').textContent=p.level;$('#hp-label').textContent=`${Math.ceil(p.hp||0)} / ${Math.ceil(p.maxHp||0)}`;$('#mana-label').textContent=`${Math.floor(p.mana||0)} / ${Math.floor(p.maxMana)}`;
+  $('#hero-level').textContent=p.level;$('#hp-label').textContent=`${Math.ceil(p.hp||0)} / ${Math.ceil(p.maxHp||0)}`;$('#mana-label').textContent=`${Math.floor(p.mana||0)} / ${Math.floor(p.maxMana||0)}`;
   $('#hp-fill').style.transform=`scaleX(${Math.max(0,(p.hp||0)/(p.maxHp||1))})`;$('#mana-fill').style.transform=`scaleX(${Math.max(0,(p.mana||0)/(p.maxMana||1))})`;$('#xp-fill').style.transform=`scaleX(${Math.min(1,(p.xp||0)/(p.xpNext||1))})`;
   $('#gold').textContent=Math.floor(actor.gold).toLocaleString();$('#kda').textContent=`${actor.kills} / ${actor.deaths} / ${actor.assists}`;
   $('#stat-damage').textContent=Math.round(p.damage);$('#stat-armor').textContent=Math.round(p.armor||0);$('#stat-speed').textContent=Math.round(p.speed);$('#last-hits').textContent=actor.lastHits;
   if($('#attribute-summary'))$('#attribute-summary').innerHTML=hero?`<b class="strength">力 ${Math.floor(p.strength)}</b><b class="agility">敏 ${Math.floor(p.agility)}</b><b class="intelligence">智 ${Math.floor(p.intelligence)}</b>`:`<b>${p.team===2?'中立':p.team===actor.team?'友方':'敌方'} · ${unitLabels[p.kind]||'单位'}</b>`;
   updateSkills($('.abilities'),game,p);
   updateStatusBar(mountStatusBar($('.hud-vitals')),p,game.time,game);
-  $('#hp-regen').textContent=`+${Number(((p.hpRegen||0)+(p.itemAura?.hpRegen||0)).toFixed(1))}`;$('#mana-regen').textContent=`+${Number(((hero?auraManaRegen(game,p):(p.manaRegen||0))+(p.itemAura?.manaRegen||0)).toFixed(1))}`;
-  const queue=(actor.quickbuy||[]).map(id=>ITEM_BY_ID[id]).filter(Boolean).slice(0,6),queueHtml=queue.map(item=>`<img src="/${item.image}" alt="${item.name}" title="${item.name}"/>`).join('');
+  $('#hp-regen').textContent=`+${Number(((p.hpRegen||0)+(p.itemAura?.hpRegen||0)+(flagbearerAura(game,p)?.hpRegen||0)).toFixed(1))}`;$('#mana-regen').textContent=`+${Number(((hero?auraManaRegen(game,p):(p.manaRegen||0))+(p.itemAura?.manaRegen||0)).toFixed(1))}`;
+  const queue=(actor.quickbuy||[]).flatMap(id=>purchaseQuote(game,actor,id).missing||[]).map(id=>ITEM_BY_ID[id]).filter(Boolean).slice(0,6),queueHtml=queue.map(item=>`<button data-hud-buy="${item.id}" aria-label="购买${item.name}" title="${item.name} · ${item.cost} 金币 · 左键或右键购买" class="${actor.gold<item.cost?'unaffordable':''}"><img src="/${item.image}" alt="${item.name}" draggable="false"/></button>`).join('');
   if($('#hud-quickbuy-items').innerHTML!==queueHtml)$('#hud-quickbuy-items').innerHTML=queueHtml;
   document.querySelectorAll('[data-inspect-hero]').forEach(button=>{const unit=game.entities.find(e=>e.id===button.dataset.inspectHero);button.setAttribute('aria-pressed',String(unit?.id===p.id));button.classList.toggle('hero-dead',!!unit?.dead);button.dataset.respawn=unit?.dead?Math.ceil(unit.respawnTimer):'';});
   const combat=game.combatStats(p);
@@ -217,8 +221,7 @@ function updateHud(){
   const ancient=game.entities.find(e=>e.team===1&&e.kind==='ancient');$('#objective-text').textContent=ancient&&!game.isProtected(ancient)?'远古遗迹已暴露，发起最后进攻！':'跟随兵线，攻破敌方防御塔';
   $('#death-overlay').hidden=!actor.dead;$('#respawn-count').textContent=Math.ceil(actor.respawnTimer);$('#recall-progress').hidden=!(actor.recallTimer>0);$('#recall-fill').style.transform=`scaleX(${1-actor.recallTimer/(actor.recallDuration||3)})`;
   const feed=game.feed.map(e=>`${e.text}`).join('|');if(previousFeed!==feed){previousFeed=feed;$('#event-feed').innerHTML=game.feed.slice(0,4).map(e=>`<div class="feed-entry ${e.team===0?'radiant':'dire'}">${icon('swords')}<span>${escapeHtml(e.text)}</span></div>`).join('');}
-  shopUI?.update();
-  if(shopOpen)updateShop();updateInspection();renderer.minimap($('#minimap'),game);
+  if(shopOpen)updateShop();else shopUI?.update();updateInspection();renderer.minimap($('#minimap'),game);
 }
 const attributeLabels={strength:'力量',agility:'敏捷',intelligence:'智力',universal:'全才'};
 const unitLabels={ward:'守卫',hero:'英雄',creep:'兵线单位',neutral:'野怪',tower:'防御塔',barracks:'兵营',fountain:'泉水',ancient:'远古遗迹',filler:'基地建筑',courier:'信使',droppedItem:'地面物品',illusion:'幻象',summon:'召唤物'};

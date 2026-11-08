@@ -4,6 +4,7 @@ import * as Skills from './hero-runtime.js';
 import { ACTIVE_ITEM_HANDLERS, findItemTarget } from './item-actives.js';
 import * as C from './item-common.js';
 import { launchAttack } from './attack-projectiles.js';
+import {tickArmlet} from './armlet-runtime.js';
 const {alive,distance,value:v,equipped,active,hasFlag,status,heal,enemies,slow,dot,stun}=C;
 const reject=reason=>({ok:false,reason});
 const statuses=(g,h)=>Object.values(h.statuses||{}).filter(s=>s.startedAt<=g.time&&s.until>g.time);
@@ -18,7 +19,7 @@ export function statItems(g,h){
   const item=ITEM_BY_ID[e.id],stats={...item.stats},ranged=h.range>300;
   if(e.id==='power_treads')stats[e.meta.mode||'strength']=v(item,'bonus_stat');
   if(item.movementGroup==='boots')stats.speed=v(item,ranged?'bonus_movement_speed_ranged':'bonus_movement_speed_melee',stats.speed||0);
-  if(e.id==='armlet'&&e.meta.mode==='on'){stats.strength=v(item,'unholy_bonus_strength');stats.damage+=v(item,'unholy_bonus_damage');stats.armor=(stats.armor||0)+v(item,'unholy_bonus_armor');}
+  if(e.id==='armlet'&&e.meta.mode==='on'){stats.strength=e.meta.armletStrength??v(item,'unholy_bonus_strength');stats.damage+=v(item,'unholy_bonus_damage');stats.armor=(stats.armor||0)+v(item,'unholy_bonus_armor');}
   if(e.id==='rapier'){if(e.meta.mode==='spell')stats.spellAmp=v(item,'bonus_spell_amp');else stats.damage+=v(item,'bonus_damage');}
   if(e.id==='desolator')stats.damage+=(e.meta.bonusDamage||0);
   if(e.id==='holy_locket')stats.healAmp=v(item,'heal_increase_passive');
@@ -54,10 +55,10 @@ export function useItem(g,h,index,point,area='inventory',options={}){
  const selection=findItemTarget(g,h,entry,point);if(!selection.ok)return selection;
  const {handler,target}=selection;
  if(target?.team!==h.team&&target&&C.immune(g,target)&&!['abyssal_blade','nullifier'].includes(item.id))return reject('目标处于减益免疫状态');
- Skills.interruptCast(g,h,true);h.itemChannel=null;delete h.statuses.itemChannel;
+ if(!item.behaviors.includes('DOTA_ABILITY_BEHAVIOR_IGNORE_CHANNEL')){Skills.interruptCast(g,h,true);h.itemChannel=null;delete h.statuses.itemChannel;}
  h.mana-=manaCost;meta.used=true;
  const travel=item.id==='tpscroll'&&passive(g,h).find(e=>e.id.startsWith('travel_boots'));
- const cooldown=(travel?v(travel.item,'tp_cooldown'):item.id==='holy_locket'?v(item,'use_cooldown'):item.cooldown)*(1-(h.cooldownReduction||0)/100);
+ const cooldown=(travel?v(travel.item,'tp_cooldown'):item.id==='holy_locket'?v(item,'use_cooldown'):item.id==='armlet'?v(item,'toggle_cooldown'):item.cooldown)*(1-(h.cooldownReduction||0)/100);
  meta.cooldownRemaining=cooldown;h.itemCooldowns||={};h.itemCooldowns[item.sharedCooldown||item.id]=cooldown;
  if(item.abilityCharges&&item.id!=='holy_locket'){meta.charges--;meta.rechargeRemaining||=item.chargeRestoreTime*(1-(h.cooldownReduction||0)/100);}
  const blocked=target&&target.team!==h.team&&!options.reflected&&blockTargetSpell(g,h,target,{itemId:item.id});
@@ -211,6 +212,7 @@ export function tickUnit(g,h,dt){
    if(i.abilityCharges&&m.charges<i.abilityCharges){m.rechargeRemaining=(m.rechargeRemaining||i.chargeRestoreTime)-dt;if(m.rechargeRemaining<=0){m.charges++;m.rechargeRemaining=m.charges<i.abilityCharges?i.chargeRestoreTime:0;if(e.id==='consecrated_wraps'&&e.area==='inventory'&&alive(h))status(g,h,'wrapsHaste',i,{positive:true,duration:v(i,'duration'),movePercent:v(i,'movement_speed_pct_on_stack_gain')});}}
    if(m.brokenUntil&&g.time>=m.brokenUntil){m.brokenUntil=0;C.refresh(g,h);}
    if(e.id==='bottle'&&alive(h)&&C.baseNearby(h))m.charges=v(i,'max_charges',3);
+   if(e.id==='armlet'&&e.area==='inventory'&&(m.readyAt||0)<=g.time&&m.ownerId===h.id&&alive(h)){tickArmlet(g,h,{...e,item:i},dt);if(m.mode==='on')h.hp=Math.max(1,h.hp-v(i,'unholy_health_drain_per_second')*dt);}
   }
   for(const key of Object.keys(h.itemCooldowns||{}))h.itemCooldowns[key]=Math.max(0,h.itemCooldowns[key]-dt);
  }
@@ -225,7 +227,6 @@ export function tickUnit(g,h,dt){
  }
  for(const e of passive(g,h)){
   if(e.id==='heart')heal(g,h,(h.maxHp*v(e.item,'hp_regen')+(h.maxHp-h.hp)*v(e.item,'missing_health_regen'))/100*dt,h,true);
-  if(e.id==='armlet'&&e.meta.mode==='on')h.hp=Math.max(1,h.hp-v(e.item,'unholy_health_drain_per_second')*dt);
  }
  const aura=h.itemAura||{};if(aura.hpRegen)heal(g,h,aura.hpRegen*dt,h,true);if(aura.manaRegen)h.mana=Math.min(h.maxMana,h.mana+aura.manaRegen*dt);
  if(h.forcedMotion){const m=h.forcedMotion,t=Math.min(1,(g.time-m.startedAt)/(m.until-m.startedAt));Object.assign(h,{x:m.from.x+(m.to.x-m.from.x)*t,y:m.from.y+(m.to.y-m.from.y)*t});h.moving=true;if(t>=1)h.forcedMotion=null;}

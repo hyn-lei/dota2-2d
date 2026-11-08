@@ -1,5 +1,6 @@
 import { ITEMS, ITEM_BY_ID } from './item-data.js';
 import { BASES, MAP_OBJECTIVES } from './map-data.js';
+import {refreshedHealth} from './armlet-runtime.js';
 
 export const SLOT_COUNTS = Object.freeze({inventory:6,backpack:3,stash:6,tp:1,cargo:6});
 const areas=['inventory','backpack','stash'];
@@ -115,9 +116,9 @@ function assemble(g,h){
  trim(h);removeCompletedQueue(h,[...completed]);return completed;
 }
 export function refreshInventory(g,h){
- const healthRatio=h.maxHp?h.hp/h.maxHp:1,manaRatio=h.maxMana?h.mana/h.maxMana:0;
+ const healthRatio=h.maxHp?h.hp/h.maxHp:1,manaRatio=h.maxMana?h.mana/h.maxMana:0,armletBonus=h.armletHealthBonus||0;
  trim(h);if(h.kind==='courier')return;consumeUpgrades(g,h);g._refreshHero(h);
- h.hp=h.dead?0:Math.min(h.maxHp,Math.max(Number.EPSILON,healthRatio*h.maxHp));h.mana=Math.min(h.maxMana,Math.max(0,manaRatio*h.maxMana));
+ h.hp=refreshedHealth(h,healthRatio,armletBonus);h.mana=Math.min(h.maxMana,Math.max(0,manaRatio*h.maxMana));
  h.equipmentSignature=activeEquipment(g,h).join('|')+`:${!!h.consumedScepter}:${!!h.consumedShard}`;
 }
 export function combineItems(g,h){

@@ -3,6 +3,7 @@ import { auraManaSources, hasStatusFlag, isInvulnerable } from './hero-runtime.j
 import { marksmanshipActive } from './drow-runtime.js';
 import { ITEM_BY_ID } from './item-data.js';
 import { BASES } from './map-data.js';
+import {flagbearerAura} from './unit-auras.js';
 
 // Display metadata is separate from combat modifiers: these records never grant stats.
 export const STATUS_ABILITY_IDS={
@@ -12,7 +13,7 @@ export const STATUS_ABILITY_IDS={
  windrun:'windrunner_windrun',focus:'windrunner_focusfire',powershot:'windrunner_powershot',tailwind:'windrunner_tailwind',
  torrent:'kunkka_torrent',torrentSlow:'kunkka_torrent',xmark:'kunkka_x_marks_the_spot',rum:'kunkka_ghostship',rumdebt:'kunkka_ghostship',tide:'kunkka_tidebringer',
  ogreIgnite:'ogre_magi_ignite',ogreBloodlust:'ogre_magi_bloodlust',bloodlust:'ogre_magi_bloodlust',ogreFireShield:'ogre_magi_smash',
- drowFrost:'drow_ranger_frost_arrows',drowHypothermia:'drow_ranger_frost_arrows',hypothermiaBurst:'drow_ranger_frost_arrows',drowGustSilence:'drow_ranger_wave_of_silence',drowGustKnockback:'drow_ranger_wave_of_silence',gustSpeed:'drow_ranger_wave_of_silence',glacierKnockback:'drow_ranger_glacier',glacier:'drow_ranger_glacier',trueshot:'drow_ranger_trueshot',marksmanship:'drow_ranger_marksmanship'
+ drowFrost:'drow_ranger_frost_arrows',drowHypothermia:'drow_ranger_frost_arrows',hypothermiaBurst:'drow_ranger_frost_arrows',drowGustSilence:'drow_ranger_wave_of_silence',drowGustKnockback:'drow_ranger_wave_of_silence',gustSpeed:'drow_ranger_wave_of_silence',glacierKnockback:'drow_ranger_glacier',glacier:'drow_ranger_glacier',trueshot:'drow_ranger_trueshot',marksmanship:'drow_ranger_marksmanship',flagbearerAura:'flagbearer_creep_aura_effect',backdoorProtection:'backdoor_protection',courierBurst:'courier_burst',courierShield:'courier_shield'
 };
 const alive=e=>e&&!e.dead&&e.hp>0;
 const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
@@ -23,6 +24,12 @@ const persistent=(id,name,description,fields={})=>({id,name,description,positive
 export function derivedStatusEffects(g,h){
  if(!g||!alive(h))return [];
  const effects=[];
+ const flagAura=flagbearerAura(g,h);
+ if(flagAura)effects.push(persistent('flagbearerAura','鼓舞光环',`生命恢复 +${flagAura.hpRegen}/秒，魔法抗性 +${num(flagAura.magicResistance*100)}%。`,{sourceId:flagAura.sourceId}));
+ for(const [index,id]of (h.inventory||[]).entries())if(id==='armlet'){
+  const meta=h.inventoryMeta?.[index],item=ITEM_BY_ID.armlet;
+  if(meta?.mode==='on'&&meta.ownerId===h.id&&(meta.readyAt||0)<=g.time)effects.push(persistent('armletUnholy','邪恶之力',`力量 +${num(meta.armletStrength??item.values.unholy_bonus_strength)}，攻击力 +${item.values.unholy_bonus_damage}，护甲 +${item.values.unholy_bonus_armor}。每秒失去 ${item.values.unholy_health_drain_per_second} 生命。`,{itemId:id}));
+ }
  if(h.kind==='hero'){
   const mana=auraManaSources(g,h);
   if(mana.length)effects.push(persistent('arcaneAura','奥术光环',`魔法恢复 +${num(Math.max(...mana.map(s=>s.value)))}/秒。${mana.some(s=>s.amp)?`自身魔法恢复增强 ${num(Math.max(...mana.map(s=>s.amp)))}%。`:''}`));

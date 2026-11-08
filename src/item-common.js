@@ -2,6 +2,7 @@ import { ITEM_BY_ID } from './item-data.js';
 import * as Inventory from './inventory.js';
 import * as Skills from './hero-runtime.js';
 import { TREES, BASES } from './map-data.js';
+import {refreshedHealth} from './armlet-runtime.js';
 
 export const alive=e=>!!e&&!e.dead&&e.hp>0;
 export const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
@@ -50,8 +51,8 @@ export function equipped(g,h){
 }
 export function refresh(g,h){
  if(h.kind!=='hero')return;
- const hp=h.hp/h.maxHp,mana=h.maxMana?h.mana/h.maxMana:0;g._refreshHero(h);
- h.hp=h.dead?0:Math.max(Number.EPSILON,Math.min(h.maxHp,hp*h.maxHp));h.mana=Math.max(0,Math.min(h.maxMana,mana*h.maxMana));
+ const hp=h.hp/h.maxHp,mana=h.maxMana?h.mana/h.maxMana:0,armletBonus=h.armletHealthBonus||0;g._refreshHero(h);
+ h.hp=refreshedHealth(h,hp,armletBonus);h.mana=Math.max(0,Math.min(h.maxMana,mana*h.maxMana));
 }
 export function consume(g,h,entry,count=1){
  if(Inventory.consumeItemCharge)return Inventory.consumeItemCharge(g,h,entry.area,entry.index,count);
