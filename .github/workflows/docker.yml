@@ -81,6 +81,8 @@ jobs:
           node tests/browser-economy.mjs
           node tests/browser-keybindings.mjs
           node tests/browser-collision.mjs
+          node tests/browser-illusions.mjs
+          node tests/browser-illusion-coop.mjs
           node tests/browser-shop.mjs
           node tests/browser-items.mjs
           node tests/browser-vfx.mjs

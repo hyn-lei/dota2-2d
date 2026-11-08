@@ -124,7 +124,7 @@ export class Renderer {
     const width=c.measureText(text).width+12;c.fillStyle='rgba(11,18,17,.82)';c.fillRect(x-width/2,y-9,width,18);c.fillStyle=color;c.fillText(text,x,y);c.restore();
   }
   drawEntityLabel(c,e,game){
-    const selected=e.id===(game.selectedId||game.player?.id),hovered=e.id===this.hoverId,hero=e.kind==='hero',building=BUILDINGS.has(e.kind),neutral=e.kind==='neutral';
+    const selected=e.id===(game.selectedId||game.player?.id),hovered=e.id===this.hoverId,hero=e.kind==='hero'||e.kind==='illusion',building=BUILDINGS.has(e.kind),neutral=e.kind==='neutral';
     if(e.dead&&!selected&&!hovered)return;
     if(this.zoom<.15){if(selected||hovered){const p=this.worldToScreen(e.x,e.y);circle(c,p.x,p.y,7,null,'#f4e9af',1.3);this.label(c,e.name||HEROES[e.heroId]?.name||'单位',p.x,p.y-16,unitColor(e),11);}return;}
     const p=this.worldToScreen(e.x,e.y),color=unitColor(e),worldRadius=e.selectionRadius||e.radius||24;
@@ -153,9 +153,9 @@ export class Renderer {
     }
   }
   drawOverviewEntity(c,e){
-    const size=(e.kind==='hero'?3:e.kind==='ancient'?4:2)/this.zoom,color=e.dead?'#77766b':e.isPlayer?'#fff1b7':unitColor(e);
+    const size=((e.kind==='hero'||e.kind==='illusion')?3:e.kind==='ancient'?4:2)/this.zoom,color=e.dead?'#77766b':e.isPlayer?'#fff1b7':unitColor(e);
     c.save();if(e.kind==='tower'||e.kind==='barracks'){c.fillStyle=color;c.fillRect(e.x-size,e.y-size,size*2,size*2);}
-    else if(e.kind==='hero'||e.kind==='ancient')circle(c,e.x,e.y,size,color,'#17251e',.8/this.zoom);c.restore();
+    else if(e.kind==='hero'||e.kind==='illusion'||e.kind==='ancient')circle(c,e.x,e.y,size,color,'#17251e',.8/this.zoom);c.restore();
   }
   renderLobby(c,t){
     const w=this.w,h=this.h;const sky=c.createLinearGradient(0,0,0,h);sky.addColorStop(0,'#1d2b2b');sky.addColorStop(.45,'#415650');sky.addColorStop(1,'#142321');c.fillStyle=sky;c.fillRect(0,0,w,h);
@@ -200,7 +200,14 @@ export class Renderer {
   }
   healthbar(c,x,y,value,width,color,height=5){c.fillStyle='#1b2522';c.fillRect(x-width/2-1,y-1,width+2,height+2);c.fillStyle=color;c.fillRect(x-width/2,y,width*clamp(value,0,1),height);c.fillStyle='rgba(255,255,255,.16)';c.fillRect(x-width/2,y,width*clamp(value,0,1),1);}
   drawUnit(c,e,game,t){
-    const hero=e.kind==='hero',neutral=e.kind==='neutral',color=unitColor(e);
+    if(e.kind==='illusion'&&e.heroId){
+      const canvas=this.illusionCanvas??=document.createElement('canvas');if(canvas.width!==384){canvas.width=canvas.height=384;}
+      const buffer=canvas.getContext('2d');buffer.setTransform(1,0,0,1,0,0);buffer.clearRect(0,0,384,384);buffer.save();buffer.translate(192,192);
+      buffer.filter='grayscale(1)';this.drawUnit(buffer,{...e,kind:'hero',x:0,y:0,isPlayer:false},game,t);buffer.restore();buffer.filter='none';
+      buffer.globalCompositeOperation='source-atop';buffer.globalAlpha=.65;const blue=buffer.createLinearGradient(0,60,0,300);blue.addColorStop(0,'#80d8ff');blue.addColorStop(.5,'#318fdf');blue.addColorStop(1,'#185dbb');buffer.fillStyle=blue;buffer.fillRect(0,0,384,384);buffer.globalAlpha=1;buffer.globalCompositeOperation='source-over';
+      c.drawImage(canvas,e.x-192,e.y-192);return;
+    }
+    const hero=e.kind==='hero'||e.kind==='illusion',neutral=e.kind==='neutral',color=unitColor(e);
     const invisible=Object.values(e.statuses||{}).some(s=>s.invisible&&s.startedAt<=game.time&&s.until>game.time);
     const floor=(e.team===game.player?.team||(invisible&&game.canSee?.(game.player,e))) ? 0.24 : 0;
     c.save();c.translate(e.x,e.y);c.globalAlpha*=unitOpacity(e,game.time,floor);

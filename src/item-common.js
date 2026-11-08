@@ -46,7 +46,7 @@ export function regen(g,e,item,duration,hpPerSec,manaPerSec,source,breakOnDamage
 export function allies(g,h,radius,heroesOnly=false){return g.entities.filter(e=>alive(e)&&e.team===h.team&&(heroesOnly?e.kind==='hero':fighter(e))&&distance(e,h)<=radius);}
 export function enemies(g,h,point,radius,structures=false){return g.entities.filter(e=>alive(e)&&e.team!==h.team&&(fighter(e)||(structures&&building(e)))&&!invulnerable(g,e)&&distance(e,point)<=radius+(e.radius||0));}
 export function equipped(g,h){
- if(h.kind!=='hero')return [];
+ if(!['hero','illusion'].includes(h.kind))return [];
  return Inventory.itemEntries(h,['inventory','tp']).filter(e=>(e.meta.readyAt||0)<=g.time).map(e=>({...e,item:ITEM_BY_ID[e.id]})).filter(e=>e.item);
 }
 export function refresh(g,h){
@@ -82,12 +82,5 @@ export function cutTree(g,tree){
  rebuildTrees(g);g._effect('burst',tree.x,tree.y,{radius:45,color:'#a1b873',life:.4});
 }
 export function plantTree(g,point){g.plantedTrees||=[];g.plantedTrees.push({id:g._id('tree'),x:point.x,y:point.y,until:g.time+20});rebuildTrees(g);}
-export function illusion(g,h,count,duration,outgoing,incoming){
- const results=[],radianceBurn=equipped(g,h).some(e=>e.area==='inventory'&&e.id==='radiance'&&e.meta.mode!=='off'&&e.meta.ownerId===h.id);
- for(let i=0;i<count;i++){
-  const clone=g._unit('illusion',h.team,h.x+(i?50:-50),h.y+35,{...g.combatStats(h),heroId:h.heroId,name:h.name+'幻象',ownerId:h.id,maxHp:h.maxHp,hp:h.hp,maxMana:0,mana:0,radius:24,range:h.range,baseAttackTime:h.baseAttackTime,baseAttackSpeed:h.baseAttackSpeed,attackSpeed:h.attackSpeed,armor:h.armor,magicResistance:h.magicResistance,damage:h.damage,level:h.level,expiresAt:g.time+duration,illusionOutgoing:outgoing/100,illusionIncoming:incoming/100,controlTarget:h.explicitTarget,statuses:{},buffs:{},inventory:[],cooldowns:[]});
-  clone.hp=h.hp;clone.radianceBurn=radianceBurn;g.entities.push(clone);results.push(clone);
- }
- return results;
-}
+export {createIllusions as illusion} from './illusions.js';
 export function baseNearby(h){return distance(h,BASES[h.team])<1200;}

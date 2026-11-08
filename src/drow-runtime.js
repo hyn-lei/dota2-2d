@@ -2,19 +2,20 @@ import * as Skills from './hero-runtime.js';
 import { innateAt } from './ability-data.js';
 import { Navigator } from './navigation.js';
 import { allTrees } from './item-common.js';
+import {weakIllusion} from './illusions.js';
 const alive=e=>e&&!e.dead&&e.hp>0;
 const fighter=e=>['hero','creep','neutral','illusion','summon'].includes(e?.kind);
 const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
 const effect=(g,h,type,x,y,fields)=>g._effect(type,x,y,{sourceId:h.id,heroId:h.heroId,team:h.team,...fields});
 const glacierAt=(g,h)=>(g.itemZones||[]).find(z=>z.type==='drowGlacier'&&z.team===h.team&&z.until>g.time&&distance(z,h)<=z.radius);
 export function marksmanshipActive(g,h,s=Skills.skillOf(h,3)){
- return h.kind==='hero'&&s.level>0&&!Skills.hasStatusFlag(g,h,'break')&&(!!glacierAt(g,h)||
+ return (h.kind==='hero'||h.kind==='illusion')&&s.level>0&&!Skills.hasStatusFlag(g,h,'break')&&(!!glacierAt(g,h)||
   !g.entities.some(e=>alive(e)&&e.kind==='hero'&&e.team!==h.team&&!Skills.isInvulnerable(g,e)&&g.canSee(h,e)&&distance(h,e)<=s.values.disable_range));
 }
 export function drowAttack(g,h,target,options,result){
- if(h.heroId!=='drow_ranger'||h.kind!=='hero')return result;
+ if(h.heroId!=='drow_ranger'||!['hero','illusion'].includes(h.kind))return result;
  const s=Skills.castingStats(h,Skills.skillOf(h,0));
- if(s.level&&fighter(target)&&(options.manualFrost||h.frostArrowTarget===target.id||h.autocast?.[0])&&h.mana>=s.mana){
+ if(!weakIllusion(h)&&s.level&&fighter(target)&&(options.manualFrost||h.frostArrowTarget===target.id||h.autocast?.[0])&&h.mana>=s.mana){
   h.mana-=s.mana;h.frostArrowTarget=null;result.frostArrow=s;
  }
  if(fighter(target)&&marksmanshipActive(g,h)&&g._random()*100<Skills.skillOf(h,3).values.chance){result.marksmanship=true;result.damage+=Skills.skillOf(h,3).values.bonus_damage;}
@@ -115,8 +116,8 @@ export function tickDrowWorld(g){
  if(g.glacierNavKey!==key){g.glacierNavKey=key;g.glacierNavigators=new Map();for(const e of g.entities)e.navPath=null;}
 }
 function updateTrueshot(g){
- const drows=g.entities.filter(e=>alive(e)&&e.kind==='hero'&&e.heroId==='drow_ranger'&&!Skills.hasStatusFlag(g,e,'break'));
- for(const h of g.entities)if(h.kind==='hero'&&alive(h)){
+ const drows=g.entities.filter(e=>alive(e)&&['hero','illusion'].includes(e.kind)&&e.heroId==='drow_ranger'&&!Skills.hasStatusFlag(g,e,'break'));
+ for(const h of g.entities)if(['hero','illusion'].includes(h.kind)&&alive(h)){
   let bonus=0;
   for(const drow of drows){const a=innateAt('drow_ranger',drow.level).values,agi=Math.max(0,drow.agility-(drow.trueshotAgility||0));
    if(h===drow||h.team===drow.team&&h.range>200&&distance(h,drow)<=a.radius)bonus=Math.max(bonus,agi*a.trueshot_agi_bonus/100*(h===drow?1:a.trueshot_agi_bonus_allies_pct/100));

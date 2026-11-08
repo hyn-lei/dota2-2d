@@ -1,0 +1,6 @@
+.illusion-controls{position:absolute;left:calc(50% - 414px);bottom:158px;display:flex;align-items:center;gap:5px;padding:6px;background:#112639ed;border:1px solid #477bab;color:#9ccefa;pointer-events:auto;font-size:11px}
+.illusion-controls[hidden]{display:none}
+.illusion-controls>button{background:#193c57;border:1px solid #45749a;color:#c3e2ff;padding:7px 9px;font-size:11px}
+.game-hud[data-unit-kind="illusion"] .hud-hero-title>strong{color:#81caff}
+.game-hud[data-unit-kind="illusion"] .hud-portrait>img{filter:grayscale(1) sepia(1) hue-rotate(165deg) saturate(3)}
+@media(max-width:700px){.illusion-controls{left:5px;bottom:270px;flex-wrap:wrap;max-width:calc(100vw - 10px)}.illusion-controls>button{min-height:36px}.match:has(.illusion-controls:not([hidden])) .control-hint{display:none}}

@@ -20,6 +20,23 @@ export class NetworkGame extends Game {
   guard(area,index){return {area,index,uid:this.player[area+'Meta']?.[index]?.uid||null};}
   point(p){return p?{x:p.x,y:p.y,...(p.id===this.player.id?{self:true}:{}),...(p.direction?{direction:{x:p.direction.x,y:p.direction.y}}:{})}:null;}
   invoke(action,args=[],slotGuards=[]){return this.request(action,args,slotGuards);}
+  unitCommand(id,action,args=[]){
+    const unit=this.entities.find(e=>e.id===id);if(!unit||!this.canControl(unit)||unit.kind!=='illusion')return Promise.resolve({ok:false,reason:'只能操控自己制造的幻象'});
+    if(action==='setMovement'){
+      this.unitMovements||=new Map();const now=performance.now(),previous=this.unitMovements.get(id);
+      if(previous&&previous.x===args[0]&&previous.y===args[1]&&(!args[0]&&!args[1]||now-previous.at<250))return;
+      this.unitMovements.set(id,{x:args[0],y:args[1],at:now});
+    }
+    const values=[...args];if(['cast','castExtra','useItem'].includes(action))values[1]=values[1]?{x:values[1].x,y:values[1].y,...(values[1].id===id||values[1].self?{self:true}:{})}:null;
+    const slots=action==='useItem'?[[values[2]||'inventory',values[0]]]:action==='recall'?[['tp',0]]:[];
+    return this.invoke('unitCommand',[id,action,values],slots.map(([area,index])=>({area,index,uid:unit[area+'Meta']?.[index]?.uid||null})));
+  }
+  selectEntity(id){
+    const previous=this.controlledUnit;if(previous&&previous.id!==id&&previous.movementInput&&(previous.movementInput.x||previous.movementInput.y)){
+      if(previous.kind==='illusion')this.unitCommand(previous.id,'setMovement',[0,0]);else this.setMovement(0,0);
+    }
+    super.selectEntity(id);
+  }
   setMovement(x,y){
     const now=performance.now();
     if(this.lastMovement?.x===x&&this.lastMovement?.y===y&&(!x&&!y||now-this.lastMovementAt<250))return;

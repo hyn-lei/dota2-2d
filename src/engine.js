@@ -15,6 +15,7 @@ import * as Bots from './bot-ai.js';
 import {flagbearerAura} from './unit-auras.js';
 import {armletHealthBonus} from './armlet-runtime.js';
 import {CollisionWorld} from './collision.js';
+import {ownsIllusion,weakIllusion} from './illusions.js';
 
 const distance = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
 const clamp = (n, low, high) => Math.max(low, Math.min(high, n));
@@ -85,12 +86,27 @@ export class Game {
     this.collisions.rebuild(this.entities,this.time);
   }
 
-  get player() { return (this.controlledHeroId&&this.entities.find(e => e.id===this.controlledHeroId))||this.entities.find(e => e.isPlayer); }
-  get selected() { return this.entities.find(e=>e.id===this.selectedId) || this.player; }
+  get player() { return this._commandActor||(this.controlledHeroId&&this.entities.find(e => e.id===this.controlledHeroId))||this.entities.find(e => e.isPlayer); }
+  canControl(unit){return unit?.id===this.player?.id||ownsIllusion(this.player,unit);}
+  get controlledUnit(){return this.canControl(this.selected)&&alive(this.selected)?this.selected:this.player;}
+  unitCommand(id,action,args=[]){
+    const actor=this.player,unit=this.entities.find(e=>e.id===id),allowed=['moveTo','setMovement','attackTarget','cast','castExtra','toggleAutocast','useItem','recall','stop'];
+    if(!ownsIllusion(actor,unit)||!alive(unit))return {ok:false,reason:'只能操控自己制造的存活幻象'};
+    if(!allowed.includes(action)||!Array.isArray(args))return {ok:false,reason:'无效的幻象指令'};
+    if(weakIllusion(unit)&&['cast','castExtra','toggleAutocast','useItem','recall'].includes(action))return {ok:false,reason:'弱幻象只能攻击，不能施放主动技能或使用物品'};
+    const check=this._canAct(unit);if(!check.ok)return check;
+    const previous=this._commandActor,keyboard=this.keyboard;this._commandActor=unit;
+    try{
+      if(action==='stop'){Skills.interruptCast(this,unit,false);Object.assign(unit,{destination:null,explicitTarget:null,targetId:null,navPath:null,attackPhase:null,movementInput:{x:0,y:0}});return {ok:true};}
+      const values=[...args];if(['cast','castExtra','useItem'].includes(action)&&values[1]?.self)values[1]=unit;
+      const result=this[action](...values);return result??{ok:true};
+    }finally{this._commandActor=previous;this.keyboard=keyboard;}
+  }
+  get selected() { const unit=this.entities.find(e=>e.id===this.selectedId);return unit&&!(ownsIllusion(this.player,unit)&&!alive(unit))?unit:this.player; }
   get courier() { return Courier.ensureCourier(this,this.player); }
   courierCommand(command) { return Courier.courierCommand(this,this.player,command); }
   buyWithCourier(id) { return Courier.buyWithCourier(this,this.player,id); }
-  selectEntity(id) { if(this.entities.some(e=>e.id===id)) this.selectedId=id; }
+  selectEntity(id) { if(this.entities.some(e=>e.id===id)){const previous=this.controlledUnit;if(previous&&id!==this.selectedId)this.clearMovement(previous);this.selectedId=id;} }
 
   _id(prefix) { return `${prefix}-${++this.serial}`; }
 
@@ -137,6 +153,7 @@ export class Game {
     if(items.some(i=>i.id==='armlet')||h.armletHealthBonus!==undefined)h.armletHealthBonus=armletHealthBonus(items);
     h.hp=h.dead?0:clamp(hp+h.maxHp-oldHp,1,h.maxHp);
     h.mana=clamp(mana+h.maxMana-oldMana,0,h.maxMana);
+    if(weakIllusion(h)){h.mana=0;h.maxMana=0;}
   }
 
   setPaused(value) { this.paused = !!value; }
@@ -150,7 +167,7 @@ export class Game {
   extraAbilities(hero=this.player) { return Skills.extraAbilities(hero); }
   castExtra(id,point) { return Skills.castExtraAbility(this,this.player,id,point); }
   useItem(index,point,area='inventory') { return ItemRuntime.useItem(this,this.player,index,point,area); }
-  itemState(index,area='inventory') { return ItemRuntime.itemState(this,this.player,index,area); }
+  itemState(index,area='inventory',unit=this.player) { return ItemRuntime.itemState(this,unit,index,area); }
   blockTargetSpell(caster,target,spell) { return ItemRuntime.blockTargetSpell(this,caster,target,spell); }
   onSpellCast(hero,spell) { ItemRuntime.onSpellCast(this,hero,spell); }
   onSpellTarget(hero,target,spell) { ItemRuntime.onSpellTarget(this,hero,target,spell); }
@@ -275,7 +292,7 @@ export class Game {
     if (this.isProtected(target)||target.kind==='droppedItem') return 0;
     if(target.kind==='courier'){
       if(!options.attack||Skills.isInvulnerable(this,target))return 0;
-      const hits=source?.kind==='hero'?(source.range>300?3:6):1;target.hp=Math.max(0,target.hp-hits);if(!target.hp)this._kill(target,source);return hits;
+      const hits=['hero','illusion'].includes(source?.kind)?(source.range>300?3:6):1;target.hp=Math.max(0,target.hp-hits);if(!target.hp)this._kill(target,source);return hits;
     }
     amount=ItemRuntime.outgoingDamage(this,source,amount,type,options);
     amount=ItemRuntime.blockAttackDamage(this,target,amount,type,options);
@@ -286,7 +303,7 @@ export class Game {
       const attackType=source.attackType || (source.kind==='hero'?'hero':'basic');
       value *= attackType==='siege'?2.5:attackType==='hero'?.5:attackType==='pierce'?.35:.7;
     }
-    if(type==='physical'&&target.kind==='hero'){
+    if(type==='physical'&&['hero','illusion'].includes(target.kind)){
       if(source?.abilities?.includes('creep_irresolute'))value*=.75;
       if(source?.attackType==='pierce')value*=.5;
     }
@@ -302,11 +319,13 @@ export class Game {
     if (target.kind === 'hero') {
       if(!target.itemChannel)target.recallTimer = 0;
       target.lastDamagers ||= {};
-      if (source?.kind === 'hero') target.lastDamagers[source.id] = this.time;
+      const credit=this._combatOwner(source);if(credit?.kind==='hero')target.lastDamagers[credit.id]=this.time;
     }
     if (target.hp <= 0) this._kill(target, source);
     return value;
   }
+
+  _combatOwner(source) { return source?.kind==='illusion'?this.entities.find(e=>e.kind==='hero'&&e.id===source.ownerId&&e.team===source.team)||source:source; }
 
   _kill(target, source) {
     if(target.dead)return;
@@ -319,6 +338,7 @@ export class Game {
     target.deathTime = this.time;
     Skills.onUnitKilled(this,target,source);
     ItemRuntime.onDeath(this,target,source);
+    source=this._combatOwner(source);
     if(building(target))this.navigation.updateBuildings(this.entities.filter(building));
     for (const hero of this.entities) if (hero.xMark?.targetId===target.id || hero===target) hero.xMark=null;
     this._effect('burst', target.x, target.y, {radius:target.radius * 2.5, color:TEAM_COLORS[target.team]||'#cdb28b', life:.7});
@@ -592,7 +612,7 @@ export class Game {
         this._heroTick(e, dt);
       }
       if (!alive(e) || this.status !== 'playing') continue;
-      if(e.kind!=='hero'){
+      if(e.kind!=='hero'&&e.kind!=='illusion'){
         const aura=flagbearerAura(this,e,flagSources);
         e.hp=Math.min(e.maxHp,e.hp+((e.hpRegen||0)+(aura?.hpRegen||0))*dt);
         if(e.backdoorActive){e.backdoorHealth=Math.max(e.backdoorHealth,e.hp);e.hp=Math.min(e.backdoorHealth,e.hp+90*dt);}
@@ -602,6 +622,10 @@ export class Game {
       if (e.kind === 'creep') this._creepTick(e,dt);
       if (e.kind === 'neutral') this._neutralTick(e,dt);
       if (e.kind === 'ward') Skills.tickWard(this,e,dt);
+      if (e.kind === 'illusion') {
+        if(e.expiresAt<=this.time){this._kill(e,null);continue;}
+        e.cooldowns=(e.cooldowns||[0,0,0,0]).map(c=>Math.max(0,c-dt));this._heroTick(e,dt);
+      }
       this.collisions.update(e);
     }
     Courier.tickCouriers(this,dt);
@@ -782,9 +806,9 @@ export class Game {
         const input=h.movementInput||{x:0,y:0};if(input.x||input.y)this._move(h,{x:h.x+input.x*100,y:h.y+input.y*100},dt);
         else if(h.destination)this._move(h,h.destination,dt);
       }
-      if(!h.isPlayer)Bots.tickBusyBot(this,h);return;
+      if(!h.isPlayer&&h.kind!=='illusion')Bots.tickBusyBot(this,h);return;
     }
-    if(h.isPlayer)this._playerTick(h,dt);else this._botTick(h,dt);
+    if(h.isPlayer||h.kind==='illusion')this._playerTick(h,dt);else this._botTick(h,dt);
   }
 
   _playerTick(h,dt) {
@@ -804,7 +828,7 @@ export class Game {
       this._move(h,h.destination,dt);
       if (distance(h,h.destination)<3) h.destination = null;
     }
-    if (!target) target = this._chooseTarget(h,h.range,true);
+    if (!target&&h.kind!=='illusion') target = this._chooseTarget(h,h.range,true);
     h.targetId = target?.id || null;
     if (target) this._attack(h,target);
   }

@@ -9,7 +9,7 @@ export class CoopGame extends Game {
   }
 
   get player() {
-    return this.entities.find(e => e.id === this.controlledHeroId && e.isHuman)
+    return this._commandActor||this.entities.find(e => e.id === this.controlledHeroId && e.isHuman)
       || this.entities.find(e => e.isHuman) || super.player;
   }
 

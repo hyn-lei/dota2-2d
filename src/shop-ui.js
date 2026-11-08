@@ -39,7 +39,7 @@ export function mountShop(panel,inventory,game,actions){
   state.selected=id;state.slot={area,index};actions.open();update();
  }
  const slotHTML=(area,index,p=game.player)=>{
-  const id=p[area]?.[index],item=ITEM_BY_ID[id],meta=p[area+'Meta']?.[index],info=p.kind==='hero'?itemState(game,p,index,area):{ready:0,cooldown:0},remaining=Math.ceil(Math.max(info.ready,info.cooldown));
+  const id=p[area]?.[index],item=ITEM_BY_ID[id],meta=p[area+'Meta']?.[index],info=['hero','illusion'].includes(p.kind)?itemState(game,p,index,area):{ready:0,cooldown:0},remaining=Math.ceil(Math.max(info.ready,info.cooldown));
   return `<button class="inventory-slot ${item?'filled':''} ${remaining?'item-inactive':''}" data-slot-area="${area}" data-slot-index="${index}" data-slot-owner="${p.id}" draggable="${!!item&&p.id===game.player.id}" aria-readonly="${p.id!==game.player.id}" title="${escape(item?item.name+' · '+item.description:areaNames[area]+'空位')}" aria-label="${areaNames[area]} ${index+1}：${escape(item?.name||'空位')}">${item?itemArt(item):'<span>·</span>'}${area==='inventory'?`<kbd>${itemKey(index)}</kbd>`:area==='tp'?'<kbd>B</kbd>':''}${item&&(item.charges||item.abilityCharges||item.displayCharges||item.requiresCharges)?`<em class="item-charges">${meta?.charges||0}</em>`:''}${meta?.combineLocked?'<span class="item-lock">锁</span>':''}${remaining?`<b class="item-reactivation">${remaining}</b>`:''}</button>`;
  };
  function handleSlot(e){
@@ -52,7 +52,7 @@ export function mountShop(panel,inventory,game,actions){
  }
  for(const container of [panel,inventory]){
   container.addEventListener('click',handleSlot);
-  container.addEventListener('dblclick',e=>{const b=e.target.closest('[data-slot-area]');if(ownSlot(b)&&(['inventory','tp'].includes(b.dataset.slotArea)||(b.dataset.slotArea==='backpack'&&game.player.backpack[+b.dataset.slotIndex]==='smoke_of_deceit')))actions.useItem(+b.dataset.slotIndex,b.dataset.slotArea);});
+  container.addEventListener('dblclick',e=>{const b=e.target.closest('[data-slot-area]');if((ownSlot(b)||game.controlledUnit?.kind==='illusion'&&b?.dataset.slotOwner===game.controlledUnit.id)&&(['inventory','tp'].includes(b.dataset.slotArea)||(b.dataset.slotArea==='backpack'&&game.player.backpack[+b.dataset.slotIndex]==='smoke_of_deceit')))actions.useItem(+b.dataset.slotIndex,b.dataset.slotArea);});
   container.addEventListener('dragstart',e=>{const b=e.target.closest('[data-slot-area]');if(ownSlot(b)&&game.player[b.dataset.slotArea][+b.dataset.slotIndex])e.dataTransfer.setData('application/x-dota-item',JSON.stringify({area:b.dataset.slotArea,index:+b.dataset.slotIndex,ownerId:game.player.id}));});
   container.addEventListener('dragover',e=>{if(ownSlot(e.target.closest('[data-slot-area]')))e.preventDefault();});
   container.addEventListener('drop',e=>{const b=e.target.closest('[data-slot-area]');if(!ownSlot(b))return;e.preventDefault();try{const from=JSON.parse(e.dataTransfer.getData('application/x-dota-item'));if(from.ownerId!==game.player.id)return;state.slot=null;notify(game.moveItem(from.area,from.index,b.dataset.slotArea,+b.dataset.slotIndex));}catch{}});

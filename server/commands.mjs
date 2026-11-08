@@ -16,6 +16,7 @@ const point = value => value == null || exact(value,['x','y','direction','self']
 const args = (values, low, high=low) => Array.isArray(values) && values.length>=low && values.length<=high;
 const noArgs = values => args(values,0);
 const validators = {
+  unitCommand:a=>args(a,3)&&id(a[0])&&['moveTo','setMovement','attackTarget','cast','castExtra','toggleAutocast','useItem','recall','stop'].includes(a[1])&&(a[1]==='stop'?noArgs(a[2]):validators[a[1]](a[2])),
   moveTo:a=>args(a,2)&&number(a[0],0,WORLD.width)&&number(a[1],0,WORLD.height),
   setMovement:a=>args(a,2)&&number(a[0],-1,1)&&number(a[1],-1,1),
   attackTarget:a=>args(a,1)&&id(a[0]),
@@ -45,6 +46,7 @@ export const validName = value => typeof value === 'string' && value.trim().leng
 export const messageHasOnly = exact;
 
 function guardedSlots(action,a) {
+  if(action==='unitCommand')return guardedSlots(a[1],a[2]);
   if(action === 'moveItem') return [[a[0],a[1]],[a[2],a[3]]];
   if(['sellItem','setCombineLock','disassembleItem','dropItem'].includes(action)) return [[a[0],a[1]]];
   if(action === 'useItem') return [[a[2]??'inventory',a[0]]];
@@ -59,11 +61,13 @@ export function executeCommand(game, actorId, message) {
   const guards = message.slotGuards ?? [];
   if(!Array.isArray(guards) || guards.length>4 || guards.some(g=>!exact(g,['area','index','uid'])||!slot(g.area,g.index)||!(g.uid===null||id(g.uid)))) return fail('无效的物品校验');
   return game.withActor(actorId, actor => {
+    const inventoryActor=message.action==='unitCommand'?game.entities.find(e=>e.id===message.args[0]):actor;
+    if(message.action==='unitCommand'&&(!inventoryActor||!game.canControl(inventoryActor)||inventoryActor.kind!=='illusion'))return fail('只能操控自己制造的幻象');
     for(const [area,index] of required) {
       const matches=guards.filter(g=>g.area===area&&g.index===index);
-      const uid=actor[area]?.[index] ? actor[area+'Meta']?.[index]?.uid : null;
+      const uid=inventoryActor[area]?.[index] ? inventoryActor[area+'Meta']?.[index]?.uid : null;
       if(matches.length!==1 || matches[0].uid!==uid) return fail('物品栏已更新，请重试');
-      if(uid && actor[area+'Meta'][index].ownerId!==actor.id && !actor[area+'Meta'][index].freeRapier) return fail('该物品不属于此玩家');
+      if(uid && inventoryActor[area+'Meta'][index].ownerId!==inventoryActor.id && !inventoryActor[area+'Meta'][index].freeRapier) return fail('该物品不属于此玩家');
     }
     const action=message.action,a=message.args.map(value=>value===null?undefined:value);
     if(['cast','castExtra','useItem'].includes(action)&&a[1]?.self)a[1]=actor;

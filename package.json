@@ -22,6 +22,7 @@
     "test:economy": "node tests/browser-economy.mjs",
     "test:keybindings": "node tests/browser-keybindings.mjs",
     "test:collision": "node tests/browser-collision.mjs",
+    "test:illusions": "node tests/browser-illusions.mjs",
     "test:vfx": "node tests/browser-vfx.mjs",
     "test:ai": "node tests/browser-ai.mjs",
     "test:ogre": "node tests/browser-ogre.mjs",

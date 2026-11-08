@@ -137,7 +137,7 @@ function prdConstant(percent){
   const c=(low+high)/2;prdCache.set(percent,c);return c;
 }
 export function ogreAttackProc(g,h,target){
-  if(h.heroId!=='ogre_magi'||h.kind!=='hero'||!h.talents?.includes(6)||!fighter(target)||!alive(target))return;
+  if(h.heroId!=='ogre_magi'||!['hero','illusion'].includes(h.kind)||!h.talents?.includes(6)||!fighter(target)||!alive(target))return;
   const skill=Skills.skillOf(h,0);if(!skill.level||!skill.values.fireblast_proc)return;
   const chance=Math.min(1,prdConstant(skill.values.fireblast_proc)*((h.ogreProcFailures||0)+1));
   if(g._random()>=chance){h.ogreProcFailures=(h.ogreProcFailures||0)+1;return;}h.ogreProcFailures=0;

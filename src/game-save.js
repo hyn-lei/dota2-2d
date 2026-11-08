@@ -2,6 +2,7 @@ import { Game } from './engine.js';
 import { HEROES } from './data.js';
 import { ITEM_BY_ID } from './item-data.js';
 import { rebuildTrees } from './item-common.js';
+import {createIllusions} from './illusions.js';
 
 export const SAVE_KEY = 'af-single-match-v1';
 const VERSION = 1;
@@ -115,6 +116,18 @@ export function restoreMatch(record) {
   const { state } = validate(decode(encode(record)));
   const game = new Game({ hero: state.heroChoice, difficulty: state.difficulty, seed: state.seed });
   Object.assign(game, state);
+  for(const unit of [...game.entities])if(unit.kind==='illusion'){
+    if(!unit.illusionType){
+      const owner=game.entities.find(e=>e.id===unit.ownerId&&e.kind==='hero');
+      if(owner){
+        const id=unit.id,position={x:unit.x,y:unit.y,dead:unit.dead,deathTime:unit.deathTime},health=unit.hp/unit.maxHp;
+        const copy=createIllusions(game,owner,1,Math.max(0,unit.expiresAt-game.time),(unit.illusionOutgoing??1)*100,(unit.illusionIncoming??1)*100)[0];game.entities.pop();
+        for(const area of ['inventory','backpack','stash','tp'])for(const meta of copy[area+'Meta'])if(meta){if(meta.ownerId===copy.id)meta.ownerId=id;meta.uid=meta.uid.replace(copy.id+':',id+':');}
+        Object.assign(unit,copy,position,{id,hp:position.dead?0:copy.maxHp*health});
+      }else Object.assign(unit,{illusionType:'weak',controller:'manual',abilityLevels:[0,0,0,0],cooldowns:[0,0,0,0],destination:null,explicitTarget:null,targetId:null});
+    }
+    game.clearMovement(unit);
+  }
   game.clearMovement(game.player);
   game.setPaused(true);
   rebuildTrees(game);

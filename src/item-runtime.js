@@ -6,6 +6,7 @@ import * as C from './item-common.js';
 import { launchAttack } from './attack-projectiles.js';
 import {tickArmlet} from './armlet-runtime.js';
 import {startItemChain,queueMeteor,tickItemProjectiles} from './item-projectiles.js';
+import {weakIllusion} from './illusions.js';
 const {alive,distance,value:v,equipped,active,hasFlag,status,heal,enemies,slow,dot,stun}=C;
 const reject=reason=>({ok:false,reason});
 const statuses=(g,h)=>Object.values(h.statuses||{}).filter(s=>s.startedAt<=g.time&&s.until>g.time);
@@ -36,9 +37,10 @@ export function statItems(g,h){
 export function itemState(g,h,index,area='inventory'){
  Inventory.ensureInventory(h);const id=h[area]?.[index],meta=h[area+'Meta']?.[index],item=ITEM_BY_ID[id];
  const group=item?(item.sharedCooldown||item.id):area==='tp'?'teleport':null;
- return {id,meta,item,area,index,active:!!ACTIVE_ITEM_HANDLERS[id],cooldown:Math.max(meta?.cooldownRemaining||0,h.itemCooldowns?.[group]||0),ready:Math.max(0,(meta?.readyAt||0)-g.time)};
+ return {id,meta,item,area,index,active:!weakIllusion(h)&&!!ACTIVE_ITEM_HANDLERS[id],cooldown:Math.max(meta?.cooldownRemaining||0,h.itemCooldowns?.[group]||0),ready:Math.max(0,(meta?.readyAt||0)-g.time)};
 }
 export function useItem(g,h,index,point,area='inventory',options={}){
+ if(weakIllusion(h))return reject('弱幻象不能使用主动装备');
  const allowed=g._canAct(h);if(!allowed.ok)return allowed;
  if(!['inventory','tp'].includes(area)&&!(area==='backpack'&&h.backpack?.[index]==='smoke_of_deceit'))return reject('该栏位中的物品不能使用');
  const entry=itemState(g,h,index,area),{item,meta}=entry;
@@ -134,7 +136,7 @@ export function afterAttack(g,h,target,result,dealt){
  if(result.breakDuration&&alive(target))status(g,target,'itemBreak',ITEM_BY_ID.silver_edge,{duration:result.breakDuration,break:true,maxMovementSpeed:v(ITEM_BY_ID.silver_edge,'max_movement_speed')});
  const entries=passive(g,h);let lifesteal=(h.lifesteal||0)+(h.itemAura?.lifesteal||0);
  for(const s of statuses(g,h)){lifesteal+=s.lifesteal||0;if(s.pikeTarget===target.id&&s.attacksLeft>0)s.attacksLeft--;}
- if(dealt>0&&h.kind!=='illusion')heal(g,h,dealt*lifesteal/100*(target.kind==='hero'?1:.6),h);
+ if(dealt>0)heal(g,h,dealt*lifesteal/100*(target.kind==='hero'?1:.6),h);
  let bashed=false,chained=false,burned=false,echoHandled=false;const corrosion=entries.filter(e=>v(e.item,'corruption_armor')).sort((a,b)=>v(a.item,'corruption_armor')-v(b.item,'corruption_armor'))[0];
  for(const entry of entries){const i=entry.item;
   const proc=id=>result.itemAttackProcs?result.itemAttackProcs.includes(id):h.itemAttackProcs?.has(id);
@@ -240,7 +242,7 @@ export function expiredStatus(g,h,s){
  if(s.bonusAgility)C.refresh(g,h);
 }
 export function tickUnit(g,h,dt){
- if(h.kind==='hero'||h.kind==='courier'){
+ if(['hero','illusion','courier'].includes(h.kind)){
   for(const e of Inventory.itemEntries(h)){
    const i=ITEM_BY_ID[e.id],m=e.meta,rate=e.id==='refresher'?(e.area==='inventory'?1:0):e.area==='backpack'?.5:1;m.cooldownRemaining=Math.max(0,(m.cooldownRemaining||0)-dt*rate);
    if(i.abilityCharges&&m.charges<i.abilityCharges){m.rechargeRemaining=(m.rechargeRemaining||i.chargeRestoreTime)-dt;if(m.rechargeRemaining<=0){m.charges++;m.rechargeRemaining=m.charges<i.abilityCharges?i.chargeRestoreTime:0;if(e.id==='consecrated_wraps'&&e.area==='inventory'&&alive(h))status(g,h,'wrapsHaste',i,{positive:true,duration:v(i,'duration'),movePercent:v(i,'movement_speed_pct_on_stack_gain')});}}
@@ -273,7 +275,7 @@ export function tickUnit(g,h,dt){
    else if(channel.kind==='meteor')queueMeteor(g,h,i,channel);
   }
  }
- if(['illusion','summon'].includes(h.kind)){
+ if(h.kind==='summon'){
   if(h.expiresAt&&g.time>=h.expiresAt){g._kill(h,null);return;}
   if(Skills.isStunned(g,h)||h.forcedMotion)return;
   const master=g.entities.find(e=>e.id===h.ownerId),target=g.entities.find(e=>e.id===(master?.explicitTarget||h.controlTarget)&&alive(e))||g._chooseTarget(h,700);
@@ -287,7 +289,7 @@ export function tickWorld(g,dt){
  if(g.plantedTrees?.some(t=>t.until<=g.time)){g.plantedTrees=g.plantedTrees.filter(t=>t.until>g.time);treesChanged=true;}
  if(treesChanged)C.rebuildTrees(g);
  if(g.time>=(g.nextItemAuraAt||0)){
-  g.nextItemAuraAt=g.time+.25;for(const unit of g.entities)unit.itemAura={displayEffects:[]};const sources=g.entities.filter(e=>alive(e)&&e.kind==='hero');
+  g.nextItemAuraAt=g.time+.25;for(const unit of g.entities)unit.itemAura={displayEffects:[]};const sources=g.entities.filter(e=>alive(e)&&['hero','illusion'].includes(e.kind));
   for(const h of sources)for(const e of passive(g,h)){const i=e.item,radius=i.id==='crellas_crozier'?v(i,'radius'):v(i,['aura_radius','bonus_aoe_radius'],v(i,'aura_movement_speed')?v(i,'radius'):0);if(!radius)continue;
    for(const target of g.entities)if(alive(target)&&distance(h,target)<=radius){const a=target.itemAura;
     const positive=target.team===h.team;
@@ -310,9 +312,9 @@ export function tickWorld(g,dt){
  for(const h of g.entities){
   if(h.itemAura?.radiance)delete h.itemAura.radiance;
   if(!alive(h)||!['hero','illusion'].includes(h.kind))continue;
-  const enabled=h.kind==='illusion'?h.radianceBurn:passive(g,h).some(e=>e.id==='radiance'&&e.meta.mode!=='off');
+  const enabled=passive(g,h).some(e=>e.id==='radiance'&&e.meta.mode!=='off');
   if(!enabled)continue;
-  const dps=v(radiance,h.kind==='illusion'?'aura_damage_illusions':'aura_damage'),effective=dps*(1+(h.spellAmp||0)/100);
+  const dps=v(radiance,weakIllusion(h)?'aura_damage_illusions':'aura_damage'),effective=dps*(1+(h.spellAmp||0)/100);
   for(const target of enemies(g,h,h,v(radiance,'aura_radius')))if(effective>(burns.get(target.id)?.effective||0))burns.set(target.id,{target,source:h,dps,effective});
  }
  for(const {target,source,dps}of burns.values()){

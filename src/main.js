@@ -14,6 +14,7 @@ import { mountCoop, exitCoopMatch } from './coop-ui.js';
 import { loadMatch, storeMatch, restoreMatch, clearMatch } from './game-save.js';
 import {loadBindings,getBindings,skillKey,coreBinding,extraKey,shopKey} from './keybindings.js';
 import {keybindingsHTML,mountKeybindings} from './keybindings-ui.js';
+import {weakIllusion,strongIllusion} from './illusions.js';
 
 const $ = (s) => document.querySelector(s);
 const app = $('#app');
@@ -131,14 +132,16 @@ function startGame(providedGame=null,resume=false){
     </footer><aside id="shop" class="shop-panel" hidden></aside><div id="toast" role="status"></div><div id="modal-root"></div></main>`;
   setupRenderer();renderer.center(game.player);bindShared();
   shopUI=mountShop($('#shop'),$('#inventory'),game,{close:toggleShop,open:()=>{if(!shopOpen)toggleShop();},notify:toast,useItem:beginItemUse,changed:()=>{sound();updateHud();},locate:point=>{renderer.zoom=.4;renderer.lookAt(point.x,point.y);toast('已定位神秘商店，右键前往金色标记处');}});
-  mountSkills($('.abilities'),game,{cast,castSelf:i=>cast(i,true),autocast:async i=>{const activeGame=game,result=await activeGame.toggleAutocast(i);if(game!==activeGame)return;if(!result.ok)toast(result.reason);updateHud();},learn:i=>learn('learnAbility',i),talent:i=>learn('learnTalent',i),attributes:()=>learn('learnAttributes'),recall});
+  mountSkills($('.abilities'),game,{cast,castSelf:i=>cast(i,true),autocast:async i=>{const activeGame=game,result=await controlledAction('toggleAutocast',[i]);if(game!==activeGame)return;if(!result.ok)toast(result.reason);updateHud();},learn:i=>learn('learnAbility',i),talent:i=>learn('learnTalent',i),attributes:()=>learn('learnAttributes'),recall});
   if(game.isNetwork){const ai=game.entities.filter(e=>e.kind==='hero'&&e.team===0&&e.controller==='ai').length;document.querySelector('.match-clock small').textContent=ai?`${5-ai} 真人 + ${ai} 困难 AI`:'五真人 · 噩梦 AI';}
-  $('.abilities').addEventListener('click',e=>{const b=e.target.closest('[data-extra]');if(b&&game.selected.id===game.player.id)castExtra(b.dataset.extra);});
+  $('.abilities').addEventListener('click',e=>{const b=e.target.closest('[data-extra]');if(b&&game.canControl(game.selected))castExtra(b.dataset.extra);});
   mountStatusBar($('.hud-vitals'));
   $('.hud-economy').addEventListener('click',async e=>{const command=e.target.closest('[data-hud-courier]');if(command){const result=await game.courierCommand(command.dataset.hudCourier);if(!result.ok)toast(result.reason);}});
   $('#hud-quickbuy').onclick=async()=>{const result=await game.buyQuick();if(!result.ok)toast(result.reason);updateHud();};
   const buyHudItem=async e=>{const button=e.target.closest('[data-hud-buy]');if(!button)return;e.preventDefault();const activeGame=game,result=await activeGame.buy(button.dataset.hudBuy);if(game!==activeGame)return;if(!result.ok)toast(result.reason);else sound();updateHud();};
   $('#hud-quickbuy-items').addEventListener('click',buyHudItem);$('#hud-quickbuy-items').addEventListener('contextmenu',buyHudItem);
+  $('.game-hud').insertAdjacentHTML('beforeend','<div class="illusion-controls" hidden><span></span><button id="stop-controlled-unit">停止</button><button id="return-own-hero">返回英雄</button></div>');
+  $('#stop-controlled-unit').onclick=()=>controlledAction('stop');$('#return-own-hero').onclick=restoreOwnHero;
   updateHud();
   $('.match-header').insertAdjacentHTML('afterend',`<div class="match-roster" aria-label="点击英雄头像查看属性与装备">${[0,1].map(team=>`<div class="roster-team ${team?'dire':'radiant'}"><span>${team?'夜魇':'天辉'}</span>${game.entities.filter(e=>e.kind==='hero'&&e.team===team).map(e=>`<button data-inspect-hero="${e.id}" title="查看${e.name}${game.isNetwork&&e.team===0&&e.controller==='ai'?'（困难 AI 队友）':''}的属性和装备" aria-label="查看${team?'敌方':'友方'}${e.name}">${portrait(HEROES[e.heroId])}${game.isNetwork&&e.team===0&&e.controller==='ai'?'<small class="roster-ai-label">AI</small>':''}</button>`).join('')}</div>`).join('')}</div>`);
   document.querySelectorAll('[data-inspect-hero]').forEach(b=>b.onclick=()=>{game.selectEntity(b.dataset.inspectHero);updateHud();});
@@ -164,44 +167,47 @@ function startGame(providedGame=null,resume=false){
     if(game.status!=='playing')return;e.preventDefault();canvas.focus();const rect=canvas.getBoundingClientRect(),p=renderer.screenToWorld(e.clientX-rect.left,e.clientY-rect.top);pointer={x:e.clientX-rect.left,y:e.clientY-rect.top};
     if(e.button===1){dragging={x:e.clientX,y:e.clientY};canvas.setPointerCapture(e.pointerId);return;}
     const target=hitTest(p,e.button===2);
-    if(pendingItem){if(e.button===2){cancelItemUse();return;}if(e.button===0){const {index,area,uid}=pendingItem;if(game.itemState(index,area).meta?.uid!==uid){cancelItemUse();toast('物品位置已改变');return;}useItem(index,area,p);return;}}
+    if(pendingItem){if(e.button===2){cancelItemUse();return;}if(e.button===0){const {index,area,uid}=pendingItem;if(game.itemState(index,area,game.controlledUnit).meta?.uid!==uid){cancelItemUse();toast('物品位置已改变');return;}useItem(index,area,p);return;}}
     if(target?.kind==='droppedItem'&&e.button===2){const result=await game.pickupOrApproach(target.id);if(result.approaching)toast('靠近后拾取物品');else if(!result.ok)toast(result.reason);updateHud();return;}
     if(e.button===0){game.selectEntity(target?.id||game.player.id);updateHud();return;}
-    if(e.button!==2||game.paused||game.player.dead)return;
-    if(target&&target.team!==game.player.team){game.attackTarget(target.id);renderer.mark(target.x,target.y);}else{game.moveTo(p.x,p.y);renderer.mark(p.x,p.y);}
+    if(e.button!==2||game.paused||game.controlledUnit.dead)return;
+    if(target&&target.team!==game.player.team){controlledAction('attackTarget',[target.id]);renderer.mark(target.x,target.y);}else{controlledAction('moveTo',[p.x,p.y]);renderer.mark(p.x,p.y);}
   });
   refreshBindingHints();
   $('#pause-button').onclick=()=>openModal('pause');$('.match-brand').onclick=()=>openModal('pause');$('#guide-button').onclick=()=>openModal('guide');
   $('#shop-button').onclick=toggleShop;
   $('#control-hint button').onclick=()=>$('#control-hint').remove();
-  const mini=$('#minimap');mini.oncontextmenu=e=>e.preventDefault();mini.onpointerdown=e=>{e.preventDefault();const r=mini.getBoundingClientRect(),p=renderer.minimapToWorld(mini,e.clientX-r.left,e.clientY-r.top);if(!p)return;if(e.button===2){game.moveTo(p.x,p.y);renderer.mark(p.x,p.y);}else{if(renderer.zoom<.15)renderer.zoom=Math.max(.3,Math.min(.5,renderer.w/3200));renderer.lookAt(p.x,p.y);}};
+  const mini=$('#minimap');mini.oncontextmenu=e=>e.preventDefault();mini.onpointerdown=e=>{e.preventDefault();const r=mini.getBoundingClientRect(),p=renderer.minimapToWorld(mini,e.clientX-r.left,e.clientY-r.top);if(!p)return;if(e.button===2){controlledAction('moveTo',[p.x,p.y]);renderer.mark(p.x,p.y);}else{if(renderer.zoom<.15)renderer.zoom=Math.max(.3,Math.min(.5,renderer.w/3200));renderer.lookAt(p.x,p.y);}};
   toast('你已加入天辉。带领兵线，摧毁夜魇的远古遗迹。');
   checkpointMatch();
   if(resume)openModal('restored');
   window.scrollTo(0,0);
 }
 function restoreOwnHero(){if(game){game.selectEntity(game.player.id);updateHud();}}
-async function cast(i,self=false){if(!game||modal)return;restoreOwnHero();const activeGame=game,target=self?game.player:renderer.screenToWorld(pointer.x||renderer.w/2,pointer.y||renderer.h/2);const r=await activeGame.cast(i,target);if(game!==activeGame)return;if(r.ok){if(game.skill(i).kind==='active'||game.player.heroId==='ogre_magi')keys.clear();sound('cast');updateHud();}else toast(r.reason||'暂时无法施放技能');}
+function prepareControlledUnit(){if(!game.canControl(game.selected))restoreOwnHero();return game.controlledUnit;}
+function controlledAction(action,args=[]){const unit=game.controlledUnit;return unit.kind==='illusion'?game.unitCommand(unit.id,action,args):game[action](...args);}
+async function cast(i,self=false){if(!game||modal)return;const unit=prepareControlledUnit(),activeGame=game,target=self?unit:renderer.screenToWorld(pointer.x||renderer.w/2,pointer.y||renderer.h/2);const r=await controlledAction('cast',[i,target]);if(game!==activeGame)return;if(r.ok){if(game.skill(i,unit).kind==='active'||unit.heroId==='ogre_magi')keys.clear();sound('cast');updateHud();}else toast(r.reason||'暂时无法施放技能');}
 let pendingItem=null;
 function cancelItemUse(){pendingItem=null;$('#battlefield')?.classList.remove('item-targeting');$('#item-target-prompt')?.remove();}
 function beginItemUse(index,area='inventory'){
- if(!game||modal)return;restoreOwnHero();const info=game.itemState(index,area);if(!info.active){toast('这是被动物品');return;}
+ if(!game||modal)return;const unit=prepareControlledUnit(),info=game.itemState(index,area,unit);if(!info.active){toast(weakIllusion(unit)?'弱幻象不能使用主动装备':'这是被动物品');return;}
  if(info.cooldown||info.ready){toast('物品尚未就绪');return;}
  if(shopOpen)toggleShop();
  const noTarget=info.item.behaviors.some(b=>b.endsWith('_NO_TARGET')||b.endsWith('_TOGGLE'));
- if(noTarget){useItem(index,area,game.player);return;}
+ if(noTarget){useItem(index,area,unit);return;}
  cancelItemUse();pendingItem={index,area,uid:info.meta.uid};$('#battlefield').classList.add('item-targeting');
  $('.match').insertAdjacentHTML('beforeend',`<div id="item-target-prompt" role="status">${escapeHtml(info.item.name)} · 左键选择目标 · 右键 / Esc 取消</div>`);
 }
-async function useItem(index,area='inventory',point){if(!game||modal)return;restoreOwnHero();const activeGame=game,aim=point||renderer.screenToWorld(pointer.x||renderer.w/2,pointer.y||renderer.h/2),result=await activeGame.useItem(index,aim,area);if(game!==activeGame)return;if(result.ok){cancelItemUse();sound('cast');updateHud();}else toast(result.reason);}
-async function castExtra(id,self=false){if(!game||modal)return;restoreOwnHero();const activeGame=game,target=self?game.player:renderer.screenToWorld(pointer.x||renderer.w/2,pointer.y||renderer.h/2),result=await activeGame.castExtra(id,target);if(game!==activeGame)return;if(result.ok){keys.clear();sound('cast');updateHud();}else toast(result.reason);}
+async function useItem(index,area='inventory',point){if(!game||modal)return;const unit=prepareControlledUnit(),activeGame=game,aim=point||renderer.screenToWorld(pointer.x||renderer.w/2,pointer.y||renderer.h/2),result=await controlledAction('useItem',[index,aim,area]);if(game!==activeGame)return;if(result.ok){cancelItemUse();sound('cast');updateHud();}else toast(result.reason);}
+async function castExtra(id,self=false){if(!game||modal)return;const unit=prepareControlledUnit(),activeGame=game,target=self?unit:renderer.screenToWorld(pointer.x||renderer.w/2,pointer.y||renderer.h/2),result=await controlledAction('castExtra',[id,target]);if(game!==activeGame)return;if(result.ok){keys.clear();sound('cast');updateHud();}else toast(result.reason);}
 async function learn(method,index){if(!game||modal)return;restoreOwnHero();const activeGame=game,result=await activeGame[method](index);if(game!==activeGame)return;if(result.ok){sound();updateHud();}else toast(result.reason);}
-async function recall(){if(!game)return;restoreOwnHero();const activeGame=game,r=await activeGame.recall();if(game!==activeGame)return;if(!r.ok)toast(r.reason||'暂时无法回城');else sound();}
+async function recall(){if(!game)return;prepareControlledUnit();const activeGame=game,r=await controlledAction('recall');if(game!==activeGame)return;if(!r.ok)toast(r.reason||'暂时无法回城');else sound();}
 let previousFeed='';
 function updateHud(){
-  if(!game||view!=='match')return;const actor=game.player,p=game.selected,h=HEROES[p.heroId],hero=p.kind==='hero';
+  if(!game||view!=='match')return;const actor=game.player,p=game.selected,h=HEROES[p.heroId],hero=['hero','illusion'].includes(p.kind);
   const hud=$('.game-hud');hud.dataset.unitId=p.id;hud.dataset.unitKind=p.kind;hud.dataset.ownership=p.id===actor.id?'own':p.team===actor.team?'ally':'enemy';
   $('.hud-hero-title strong').textContent=p.name||unitLabels[p.kind];
+  const controls=$('.illusion-controls');if(controls){controls.hidden=p.kind!=='illusion'||!game.canControl(p)||p.dead;controls.querySelector('span').textContent=strongIllusion(p)?'强幻象 · 可施法':'弱幻象 · 普攻与被动';}
   const portraitImage=$('.hud-portrait>img'),portraitSrc=h?`/assets/hud/portraits/${h.id}.png`:null;portraitImage.hidden=!h;
   let symbol=$('.hud-unit-symbol');if(!symbol){symbol=document.createElement('div');symbol.className='hud-unit-symbol';$('.hud-portrait').append(symbol);}symbol.hidden=!!h;if(!h)symbol.innerHTML=icon(p.kind==='tower'?'tower':'shield');
   if(portraitSrc&&portraitImage.getAttribute('src')!==portraitSrc)portraitImage.src=portraitSrc;portraitImage.alt=(p.name||unitLabels[p.kind])+'头部肖像';
@@ -233,7 +239,7 @@ const unitLabels={ward:'守卫',hero:'英雄',creep:'兵线单位',neutral:'野�
 function updateInspection(){
   const body=$('#hero-stat-tooltip');if(!body||body.hidden||!game)return;
   const selected=game.selected,combat=game.combatStats(selected),delta=combat.damage-selected.damage;
-  const e={...selected,...combat,damageMin:(selected.damageMin??selected.damage)+delta,damageMax:(selected.damageMax??selected.damage)+delta},hero=e.kind==='hero',neutral=e.kind==='neutral',type=attributeLabels[e.primaryAttribute];
+  const e={...selected,...combat,damageMin:(selected.damageMin??selected.damage)+delta,damageMax:(selected.damageMax??selected.damage)+delta},hero=e.kind==='hero'||e.kind==='illusion',neutral=e.kind==='neutral',type=attributeLabels[e.primaryAttribute];
   const n=v=>Number.isFinite(v)?Number(v.toFixed(1)).toString():'—',percent=v=>`${n(v*100)}%`;
   const pair=(label,value)=>`<div><dt>${label}</dt><dd>${value}</dd></div>`;
   const html=`<strong>${escapeHtml(e.name||unitLabels[e.kind])}</strong>
@@ -247,7 +253,7 @@ function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':
 function toggleShop(){if(!game||modal)return;shopOpen=!shopOpen;$('#shop').hidden=!shopOpen;if(shopOpen)shopUI.update();else $('#battlefield').focus();}
 function updateShop(){shopUI?.update();}
 function openModal(type){
-  if(!$('#modal-root'))return;returnFocus=document.activeElement;modal=type;keys.clear();if(game){game.setMovement(0,0);game.setPaused(true);}sound();
+  if(!$('#modal-root'))return;returnFocus=document.activeElement;modal=type;keys.clear();if(game){controlledAction('setMovement',[0,0]);game.setPaused(true);}sound();
   checkpointMatch();
   let title='',eyebrow='',body='',footer='';
   if(type==='guide'){
@@ -301,8 +307,8 @@ window.addEventListener('keydown',async e=>{
   if(e.repeat){if(!coreBinding(key)&&['arrowup','arrowdown','arrowleft','arrowright','a','s'].includes(key))keys.add(key);return;}
   if(key==='escape'&&pendingItem){e.preventDefault();cancelItemUse();return;}
   const binding=coreBinding(key);
-  if(binding){e.preventDefault();if(binding.type==='item')useItem(binding.index,'inventory',e.altKey?game.player:undefined);else if(e.ctrlKey)learn('learnAbility',binding.index);else cast(binding.index,e.altKey);return;}
-  const extra=game.extraAbilities().find(s=>extraKey(s.key).toLowerCase()===key);
+  if(binding){e.preventDefault();if(binding.type==='item')useItem(binding.index,'inventory',e.altKey?game.controlledUnit:undefined);else if(e.ctrlKey)learn('learnAbility',binding.index);else cast(binding.index,e.altKey);return;}
+  const extra=game.extraAbilities(game.controlledUnit).find(s=>extraKey(s.key).toLowerCase()===key);
   if(extra){e.preventDefault();castExtra(extra.id,e.altKey);return;}
   if(key==='f3'){e.preventDefault();const activeGame=game,result=await activeGame.courierCommand('deliver');if(game!==activeGame)return;toast(result.ok?'信使已收到运输指令':result.reason||'信使操作未完成');return;}
   if(key==='escape'){
@@ -329,7 +335,7 @@ function tick(ms){
   const dt=Math.min((ms-lastFrame)/1000||0,1/20);lastFrame=ms;
   if(game&&view==='match'){
     const x=(keys.has('arrowright')?1:0)-((keys.has('a')&&!coreBinding('a'))||keys.has('arrowleft')?1:0),y=((keys.has('s')&&!coreBinding('s'))||keys.has('arrowdown')?1:0)-(keys.has('arrowup')?1:0);
-    game.setMovement(x,y);game.step(dt);
+    controlledAction('setMovement',[x,y]);game.step(dt);
     if(!game.isNetwork&&game.status==='playing'&&ms-checkpointAt>=2000)checkpointMatch();
     if(ms-hudAt>100){updateHud();hudAt=ms;}
     if(game.status!=='playing'&&lastStatus==='playing'){lastStatus=game.status;history.matches++;if(game.status==='won')history.wins++;history.bestKills=Math.max(history.bestKills,game.player.kills);save();if(!game.isNetwork){const cleared=clearMatch(browserStorage());if(!cleared.ok)toast(cleared.reason);}updateHud();openModal('result');}

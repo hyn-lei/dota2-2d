@@ -3,6 +3,7 @@ import { EXTRA_ABILITIES } from './upgrade-data.js';
 import { TREES } from './map-data.js';
 import * as Ogre from './ogre-runtime.js';
 import * as Drow from './drow-runtime.js';
+import {weakIllusion,strongIllusion} from './illusions.js';
 const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
 const alive=e=>e&&!e.dead&&e.hp>0;
 const fighter=e=>['hero','creep','neutral','illusion','summon'].includes(e?.kind);
@@ -105,6 +106,7 @@ export function combatStats(g,h,target=null){
 }
 
 export function castAbility(g,h,index,point){
+ if(weakIllusion(h))return {ok:false,reason:'弱幻象不能施放主动技能'};
  const allowed=g._canAct(h);if(!allowed.ok)return allowed;
  if(!Number.isInteger(index)||index<0||index>3)return {ok:false,reason:'无效技能'};
  const s=castingStats(h,skillOf(h,index));
@@ -125,7 +127,7 @@ export function castAbility(g,h,index,point){
  let target;
  if(unitTarget){
   target=ogreAlly&&point?.id===h.id&&!isInvulnerable(g,h)?h:g.entities.filter(e=>alive(e)&&(ogreAlly&&structure(e)||!isInvulnerable(g,e))&&g.canSee(h,e)&&distance(e,aim)<=Math.max(e.radius||24,90)&&
-   (ogreAlly?e.team===h.team&&(fighter(e)||structure(e)):h.heroId==='kunkka'?e.kind==='hero':e.team!==h.team&&(fighter(e)||(h.heroId==='windranger'&&index===3&&structure(e))))).sort((a,b)=>distance(a,aim)-distance(b,aim))[0];
+   (ogreAlly?e.team===h.team&&(fighter(e)||structure(e)):h.heroId==='kunkka'?e.kind==='hero'||e.kind==='illusion':e.team!==h.team&&(fighter(e)||(h.heroId==='windranger'&&index===3&&structure(e))))).sort((a,b)=>distance(a,aim)-distance(b,aim))[0];
   if(!target)return {ok:false,reason:h.heroId==='kunkka'?'请指向友方或敌方英雄':'请指向有效敌方目标'};
   const targetRange=h.heroId==='drow_ranger'&&index===0?g.combatStats(h,target).range:s.range;
   if(distance(h,target)>targetRange+target.radius)return {ok:false,reason:`目标超过 ${targetRange} 施法距离`};
@@ -146,6 +148,7 @@ export function castAbility(g,h,index,point){
  return {ok:true};
 }
 export function castExtraAbility(g,h,id,point){
+ if(weakIllusion(h))return {ok:false,reason:'弱幻象不能施放主动技能'};
  const allowed=g._canAct(h);if(!allowed.ok)return allowed;
  const s=castingStats(h,extraSkillOf(h,id));if(!s)return {ok:false,reason:'尚未获得对应的阿哈利姆升级'};
  if(!s.level)return {ok:false,reason:'需要先学习无敌斩'};
@@ -265,7 +268,7 @@ function applyHunger(g,h,target,s=skillOf(h,1)){
 function applyFrostbite(g,h,target,s=skillOf(h,1)){
  if(!s.level||debuffImmune(g,target)||isInvulnerable(g,target))return;
  const v=s.values;applyRoot(g,target,v.duration,h,false,{name:'冰封禁制',description:'无法移动或攻击，但仍可施放技能。',disarm:true,disarmed:true});
- dot(g,target,'frostbite',h,v.duration,v.damage_per_second*v.tick_interval*(target.kind!=='hero'&&!target.ancient?v.creep_multiplier:1),v.tick_interval,'magical','冰封伤害');
+ dot(g,target,'frostbite',h,v.duration,v.damage_per_second*v.tick_interval*(target.kind!=='hero'&&!strongIllusion(target)&&!target.ancient?v.creep_multiplier:1),v.tick_interval,'magical','冰封伤害');
 }
 function stopFreezingField(h){h.freezingField=null;removeStatus(h,'freezingField');if(h.buffs)delete h.buffs.ultUntil;}
 function damageOwnClones(g,h,at,radius,damage){
@@ -333,7 +336,7 @@ export function returnMark(g,h){
 export function tickWorldAbilities(g){
  Ogre.tickOgreWorld(g);
  Drow.tickDrowWorld(g);
- for(const h of g.entities)if(h.kind==='hero'){
+ for(const h of g.entities)if(h.kind==='hero'||strongIllusion(h)){
   if(h.extraCooldowns){const elapsed=Math.max(0,g.time-(h.extraCooldownTick??g.time));for(const id of Object.keys(h.extraCooldowns))h.extraCooldowns[id]=Math.max(0,h.extraCooldowns[id]-elapsed);h.extraCooldownTick=g.time;}
   if(h.castPhase&&h.castPhase.executeAt<=g.time+1e-7)releaseCast(g,h,h.castPhase);
   if(h.xMark&&h.xMark.expiresAt<=g.time+1e-7)returnMark(g,h);
@@ -412,7 +415,7 @@ export function tickStatuses(g,e,dt){
  }
 }
 export function tickHeroAbilities(g,h,dt){
- if(h.heroId==='ogre_magi')Ogre.tickBloodlustAutocast(g,h);
+ if(h.heroId==='ogre_magi'&&!weakIllusion(h))Ogre.tickBloodlustAutocast(g,h);
  if(h.cloneHop){const hop=h.cloneHop,t=Math.max(0,Math.min(1,(g.time-hop.startedAt)/(hop.until-hop.startedAt)));Object.assign(h,{x:hop.from.x+(hop.to.x-hop.from.x)*t,y:hop.from.y+(hop.to.y-hop.from.y)*t});if(t===1)h.cloneHop=null;}
  if(h.heroId==='windranger'&&h.tailwinds?.length){
   h.tailwinds=h.tailwinds.filter(t=>t.until>g.time+1e-7);

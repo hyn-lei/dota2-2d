@@ -5,6 +5,7 @@ import { castingStats } from './hero-runtime.js';
 import { marksmanshipActive } from './drow-runtime.js';
 import { itemState } from './item-runtime.js';
 import {unitSkillIds,unitSkill} from './unit-skills.js';
+import {weakIllusion} from './illusions.js';
 import {skillKey,getBindings,extraKey} from './keybindings.js';
 const escape=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const number=n=>Number.isFinite(n)?Number(n.toFixed(2)).toString():'—';
@@ -15,12 +16,12 @@ function art(skill){return `<img src="/assets/abilities/${skill.id}.png" alt="" 
 export function mountSkills(container,game,actions,unit=game.selected){
  const h=unit,abilities=ABILITIES[h.heroId];
  const previous=contexts.get(container);clearTimeout(previous?.hideTimer);
- container.classList.toggle('unit-abilities',h.kind!=='hero');
- if(!abilities||h.kind!=='hero')return mountUnitSkills(container,game,actions,h);
+ container.classList.toggle('unit-abilities',!['hero','illusion'].includes(h.kind));
+ if(!abilities||!['hero','illusion'].includes(h.kind))return mountUnitSkills(container,game,actions,h);
  container.innerHTML=`<div class="skill-point-summary"><span id="skill-point-label">技能点 <b>1</b></span><small>Ctrl + ${getBindings().skills.map(k=>k.toUpperCase()).join(' / ')} 加点</small></div><div class="skill-buttons"><div class="talent-slot"><button class="learn-talent" id="learn-talent" aria-label="学习天赋" title="有可用天赋点">+</button><button class="talent-button" id="talent-button" aria-label="天赋树与属性加点" title="U · 天赋树与属性加点">${icon('talent')}<span>天赋 U</span></button><div class="talent-tier-pips">${[25,20,15,10].map(t=>`<i data-tier="${t}"></i>`).join('')}</div></div>${abilities.map((s,i)=>`<div class="ability-wrap"><button class="learn-ability" data-learn="${i}" aria-label="升级${s.name}">+</button><button class="ability" id="ability-${i}" data-ability="${i}" style="--skill-color:${s.color}" aria-label="${s.name}"><span class="ability-art">${art(s)}</span><kbd>${skillKey(i)}</kbd><span class="ability-cost"></span><span class="cooldown" id="cooldown-${i}"></span><span class="skill-unlearned">未学习</span><span class="ability-name">${s.name}</span></button><span class="skill-ranks" aria-label="技能等级">${Array.from({length:s.maxLevel},()=>'<i></i>').join('')}</span></div>`).join('')}<div class="skill-aux"><button class="innate-button" aria-label="先天能力：${INNATES[h.heroId].name}">${art(INNATES[h.heroId])}<span>先天</span></button></div><button class="recall-button" id="recall-button" title="B · 传送回泉水（3 秒）">${icon('home')}<kbd>B</kbd><span>回城</span></button></div><div class="skill-tooltip" role="tooltip" hidden></div><div class="talent-panel" hidden><div class="talent-heading"><div><small>${escape(h.name)}</small><h2>天赋树</h2></div><button class="talent-close" aria-label="关闭天赋树">×</button></div><p class="talent-points"></p><div class="talent-rows">${[3,2,1,0].map(t=>`<div class="talent-row"><button data-talent="${t*2}">${escape(TALENTS[h.heroId][t*2].name)}</button><b>${[10,15,20,25][t]}</b><button data-talent="${t*2+1}">${escape(TALENTS[h.heroId][t*2+1].name)}</button></div>`).join('')}</div><button class="attribute-upgrade" data-attributes="true"><strong>+2 全属性</strong><span>力量、敏捷、智力各 +2</span><small></small></button><p class="talent-note">技能和全属性消耗技能点，天赋消耗独立天赋点。每层天赋先选一侧；27 / 28 / 29 / 30 级依次获得另一侧天赋。</p></div>`;
  const state={container,game,actions,unit:h,heroId:h.heroId,hover:null,tooltip:container.querySelector('.skill-tooltip'),talents:container.querySelector('.talent-panel')};contexts.set(container,state);
  container.querySelectorAll('[data-learn]').forEach(b=>b.onclick=()=>state.unit.id===game.player.id&&actions.learn(Number(b.dataset.learn)));
- container.querySelectorAll('[data-ability]').forEach(b=>{b.onclick=()=>{if(state.unit.id===game.player.id)actions.cast(Number(b.dataset.ability));};b.oncontextmenu=e=>{e.preventDefault();if(state.unit.id!==game.player.id)return;if(abilities[+b.dataset.ability].kind==='autocast')(actions.autocast||actions.cast)(+b.dataset.ability);};b.ondblclick=()=>{if(state.unit.id===game.player.id&&h.heroId==='ogre_magi'&&+b.dataset.ability===2)actions.castSelf?.(2);};});
+ container.querySelectorAll('[data-ability]').forEach(b=>{b.onclick=()=>{if(game.canControl(state.unit))actions.cast(Number(b.dataset.ability));};b.oncontextmenu=e=>{e.preventDefault();if(!game.canControl(state.unit))return;if(abilities[+b.dataset.ability].kind==='autocast')(actions.autocast||actions.cast)(+b.dataset.ability);};b.ondblclick=()=>{if(game.canControl(state.unit)&&h.heroId==='ogre_magi'&&+b.dataset.ability===2)actions.castSelf?.(2);};});
  const hideTip=()=>{clearTimeout(state.hideTimer);state.hideTimer=setTimeout(()=>{state.hover=null;state.tooltip.hidden=true;},180);};
  const bindTip=(button,index)=>{button.addEventListener('pointerenter',()=>{clearTimeout(state.hideTimer);showTip(state,index,button);});button.addEventListener('focus',()=>showTip(state,index,button));button.addEventListener('pointerleave',hideTip);button.addEventListener('blur',hideTip);};
  state.tooltip.addEventListener('pointerenter',()=>clearTimeout(state.hideTimer));state.tooltip.addEventListener('pointerleave',hideTip);
@@ -29,7 +30,7 @@ export function mountSkills(container,game,actions,unit=game.selected){
  container.querySelector('#learn-talent').onclick=()=>toggleTalents(container);
  container.querySelector('.talent-close').onclick=()=>state.talents.hidden=true;
  container.querySelectorAll('[data-talent]').forEach(b=>b.onclick=()=>state.unit.id===game.player.id&&actions.talent(Number(b.dataset.talent)));
- container.querySelector('[data-attributes]').onclick=()=>{if(state.unit.id===game.player.id)actions.attributes();};container.querySelector('#recall-button').onclick=()=>{if(state.unit.id===game.player.id)actions.recall();};
+ container.querySelector('[data-attributes]').onclick=()=>{if(state.unit.id===game.player.id)actions.attributes();};container.querySelector('#recall-button').onclick=()=>{if(game.canControl(state.unit))actions.recall();};
  state.talents.addEventListener('keydown',e=>{if(e.key==='Escape'){e.preventDefault();e.stopPropagation();state.talents.hidden=true;}});
  updateSkills(container,game,h);return container;
 }
@@ -45,28 +46,28 @@ function tipHTML(h,index,game){
 function showTip(state,index,button){state.hover={index,button};state.tipContent=tipHTML(state.unit,index,state.game);state.tooltip.innerHTML=state.tipContent;state.tooltip.hidden=false;const rect=button.getBoundingClientRect();state.tooltip.style.left=`${Math.max(10,Math.min(innerWidth-350,rect.left-120))}px`;state.tooltip.style.bottom=`${Math.max(12,innerHeight-rect.top+15)}px`;}
 export function updateSkills(container,game,unit=game.selected){
  let state=contexts.get(container);if(!state)return;
- const heroId=unit.kind==='hero'?unit.heroId:null;
+ const heroId=['hero','illusion'].includes(unit.kind)?unit.heroId:null;
  if(state.heroId!==heroId||state.unit.id!==unit.id){mountSkills(container,game,state.actions,unit);return;}
  state.game=game;state.unit=unit;const h=unit,own=h.id===game.player.id;
  if(!heroId){updateUnitSkills(state);return;}
  container.querySelector('.skill-point-summary small').textContent='Ctrl + '+getBindings().skills.map(k=>k.toUpperCase()).join(' / ')+' 加点';
  for(const button of container.querySelectorAll('[data-ability]'))button.querySelector('kbd').textContent=skillKey(+button.dataset.ability);
  const tp=itemState(game,h,0,'tp'),recall=container.querySelector('#recall-button');
- recall.disabled=!own||h.dead||game.paused||!tp.item||tp.cooldown>0;
+ recall.disabled=!game.canControl(h)||weakIllusion(h)||h.dead||game.paused||!tp.item||tp.cooldown>0;
  recall.title=`B · 传送回泉水 · ${tp.meta?.charges||0} 张卷轴${tp.cooldown>0?' · 冷却 '+Math.ceil(tp.cooldown)+' 秒':''}`;
  recall.querySelector('span').textContent=tp.cooldown>0?`${Math.ceil(tp.cooldown)} 秒`:'回城';
  let extras=container.querySelector('.extra-skills');if(!extras){extras=document.createElement('div');extras.className='extra-skills';container.querySelector('.skill-aux').before(extras);}
- const extraHTML=game.extraAbilities(h).map(s=>{const cooldown=h.extraCooldowns?.[s.id]||0;return `<button class="extra-ability ${cooldown?'on-cooldown':''}" data-extra="${s.id}" ${!own||!s.level||h.dead||game.paused?'disabled':''} title="${escape(s.name+'：'+s.description)}" aria-label="${escape(s.name)}"><span>${art(s)}</span><kbd>${extraKey(s.key)}</kbd><strong>${escape(s.name)}</strong><small>${cooldown?Math.ceil(cooldown)+' 秒':s.mana+' 魔法'}</small></button>`;}).join('');
+ const extraHTML=game.extraAbilities(h).map(s=>{const cooldown=h.extraCooldowns?.[s.id]||0;return `<button class="extra-ability ${cooldown?'on-cooldown':''}" data-extra="${s.id}" ${!game.canControl(h)||weakIllusion(h)||!s.level||h.dead||game.paused?'disabled':''} title="${escape(s.name+'：'+s.description)}" aria-label="${escape(s.name)}"><span>${art(s)}</span><kbd>${extraKey(s.key)}</kbd><strong>${escape(s.name)}</strong><small>${cooldown?Math.ceil(cooldown)+' 秒':s.mana+' 魔法'}</small></button>`;}).join('');
  if(extras.renderedContent!==extraHTML){extras.innerHTML=extraHTML;extras.renderedContent=extraHTML;}extras.hidden=!extraHTML;
  container.querySelector('#skill-point-label').innerHTML=`技能点 <b>${h.skillPoints}</b> · 天赋点 <b>${h.talentPoints||0}</b>`;container.classList.toggle('has-skill-points',h.skillPoints>0||h.talentPoints>0);
  ABILITIES[h.heroId].forEach((_,i)=>{
   const s=castingStats(h,game.skill(i,h)),button=container.querySelector(`#ability-${i}`),learn=container.querySelector(`[data-learn="${i}"]`),eligible=canLearnAbility(h,i),cooldown=h.cooldowns[i]||0,recast=h.heroId==='kunkka'&&i===2&&!!h.xMark;
   learn.disabled=!own||!eligible.ok||game.paused||game.status!=='playing';learn.title=eligible.ok?`学习 ${s.name} ${s.level+1} 级（Ctrl + ${skillKey(i)}）`:eligible.reason;learn.hidden=!own||h.skillPoints<=0;
-  button.setAttribute('aria-readonly',String(!own));button.classList.toggle('unlearned',!s.level);button.classList.toggle('passive-skill',s.kind==='passive');button.classList.toggle('on-cooldown',!recast&&cooldown>.05);button.classList.toggle('no-mana',!recast&&h.mana<s.mana);button.classList.toggle('recast-ready',recast);button.classList.toggle('autocast-on',s.kind==='autocast'&&h.autocast?.[i]!==false&&s.level>0);
+  button.setAttribute('aria-readonly',String(!game.canControl(h)||weakIllusion(h)));button.classList.toggle('unlearned',!s.level);button.classList.toggle('passive-skill',s.kind==='passive');button.classList.toggle('on-cooldown',!recast&&cooldown>.05);button.classList.toggle('no-mana',!recast&&h.mana<s.mana);button.classList.toggle('recast-ready',recast);button.classList.toggle('autocast-on',s.kind==='autocast'&&h.autocast?.[i]!==false&&s.level>0);
   button.classList.toggle('passive-disabled',h.heroId==='drow_ranger'&&i===3&&s.level>0&&!marksmanshipActive(game,h,s));
   button.style.setProperty('--cooldown-progress',`${Math.max(0,Math.min(1,1-cooldown/(s.cooldown*(1-(h.cooldownReduction||0)/100)||1)))*360}deg`);
   button.querySelector('.skill-unlearned').hidden=!!s.level;button.querySelector('.ability-name').textContent=recast?'标记返回':s.name;button.querySelector('.ability-cost').textContent=s.kind==='passive'?'被动':recast?'0':s.mana;
-  button.querySelector('.cooldown').textContent=!recast&&cooldown>.05?Math.ceil(cooldown):'';button.disabled=h.dead||game.status!=='playing';button.setAttribute('aria-label',`${s.name}，${s.level} 级${!s.level?'，未学习':''}`);
+  button.querySelector('.cooldown').textContent=!recast&&cooldown>.05?Math.ceil(cooldown):'';button.disabled=h.dead||game.status!=='playing'||weakIllusion(h)&&s.kind!=='passive';button.setAttribute('aria-label',`${s.name}，${s.level} 级${!s.level?'，未学习':''}`);
   button.parentElement.querySelectorAll('.skill-ranks i').forEach((pip,rank)=>pip.classList.toggle('learned',rank<s.level));
  });
  const talentReady=own&&TALENTS[h.heroId].some((_,i)=>canLearnTalent(h,i).ok);
