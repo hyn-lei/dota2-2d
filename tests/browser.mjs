@@ -160,7 +160,7 @@ try{
   assert.ok(await page.evaluate(()=>window.observedGame.entities.some(e=>e.kind==='neutral'&&!e.isRoshan)));
   const neutralPoint=await page.evaluate(()=>{const g=window.observedGame,e=g.entities.find(e=>e.kind==='neutral'&&!e.isRoshan);window.observedRenderer.lookAt(e.x,e.y);return {x:e.x,y:e.y};});
   p=await aim(neutralPoint.x,neutralPoint.y);await page.mouse.click(p.x,p.y);
-  await page.waitForSelector('.selected-unit-info');assert.match(await page.locator('.selected-unit-info').textContent(),/中立/);
+  await page.waitForSelector('.game-hud[data-unit-kind="neutral"]');assert.match(await page.locator('#attribute-summary').textContent(),/中立/);
   await page.locator('#hero-details').hover();await page.waitForSelector('#hero-stat-tooltip:not([hidden])');assert.match(await page.locator('#hero-stat-tooltip').textContent(),/击杀奖励/);
   await page.locator('#camp-bounds').click();await page.screenshot({path:'artifacts/neutral-camp-741f.png'});
   await page.keyboard.press('Space');

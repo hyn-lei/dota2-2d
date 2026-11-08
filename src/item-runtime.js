@@ -5,11 +5,12 @@ import { ACTIVE_ITEM_HANDLERS, findItemTarget } from './item-actives.js';
 import * as C from './item-common.js';
 import { launchAttack } from './attack-projectiles.js';
 import {tickArmlet} from './armlet-runtime.js';
+import {startItemChain,queueMeteor,tickItemProjectiles} from './item-projectiles.js';
 const {alive,distance,value:v,equipped,active,hasFlag,status,heal,enemies,slow,dot,stun}=C;
 const reject=reason=>({ok:false,reason});
 const statuses=(g,h)=>Object.values(h.statuses||{}).filter(s=>s.startedAt<=g.time&&s.until>g.time);
 const owner=(g,e)=>e?.ownerId?g.entities.find(h=>h.id===e.ownerId)||e:e;
-const passive=(g,h)=>hasFlag(g,h,'muted')?[]:equipped(g,h).filter(e=>e.area==='inventory'&&(e.meta.ownerId===h.id||e.meta.freeRapier));
+const passive=(g,h)=>equipped(g,h).filter(e=>e.area==='inventory'&&(e.meta.ownerId===h.id||e.meta.freeRapier));
 
 export function statItems(g,h){
  const entries=Inventory.itemEntries(h,['inventory']).filter(e=>(e.meta.readyAt||0)<=g.time&&(e.meta.ownerId===h.id||e.meta.freeRapier));
@@ -39,7 +40,7 @@ export function itemState(g,h,index,area='inventory'){
 }
 export function useItem(g,h,index,point,area='inventory',options={}){
  const allowed=g._canAct(h);if(!allowed.ok)return allowed;
- if(!['inventory','tp'].includes(area))return reject('背包、储藏处或信使中的物品不能使用');
+ if(!['inventory','tp'].includes(area)&&!(area==='backpack'&&h.backpack?.[index]==='smoke_of_deceit'))return reject('该栏位中的物品不能使用');
  const entry=itemState(g,h,index,area),{item,meta}=entry;
  if(!item)return reject('该物品栏为空');
  if(!entry.active)return reject('这是被动物品，无需施放');
@@ -84,20 +85,21 @@ export function onSpellTarget(g,h,target,skill){
  if(e&&alive(target)){e.meta.cooldownRemaining=e.item.cooldown;g.damage(target,v(e.item,'bonus_spell_damage'),h,'magical',{itemProc:true});slow(g,target,e.item,v(e.item,'slow_duration'),v(e.item,'slow'),h);}
 }
 export function combatStats(g,h,base,target){
- const result={...base,evasion:Math.max(base.evasion||0,h.evasion||0)};
+ const result={...base,evasion:Math.max(base.evasion||0,h.evasion||0)};let maxMovementSpeed=Infinity;
  for(const s of statuses(g,h)){
   if(s.magicResistancePct)result.magicResistance=1-(1-result.magicResistance)*(1-s.magicResistancePct/100);
   if(s.magicResistanceReduction)result.magicResistance-=s.magicResistanceReduction/100;
   if(s.speedOverride)result.speed=s.speedOverride;
   if(s.moveOverride)result.speed=s.moveOverride;
   if(s.pikeTarget===target?.id&&s.attacksLeft>0)result.range=25000;
+  if(s.maxMovementSpeed)maxMovementSpeed=Math.min(maxMovementSpeed,s.maxMovementSpeed);
  }
  const a=h.itemAura||{};result.armor+=a.armor||0;result.speed=Math.min(550,result.speed+(a.speed||0));result.attackSpeed=Math.max(20,Math.min(700,result.attackSpeed+(a.attackSpeed||0)));
  result.damage*=1+(a.damagePct||0)/100;
  if(a.magicResistance)result.magicResistance=1-(1-result.magicResistance)*(1-a.magicResistance/100);
  const butterfly=passive(g,h).find(e=>e.id==='butterfly');if(butterfly)result.attackSpeed=Math.min(700,result.attackSpeed*(1+v(butterfly.item,'bonus_attack_speed_pct')/100));
  if(h.baseAttackTime)result.attackInterval=h.baseAttackTime*100/result.attackSpeed;
- result.range??=h.range;return result;
+ result.range??=h.range;result.speed=Math.min(result.speed,maxMovementSpeed);return result;
 }
 function breakInvisibility(g,h,s){
  if(s.glimmer){s.fadeStartedAt=g.time;s.fadeDuration=s.secondaryFade||.5;s.startedAt=g.time+s.fadeDuration;}
@@ -105,56 +107,72 @@ function breakInvisibility(g,h,s){
 }
 export function attackModifiers(g,h,target,result){
  const entries=passive(g,h),base=g.combatStats(h,target);result.interval=base.attackInterval;result.damage*=base.damage/(Skills.combatStats(g,h,target).damage||1);
+ if(target.kind!=='hero'&&C.fighter(target))result.damage+=entries.reduce((best,e)=>Math.max(best,v(e.item,h.range>300?['quelling_bonus_ranged','damage_bonus_ranged']:['quelling_bonus','damage_bonus'])),0);
  let critical=1;for(const e of entries){const i=e.item;
-  if(v(i,'crit_chance')&&g._random()*100<v(i,'crit_chance'))critical=Math.max(critical,v(i,'crit_multiplier')/100);
-  if(v(i,'quelling_bonus')&&target.kind!=='hero'&&C.fighter(target))result.damage+=v(i,h.range>300?'quelling_bonus_ranged':'quelling_bonus');
+  if(e.id!=='revenants_brooch'&&v(i,'crit_chance')&&g._random()*100<v(i,'crit_chance'))critical=Math.max(critical,v(i,'crit_multiplier')/100);
  }
  if(critical>1&&!result.critical){result.damage*=critical;result.itemCritical=true;}
  for(const s of Object.values(h.statuses||{}))if(s.invisible){if(s.startedAt<=g.time){result.damage+=s.attackBonus||0;result.breakDuration=s.breakDuration||0;}breakInvisibility(g,h,s);}
  if(h.kind==='illusion')result.damage*=h.illusionOutgoing||0;
+ const brooch=entries.find(e=>e.id==='revenants_brooch');if(brooch)result.broochDamage=g._random()*100<v(brooch.item,'crit_chance')?result.damage*v(brooch.item,'crit_multiplier')/100:0;
  return result;
 }
-export function trueStrike(g,h,target){h.itemAttackProcs=new Set();for(const e of passive(g,h))if((v(e.item,'bonus_chance')&&g._random()*100<v(e.item,'bonus_chance'))||(['witch_blade','devastator'].includes(e.id)&&(e.meta.procReadyAt||0)<=g.time))h.itemAttackProcs.add(e.meta.uid);return statuses(g,target).some(s=>s.trueStrike)||h.itemAttackProcs.size>0;}
+export function trueStrike(g,h,target){
+ h.itemAttackProcs=new Set();let pierces=false,chainChosen=false;const entries=passive(g,h);
+ for(const e of entries){
+  if((v(e.item,e.id==='bloodthorn'?'proc_chance':'bonus_chance')&&g._random()*100<v(e.item,e.id==='bloodthorn'?'proc_chance':'bonus_chance'))||(['witch_blade','devastator'].includes(e.id)&&(e.meta.procReadyAt||0)<=g.time)){h.itemAttackProcs.add(e.meta.uid);pierces=true;}
+  if(v(e.item,'chain_chance')){
+   h.itemAttackProcs.add(e.meta.uid+':chainRolled');
+   if(!chainChosen&&(e.meta.chainReadyAt||0)<=g.time&&g._random()*100<v(e.item,'chain_chance')){h.itemAttackProcs.add(e.meta.uid+':chain');pierces=chainChosen=true;for(const other of entries)if(v(other.item,'chain_chance'))other.meta.chainReadyAt=g.time+v(e.item,'chain_cooldown');}
+  }
+ }
+ return statuses(g,target).some(s=>s.trueStrike&&(s.itemId!=='bloodthorn'||s.sourceId===h.id||s.sourceId===h.ownerId))||pierces;
+}
 export function afterAttack(g,h,target,result,dealt){
  if(!C.fighter(target))return;
  if(result.secondary){if(result.secondaryPoison&&alive(target))dot(g,target,ITEM_BY_ID.hydras_breath,result.secondaryPoison.duration,target.maxHp*result.secondaryPoison.percent/100,h);return;}
- if(result.breakDuration&&alive(target))status(g,target,'itemBreak',ITEM_BY_ID.silver_edge,{duration:result.breakDuration,break:true});
+ if(result.breakDuration&&alive(target))status(g,target,'itemBreak',ITEM_BY_ID.silver_edge,{duration:result.breakDuration,break:true,maxMovementSpeed:v(ITEM_BY_ID.silver_edge,'max_movement_speed')});
  const entries=passive(g,h);let lifesteal=(h.lifesteal||0)+(h.itemAura?.lifesteal||0);
  for(const s of statuses(g,h)){lifesteal+=s.lifesteal||0;if(s.pikeTarget===target.id&&s.attacksLeft>0)s.attacksLeft--;}
  if(dealt>0&&h.kind!=='illusion')heal(g,h,dealt*lifesteal/100*(target.kind==='hero'?1:.6),h);
- let bashed=false,chained=false;for(const entry of entries){const i=entry.item;
-  if(!alive(target))break;
+ let bashed=false,chained=false,burned=false,echoHandled=false;const corrosion=entries.filter(e=>v(e.item,'corruption_armor')).sort((a,b)=>v(a.item,'corruption_armor')-v(b.item,'corruption_armor'))[0];
+ for(const entry of entries){const i=entry.item;
+  const proc=id=>result.itemAttackProcs?result.itemAttackProcs.includes(id):h.itemAttackProcs?.has(id);
+  const chain=v(i,'chain_chance')&&!chained&&(proc(entry.meta.uid+':chainRolled')?proc(entry.meta.uid+':chain'):(entry.meta.chainReadyAt||0)<=g.time&&g._random()*100<v(i,'chain_chance'));
+  if(chain){chained=true;entry.meta.chainReadyAt=Math.max(entry.meta.chainReadyAt||0,g.time+v(i,'chain_cooldown'));startItemChain(g,h,i,target);}
+  if(!alive(target))continue;
   if(!bashed&&v(i,'bash_chance_melee')&&(entry.meta.bashReadyAt||0)<=g.time&&g._random()*100<v(i,h.range>300?'bash_chance_ranged':'bash_chance_melee')){bashed=true;entry.meta.bashReadyAt=g.time+v(i,'bash_cooldown');stun(g,target,v(i,'bash_duration'),h,true);g.damage(target,v(i,'bonus_chance_damage'),h,'physical',{itemProc:true});}
   if(v(i,'bonus_chance')&&(result.itemAttackProcs?result.itemAttackProcs.includes(entry.meta.uid):h.itemAttackProcs?.has(entry.meta.uid)))g.damage(target,v(i,'bonus_chance_damage'),h,'magical',{itemProc:true});
-  if(entry.id==='revenants_brooch'&&g._random()*100<v(i,'crit_chance'))g.damage(target,result.damage*v(i,'crit_multiplier')/100,h,'magical',{itemProc:true});
+  if(entry.id==='bloodthorn'&&(result.itemAttackProcs?result.itemAttackProcs.includes(entry.meta.uid):h.itemAttackProcs?.has(entry.meta.uid)))g.damage(target,v(i,'passive_proc_damage'),h,'magical',{itemProc:true});
+  if(entry.id==='revenants_brooch'&&result.broochDamage)g.damage(target,result.broochDamage,h,'magical',{itemProc:true});
   if(['witch_blade','devastator'].includes(entry.id)&&(entry.meta.procReadyAt||0)<=g.time){entry.meta.procReadyAt=g.time+v(i,'passive_cooldown',i.cooldown);dot(g,target,i,v(i,'slow_duration'),h.intelligence*v(i,'int_damage_multiplier'),h);slow(g,target,i,v(i,'slow_duration'),v(i,'slow'),h);}
   if(entry.id==='devastator')status(g,target,'devastatorCorrosion',i,{duration:v(i,'slow_duration'),magicResistanceReduction:v(i,'active_mres_reduction')});
-  if(['orb_of_frost','orb_of_corrosion'].includes(entry.id))slow(g,target,i,v(i,'duration'),Math.abs(v(i,h.range>300?'slow_ranged':'slow_melee')),h,{healReduction:v(i,'heal_reduction')});
+  if(['orb_of_frost','orb_of_corrosion'].includes(entry.id))slow(g,target,i,v(i,'duration'),Math.abs(v(i,target.range>300?'slow_ranged':'slow_melee')),h,{healReduction:v(i,'heal_reduction')});
   if(entry.id==='hydras_breath')dot(g,target,i,v(i,'poison_duration'),target.maxHp*v(i,'poison_damage_per_second')/100,h);
   if(['specialists_array','hydras_breath'].includes(entry.id)&&h.range>300&&g._random()*100<v(i,'proc_chance')){
    g.damage(target,v(i,'base_proc_dmg'),h,'physical',{attack:true,itemProc:true});
    const candidates=enemies(g,h,h,h.range+v(i,'secondary_target_range_bonus')).filter(e=>e!==target&&Math.cos(h.angle)*(e.x-h.x)+Math.sin(h.angle)*(e.y-h.y)>=distance(h,e)*Math.cos(v(i,'secondary_target_angle')/2*Math.PI/180));
    for(const enemy of candidates.slice(0,v(i,'count')))launchAttack(g,h,enemy,{damage:v(i,'base_proc_dmg')+result.damage*v(i,'proc_dmg_pct')/100,secondary:true,trueStrike:result.trueStrike,secondaryPoison:entry.id==='hydras_breath'?{duration:v(i,'poison_duration'),percent:v(i,'poison_damage_per_second')}:null});
   }
-  if(['echo_sabre','harpoon'].includes(entry.id)&&h.range<=300&&(entry.meta.echoReadyAt||0)<=g.time){entry.meta.echoReadyAt=g.time+v(i,'echo_sabre_cooldown',entry.id==='echo_sabre'?i.cooldown:5);h.attackCooldown=Math.min(h.attackCooldown,.2);slow(g,target,i,v(i,'slow_duration'),v(i,'movement_slow'),h);}
-  if(entry.id==='tranquil_boots'&&target.kind==='hero'){entry.meta.brokenUntil=g.time+v(i,'break_time');C.refresh(g,h);}
-  if(!chained&&v(i,'chain_chance')&&(entry.meta.chainReadyAt||0)<=g.time&&g._random()*100<v(i,'chain_chance')){
-   chained=true;entry.meta.chainReadyAt=g.time+v(i,'chain_cooldown');const hit=new Set();let next=target;
-   for(let n=0;n<v(i,'chain_strikes')&&next;n++){hit.add(next.id);g.damage(next,v(i,'chain_damage'),h,'magical',{itemProc:true});g._effect('beam',h.x,h.y,{tx:next.x,ty:next.y,life:.25,color:'#a2cfe8'});const at=next;next=enemies(g,h,at,v(i,'chain_radius')).find(e=>!hit.has(e.id));}
+  if(['echo_sabre','harpoon'].includes(entry.id)&&h.range<=300&&!echoHandled){
+   echoHandled=true;
+   if(h.echoSecondAttack){slow(g,target,i,v(i,'slow_duration'),v(i,'movement_slow'),h);h.echoSecondAttack=false;}
+   else if((entry.meta.echoReadyAt||0)<=g.time){for(const echo of entries)if(['echo_sabre','harpoon'].includes(echo.id))echo.meta.echoReadyAt=g.time+v(i,'passive_cooldown',i.cooldown||5);h.attackCooldown=Math.min(h.attackCooldown,.2);h.echoSecondAttack=true;slow(g,target,i,v(i,'slow_duration'),v(i,'movement_slow'),h);}
   }
-  if(v(i,'feedback_mana_burn')){const burn=Math.min(target.mana||0,v(i,'feedback_mana_burn'));target.mana-=burn;g.damage(target,burn*v(i,'damage_per_burn',1),h,'physical',{itemProc:true});}
-  if(v(i,'corruption_armor'))status(g,target,'corruption',i,{duration:v(i,'corruption_duration'),armor:v(i,'corruption_armor'),sourceId:h.id});
+  if(entry.id==='tranquil_boots'&&target.kind==='hero'){entry.meta.brokenUntil=g.time+v(i,'break_time');C.refresh(g,h);}
+  if(v(i,'feedback_mana_burn')&&!burned){burned=true;const burn=Math.min(target.mana||0,v(i,'feedback_mana_burn'));target.mana-=burn;g.damage(target,burn*v(i,'damage_per_burn',1),h,'physical',{itemProc:true,attackDamage:true});}
+  if(entry===corrosion){const old=active(g,target,'corruption');if(!old||v(i,'corruption_armor')<=(old.armor||0))status(g,target,'corruption',i,{duration:v(i,['corruption_duration','duration']),armor:v(i,'corruption_armor'),sourceId:h.id,keepLonger:false});}
   if(entry.id==='mage_slayer'){dot(g,target,i,v(i,'duration'),v(i,'dps'),h);status(g,target,'mageSlayer',i,{duration:v(i,'duration'),outgoingSpellReduction:v(i,'spell_amp_debuff')});}
   if(entry.id==='skadi')slow(g,target,i,v(i,'cold_duration'),Math.abs(v(i,target.range>300?'cold_slow_ranged':'cold_slow_melee')),h,{attackSlow:Math.abs(v(i,target.range>300?'cold_attack_slow_ranged':'cold_attack_slow_melee')),healReduction:v(i,'restoration_reduction')});
   if(entry.id==='orb_of_venom'&&(entry.meta.procReadyAt||0)<=g.time){entry.meta.procReadyAt=g.time+i.cooldown;dot(g,target,i,v(i,'poison_duration'),v(i,'damage'),h);}
-  if(v(i,'cleave_damage_percent')&&h.range<=300){const dir={x:Math.cos(h.angle),y:Math.sin(h.angle)},length=v(i,'cleave_distance');for(const enemy of enemies(g,h,h,length))if(enemy!==target){const x=enemy.x-h.x,y=enemy.y-h.y,along=x*dir.x+y*dir.y,width=v(i,'cleave_starting_width')+(v(i,'cleave_ending_width')-v(i,'cleave_starting_width'))*along/length;if(along>0&&along<length&&Math.abs(x*dir.y-y*dir.x)<width)g.damage(enemy,result.damage*v(i,enemy.kind==='hero'?'cleave_damage_percent':'cleave_damage_percent_creep')/100,h,'physical',{itemProc:true});}}
+  if(v(i,'cleave_damage_percent')&&h.range<=300){const dir={x:Math.cos(h.angle),y:Math.sin(h.angle)},length=v(i,'cleave_distance');for(const enemy of enemies(g,h,h,length))if(enemy!==target){const x=enemy.x-h.x,y=enemy.y-h.y,along=x*dir.x+y*dir.y,width=v(i,'cleave_starting_width')+(v(i,'cleave_ending_width')-v(i,'cleave_starting_width'))*along/length;if(along>0&&along<length&&Math.abs(x*dir.y-y*dir.x)<width)g.damage(enemy,result.damage*v(i,enemy.kind==='hero'?'cleave_damage_percent':'cleave_damage_percent_creep')/100,h,'physical',{itemProc:true,attackDamage:true});}}
  }
- for(const s of statuses(g,target))if(s.attackProcDamage)g.damage(target,s.attackProcDamage,h,'magical',{itemProc:true});
+ for(const s of statuses(g,target))if(s.attackProcDamage)g.damage(target,s.itemId==='bloodthorn'?v(ITEM_BY_ID.bloodthorn,h.kind==='hero'?'proc_damage_heroes':'proc_damage_creeps'):s.attackProcDamage,h,'magical',{itemProc:true});
 }
 export function outgoingDamage(g,source,amount,type,options){
  if(source&&hasFlag(g,source,'damageImmunity'))return 0;
  if(!source||options.reflected)return amount;
- if(!options.attack&&!options.itemProc){amount*=1+(source.spellAmp||0)/100;for(const s of statuses(g,source))amount*=1-(s.outgoingSpellReduction||0)/100;}
+ if(!options.attack&&!options.attackDamage){amount*=1+(source.spellAmp||0)/100;for(const s of statuses(g,source))amount*=1-(s.outgoingSpellReduction||0)/100;}
  return amount;
 }
 export function incomingDamage(g,target,amount,source,type,options){
@@ -162,10 +180,6 @@ export function incomingDamage(g,target,amount,source,type,options){
  if(hasFlag(g,target,'damageImmunity')||(options.reflected&&C.immune(g,target)))return 0;
  const entries=passive(g,target),heroDamage=owner(g,source)?.kind==='hero'||source?.isRoshan;
  const disk=entries.find(e=>e.id==='aeon_disk'&&(e.meta.cooldownRemaining||0)<=0);
- if(disk&&target.hp-amount<=target.maxHp*v(disk.item,'health_threshold_pct')/100){
-  Skills.applyDispel(g,target,true);status(g,target,'aeonDisk',disk.item,{positive:true,duration:v(disk.item,'buff_duration'),damageImmunity:true,statusResistance:v(disk.item,'status_resistance'),undispellable:true});
-  const levels=disk.item.valueLevels.cooldown_duration||[v(disk.item,'cooldown_duration')];disk.meta.cooldownRemaining=levels[Math.min(disk.meta.uses||0,levels.length-1)];disk.meta.uses=(disk.meta.uses||0)+1;return Math.max(0,target.hp-target.maxHp*v(disk.item,'health_threshold_pct')/100);
- }
  for(const e of entries){
   if(e.id==='consecrated_wraps'&&heroDamage){const m=e.meta;m.rechargeRemaining=e.item.chargeRestoreTime;
    if(m.charges>0){const n=m.charges;m.charges=0;status(g,target,'itemBarrier:consecrated_wraps',e.item,{positive:true,duration:v(e.item,'duration'),barrier:n*v(e.item,'barrier_per_stack'),barrierType:'all'});}
@@ -178,11 +192,24 @@ export function incomingDamage(g,target,amount,source,type,options){
   if(type==='magical')amount*=1+(s.magicVulnerability||0)/100;
   if(!options.attack)amount*=1+(s.spellVulnerability||0)/100;
   if(!options.attack)amount*=1-(s.spellDamageReduction||0)/100;
-  if(type==='physical'&&options.attack&&s.damageBlock&&g._random()*100<(s.blockChance||100))amount=Math.max(0,amount-s.damageBlock);
   if(s.barrier&&s.itemId&&(s.barrierType==='all'||s.barrierType===type)){const n=Math.min(amount,s.barrier);s.barrier-=n;s.stacks=Math.ceil(s.barrier);amount-=n;}
  }
- for(const e of passive(g,target))if(type==='physical'&&options.attack&&v(e.item,'block_chance')&&g._random()*100<v(e.item,'block_chance')){amount=Math.max(0,amount-v(e.item,target.range>300?'block_damage_ranged':'block_damage_melee',v(e.item,'block_damage')));break;}
+ if(amount>0&&disk&&owner(g,source)?.kind==='hero'&&target.hp-amount<target.maxHp*v(disk.item,'health_threshold_pct')/100){
+  Skills.applyDispel(g,target,true);status(g,target,'aeonDisk',disk.item,{positive:true,duration:v(disk.item,'buff_duration'),damageImmunity:true,statusResistance:v(disk.item,'status_resistance'),undispellable:true});
+  const levels=disk.item.valueLevels.cooldown_duration||[v(disk.item,'cooldown_duration')];disk.meta.cooldownRemaining=levels[Math.min(disk.meta.uses||0,levels.length-1)];disk.meta.uses=(disk.meta.uses||0)+1;return Math.max(0,target.hp-target.maxHp*v(disk.item,'health_threshold_pct')/100);
+ }
  return Math.max(0,amount);
+}
+// Damage block precedes armor. Successful sources use the largest block;
+// duplicate passives share one roll rather than multiplying their chance.
+export function blockAttackDamage(g,target,amount,type,options){
+ if(type!=='physical'||!options.attack)return amount;
+ let blocked=0;const seen=new Set();
+ for(const s of statuses(g,target))if(s.damageBlock&&g._random()*100<(s.blockChance??100))blocked=Math.max(blocked,s.damageBlock);
+ for(const e of passive(g,target))if(v(e.item,'block_chance')&&!seen.has(e.id)){
+  seen.add(e.id);if(g._random()*100<v(e.item,'block_chance'))blocked=Math.max(blocked,v(e.item,target.range>300?'block_damage_ranged':'block_damage_melee',v(e.item,'block_damage')));
+ }
+ return Math.max(0,amount-blocked);
 }
 export function afterDamage(g,target,dealt,source,type,options){
  if(dealt<=0)return;
@@ -193,10 +220,17 @@ export function afterDamage(g,target,dealt,source,type,options){
   if(s.breakOnDamage&&heroDamage)delete target.statuses[s.id];
   if(s.burstPct&&!options.burst)s.accumulatedDamage+=dealt;
   if(s.reflectPct&&source&&alive(source)&&!options.reflected)g.damage(source,dealt*s.reflectPct/100,target,type,{reflected:true});
-  if(s.staticShield&&source&&(s.nextProc||0)<=g.time){const i=ITEM_BY_ID.mjollnir;if(g._random()*100<v(i,'static_chance')){s.nextProc=g.time+v(i,'static_cooldown');for(const enemy of enemies(g,target,target,v(i,'static_radius')).slice(0,v(i,'static_strikes')))g.damage(enemy,v(i,'static_damage'),target,'magical',{itemProc:true,reflected:true});}}
+  if(s.staticShield&&source&&!options.reflected&&(s.nextProc||0)<=g.time){const i=ITEM_BY_ID.mjollnir;
+   if(g._random()*100<v(i,'static_chance')){
+    s.nextProc=g.time+v(i,'static_cooldown');
+    const primary=alive(source)&&C.fighter(source)&&distance(source,target)<=v(i,'static_primary_radius')&&g.canSee(target,source)?source:null;
+    const others=enemies(g,target,target,v(i,'static_seconary_radius',v(i,'static_radius'))).filter(e=>e!==source&&g.canSee(target,e)).sort((a,b)=>distance(a,target)-distance(b,target)).slice(0,v(i,'static_strikes'));
+    for(const enemy of [...(primary?[primary]:[]),...others])g.damage(enemy,v(i,'static_damage'),target,'magical',{itemProc:true,reflected:true});
+   }
+  }
  }
  if(source&&!options.reflected&&options.attack){const blade=passive(g,target).find(e=>e.id==='blade_mail');if(blade)g.damage(source,v(blade.item,'passive_reflection_constant')+dealt*v(blade.item,'passive_reflection_pct')/100,target,type,{reflected:true});}
- if(source&&alive(source)&&!options.attack&&!options.reflected&&!options.itemProc){const amount=(source.spellLifesteal||0)+statuses(g,source).reduce((n,s)=>n+(s.spellLifesteal||0),0);heal(g,source,dealt*amount/100*(target.kind==='hero'?1:.2),source);}
+ if(source&&alive(source)&&!options.attack&&!options.attackDamage&&!options.reflected){const amount=(source.spellLifesteal||0)+statuses(g,source).reduce((n,s)=>n+(s.spellLifesteal||0),0);heal(g,source,dealt*amount/100*(target.kind==='hero'?1:.2),source);}
 }
 export function expiredStatus(g,h,s){
  const source=g.entities.find(e=>e.id===s.sourceId);
@@ -208,13 +242,13 @@ export function expiredStatus(g,h,s){
 export function tickUnit(g,h,dt){
  if(h.kind==='hero'||h.kind==='courier'){
   for(const e of Inventory.itemEntries(h)){
-   const i=ITEM_BY_ID[e.id],m=e.meta;m.cooldownRemaining=Math.max(0,(m.cooldownRemaining||0)-dt*(e.area==='backpack'?.5:1));
+   const i=ITEM_BY_ID[e.id],m=e.meta,rate=e.id==='refresher'?(e.area==='inventory'?1:0):e.area==='backpack'?.5:1;m.cooldownRemaining=Math.max(0,(m.cooldownRemaining||0)-dt*rate);
    if(i.abilityCharges&&m.charges<i.abilityCharges){m.rechargeRemaining=(m.rechargeRemaining||i.chargeRestoreTime)-dt;if(m.rechargeRemaining<=0){m.charges++;m.rechargeRemaining=m.charges<i.abilityCharges?i.chargeRestoreTime:0;if(e.id==='consecrated_wraps'&&e.area==='inventory'&&alive(h))status(g,h,'wrapsHaste',i,{positive:true,duration:v(i,'duration'),movePercent:v(i,'movement_speed_pct_on_stack_gain')});}}
    if(m.brokenUntil&&g.time>=m.brokenUntil){m.brokenUntil=0;C.refresh(g,h);}
    if(e.id==='bottle'&&alive(h)&&C.baseNearby(h))m.charges=v(i,'max_charges',3);
    if(e.id==='armlet'&&e.area==='inventory'&&(m.readyAt||0)<=g.time&&m.ownerId===h.id&&alive(h)){tickArmlet(g,h,{...e,item:i},dt);if(m.mode==='on')h.hp=Math.max(1,h.hp-v(i,'unholy_health_drain_per_second')*dt);}
   }
-  for(const key of Object.keys(h.itemCooldowns||{}))h.itemCooldowns[key]=Math.max(0,h.itemCooldowns[key]-dt);
+  for(const key of Object.keys(h.itemCooldowns||{}))if(key!=='refresher'||h.inventory?.includes('refresher'))h.itemCooldowns[key]=Math.max(0,h.itemCooldowns[key]-dt);
  }
  if(!alive(h))return;
  for(const s of Object.values(h.statuses||{})){
@@ -236,13 +270,14 @@ export function tickUnit(g,h,dt){
   if(Skills.isStunned(g,h)||(channel.kind==='teleport'&&Skills.isRooted(g,h))||hasFlag(g,h,'muted')||distance(h,channel.origin)>5||(channel.kind==='teleport'&&!alive(target))){h.itemChannel=null;h.recallTimer=0;delete h.statuses.itemChannel;}
   else if(g.time>=channel.until){h.itemChannel=null;delete h.statuses.itemChannel;
    if(channel.kind==='teleport')C.teleport(g,h,target.kind==='fountain'?target:{x:target.x+100,y:target.y+100});
-   else if(channel.kind==='meteor')for(const enemy of enemies(g,h,channel.point,v(i,'impact_radius',400),true)){g.damage(enemy,v(i,C.building(enemy)?'impact_damage_buildings':'impact_damage_units'),h,'magical');stun(g,enemy,v(i,'stun_duration'),h);dot(g,enemy,i,v(i,'burn_duration'),v(i,C.building(enemy)?'burn_dps_buildings':'burn_dps_units'),h);}
+   else if(channel.kind==='meteor')queueMeteor(g,h,i,channel);
   }
  }
  if(['illusion','summon'].includes(h.kind)){
   if(h.expiresAt&&g.time>=h.expiresAt){g._kill(h,null);return;}
   if(Skills.isStunned(g,h)||h.forcedMotion)return;
   const master=g.entities.find(e=>e.id===h.ownerId),target=g.entities.find(e=>e.id===(master?.explicitTarget||h.controlTarget)&&alive(e))||g._chooseTarget(h,700);
+  if(target&&h.dominatedBy)g._neutralAbility(h,target);
   if(target){if(!g._attack(h,target))g._move(h,target,dt,h.range+target.radius-3);}else if(master&&distance(h,master)>180)g._move(h,master,dt,130);
  }
 }
@@ -271,20 +306,40 @@ export function tickWorld(g,dt){
   for(const target of targets)status(g,target,`crozierSlow:${h.id}:${g.time}`,i,{duration:v(i,'stack_duration'),movePercent:-v(i,'movespeed_steal_pct'),sourceId:h.id});
   if(targets.length)status(g,h,`crozierSpeed:${g.time}`,i,{positive:true,duration:v(i,'stack_duration'),movePercent:v(i,'movespeed_steal_pct')*targets.length});
  }
- for(const h of g.entities)if(alive(h)&&h.kind==='hero')for(const e of passive(g,h))if(e.id==='radiance'&&e.meta.mode!=='off')for(const target of enemies(g,h,h,v(e.item,'aura_radius')))g.damage(target,v(e.item,'aura_damage')*dt,h,'magical',{itemProc:true});
+ const burns=new Map(),radiance=ITEM_BY_ID.radiance;
+ for(const h of g.entities){
+  if(h.itemAura?.radiance)delete h.itemAura.radiance;
+  if(!alive(h)||!['hero','illusion'].includes(h.kind))continue;
+  const enabled=h.kind==='illusion'?h.radianceBurn:passive(g,h).some(e=>e.id==='radiance'&&e.meta.mode!=='off');
+  if(!enabled)continue;
+  const dps=v(radiance,h.kind==='illusion'?'aura_damage_illusions':'aura_damage'),effective=dps*(1+(h.spellAmp||0)/100);
+  for(const target of enemies(g,h,h,v(radiance,'aura_radius')))if(effective>(burns.get(target.id)?.effective||0))burns.set(target.id,{target,source:h,dps,effective});
+ }
+ for(const {target,source,dps}of burns.values()){
+  target.itemAura||={};target.itemAura.radiance={sourceId:source.id,dps};g.damage(target,dps*dt,source,'magical',{itemProc:true});
+ }
  for(const zone of g.itemZones||[]){const h=g.entities.find(e=>e.id===zone.sourceId),i=ITEM_BY_ID[zone.itemId];if(!h||zone.until<=g.time)continue;
+  if(['itemChain','itemMeteor','itemHarpoon','itemShiva'].includes(zone.type))tickItemProjectiles(g,zone,h,i);
   if(zone.type==='reveal')for(const target of enemies(g,h,zone,zone.radius))status(g,target,'revealed',i,{duration:1,revealed:true});
   if(zone.type==='distiller'){const target=enemies(g,h,zone,zone.radius).find(e=>e.kind==='hero');if(target){dot(g,target,i,v(i,'duration'),v(i,'soul_damage_amount'),h);zone.until=g.time;}}
+  if(zone.type==='itemSmoke'){
+   if(!alive(h)||!statuses(g,h).some(s=>s.smoked&&s.smokeCastId===zone.castId)){zone.until=g.time;continue;}
+   for(const ally of alliesForSmoke(g,h,v(i,'secondary_application_radius')))if(!zone.hit.includes(ally.id)){
+    zone.hit.push(ally.id);status(g,ally,'itemBuff:'+i.id,i,{positive:true,duration:zone.until-g.time,invisible:true,smoked:true,smokeCastId:zone.castId,movePercent:v(i,'bonus_movement_speed'),breakRadius:v(i,'visibility_radius')});
+   }
+  }
  }
  g.itemZones=(g.itemZones||[]).filter(z=>z.until>g.time);
 }
+function alliesForSmoke(g,h,radius){return C.allies(g,h,radius).filter(u=>u.kind==='hero'||u.ownerId);}
 export function regenerate(g,h,amount){return heal(g,h,amount,h,true);}
 export function onDeath(g,h,killer){
  if(h.kind==='hero'){
   h.itemChannel=null;h.forcedMotion=null;
   for(const e of Inventory.itemEntries(h,['inventory','backpack']))if(ITEM_BY_ID[e.id].killDrop)Inventory.dropItem(g,h,e.area,e.index,h,true);
+  const urns=g.entities.filter(ally=>alive(ally)&&ally.kind==='hero'&&ally.team!==h.team).flatMap(ally=>passive(g,ally).filter(e=>['urn_of_shadows','spirit_vessel','essence_distiller'].includes(e.id)&&distance(ally,h)<=v(e.item,'soul_radius')).map(e=>({ally,e,distance:distance(ally,h)}))).sort((a,b)=>a.distance-b.distance);
+  if(urns.length){const {e}=urns[0];e.meta.charges=(e.meta.charges||0)+v(e.item,e.meta.charges?'soul_additional_charges':'soul_initial_charge');}
   for(const ally of g.entities)if(alive(ally)&&ally.kind==='hero'&&ally.team!==h.team&&distance(ally,h)<=1400){
-   const urn=passive(g,ally).find(e=>['urn_of_shadows','spirit_vessel','essence_distiller'].includes(e.id));if(urn)urn.meta.charges+=(urn.meta.charges?1:2);
    for(const e of passive(g,ally))if(e.id==='desolator'){e.meta.bonusDamage=Math.min(v(e.item,'max_damage'),(e.meta.bonusDamage||0)+v(e.item,ally===killer?'bonus_damage_per_kill':'bonus_damage_per_assist'));C.refresh(g,ally);}
   }
  }

@@ -29,7 +29,7 @@ export function slow(g,e,item,duration,amount,source,extra={}){
 }
 export function dot(g,e,item,duration,dps,source,type='magical',extra={}){
  if(invulnerable(g,e))return;
- return status(g,e,'itemDot:'+item.id,item,{duration,sourceId:source.id,tickDamage:dps*.25,tickInterval:.25,nextTick:g.time+.25,damageType:type,...extra});
+ return status(g,e,'itemDot:'+item.id,item,{duration,sourceId:source.id,tickDamage:dps*.25,tickInterval:.25,nextTick:g.time+.25,damageType:type,endTickInclusive:true,fullDamageTicks:true,...extra});
 }
 export function heal(g,e,amount,source,isRegen=false){
  const reduction=Object.values(e.statuses||{}).filter(s=>s.until>g.time).reduce((a,s)=>Math.max(a,s.healReduction||0),0);
@@ -60,9 +60,9 @@ export function consume(g,h,entry,count=1){
  if(entry.meta.charges<=0){h[entry.area][entry.index]=null;h[entry.area+'Meta'][entry.index]=null;}
  refresh(g,h);return {ok:true};
 }
-export function targetAt(g,h,point,team='enemy',types=['hero','creep','neutral','illusion','summon'],range=Infinity){
- const candidates=g.entities.filter(e=>alive(e)&&types.includes(e.kind)&&!invulnerable(g,e)&&
-  (team==='both'||(team==='ally'?e.team===h.team:e.team!==h.team))&&distance(e,point)<=Math.max(e.radius||24,90)&&distance(e,h)<=range+(e.radius||24)&&g.canSee?.(h,e)!==false);
+export function targetAt(g,h,point,team='enemy',types=['hero','creep','neutral','illusion','summon'],range=Infinity,allowInvulnerable=false){
+ const candidates=g.entities.filter(e=>alive(e)&&types.includes(e.kind)&&(allowInvulnerable||!invulnerable(g,e))&&
+  (team==='both'||(team==='ally'?e.team===h.team:e.team!==h.team))&&distance(e,point)<=Math.max(e.radius||24,90)&&distance(e,h)<=(typeof range==='function'?range(e):range)+(e.radius||24)&&g.canSee?.(h,e)!==false);
  return candidates.sort((a,b)=>distance(a,point)-distance(b,point))[0];
 }
 export function forceMove(g,e,to,duration=.5){
@@ -83,10 +83,10 @@ export function cutTree(g,tree){
 }
 export function plantTree(g,point){g.plantedTrees||=[];g.plantedTrees.push({id:g._id('tree'),x:point.x,y:point.y,until:g.time+20});rebuildTrees(g);}
 export function illusion(g,h,count,duration,outgoing,incoming){
- const results=[];
+ const results=[],radianceBurn=equipped(g,h).some(e=>e.area==='inventory'&&e.id==='radiance'&&e.meta.mode!=='off'&&e.meta.ownerId===h.id);
  for(let i=0;i<count;i++){
   const clone=g._unit('illusion',h.team,h.x+(i?50:-50),h.y+35,{...g.combatStats(h),heroId:h.heroId,name:h.name+'幻象',ownerId:h.id,maxHp:h.maxHp,hp:h.hp,maxMana:0,mana:0,radius:24,range:h.range,baseAttackTime:h.baseAttackTime,baseAttackSpeed:h.baseAttackSpeed,attackSpeed:h.attackSpeed,armor:h.armor,magicResistance:h.magicResistance,damage:h.damage,level:h.level,expiresAt:g.time+duration,illusionOutgoing:outgoing/100,illusionIncoming:incoming/100,controlTarget:h.explicitTarget,statuses:{},buffs:{},inventory:[],cooldowns:[]});
-  clone.hp=h.hp;g.entities.push(clone);results.push(clone);
+  clone.hp=h.hp;clone.radianceBurn=radianceBurn;g.entities.push(clone);results.push(clone);
  }
  return results;
 }

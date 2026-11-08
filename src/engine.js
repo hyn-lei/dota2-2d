@@ -151,7 +151,7 @@ export class Game {
   onSpellCast(hero,spell) { ItemRuntime.onSpellCast(this,hero,spell); }
   onSpellTarget(hero,target,spell) { ItemRuntime.onSpellTarget(this,hero,target,spell); }
   onStatusExpired(unit,status) { ItemRuntime.expiredStatus(this,unit,status); }
-  canSee(viewer,target) { return viewer.team===target.team||!Skills.hasStatusFlag(this,target,'invisible')||Skills.hasStatusFlag(this,target,'revealed')||this.entities.some(e=>alive(e)&&e.team===viewer.team&&((e.trueSight||0)>distance(e,target)||e.kind==='hero'&&ItemRuntime.statItems(this,e).some(i=>i.id==='gem')&&distance(e,target)<=900)); }
+  canSee(viewer,target) { return viewer.team===target.team||!Skills.hasStatusFlag(this,target,'invisible')||!Skills.hasStatusFlag(this,target,'smoked')&&(Skills.hasStatusFlag(this,target,'revealed')||this.entities.some(e=>alive(e)&&e.team===viewer.team&&((e.trueSight||0)>distance(e,target)||e.kind==='hero'&&ItemRuntime.statItems(this,e).some(i=>i.id==='gem')&&distance(e,target)<=900))); }
   isStunned(unit) { return Skills.isStunned(this,unit); }
   isRooted(unit) { return Skills.isRooted(this,unit); }
   canLearnAbility(index,hero=this.player) { return Progression.canLearnAbility(hero,index); }
@@ -274,6 +274,7 @@ export class Game {
       const hits=source?.kind==='hero'?(source.range>300?3:6):1;target.hp=Math.max(0,target.hp-hits);if(!target.hp)this._kill(target,source);return hits;
     }
     amount=ItemRuntime.outgoingDamage(this,source,amount,type,options);
+    amount=ItemRuntime.blockAttackDamage(this,target,amount,type,options);
     const stats=this.combatStats(target);
     const armor=stats.armor-(options.ignoreBaseArmor?(target.baseArmor??target.armor??0):0);
     let value = amount * (type==='pure'?1:type==='magical'?magicalDamageMultiplier(stats.magicResistance):physicalDamageMultiplier(armor*(1-(options.armorIgnorePct||0)/100)));
@@ -338,7 +339,7 @@ export class Game {
         h.gold += 65;
       }
       this._feed(`${source?.name || (source?.kind === 'tower' ? '防御塔' : '军团')} 击败了 ${target.name}`, 1 - target.team);
-    } else if (target.kind === 'creep' || target.kind==='neutral') {
+    } else if (target.kind === 'creep' || target.kind==='neutral'||target.dominatedBy) {
       if (source?.kind === 'hero') {
         source.lastHits++;
         const gold=Math.floor((target.goldMin||0)+this._random()*((target.goldMax||target.goldMin||0)-(target.goldMin||0)+1));
@@ -514,29 +515,31 @@ export class Game {
   }
 
   _neutralAbility(e,target) {
-    const value=(ability,key,fallback=0)=>{const v=ability.values?.[key];return Number(String(typeof v==='object'?v.value:v??fallback).split(' ')[0])||fallback;};
+    e.abilityCooldowns||={};
+    const rankValue=(v,fallback=0)=>{const levels=String(typeof v==='object'?v?.value:v??fallback).trim().split(/\s+/);return Number(levels[Math.min(e.abilityLevelBonus||0,levels.length-1)])||fallback;};
+    const value=(ability,key,fallback=0)=>rankValue(ability.values?.[key],fallback);
     for(const name of e.abilities||[]){
       const a=NEUTRAL_ABILITIES[name];
       if(!a||a.passive||(e.abilityCooldowns[name]||0)>this.time)continue;
-      const manaCost=Number(String(a.manaCost||0).split(' ')[0]);
+      const manaCost=rankValue(a.manaCost);
       if(manaCost>(e.mana||0))continue;
       const distanceToTarget=distance(e,target),radius=value(a,'radius',250);
       let used=false;
       if(['centaur_khan_war_stomp','polar_furbolg_ursa_warrior_thunder_clap','big_thunder_lizard_slam','roshan_slam','spawnlord_master_stomp'].includes(name)&&distanceToTarget<radius){
-        for(const enemy of this._near(e,radius))if(fighter(enemy)&&enemy.team!==2){
-          this.damage(enemy,Number(String(a.damage||0).split(' ')[0]),e,'magical');
+        for(const enemy of this._near(e,radius))if(fighter(enemy)&&enemy.team!==e.team){
+          this.damage(enemy,rankValue(a.damage),e,'magical');
           if(enemy.buffs){const stun=value(a,'hero_stun_duration',value(a,'stun_duration'));
             if(stun)enemy.buffs.stunUntil=this.time+stun;else enemy.buffs.slowUntil=this.time+value(a,'duration',2);}
         }
         this._effect('burst',e.x,e.y,{radius,life:.7,color:'#d6aa72'});used=true;
       }else if(['harpy_storm_chain_lightning','mud_golem_hurl_boulder','satyr_hellcaller_shockwave','satyr_soulstealer_mana_burn'].includes(name)&&distanceToTarget<=Number(a.castRange||600)){
-        const amount=Number(String(a.damage||0).split(' ')[0])||value(a,'damage',value(a,'initial_damage'));
+        const amount=rankValue(a.damage)||value(a,'damage',value(a,'initial_damage'));
         if(name==='satyr_soulstealer_mana_burn'&&target.mana!==undefined){const burn=Math.min(target.mana,value(a,'mana_burn',100));target.mana-=burn;this.damage(target,burn,e,'magical');}
         else this.damage(target,amount,e,'magical');
         if(name==='mud_golem_hurl_boulder')target.buffs.stunUntil=this.time+value(a,'stun_duration',.6);
         this._effect('beam',e.x,e.y,{tx:target.x,ty:target.y,color:'#b9c8dc',life:.3});used=true;
       }
-      if(used){e.mana=(e.mana||0)-manaCost;e.abilityCooldowns[name]=this.time+(Number(String(a.cooldown).split(' ')[0])||10);return;}
+      if(used){e.mana=(e.mana||0)-manaCost;e.abilityCooldowns[name]=this.time+rankValue(a.cooldown,10);return;}
     }
   }
 

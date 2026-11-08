@@ -46,13 +46,13 @@ test('Precision Aura uses the actual granted agility and stops after leaving its
  addStatus(g,p,'itemBreak',{break:true,duration:2});g.step(.05);assert.ok(!ids(g).includes('trueshot'));
 });
 
-test('Item aura indicators follow the simulation update, backpack and muted source without granting stats twice',()=>{
+test('Item aura indicators follow the simulation update and backpack; mute preserves passives without granting stats twice',()=>{
  const {g,p}=arena('axe'),ally=g.entities.find(e=>e.team===0&&e!==p);
  p.inventory=['vladmir'];p.inventoryMeta=[createMeta(g,p,'vladmir')];g._refreshHero(p);g.step(.3);
  assert.ok(ids(g,ally).includes('itemAura:vladmir:ally'));
  const before=structuredClone(p),combat=g.combatStats(p);statusEffects(p,g.time,g);
  assert.deepEqual(p,before,'projection does not mutate the hero');assert.deepEqual(g.combatStats(p),combat);
- addStatus(g,p,'mute',{muted:true,duration:3});g.step(.3);assert.ok(!ids(g,ally).includes('itemAura:vladmir:ally'));
+ addStatus(g,p,'mute',{muted:true,duration:3});g.step(.3);assert.ok(ids(g,ally).includes('itemAura:vladmir:ally'));
  applyDispel(g,p);p.backpack=p.inventory;p.backpackMeta=p.inventoryMeta;p.inventory=[];p.inventoryMeta=[];g.step(.3);
  assert.ok(!ids(g,ally).includes('itemAura:vladmir:ally'));
 });

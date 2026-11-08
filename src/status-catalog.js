@@ -42,7 +42,7 @@ export function derivedStatusEffects(g,h){
   const base=BASES[h.team];
   if(base&&distance(h,base)<1200)effects.push(persistent('fountainRegen','泉水恢复','每秒恢复 5% 最大生命、6% 最大魔法和 14 点魔法。',{icon:'home'}));
   for(const [flag,itemId,name]of [['consumedScepter','ultimate_scepter_2','阿哈利姆福佑'],['consumedShard','aghanims_shard','阿哈利姆魔晶'],['moonShard','moon_shard','月之碎片']])if(h[flag])effects.push(persistent('consumed:'+itemId,name,ITEM_BY_ID[itemId]?.description||'已永久获得该物品效果。',{itemId}));
-  if(!hasStatusFlag(g,h,'muted'))for(const [index,itemId]of (h.inventory||[]).entries()){
+  for(const [index,itemId]of (h.inventory||[]).entries()){
    const meta=h.inventoryMeta?.[index];if(!meta||meta.ownerId!==h.id||(meta.readyAt||0)>g.time)continue;
    if(itemId==='sphere'&&!(meta.cooldownRemaining>0))effects.push(persistent('spellBlock','林肯法球','抵挡下一次敌方指向性法术。',{itemId}));
    if(itemId==='armlet'&&meta.mode==='on')effects.push(persistent('armlet','邪恶之力',ITEM_BY_ID.armlet.description,{itemId}));
@@ -50,10 +50,7 @@ export function derivedStatusEffects(g,h){
   }
  }
  for(const record of h.itemAura?.displayEffects||[]){const item=ITEM_BY_ID[record.itemId];if(item)effects.push(persistent(`itemAura:${item.id}:${record.positive?'ally':'enemy'}`,`${item.name}光环`,item.description,{itemId:item.id,positive:record.positive}));}
- for(const source of g.entities)if(alive(source)&&source.kind==='hero'&&source.team!==h.team&&['hero','creep','neutral','illusion','summon'].includes(h.kind)&&!isInvulnerable(g,h)&&!hasStatusFlag(g,source,'muted'))for(const [index,itemId]of (source.inventory||[]).entries()){
-  if(itemId!=='radiance')continue;const item=ITEM_BY_ID[itemId],meta=source.inventoryMeta?.[index];
-  if(meta&&meta.ownerId===source.id&&meta.mode!=='off'&&(meta.readyAt||0)<=g.time&&distance(h,source)<=item.values.aura_radius+(h.radius||0))effects.push(persistent('radianceBurn','辉耀灼烧',`每秒受到 ${item.values.aura_damage} 魔法伤害。`,{itemId,positive:false}));
- }
+ if(h.itemAura?.radiance&&!isInvulnerable(g,h))effects.push(persistent('radianceBurn','辉耀灼烧',`每秒受到 ${h.itemAura.radiance.dps} 魔法伤害。`,{itemId:'radiance',positive:false}));
  for(const ward of g.entities)if(alive(ward)&&ward.kind==='ward'&&!ward.wardType&&ward.team===h.team&&ward.expiresAt>g.time&&ward.healRadius&&['hero','creep','neutral','illusion','summon'].includes(h.kind)&&distance(h,ward)<=ward.healRadius)effects.push(persistent('healingWard','治疗守卫',`每秒恢复 ${ward.healPct}% 最大生命。`));
  for(const z of g.itemZones||[])if(z.type==='drowGlacier'&&z.team===h.team&&z.until>g.time&&h.range>200&&distance(h,z)<=z.radius)effects.push({id:'glacier',name:'冰川',description:`攻击距离 +${z.skill.values.attack_range_bonus}。卓尔游侠的射手天赋保持生效。`,positive:true,startedAt:z.startedAt,until:z.until});
  if(g.isProtected(h))effects.push(persistent('structureProtection','建筑保护','前置建筑尚存，当前建筑处于无敌状态。',{icon:'shield'}));

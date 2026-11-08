@@ -148,7 +148,7 @@ export function moveItem(g,h,from,index,to,targetIndex){
  const first={id:h[from][index],meta:h[from+'Meta'][index]},second={id:h[to][targetIndex],meta:h[to+'Meta'][targetIndex]};
  const metaFor=(entry,origin,destination)=>{
   if(!entry.id)return null;const meta={...entry.meta};
-  if(destination==='inventory'&&origin==='backpack'&&!shopAccess(h).shop)meta.readyAt=Math.max(meta.readyAt||0,g.time+6);
+  if(destination==='inventory'&&origin==='backpack'&&entry.id!=='smoke_of_deceit'&&!shopAccess(h).shop)meta.readyAt=Math.max(meta.readyAt||0,g.time+6);
   else if(destination==='inventory'&&shopAccess(h).shop)meta.readyAt=0;
   return meta;
  };
@@ -165,7 +165,9 @@ export function sellItem(g,h,area,index){
  if(!validSlot(area,index)||!h[area][index])return {ok:false,reason:'该物品栏为空'};
  if(!ITEM_BY_ID[h[area][index]].sellable||h[area+'Meta'][index].ownerId!==h.id)return {ok:false,reason:'该物品不能出售'};
  if(area!=='stash'&&!shopAccess(h).shop)return {ok:false,reason:'需要靠近商店才能出售随身物品'};
- const gold=sellValue(g,h,area,index);take(h,{area,index});h.gold+=gold;refresh(g,h);return {ok:true,gold};
+ const gold=sellValue(g,h,area,index),uid=h[area+'Meta'][index].uid;
+ for(const unit of g.entities)if(unit.dominatedItemUid===uid&&!unit.dead)g._kill(unit,null);
+ take(h,{area,index});h.gold+=gold;refresh(g,h);return {ok:true,gold};
 }
 export function collectStash(g,h){
  const allowed=gate(g);if(!allowed.ok)return allowed;ensureInventory(h);

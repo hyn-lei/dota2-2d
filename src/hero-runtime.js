@@ -27,7 +27,7 @@ const areaBonus=h=>(talentStats(h.heroId,h.talents||[]).spellAoE||0)+(h.spellAoE
 export function hasStatusFlag(g,e,flag){
  const aliases={stunned:'stun',rooted:'root',silenced:'silence',disarmed:'disarm',muted:'mute',break:'break',hex:'hex',invulnerable:'invulnerable',debuffImmune:'spin'};
  const statuses=Object.values(e?.statuses||{}),immune=statuses.some(s=>s.startedAt<=g.time+1e-7&&s.until>g.time+1e-7&&(s.debuffImmune||s.id==='spin'));
- return statuses.some(s=>s.startedAt<=g.time+1e-7&&s.until>g.time+1e-7&&(!s.suppressedByDebuffImmunity||!immune)&&(s[flag]||s.id===aliases[flag]||(flag==='disarmed'&&s.disarm)||(['silenced','muted','disarmed'].includes(flag)&&(s.hex||s.id==='hex'))));
+ return statuses.some(s=>s.startedAt<=g.time+1e-7&&s.until>g.time+1e-7&&(!s.suppressedByDebuffImmunity||!immune)&&(s[flag]||(aliases[flag]&&s.id===aliases[flag])||(flag==='disarmed'&&s.disarm)||(['silenced','muted','disarmed'].includes(flag)&&(s.hex||s.id==='hex'))));
 }
 export const isStunned=(g,e)=>hasStatusFlag(g,e,'stunned')||(e.buffs?.stunUntil||0)>g.time;
 export const isRooted=(g,e)=>hasStatusFlag(g,e,'rooted')||(e.buffs?.rootUntil||0)>g.time;
@@ -75,12 +75,14 @@ export function applyDispel(g,e,strong=false){dispel(e,strong);}
 
 export function combatStats(g,h,target=null){
  let armor=h.armor||0,speed=h.speed||0,attackSpeed=h.attackSpeed||h.baseAttackSpeed||100,damage=h.damage||0,magicResistance=h.magicResistance||0,evasion=0;
- let slowPct=0,movePercent=0,flatSpeed=0;
+ let slowPct=0,movePercent=0,flatSpeed=0,slowMultiplier=1-(h.slowResistance||0)/100;
  for(const s of Object.values(h.statuses||{}))if(s.startedAt<=g.time&&s.until>g.time){
-  armor+=s.armor||0;attackSpeed-=s.attackSlow||0;attackSpeed+=s.attackSpeed||0;flatSpeed+=s.flatSpeed||0;movePercent+=s.movePercent||0;evasion=Math.max(evasion,s.evasion||0);
+  const decay=s.decayingMove||s.decayingSlow?Math.max(0,1-(s.decayRate?Math.floor(Math.max(0,g.time-s.startedAt)*s.decayRate)/s.decayRate:g.time-s.startedAt)/(s.until-s.startedAt||1)):1;
+  armor+=s.armor||0;attackSpeed-=s.attackSlow||0;attackSpeed+=s.attackSpeed||0;flatSpeed+=s.flatSpeed||0;movePercent+=(s.movePercent||0)*(s.decayingMove?decay:1);evasion=Math.max(evasion,s.evasion||0);
+  slowMultiplier*=1-(s.slowResistance||0)/100;
   if(s.slowPct){
    let applies=true;if(s.hunger||s.id==='hunger'){const source=g.entities.find(e=>e.id===s.sourceId);if(source)applies=Math.cos(h.angle||0)*(source.x-h.x)+Math.sin(h.angle||0)*(source.y-h.y)<0;}
-   if(applies&&!debuffImmune(g,h))slowPct=Math.max(slowPct,s.slowPct);
+   if(applies&&!debuffImmune(g,h))slowPct=Math.max(slowPct,s.slowPct*(s.decayingSlow?decay:1));
   }
  }
  if(h.heroId==='juggernaut'){
@@ -97,7 +99,7 @@ export function combatStats(g,h,target=null){
  if((h.buffs?.hasteUntil||0)>g.time&&!movePercent)movePercent=65;
  attackSpeed=Math.max(20,Math.min(700,attackSpeed));
  const maxSpeed=h.heroId==='windranger'?innate(h).values.max_movespeed:550;
- slowPct=hasStatusFlag(g,h,'slowImmune')?0:slowPct*(1-(h.slowResistance||0)/100);
+ slowPct=hasStatusFlag(g,h,'slowImmune')?0:slowPct*Math.max(0,slowMultiplier);
  speed=speed===0?0:Math.max(100,Math.min(maxSpeed,(speed+flatSpeed)*(1+movePercent/100)*(1-slowPct/100)));
  return Drow.drowCombatStats(g,h,{armor,speed,attackSpeed,attackInterval:h.baseAttackTime?h.baseAttackTime*100/attackSpeed:h.attackInterval,damage,magicResistance,evasion});
 }
@@ -402,7 +404,7 @@ function forceMove(g,e,dir,amount){
 export function tickStatuses(g,e,dt){
  for(const [id,s]of Object.entries(e.statuses||{})){
   if(s.forcedDirection&&alive(e)&&!debuffImmune(g,e)&&!isInvulnerable(g,e))forceMove(g,e,s.forcedDirection,s.forcedSpeed*Math.max(0,Math.min(dt,s.until-(g.time-dt))));
-  if(s.tickInterval&&alive(e)){const source=g.entities.find(h=>h.id===s.sourceId);while(s.nextTick<=g.time+1e-7&&s.nextTick<s.until-1e-7){if(source)g.damage(e,s.tickDamage*(s.fullDamageTicks?1:Math.min(s.tickInterval,s.until-s.nextTick)/s.tickInterval),source,s.damageType);s.nextTick+=s.tickInterval;}}
+  if(s.tickInterval&&alive(e)){const source=g.entities.find(h=>h.id===s.sourceId);while(s.nextTick<=g.time+1e-7&&(s.endTickInclusive?s.nextTick<=s.until+1e-7:s.nextTick<s.until-1e-7)){if(source)g.damage(e,s.tickDamage*(s.fullDamageTicks?1:Math.min(s.tickInterval,s.until-s.nextTick)/s.tickInterval),source,s.damageType);s.nextTick+=s.tickInterval;}}
   if(s.until<=g.time+1e-7){
    removeStatus(e,id);g.onStatusExpired?.(e,s);if(id==='spin')dispel(e,true);
    if(id==='rum'&&s.debt>0)addStatus(g,e,'rumdebt',{name:'朗姆酒延迟伤害',description:'逐渐偿还延迟承受的伤害，不会因此死亡。',duration:10,icon:'ship',debtPerSecond:s.debt/10});

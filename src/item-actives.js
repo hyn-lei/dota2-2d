@@ -4,6 +4,7 @@ import { ITEM_BY_ID } from './item-data.js';
 import { BASES } from './map-data.js';
 import * as C from './item-common.js';
 import {toggleArmlet} from './armlet-runtime.js';
+import {queueHarpoon,startShiva} from './item-projectiles.js';
 const {alive,distance,value:v,status,active,immune,invulnerable,heal,regen,allies,enemies,slow,dot,stun,dispel,forceMove,teleport,consume,refresh}=C;
 const handlers={};
 function define(ids,target,run,validate){for(const id of ids.split(' '))handlers[id]={target,run,validate};}
@@ -47,7 +48,13 @@ define('dust gem','pointOptional',(g,h,e,p)=>{
  for(const target of enemies(g,h,center,radius)){const invisible=C.hasFlag(g,target,'invisible');status(g,target,'revealed',i,{duration:duration+v(i,'linger_duration'),revealed:true,slowPct:invisible?Math.abs(v(i,'movespeed')):0});if(invisible)g.damage(target,v(i,'damage'),h,'magical');}
  if(e.id==='dust')consume(g,h,e);pulse(g,center,i,radius);
 });
-define('smoke_of_deceit','self',(g,h,e)=>{for(const ally of allies(g,h,v(e.item,'application_radius'),true))buff(g,ally,e.item,v(e.item,'duration'),{invisible:true,smoked:true,movePercent:v(e.item,'bonus_movement_speed'),breakRadius:v(e.item,'visibility_radius')});consume(g,h,e);});
+define('smoke_of_deceit','self',(g,h,e)=>{
+ const castId=g._id('smoke'),hit=[];
+ for(const ally of allies(g,h,v(e.item,'application_radius')).filter(u=>u.kind==='hero'||u.ownerId)){
+  hit.push(ally.id);buff(g,ally,e.item,v(e.item,'duration'),{invisible:true,smoked:true,smokeCastId:castId,movePercent:v(e.item,'bonus_movement_speed'),breakRadius:v(e.item,'visibility_radius')});
+ }
+ g.itemZones||=[];g.itemZones.push({type:'itemSmoke',itemId:e.id,sourceId:h.id,castId,hit,until:g.time+v(e.item,'duration')});consume(g,h,e);
+});
 define('moon_shard','allyHero',(g,h,e,p,target)=>{target.moonShard=true;refresh(g,target);Inventory.consumeItem(g,h,e.area,e.index);},(g,h,e,p,target)=>target?.moonShard?reject('目标已经吞服银月之晶'):null);
 define('power_treads','self',(g,h,e)=>{const modes=['strength','agility','intelligence'];e.meta.mode=modes[(modes.indexOf(e.meta.mode||'strength')+1)%3];refresh(g,h);});
 define('phase_boots','self',(g,h,e)=>buff(g,h,e.item,v(e.item,'phase_duration'),{movePercent:v(e.item,h.range>300?'phase_movement_speed_range':'phase_movement_speed'),phased:true}));
@@ -61,9 +68,12 @@ define('mekansm guardian_greaves arcane_boots','self',(g,h,e)=>{
  pulse(g,h,i,radius);
 });
 define('pipe crimson_guard','self',(g,h,e)=>{
- const i=e.item;for(const ally of allies(g,h,v(i,['barrier_radius','bonus_aoe_radius'],1200))){
-  if(e.id==='pipe')barrier(g,ally,i,v(i,'barrier_block'),v(i,'barrier_duration'),'magical');
-  else buff(g,ally,i,v(i,'duration'),{damageBlock:v(i,'block_damage_active')+h.maxHp*v(i,'max_hp_pct')/100,blockChance:100});
+ const i=e.item,radius=v(i,['barrier_radius','bonus_aoe_radius'],1200),recipients=e.id==='pipe'?allies(g,h,radius):g.entities.filter(u=>alive(u)&&u.team===h.team&&(u.kind==='hero'||C.building(u))&&distance(h,u)<=radius);
+ for(const ally of recipients){
+  if((ally.itemBarrierCooldowns?.[i.id]||0)>g.time)continue;
+  ally.itemBarrierCooldowns||={};ally.itemBarrierCooldowns[i.id]=g.time+i.cooldown;
+  if(e.id==='pipe')barrier(g,ally,i,v(i,ally.kind==='hero'?'barrier_block':'barrier_block_creep'),v(i,'barrier_duration'),'magical');
+  else buff(g,ally,i,v(i,'duration'),{damageBlock:Math.max(0,v(i,'block_damage_active')+h.maxHp*v(i,'max_hp_pct')/100-(ally.kind==='hero'&&ally.range>300?v(i,'block_penalty_ranged'):0)),blockChance:v(i,'block_chance_active')});
  }pulse(g,h,i,1200);
 });
 define('pavise solar_crest','allyHero',(g,h,e,p,target)=>{
@@ -82,7 +92,7 @@ define('urn_of_shadows spirit_vessel essence_distiller','unitOrPoint',(g,h,e,p,t
 },(g,h,e,p,target)=>!(e.meta.charges>0)?reject('需要收集灵魂能量'):!target&&e.id!=='essence_distiller'?reject('请选择英雄目标'):null);
 define('hand_of_midas','enemyCreep',(g,h,e,p,target)=>{
  const experience=target.xpBounty||0,before=h.gold;g._kill(target,null);h.gold=before+v(e.item,'bonus_gold');g._addXp(h,experience*2.1);g._effect('text',target.x,target.y-50,{text:'+'+v(e.item,'bonus_gold'),color:'#e2bf78',life:1});
-},(g,h,e,p,target)=>target?.ancient||target?.isRoshan?reject('无法转化远古生物或肉山'):null);
+},(g,h,e,p,target)=>target?.ancient||target?.isRoshan||target?.dominatedBy?reject('无法转化远古生物、肉山或被支配单位'):null);
 define('sheepstick','enemyUnit',(g,h,e,p,target)=>{dispel(g,target);disable(g,target,e.item,v(e.item,'sheep_duration'),{hex:true,silenced:true,muted:true,disarmed:true,speedOverride:v(e.item,'sheep_movement_speed')},h);});
 define('orchid bloodthorn','enemyUnit',(g,h,e,p,target)=>disable(g,target,e.item,v(e.item,'silence_duration'),{silenced:true,accumulatedDamage:0,burstPct:v(e.item,'silence_damage_percent'),trueStrike:e.id==='bloodthorn',attackProcDamage:e.id==='bloodthorn'?v(e.item,'proc_damage_heroes'):0},h));
 define('cyclone wind_waker','anyUnit',(g,h,e,p,target)=>{
@@ -103,16 +113,16 @@ define('ethereal_blade','anyUnit',(g,h,e,p,target)=>{
  if(enemy)g.damage(target,v(i,'blast_damage_base')+(h.strength+h.agility+h.intelligence)*v(i,'blast_stat_multiplier'),h,'magical');
 });
 define('shivas_guard veil_of_discord','self',(g,h,e)=>{
+ if(e.id==='shivas_guard'){startShiva(g,h,e.item);return;}
  const i=e.item,radius=v(i,['blast_radius','debuff_radius']);for(const target of enemies(g,h,h,radius)){
-  if(e.id==='shivas_guard'){g.damage(target,v(i,'blast_damage'),h,'magical');slow(g,target,i,v(i,'blast_debuff_duration'),v(i,'blast_movement_speed'),h);}
-  else disable(g,target,i,v(i,'resist_debuff_duration'),{spellVulnerability:v(i,'spell_amp')},h);
+  disable(g,target,i,v(i,'resist_debuff_duration'),{spellVulnerability:v(i,'spell_amp')},h);
  }pulse(g,h,i,radius);
 });
 define('bloodstone satanic','self',(g,h,e)=>{dispel(g,h);buff(g,h,e.item,v(e.item,['buff_duration','unholy_duration']),e.id==='satanic'?{lifesteal:v(e.item,'unholy_lifesteal_percent')}:{spellLifesteal:v(e.item,'spell_lifesteal_while_active')-(e.item.stats.spellLifesteal||0)});});
 define('sphere lotus_orb','allyHero',(g,h,e,p,target)=>{if(e.id==='lotus_orb')dispel(g,target);buff(g,target,e.item,v(e.item,['active_duration','upgrade_absorb_duration'],14),e.id==='sphere'?{spellBlock:true}:{spellReflect:true});});
 define('nullifier','enemyUnit',(g,h,e,p,target)=>{for(const [id,s]of Object.entries(target.statuses||{}))if(s.positive&&!s.undispellable)delete target.statuses[id];disable(g,target,e.item,v(e.item,'mute_duration'),{purged:true,slowPct:v(e.item,'slow_pct')},h);});
 define('blade_mail','self',(g,h,e)=>buff(g,h,e.item,v(e.item,'duration'),{reflectPct:v(e.item,'active_reflection_pct')}));
-define('mask_of_madness','self',(g,h,e)=>buff(g,h,e.item,v(e.item,'berserk_duration'),{silenced:true,attackSpeed:v(e.item,'berserk_bonus_attack_speed'),movePercent:v(e.item,h.range>300?'berserk_bonus_movement_speed':'berserk_bonus_movement_speed_melee'),armor:-v(e.item,'berserk_armor_reduction')}));
+define('mask_of_madness','self',(g,h,e)=>buff(g,h,e.item,v(e.item,'berserk_duration'),{silenced:true,attackSpeed:v(e.item,'berserk_bonus_attack_speed'),movePercent:v(e.item,h.range>300?'berserk_bonus_movement_speed':'berserk_bonus_movement_speed_melee'),slowResistance:v(e.item,h.range>300?'berserk_slow_resist':'berserk_slow_resist_melee'),armor:-v(e.item,'berserk_armor_reduction')}));
 define('manta','self',(g,h,e)=>{dispel(g,h);buff(g,h,e.item,v(e.item,'invuln_duration'),{invulnerable:true});h.projectileDisjoint=(h.projectileDisjoint||0)+1;C.illusion(g,h,v(e.item,'images_count'),v(e.item,'illusion_duration'),v(e.item,h.range>300?'tooltip_damage_outgoing_ranged':'tooltip_damage_outgoing_melee'),v(e.item,'tooltip_damage_incoming_total_pct'));});
 define('invis_sword silver_edge shadow_amulet glimmer_cape','allyOptional',(g,h,e,p,target)=>{
  const i=e.item,recipient=['invis_sword','silver_edge'].includes(e.id)?h:target,duration=v(i,['windwalk_duration','fade_duration','duration'],5),delay=v(i,['windwalk_fade_time','fade_time','initial_fade_delay']);
@@ -122,17 +132,25 @@ define('invis_sword silver_edge shadow_amulet glimmer_cape','allyOptional',(g,h,
 define('mjollnir','allyUnit',(g,h,e,p,target)=>buff(g,target,e.item,v(e.item,'static_duration'),{staticShield:true,sourceId:h.id,nextProc:0}));
 define('helm_of_the_dominator helm_of_the_overlord','enemyCreep',(g,h,e,p,target)=>{
  const i=e.item;for(const old of g.entities)if(old.dominatedBy===h.id&&!old.dead)g._kill(old,null);
- Object.assign(target,{team:h.team,kind:'summon',dominatedBy:h.id,ownerId:h.id,campId:null,targetId:null,returning:false,name:target.name+' · 支配',speed:v(i,'speed_base'),maxHp:Math.max(target.maxHp,v(i,'health_min')),damage:target.damage+v(i,'creep_bonus_damage'),armor:target.armor+v(i,'creep_bonus_armor'),hpRegen:v(i,'creep_bonus_hp_regen'),manaRegen:v(i,'creep_bonus_mp_regen')});target.hp=target.maxHp;
-},(g,h,e,p,target)=>target?.isRoshan||(target?.ancient&&e.id!=='helm_of_the_overlord')?reject('此物品无法支配该目标'):null);
+ const bounty=Math.floor((target.goldMin||0)+g._random()*((target.goldMax||target.goldMin||0)-(target.goldMin||0)+1)),pct=v(i,'bounty_pct')/100;
+ h.gold+=Math.floor(bounty*pct);g._addXp(h,(target.xpBounty||0)*pct);
+ target.dominationBase||={damage:target.damage,armor:target.armor,hpRegen:target.hpRegen||0,manaRegen:target.manaRegen||0};
+ const base=target.dominationBase;
+ Object.assign(target,{team:h.team,kind:'summon',dominatedBy:h.id,dominatedItemUid:e.meta.uid,dominatedItemId:e.id,ownerId:h.id,campId:null,targetId:null,returning:false,name:target.name.replace(/ · 支配$/,'')+' · 支配',speed:v(i,'speed_base'),maxHp:Math.max(target.maxHp,v(i,'health_min')),damage:base.damage+v(i,'creep_bonus_damage'),armor:base.armor+v(i,'creep_bonus_armor'),hpRegen:base.hpRegen+v(i,'creep_bonus_hp_regen'),manaRegen:base.manaRegen+v(i,'creep_bonus_mp_regen'),goldMin:v(i,'bounty_gold'),goldMax:v(i,'bounty_gold'),abilityLevelBonus:v(i,'creep_ability_level_increase')});target.hp=target.maxHp;
+},(g,h,e,p,target)=>target?.isRoshan||(target?.ancient&&e.id!=='helm_of_the_overlord')?reject('此物品无法支配该目标'):g.entities.some(u=>u.dominatedBy===h.id&&alive(u)&&(u.lastHeroDamageAt??-Infinity)+v(e.item,'creep_damage_taken_cooldown')>g.time)?reject('被支配单位受伤后暂时无法再次支配'):null);
 define('gungir','point',(g,h,e,p)=>{for(const target of enemies(g,h,p,v(e.item,'radius')+(h.spellAoE||0))){if(!immune(g,target)){status(g,target,'itemRoot:'+e.id,e.item,{duration:v(e.item,'duration'),rooted:true,sourceId:h.id});}}pulse(g,p,e.item,v(e.item,'radius'));});
 define('rod_of_atos','enemyUnit',(g,h,e,p,target)=>disable(g,target,e.item,v(e.item,'duration'),{rooted:true},h));
 define('abyssal_blade','enemyUnit',(g,h,e,p,target)=>stun(g,target,v(e.item,'stun_duration'),h,true));
 define('heavens_halberd','enemyUnit',(g,h,e,p,target)=>disable(g,target,e.item,v(e.item,target.range>300?'disarm_range':'disarm_melee'),{disarmed:true,undispellable:true},h));
 define('diffusal_blade disperser','anyUnit',(g,h,e,p,target)=>{
- const i=e.item;if(target.team===h.team){if(e.id==='disperser'){dispel(g,target);buff(g,target,i,v(i,'ally_effect_duration'),{movePercent:v(i,'phase_movement_speed'),slowImmune:true,phased:true});}}
- else{disable(g,target,i,v(i,['enemy_effect_duration','purge_slow_duration']),{slowPct:100,decayingSlow:true},h);}
+ const i=e.item;
+ if(e.id==='disperser'){
+  for(const ally of new Set(target.team===h.team?[h,target]:[h])){dispel(g,ally);buff(g,ally,i,v(i,'ally_effect_duration'),{movePercent:v(i,'phase_movement_speed'),decayingMove:true,decayRate:v(i,'movement_speed_buff_rate'),slowResistance:v(i,'slow_resist'),phased:true});}
+  if(target.team!==h.team)for(const [id,s]of Object.entries(target.statuses||{}))if(s.positive&&!s.undispellable)delete target.statuses[id];
+ }
+ if(target.team!==h.team)disable(g,target,i,v(i,['enemy_effect_duration','purge_slow_duration']),{slowPct:100,decayingSlow:true,decayRate:v(i,'purge_rate')},h);
 },(g,h,e,p,target)=>e.id==='diffusal_blade'&&target?.team===h.team?reject('净魂之刃只能对敌军使用'):null);
-define('harpoon','enemyUnit',(g,h,e,p,target)=>{const d=distance(h,target)||1,dx=(target.x-h.x)/d,dy=(target.y-h.y)/d,n=Math.max(0,(d-v(e.item,'min_distance'))*v(e.item,'pull_distance_pct')/100);forceMove(g,target,{x:target.x-dx*n,y:target.y-dy*n},v(e.item,'pull_duration'));forceMove(g,h,{x:h.x+dx*n,y:h.y+dy*n},v(e.item,'pull_duration'));slow(g,target,e.item,v(e.item,'slow_duration'),v(e.item,'movement_slow'),h);});
+define('harpoon','enemyOrTree',(g,h,e,p,target)=>queueHarpoon(g,h,e.item,target));
 define('crellas_crozier','self',(g,h,e)=>{buff(g,h,e.item,v(e.item,'duration'),{crozierActive:true,ethereal:true,disarmed:true,magicResistancePct:Math.abs(v(e.item,'extra_spell_damage_percent'))});g.nextItemAuraAt=0;});
 define('meteor_hammer','point',(g,h,e,p)=>{
  h.itemChannel={kind:'meteor',itemId:e.id,uid:e.meta.uid,startedAt:g.time,until:g.time+(e.item.channelTime||v(e.item,'max_duration')),point:{...p},origin:{x:h.x,y:h.y}};
@@ -152,15 +170,21 @@ export function findItemTarget(g,h,entry,point){
  if(!handler)return {ok:false,reason:'这是被动物品，无需施放'};
  const range=(entry.item.range||0)+(h.castRangeBonus||0),p=point||h;let target;
  if(type==='tree')target=C.treeAt(g,p);
+ else if(type==='enemyOrTree'){
+  const unit=C.targetAt(g,h,p,'enemy',undefined,range),tree=C.treeAt(g,p);
+  target=tree&&(!unit||distance(tree,p)<distance(unit,p))?tree:unit;
+ }
  else if(entry.id==='tpscroll'){
   const boots=C.equipped(g,h).find(e=>e.id.startsWith('travel_boots'));
   target=g.entities.filter(e=>alive(e)&&e.team===h.team&&e!==h&&(C.building(e)||(boots&&C.fighter(e)&&(boots.id==='travel_boots_2'||e.kind!=='hero')))&&distance(e,p)<=800).sort((a,b)=>distance(a,p)-distance(b,p))[0];
  }else if(['allyOptional','allyHero','allyUnit','anyUnit','enemyUnit','enemyCreep','unitOrPoint'].includes(type)){
   const team=type.startsWith('ally')?'ally':type.startsWith('enemy')?'enemy':'both';
-  target=C.targetAt(g,h,p,team,type==='allyHero'?['hero']:type==='enemyCreep'?['creep','neutral','summon']:undefined,range||Infinity);
+  const targetRange=t=>{const r=t.team!==h.team?v(entry.item,['enemy_cast_range','cast_range_enemy'],entry.item.range):entry.item.range;return r?r+(h.castRangeBonus||0):Infinity;};
+  target=C.targetAt(g,h,p,team,type==='allyHero'?['hero']:type==='enemyCreep'?['creep','neutral','summon']:undefined,targetRange,entry.id==='nullifier');
   if(!target&&type==='allyOptional')target=h;
  }
- if(['allyHero','allyUnit','anyUnit','enemyUnit','enemyCreep','tree'].includes(type)&&!target)return reject(type==='tree'?'请指向附近的树木':'请指向距离内的有效目标');
+ if(['allyHero','allyUnit','anyUnit','enemyUnit','enemyCreep','tree','enemyOrTree'].includes(type)&&!target)return reject(type==='tree'?'请指向附近的树木':'请指向距离内的有效目标');
+ if(type==='enemyOrTree'&&distance(h,target)>range+(target.radius||0))return reject('目标超过物品施法距离');
  if(type==='point'&&entry.id!=='tpscroll'&&!entry.id.includes('blink')&&range>0&&distance(h,p)>range)return reject('目标超过物品施法距离');
  if(type==='tree'&&distance(h,target)>(range||350))return reject('树木距离过远');
  const invalid=handler.validate?.(g,h,entry,p,target);if(invalid)return invalid;
