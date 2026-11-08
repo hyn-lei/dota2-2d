@@ -709,7 +709,7 @@ export class Game {
     result.damage=Skills.attackImpactDamage(this,target,result);
     let dealt=0;
     if(target.kind==='ward'){target.hitsRemaining--;target.hp=target.hitsRemaining;if(target.hp<=0)this._kill(target,e);}
-    else dealt=this.damage(target,result.damage,e,'physical',{attack:true,ignoreBaseArmor:result.marksmanship});
+    else dealt=this.damage(target,result.damage,e,'physical',{attack:true,ignoreBaseArmor:result.marksmanship,armorIgnorePct:result.cleave?.values.pierces_armor||0});
     Skills.afterAttack(this,e,target,result,dealt);
     ItemRuntime.afterAttack(this,e,target,result,dealt);
     if(isRangedAttack(e))this._effect('burst',target.x,target.y,{visual:'attackImpact',radius:e.kind==='tower'?70:45,life:.28,color:attackVisualFields(e,target).color});

@@ -324,7 +324,7 @@ export class Renderer {
     const k=clamp(e.life/(e.maxLife||1),0,1),color=e.color||'#e4ca8f';
     c.save();c.globalAlpha=Math.min(1,k*2);
     if(e.type==='text'){
-      c.font=`bold ${13/this.zoom}px "Segoe UI",sans-serif`;c.textAlign='center';
+      c.font=`bold ${(e.critical?18:13)/this.zoom}px "Segoe UI",sans-serif`;c.textAlign='center';
       c.shadowColor='#13201a';c.shadowBlur=3/this.zoom;c.fillStyle=color;
       c.fillText(e.text||'',e.x,e.y-(1-k)*26/this.zoom);
     }else circle(c,e.x,e.y,(e.radius||65)*(1-k*.6),null,color,2);

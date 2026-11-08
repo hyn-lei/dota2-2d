@@ -113,7 +113,7 @@ export function attackModifiers(g,h,target,result){
  let critical=1;for(const e of entries){const i=e.item;
   if(e.id!=='revenants_brooch'&&v(i,'crit_chance')&&g._random()*100<v(i,'crit_chance'))critical=Math.max(critical,v(i,'crit_multiplier')/100);
  }
- if(critical>1&&!result.critical){result.damage*=critical;result.itemCritical=true;}
+ if(critical>(result.criticalMultiplier||1)){result.damage*=critical/(result.criticalMultiplier||1);result.criticalMultiplier=critical;result.itemCritical=true;}
  for(const s of Object.values(h.statuses||{}))if(s.invisible){if(s.startedAt<=g.time){result.damage+=s.attackBonus||0;result.breakDuration=s.breakDuration||0;}breakInvisibility(g,h,s);}
  if(h.kind==='illusion')result.damage*=h.illusionOutgoing||0;
  const brooch=entries.find(e=>e.id==='revenants_brooch');if(brooch)result.broochDamage=g._random()*100<v(brooch.item,'crit_chance')?result.damage*v(brooch.item,'crit_multiplier')/100:0;
@@ -189,11 +189,12 @@ export function incomingDamage(g,target,amount,source,type,options){
   if(e.id==='infused_raindrop'&&type==='magical'&&amount>=v(e.item,'min_damage')&&(e.meta.cooldownRemaining||0)<=0&&e.meta.charges>0){e.meta.cooldownRemaining=e.item.cooldown;amount=Math.max(0,amount-v(e.item,'magic_damage_block'));Inventory.consumeItemCharge(g,target,e.area,e.index);}
  }
  if(target.kind==='illusion')amount*=target.illusionIncoming||1;
- amount*=1+(!options.attack?(target.itemAura?.spellVulnerability||0)/100:0);
+ const spellDamage=!options.attack&&!options.attackDamage;
+ amount*=1+(spellDamage?(target.itemAura?.spellVulnerability||0)/100:0);
  for(const s of statuses(g,target)){
   if(type==='magical')amount*=1+(s.magicVulnerability||0)/100;
-  if(!options.attack)amount*=1+(s.spellVulnerability||0)/100;
-  if(!options.attack)amount*=1-(s.spellDamageReduction||0)/100;
+  if(spellDamage)amount*=1+(s.spellVulnerability||0)/100;
+  if(spellDamage)amount*=1-(s.spellDamageReduction||0)/100;
   if(s.barrier&&s.itemId&&(s.barrierType==='all'||s.barrierType===type)){const n=Math.min(amount,s.barrier);s.barrier-=n;s.stacks=Math.ceil(s.barrier);amount-=n;}
  }
  if(amount>0&&disk&&owner(g,source)?.kind==='hero'&&target.hp-amount<target.maxHp*v(disk.item,'health_threshold_pct')/100){

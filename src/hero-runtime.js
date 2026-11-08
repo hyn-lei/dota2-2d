@@ -516,25 +516,26 @@ export function incomingDamage(g,target,value,source,type){
  return value;
 }
 export function attackModifiers(g,h,target,options={}){
- const stats=combatStats(g,h,target);let damage=stats.damage+(options.bonusDamage||0),critical=false,cleave=null;
+ const stats=combatStats(g,h,target);let damage=stats.damage+(options.bonusDamage||0),critical=false,criticalMultiplier=1,cleave=null;
  if(h.heroId==='juggernaut'){
-  const s=skillOf(h,2);if(s.level&&g._random()*100<s.values.blade_dance_crit_chance){damage*=s.values.blade_dance_crit_mult/100;critical=true;}
+  const s=skillOf(h,2);if(s.level&&!hasStatusFlag(g,h,'break')&&g._random()*100<s.values.blade_dance_crit_chance){criticalMultiplier=s.values.blade_dance_crit_mult/100;damage*=criticalMultiplier;critical=true;}
   if(active(g,h,'spin')&&!options.omni&&fighter(target))damage=0;
  }
- if(h.heroId==='kunkka'&&fighter(target)&&h.autocast?.[1]!==false&&(h.cooldowns[1]||0)<=0){const s=skillOf(h,1);if(s.level){damage+=s.values.damage_bonus;cleave=s;h.cooldowns[1]=s.cooldown;}}
+ if(h.heroId==='kunkka'&&fighter(target)&&!hasStatusFlag(g,h,'break')&&h.autocast?.[1]!==false&&(h.cooldowns[1]||0)<=0){const s=skillOf(h,1);if(s.level){damage+=s.values.damage_bonus;cleave=s;h.cooldowns[1]=s.cooldown;}}
  for(const s of Object.values(h.statuses||{}))if(s.until>g.time&&s.helixReduction&&s.sourceId===target.id)damage*=1-s.helixReduction*s.stacks/100;
- return Drow.drowAttack(g,h,target,options,{damage,critical,cleave,interval:stats.attackInterval});
+ return Drow.drowAttack(g,h,target,options,{damage,critical,...(criticalMultiplier>1?{criticalMultiplier}:{}),cleave,interval:stats.attackInterval});
 }
 export const attackImpactDamage=(g,target,result)=>result.damage+Drow.frostBonusDamage(g,target,result.frostArrow);
 export function afterAttack(g,h,target,result,dealt){
  if(result.frostArrow)Drow.frostHit(g,h,target,result.frostArrow);
  Ogre.ogreAttackProc(g,h,target);
- if(result.cleave){const v=result.cleave.values,dir={x:Math.cos(h.angle),y:Math.sin(h.angle)};
-  for(const e of g.entities)if(e!==target&&alive(e)&&fighter(e)&&e.team!==h.team){const x=e.x-h.x,y=e.y-h.y,along=x*dir.x+y*dir.y,across=Math.abs(x*dir.y-y*dir.x);const width=v.cleave_starting_width+(v.cleave_ending_width-v.cleave_starting_width)*along/v.cleave_distance;if(along>=0&&along<=v.cleave_distance&&across<=width){g.damage(e,result.damage*v.cleave_damage/100,h,'physical',{armorIgnorePct:v.pierces_armor||0});if(v.movespeed_slow)slow(g,e,v.movespeed_slow_duration,v.movespeed_slow,h);}}
+ if(result.cleave){const v=result.cleave.values,bonus=h.spellAoE||0,reach=v.cleave_distance+bonus,start=v.cleave_starting_width+bonus,end=v.cleave_ending_width+bonus,dir={x:Math.cos(h.angle),y:Math.sin(h.angle)};
+  for(const e of g.entities)if(e!==target&&alive(e)&&fighter(e)&&e.team!==h.team){const x=e.x-h.x,y=e.y-h.y,along=x*dir.x+y*dir.y,across=Math.abs(x*dir.y-y*dir.x);const width=start+(end-start)*along/reach;if(along>=0&&along<=reach&&across<=width){g.damage(e,result.damage*v.cleave_damage/100,h,'physical',{attackDamage:true,armorIgnorePct:v.pierces_armor||0});if(v.movespeed_slow)slow(g,e,v.movespeed_slow_duration,v.movespeed_slow,h);}}
   if(v.movespeed_slow)slow(g,target,v.movespeed_slow_duration,v.movespeed_slow,h);
-  spellEffect(g,h,'cleave',h.x,h.y,{tx:h.x+dir.x*v.cleave_distance,ty:h.y+dir.y*v.cleave_distance,radius:v.cleave_ending_width,life:.45,color:'#b2e1dc'});
+  spellEffect(g,h,'cleave',h.x,h.y,{tx:h.x+dir.x*reach,ty:h.y+dir.y*reach,radius:end,life:.45,color:'#b2e1dc'});
  }
- if(result.critical){g._effect('text',target.x,target.y-45,{text:`${Math.round(result.damage)}!`,life:.7,color:'#e6ac71'});const s=skillOf(h,2);h.hp=Math.min(h.maxHp,h.hp+dealt*(s.values.blade_dance_lifesteal||0)/100);}
+ if(result.critical||result.itemCritical)g._effect('text',target.x,target.y-45,{text:`${Math.round(result.damage)}!`,life:.7,color:'#ff5951',critical:true});
+ if(result.critical){const s=skillOf(h,2);h.hp=Math.min(h.maxHp,h.hp+dealt*(s.values.blade_dance_lifesteal||0)/100);}
  if(alive(target)&&target.heroId==='axe')countHelix(g,target);
  if(h.heroId==='axe'&&h.hasScepter&&fighter(target))countHelix(g,h);
  if(h.heroId==='windranger'&&h.hasScepter)grantTailwind(g,h);
