@@ -6,6 +6,7 @@ import * as ItemRuntime from './item-runtime.js';
 import { physicalDamageMultiplier } from './hero-stats.js';
 import { tickBotShopping } from './bot-items.js';
 import { ITEM_BY_ID } from './item-data.js';
+import {tacticalWorld,tacticalPlan,trySupportTeleport,safeStandPoint,fightingPower} from './bot-tactics.js';
 
 export const BOT_DIFFICULTY=Object.freeze({
   easy:{reaction:.35,jitter:.06,awareness:1100,lead:.45,advantage:1.85},
@@ -28,22 +29,13 @@ function director(g){
   if(!state){state={nextAt:0,plans:new Map(),controls:[]};directors.set(g,state);}
   if(g.time<state.nextAt)return state;
   state.nextAt=g.time+.2;
-  const bots=[],humans=[],allies=[],structures=[],fighters=[];state.entities=new Map();
-  for(const e of g.entities)if(alive(e)){
-    state.entities.set(e.id,e);
-    if(e.kind==='hero'){
-      if(e.team===1){allies.push(e);if(!e.isPlayer&&!e.isHuman&&e.aiTimer!==Infinity)bots.push(e);}
-      else if(e.team===0)humans.push(e);
-    }
-    if(['tower','barracks','ancient'].includes(e.kind))structures.push(e);
-    if(fighter(e))fighters.push(e);
-  }
+  const world=tacticalWorld(g),bots=world.teams[1].bots,humans=world.teams[1].visibleHeroes;
+  const structures=world.structures,fighters=world.fighters;state.entities=world.entities;
   const previous=state.plans;state.plans=new Map();
   const remaining=new Set(bots);
   while(remaining.size){
     const squad=[remaining.values().next().value];remaining.delete(squad[0]);
     for(let i=0;i<squad.length;i++)for(const bot of remaining)if(distance(squad[i],bot)<=2800){squad.push(bot);remaining.delete(bot);}
-    const reach=e=>Math.min(...squad.map(h=>distance(h,e)));
     const visible=e=>squad.some(h=>distance(h,e)<=BOT_DIFFICULTY.nightmare.awareness&&g.canSee(h,e));
     let focus=null,focusScore=Infinity;
     for(const e of humans)if(visible(e)&&!g.isProtected(e)&&!Skills.isInvulnerable(g,e)){
@@ -53,26 +45,7 @@ function director(g){
         (controlled(g,e)?150:0)-(squad.some(h=>previous.get(h.id)?.focusId===e.id)?100:0)+(unsafe?1500:0);
       if(score<focusScore){focus=e;focusScore=score;}
     }
-    let objective=null,objectiveScore=-Infinity;
-    for(const t of structures)if(t.team===1&&reach(t)<=4800){
-      const threats=fighters.filter(e=>e.team===0&&distance(t,e)<800&&squad.some(h=>g.canSee(h,e)));
-      if(!threats.length)continue;
-      const pressure=threats.reduce((n,e)=>n+(e.kind==='hero'?4:1),0),score=4000+pressure*180+(1-t.hp/t.maxHp)*400+(t.kind==='ancient'?700:0)-reach(t)*.12;
-      if(score>objectiveScore){objectiveScore=score;objective={mode:'defend',lane:t.lane,goal:{x:t.x+(BASES[1].x-t.x)*.03,y:t.y+(BASES[1].y-t.y)*.03},objectiveId:t.id};}
-    }
-    for(const ally of allies)if(reach(ally)<=4200&&ally.hp/ally.maxHp>.25){
-      const enemy=humans.find(e=>distance(e,ally)<900&&visible(e)&&(ally.targetId===e.id||e.targetId===ally.id||(ally.lastDamageAt??-Infinity)>g.time-2));
-      if(!enemy)continue;
-      const score=3000+(1-ally.hp/ally.maxHp)*350-reach(enemy)*.12;
-      if(score>objectiveScore){objectiveScore=score;objective={mode:'assist',goal:{x:enemy.x,y:enemy.y},objectiveId:enemy.id};}
-    }
-    if(!objective&&focus)objective={mode:'assist',goal:{x:focus.x,y:focus.y},objectiveId:focus.id};
-    if(!objective&&g.time>120)for(const t of structures)if(t.team===0&&reach(t)<=4800&&!g.isProtected(t)&&
-      fighters.some(c=>c.team===1&&c.kind==='creep'&&distance(c,t)<850)){
-      const score=1800+(1-t.hp/t.maxHp)*300-reach(t)*.12-(t.tier||0)*100;
-      if(score>objectiveScore){objectiveScore=score;objective={mode:'push',lane:t.lane,goal:{x:t.x,y:t.y},objectiveId:t.id};}
-    }
-    for(const bot of squad){bot.teamFocusTargetId=focus?.id||null;state.plans.set(bot.id,{...objective,focusId:focus?.id||null});}
+    for(const bot of squad){bot.teamFocusTargetId=focus?.id||null;state.plans.set(bot.id,{focusId:focus?.id||null});}
   }
   return state;
 }
@@ -123,10 +96,10 @@ function context(g,h,radius){
   const units=g._near(h,radius).filter(e=>g.canSee(h,e)),enemies=units.filter(e=>e.team!==h.team&&e.kind!=='droppedItem');
   const enemyHeroes=enemies.filter(e=>e.kind==='hero'&&!Skills.isInvulnerable(g,e));
   const allies=[h,...units.filter(e=>e.kind==='hero'&&e.team===h.team)];
-  const power=e=>{const stats=g.combatStats(e);return (stats.damage/Math.max(.25,stats.attackInterval)+e.level*5)*(e.hp/e.maxHp+.25);};
-  const towers=enemies.filter(e=>['tower','fountain'].includes(e.kind)&&distance(e,h)<e.range+220);
-  const unsafeTower=towers.find(t=>!units.some(e=>e.kind==='creep'&&e.team===h.team&&distance(t,e)<t.range+50));
-  return {units,enemies,enemyHeroes,allies,towers,unsafeTower,enemyPower:enemyHeroes.reduce((n,e)=>n+power(e),0),allyPower:allies.reduce((n,e)=>n+power(e),0)};
+  const towers=enemies.filter(e=>['tower','fountain'].includes(e.kind)&&distance(e,h)<e.range+420);
+  const unsupported=towers.filter(t=>!tacticalWorld(g).teams[h.team].units.some(e=>e.kind==='creep'&&alive(e)&&distance(t,e)<t.range+50));
+  return {units,enemies,enemyHeroes,allies,towers,unsupported,unsafeTower:unsupported[0],
+    enemyPower:enemyHeroes.reduce((n,e)=>n+fightingPower(g,e),0),allyPower:allies.reduce((n,e)=>n+fightingPower(g,e),0)};
 }
 function retreatPoint(h,ctx){
   let x=0,y=0;
@@ -134,15 +107,52 @@ function retreatPoint(h,ctx){
   const base=BASES[h.team],d=distance(h,base)||1;x+=(base.x-h.x)/d*.45;y+=(base.y-h.y)/d*.45;
   const length=Math.hypot(x,y)||1;return {x:h.x+x/length*450,y:h.y+y/length*450};
 }
+function badMatchup(g,h,e,ctx){
+  return e.level>=h.level+2&&e.hp/e.maxHp>.32&&Math.max(ctx.enemyPower,fightingPower(g,e))>ctx.allyPower*1.25;
+}
+function safetyGoal(g,h,ctx,settings){
+  const state=h.botState,old=state.safety;
+  const strong=ctx.enemyHeroes.find(e=>badMatchup(g,h,e,ctx)&&distance(h,e)<Math.max(1100,e.range+500));
+  const overwhelming=ctx.enemyHeroes.length>ctx.allies.length&&ctx.enemyPower>ctx.allyPower*settings.advantage;
+  const threat=strong||(overwhelming?ctx.enemyHeroes.reduce((a,b)=>distance(h,a)<distance(h,b)?a:b):null);
+  const tower=ctx.unsupported.find(t=>distance(h,t)<t.range+400);
+  const mode=threat?'disengage':tower?'wait-wave':null,target=threat||tower;
+  if(target){
+    if(!old||old.mode!==mode||old.threatId!==target.id){
+      state.safety={mode,threatId:target.id,goal:safeStandPoint(g,h,target),minUntil:g.time+3,clearSince:null};
+    }else{
+      old.clearSince=null;
+      // Keep one retreat destination, unless the enemy moves into its safety margin.
+      if(mode==='disengage'&&distance(old.goal,target)<Math.max(650,target.range+300)&&g.time>=(old.nextPointAt||0)){
+        old.goal=safeStandPoint(g,h,target);old.nextPointAt=g.time+1.2;
+      }
+    }
+  }else if(old){
+    const remembered=tacticalWorld(g).entities.get(old.threatId);
+    const stillUnsafe=alive(remembered)&&g.canSee(h,remembered)&&
+      (old.mode==='wait-wave'?distance(h,remembered)<remembered.range+650&&
+        !tacticalWorld(g).teams[h.team].units.some(c=>c.kind==='creep'&&alive(c)&&distance(c,remembered)<remembered.range+50):
+        distance(h,remembered)<settings.awareness+250&&badMatchup(g,h,remembered,ctx));
+    if(stillUnsafe)old.clearSince=null;
+    else old.clearSince??=g.time;
+    if(!alive(remembered)||old.clearSince!=null&&g.time>=old.minUntil&&g.time-old.clearSince>(old.mode==='wait-wave'?.5:1.2)){
+      state.safety=null;state.nextMacroAt=0;state.goal=null;
+    }
+  }
+  return state.safety;
+}
 export function chooseBotTarget(g,h,ctx){
+  const safe=e=>!ctx.unsupported.some(t=>distance(t,e)<t.range+80)&&
+    !(e.kind==='hero'&&badMatchup(g,h,e,ctx));
   if(nightmare(g,h)){
     const focus=ctx.enemyHeroes.find(e=>e.id===h.teamFocusTargetId&&alive(e)&&!g.isProtected(e)&&
-      !(h.botState?.ignoredTarget?.id===e.id&&h.botState.ignoredTarget.until>g.time));
+      safe(e)&&!(h.botState?.ignoredTarget?.id===e.id&&h.botState.ignoredTarget.until>g.time));
     if(focus)return focus;
   }
   let best=null,bestScore=Infinity;
   for(const e of ctx.enemies){
     if(!alive(e)||g.isProtected(e)||Skills.isInvulnerable(g,e)||['fountain','filler','courier','droppedItem'].includes(e.kind))continue;
+    if(!safe(e))continue;
     if(h.botState?.ignoredTarget?.id===e.id&&h.botState.ignoredTarget.until>g.time)continue;
     if(e.kind==='neutral'&&e.targetId!==h.id&&e.id!==h.farmTargetId)continue;
     const d=distance(h,e),stats=g.combatStats(h,e),lastHit=e.kind==='creep'&&e.hp<=stats.damage*physicalDamageMultiplier(e.armor||0)&&d<=h.range+e.radius+100;
@@ -152,8 +162,8 @@ export function chooseBotTarget(g,h,ctx){
     if(e.kind==='hero'&&controlled(g,e))score-=180;
     if(ctx.allies.some(a=>a!==h&&a.targetId===e.id))score-=180;
     if(e.id===h.focusTargetId)score-=500;
+    if(e.id===h.botState?.targetId)score-=140;
     if(e.kind==='tower'||e.kind==='barracks'||e.kind==='ancient')score+=160;
-    if(ctx.unsafeTower&&distance(e,ctx.unsafeTower)<ctx.unsafeTower.range&&e.kind!=='creep')score+=900;
     if(score<bestScore){best=e;bestScore=score;}
   }
   return best;
@@ -278,28 +288,24 @@ function castBotSkills(g,h,target,ctx,settings,retreating=false){
 }
 function macroGoal(g,h,ctx){
   const state=h.botState;
-  if(nightmare(g,h)&&!h.botShop?.needsShop){
-    const plan=director(g).plans.get(h.id);
-    if(plan?.goal&&distance(h,plan.goal)<=4800){state.mode=plan.mode;state.goal=plan.goal;state.nextMacroAt=g.time+.2;if(plan.lane!=null)h.lane=plan.lane;return state.goal;}
-    if(['assist','defend'].includes(state.mode)){state.goal=null;state.nextMacroAt=0;}
+  const plan=tacticalPlan(g,h);
+  if(plan?.goal){
+    state.mode=plan.mode;state.goal=plan.goal;state.nextMacroAt=g.time+.2;
+    state.objectiveId=plan.objectiveId;state.objectiveKey=plan.key;
+    if(plan.lane!=null&&plan.lane!==h.lane){h.lane=plan.lane;h.pathIndex=0;}
+    return state.goal;
   }
+  if(state.objectiveKey){state.objectiveKey=null;state.objectiveId=null;state.goal=null;state.nextMacroAt=0;}
   if(g.time<state.nextMacroAt&&state.goal)return state.goal;
   state.nextMacroAt=g.time+(nightmare(g,h)? .2:1.2);
   if(h.botShop?.needsShop){
     const shops=[BASES[h.team],...Inventory.SECRET_SHOPS].sort((a,b)=>distance(h,a)-distance(h,b));state.mode='resupply';return state.goal=shops[0];
   }
-  // Help an actual nearby fight or defend a pressured allied tower before farming.
-  if(!nightmare(g,h)){
-    const allies=g.entities.filter(e=>e.kind==='hero'&&e.team===h.team&&e!==h&&alive(e));
-    for(const ally of allies){const enemy=ally.targetId&&g.entities.find(e=>e.id===ally.targetId&&e.kind==='hero'&&e.team!==h.team&&alive(e)&&g.canSee(h,e));
-      if(enemy&&distance(h,ally)<2400&&distance(ally,enemy)<900&&ally.hp/ally.maxHp>.25){state.mode='assist';return state.goal={x:enemy.x,y:enemy.y};}}
-    const defense=g.entities.filter(t=>t.kind==='tower'&&t.team===h.team&&alive(t)&&distance(h,t)<3200).find(t=>g.entities.some(e=>e.team!==h.team&&fighter(e)&&alive(e)&&distance(t,e)<650));
-    if(defense){state.mode='defend';h.lane=defense.lane??h.lane;return state.goal={x:defense.x+(BASES[h.team].x-defense.x)*.03,y:defense.y+(BASES[h.team].y-defense.y)*.03};}
-  }
   const neutral=ctx.units.find(e=>e.kind==='neutral'&&!e.ancient&&!e.isRoshan&&!e.returning&&distance(h,e)<1000);
   if(g.time>90&&h.level>=3&&h.hp/h.maxHp>.68&&['axe','juggernaut','kunkka'].includes(h.heroId)&&neutral){h.farmTargetId=neutral.id;state.mode='farm';return state.goal=neutral;}
   const path=TEAM_LANES[h.team][h.lane],nearest=path.reduce((best,p,i)=>distance(p,h)<distance(path[best],h)?i:best,0);
-  h.pathIndex=Math.max(nearest,Math.min(h.pathIndex||0,path.length-1));
+  // A defensive TP/lane switch invalidates the old lane's forward path index.
+  h.pathIndex=Math.min(path.length-1,nearest+(distance(h,path[nearest])<180?1:0));
   state.mode='push';state.goal=null;return null;
 }
 
@@ -310,32 +316,60 @@ export function tickBusyBot(g,h){
 }
 export function tickBot(g,h,dt){
   maintainBot(g,h);if(h.isPlayer||h.isHuman||g.paused||h.aiTimer===Infinity||!alive(h)||g.status!=='playing')return;
+  if(h.itemChannel)return;
   const settings=botProfile(g,h),state=h.botState||=( {mode:'push',targetId:null,nextMacroAt:0,goal:null,chaseStartedAt:0} );
   if(nightmare(g,h))director(g);
   h.aiTimer-=dt;const ctx=context(g,h,settings.awareness),hp=h.hp/h.maxHp;
   if(h.heroId==='kunkka'&&h.xMark?.returnAt<=g.time){g._cast(h,2);return;}
-  const outnumbered=ctx.enemyHeroes.length>ctx.allies.length&&ctx.enemyPower>ctx.allyPower*settings.advantage;
-  const towerDanger=ctx.unsafeTower&&distance(h,ctx.unsafeTower)<ctx.unsafeTower.range+130&&(hp<.8||ctx.enemyHeroes.length>0);
-  const danger=hp<.2||hp<.35&&ctx.enemyHeroes.length>0||outnumbered&&(hp<.65||ctx.enemyPower>ctx.allyPower*settings.advantage*1.45)||towerDanger;
-  if(h.retreating&&hp>.82&&!danger){h.retreating=false;state.goal=null;state.nextMacroAt=0;}
-  if(danger){h.retreating=true;state.mode='retreat';}
+  const danger=hp<.2||hp<.35&&ctx.enemyHeroes.length>0||hp<.28&&ctx.enemyHeroes.length===0;
+  if(h.retreating&&hp>.82&&!danger&&g.time>=(state.recoverUntil||0)){
+    h.retreating=false;state.goal=null;state.safety=null;state.escapeGoal=null;state.nextMacroAt=0;
+  }
+  if(danger){if(!h.retreating)state.recoverUntil=g.time+4;h.retreating=true;state.mode='retreat';}
+  let safety=h.retreating?null:safetyGoal(g,h,ctx,settings);
+  const plan=tacticalPlan(g,h);
+  if(!h.retreating&&plan&&['defend','assist'].includes(plan.mode)){
+    // A remote urgent task takes precedence over farming or waiting at an enemy tower.
+    if(safety?.mode==='wait-wave'&&distance(plan.goal,tacticalWorld(g).entities.get(safety.threatId))>1400){state.safety=null;safety=null;}
+    macroGoal(g,h,ctx);
+    if(!safety&&trySupportTeleport(g,h,plan,ctx))return;
+  }
+  const defensive=h.retreating||!!safety;
   if(h.aiTimer<=0){
     h.aiTimer=settings.reaction+g._random()*settings.jitter;
     const target=chooseBotTarget(g,h,ctx);
     if(target?.id!==state.targetId){state.chaseStartedAt=g.time;state.chaseOrigin={x:h.x,y:h.y};}
     state.targetId=target?.id||null;h.targetId=state.targetId;
-    if(useBotItems(g,h,target,ctx,h.retreating)||castBotSkills(g,h,target,ctx,settings,h.retreating))return;
+    const castTarget=target||(defensive?ctx.enemyHeroes[0]:null);
+    if(useBotItems(g,h,castTarget,ctx,defensive)||castBotSkills(g,h,castTarget,ctx,settings,defensive))return;
   }
   if(h.retreating){
     h.targetId=null;state.targetId=null;
-    if(ctx.enemyHeroes.length||ctx.towers.length)g._move(h,retreatPoint(h,ctx),dt);
-    else if(distance(h,BASES[h.team])>1500&&!controlled(g,h)&&h.tp?.some(Boolean)&&ItemRuntime.useItem(g,h,0,BASES[h.team],'tp').ok)return;
+    if(ctx.enemyHeroes.length||ctx.towers.length){
+      if(!state.escapeGoal||g.time>=(state.nextEscapeAt||0)&&distance(h,state.escapeGoal)<180){
+        state.escapeGoal=g.navigation.nearestWalkable(retreatPoint(h,ctx));state.nextEscapeAt=g.time+1.2;
+      }
+      g._move(h,state.escapeGoal,dt,20);
+    }
+    else if(distance(h,BASES[h.team])>1500&&!controlled(g,h)&&h.tp?.some(Boolean)&&g.time>=(state.nextRecoveryTpAt||0)){
+      state.nextRecoveryTpAt=g.time+1;
+      if(ItemRuntime.useItem(g,h,h.tp.indexOf('tpscroll'),BASES[h.team],'tp').ok)return;
+      g._move(h,BASES[h.team],dt,150);
+    }
     else g._move(h,BASES[h.team],dt,150);
     return;
   }
   let target=nightmare(g,h)?ctx.enemies.find(e=>e.id===state.targetId)||director(g).entities.get(state.targetId):
     g.entities.find(e=>e.id===state.targetId);
-  if(!alive(target)||!g.canSee(h,target)||g.isProtected(target))target=null;
+  if(!alive(target)||!g.canSee(h,target)||g.isProtected(target)||Skills.isInvulnerable(g,target)||
+    ctx.unsupported.some(t=>distance(t,target)<t.range+80)||target.kind==='hero'&&badMatchup(g,h,target,ctx))target=null;
+  if(safety){
+    state.mode=safety.mode;state.goal=safety.goal;h.targetId=null;
+    // Safe last hits may continue while holding position; they must not restart a chase.
+    if(target&&target.kind!=='hero'&&distance(h,target)<=h.range+target.radius&&g._attack(h,target))return;
+    state.targetId=null;g._move(h,safety.goal,dt,25);return;
+  }
+  if(plan&&['defend','assist'].includes(plan.mode)&&distance(h,plan.goal)>1600&&target?.kind!=='hero')target=null;
   if(target?.kind==='hero'&&g.time-state.chaseStartedAt>6&&target.hp/target.maxHp>.3&&state.chaseOrigin&&distance(h,state.chaseOrigin)>1000){state.ignoredTarget={id:target.id,until:g.time+4};target=null;state.targetId=null;state.nextMacroAt=0;}
   if(target){
     state.mode='fight';h.targetId=target.id;
@@ -347,6 +381,6 @@ export function tickBot(g,h,dt){
   }
   h.targetId=null;const goal=macroGoal(g,h,ctx);
   if(state.mode==='farm'&&goal){h.targetId=goal.id;if(!g._attack(h,goal))g._move(h,goal,dt,h.range+goal.radius-5);}
-  else if(goal)g._move(h,goal,dt,state.mode==='resupply'?300:220);
+  else if(goal)g._move(h,goal,dt,state.mode==='resupply'?300:state.mode==='assist'?Math.max(120,h.range*.65):220);
   else g._followLane(h,dt);
 }

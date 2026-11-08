@@ -28,6 +28,7 @@
     "test:item-tracking": "node tests/browser-item-tracking.mjs",
     "test:vfx": "node tests/browser-vfx.mjs",
     "test:ai": "node tests/browser-ai.mjs",
+    "test:ai-tactics": "node tests/browser-ai-tactics.mjs",
     "test:ogre": "node tests/browser-ogre.mjs",
     "test:drow": "node tests/browser-drow.mjs",
     "test:coop": "node tests/browser-coop.mjs",

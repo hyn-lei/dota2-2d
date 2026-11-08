@@ -1,0 +1,34 @@
+{
+  "baseRevision": "b2f14d536d0d353d23f8bd48a6e13877a050129c",
+  "change": "Both-team strategic assignments, real support teleports and committed safe positions intentionally change AI movement and combat. The prior collision baseline is retained as history.",
+  "cases": [
+    {
+      "config": {
+        "hero": "juggernaut",
+        "seed": 42
+      },
+      "steps": 1800,
+      "dt": 0.05,
+      "sha256": "09f1ca4a6b8dfec6c5a9cec23111f145a4d4a76d76f99034775e7f4e0d9907bd"
+    },
+    {
+      "config": {
+        "hero": "drow_ranger",
+        "difficulty": "hard",
+        "seed": 51
+      },
+      "steps": 1800,
+      "dt": 0.05,
+      "sha256": "96553ba00a47aefc4df394856bb66df9895c321918fcecd816e7ed183739c12a"
+    },
+    {
+      "config": {
+        "hero": "ogre_magi",
+        "seed": 99
+      },
+      "steps": 1800,
+      "dt": 0.05,
+      "sha256": "d9515901f02814efdb322e98575e382deb26e7ef2c0dd60d63472c73ccb1ec15"
+    }
+  ]
+}

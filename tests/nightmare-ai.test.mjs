@@ -86,24 +86,25 @@ test('nightmare supports a threatened teammate outside hard support range',()=>{
   assert.ok(Math.hypot(helper.botState.goal.x-human.x,helper.botState.goal.y-human.y)<100);
 });
 
-test('nightmare nearby bots group to defend the most pressured allied structure',()=>{
+test('nightmare sends enough nearby bots to defend pressure while preserving other lanes',()=>{
   const {g,bots,humans}=battlefield(),tower=g._unit('tower',1,13000,10400,{lane:2,range:700});
   const quietTower=g._unit('tower',1,10400,13000,{lane:0,range:700});
   const creep=g._unit('creep',0,10400,13100,{lane:0});
   const human=humans[0];Object.assign(human,{x:13200,y:10400,targetId:tower.id});
   g.entities=[...bots,human,quietTower,creep,tower];g._index();for(const bot of bots)g._botTick(bot,0);
-  assert.deepEqual(bots.map(h=>h.botState.mode),Array(5).fill('defend'));
-  assert.deepEqual(bots.map(h=>h.lane),Array(5).fill(2));
-  assert.ok(bots.every(h=>Math.hypot(h.botState.goal.x-tower.x,h.botState.goal.y-tower.y)<300));
+  const defenders=bots.filter(h=>h.botState.mode==='defend');
+  assert.equal(defenders.length,2,'one hostile hero requests two remote defenders rather than all five');
+  assert.ok(defenders.every(h=>h.lane===2&&Math.hypot(h.botState.goal.x-tower.x,h.botState.goal.y-tower.y)<300));
+  assert.ok(bots.filter(h=>h.botState.mode!=='defend').every(h=>h.botState.objectiveId!==quietTower.id));
 });
 
 test('nightmare groups on an unprotected push objective with an actual allied wave',()=>{
   const {g,bots}=battlefield(),tower=g._unit('tower',0,13300,10400,{lane:2,tier:1,range:700});
   const creep=g._unit('creep',1,13100,10400,{lane:2});
   g.time=180;g.entities=[...bots,tower,creep];g._index();for(const bot of bots)g._botTick(bot,0);
-  assert.deepEqual(bots.map(h=>h.botState.mode),Array(5).fill('push'));
-  assert.deepEqual(bots.map(h=>h.lane),Array(5).fill(2));
-  assert.ok(bots.every(h=>h.botState.goal&&Math.hypot(h.botState.goal.x-tower.x,h.botState.goal.y-tower.y)<800));
+  const pushers=bots.filter(h=>h.botState.objectiveId===tower.id);
+  assert.equal(pushers.length,3,'a normal push leaves room for other lane objectives');
+  assert.ok(pushers.every(h=>h.botState.mode==='push'&&h.lane===2&&Math.hypot(h.botState.goal.x-tower.x,h.botState.goal.y-tower.y)<800));
 });
 
 test('nightmare caches peaceful team decisions instead of scanning distant units every bot tick',()=>{
