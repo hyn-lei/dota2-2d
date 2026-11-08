@@ -37,6 +37,12 @@ try{
  assert.equal(await page.locator('.equipped-slots .inventory-slot').count(),6);
  assert.equal(await page.locator('.backpack-slots .inventory-slot').count(),3);
  assert.equal(await page.locator('.tp-slot .inventory-slot').count(),1);
+ const layout=await page.locator('.hud-vitals .status-effect').evaluateAll(nodes=>nodes.map(n=>{const r=n.getBoundingClientRect();return {positive:n.dataset.positive,x:r.x,y:r.y,w:r.width,h:r.height};}));
+ const positive=layout.filter(r=>r.positive==='true'),negative=layout.filter(r=>r.positive==='false');
+ assert.ok(positive.every(r=>r.x>=960&&r.w===40));assert.ok(negative.every(r=>r.x+r.w<=960&&r.w===40));assert.equal(positive[0].y,negative[0].y);
+ const centered=await page.locator('.hud-vitals [data-status-id="ogreBloodlust"]').evaluate(n=>{const icon=n.getBoundingClientRect(),stack=n.querySelector('.status-effect-stacks').getBoundingClientRect();return {icon,stack,timer:getComputedStyle(n.querySelector('.status-effect-time')).display};});
+ assert.ok(Math.abs(centered.icon.x+centered.icon.width/2-centered.stack.x-centered.stack.width/2)<1);assert.ok(Math.abs(centered.icon.y+centered.icon.height/2-centered.stack.y-centered.stack.height/2)<1);assert.equal(centered.timer,'none');
+ check('Client status geometry: 40px icons on one baseline, buffs expand right and debuffs left, centered stacks and duration rings');
  const slots=await page.locator('.equipped-slots .inventory-slot').evaluateAll(nodes=>nodes.map(n=>{const r=n.getBoundingClientRect();return {x:r.x,y:r.y};}));
  assert.equal(new Set(slots.map(s=>s.x)).size,3);assert.equal(new Set(slots.map(s=>s.y)).size,2);
  check('Original item geometry: six equipment slots in 3×2, three backpack slots and separate TP');
@@ -55,6 +61,7 @@ try{
   }
   const mini=await page.locator('#minimap').boundingBox();assert.equal(mini.width,mini.height);
   await page.screenshot({path:`artifacts/hud-game-${size.width}.png`});
+  if(size.width>700){const bounds=await page.locator(buff).boundingBox();assert.equal(bounds.width,40);assert.ok(bounds.x>=size.width/2);}
   await page.locator(buff).click();await page.waitForSelector('.hud-vitals .status-tooltip:not([hidden])');
   const tip=await page.locator('.hud-vitals .status-tooltip').boundingBox();assert.ok(tip.x>=0&&tip.y>=0&&tip.x+tip.width<=size.width+1&&tip.y+tip.height<=size.height+1);
   await page.keyboard.press('Escape');

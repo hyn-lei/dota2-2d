@@ -1,0 +1,24 @@
+{
+  "retrieved": "2026-11-08",
+  "steamApp": 570,
+  "steamBuild": "26466928",
+  "archive": "game/dota/pak01_dir.vpk",
+  "decoder": "Source 2 Viewer 20.1.0",
+  "scope": "Status size, placement, duration ring and centered stacks; hud_reborn retains only buff/debuff rules",
+  "resources": [
+    {
+      "resource": "panorama/styles/hud/dota_hud_buff.vcss_c",
+      "rawSha256": "5d5ec383a577e586d959e5ce55d7f21b940e774a6e7ba29e8b9234ab40edbad8",
+      "decodedSha256": "228db7162f0a2b0b5f1506ecdf6304a81dd00353c2664bb5859365682b4fcd1c",
+      "file": "docs/research/hud/status/dota_hud_buff.css",
+      "sha256": "50bb3e02747458fbee195e66d8b8cf81500e9ac73c5a8b08883190d55acad14d"
+    },
+    {
+      "resource": "panorama/styles/hud/hud_reborn.vcss_c",
+      "rawSha256": "387f44bafe1fa5eefcda0e629d3ba34b38bab9af7be12384a4cd900b32cdf1b3",
+      "decodedSha256": "41f635c59903f4952d11e12673f2b159a93bc07e81318faa6ac9e3fb8f82f734",
+      "file": "docs/research/hud/status/hud_reborn.css",
+      "sha256": "ee2beb2acbc6b4f69d94df0f1859adec919ce57549d714c44c20441ea7f96d8d"
+    }
+  ]
+}

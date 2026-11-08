@@ -50,6 +50,8 @@ function normalizeStatus(id, raw, time) {
     remaining, duration, positive:raw.positive ?? defaults.positive ?? true,
     icon:String(raw.icon || defaults.icon || 'relic'),
     stacks:Number.isFinite(raw.stacks) ? Math.max(1, Math.floor(raw.stacks)) : 1,
+    ...(Number.isFinite(raw.stacks)&&raw.stacks>0?{hasStacks:true}:{}),
+    ...(raw.undispellable?{undispellable:true}:{}),
     ...(raw.image?{image:raw.image}:{})
   };
 }
@@ -131,7 +133,7 @@ function refreshTooltip(state) {
   const effect = entry.effect;
   setText(state.tooltipName, effect.name);
   setText(state.tooltipDescription, effect.description);
-  setText(state.tooltipKind, `${effect.positive ? '增益' : '减益'}${effect.stacks > 1 ? ` · ${effect.stacks} 层` : ''}`);
+  setText(state.tooltipKind, `${effect.positive ? '增益' : '减益'}${effect.hasStacks ? ` · ${effect.stacks} 层` : ''}`);
   setText(state.tooltipTime, seconds(effect.remaining));
   setAttr(state.tooltip, 'data-positive', String(Boolean(effect.positive)));
   state.tooltip.hidden = false;
@@ -234,9 +236,10 @@ export function updateStatusBar(element, unit, time = 0, game = null) {
     }
     const timer = effect.remaining === null ? '' : effect.remaining < 10 ? effect.remaining.toFixed(1) : String(Math.ceil(effect.remaining));
     setText(entry.time, timer);
-    setText(entry.stacks, effect.stacks > 1 ? String(effect.stacks) : '');
-    entry.stacks.hidden = effect.stacks <= 1;
+    setText(entry.stacks, effect.hasStacks ? String(effect.stacks) : '');
+    entry.stacks.hidden = !effect.hasStacks;
     setAttr(entry.button, 'data-positive', String(Boolean(effect.positive)));
+    setAttr(entry.button, 'data-undispellable', String(Boolean(effect.undispellable)));
     const stackLabel = effect.stacks > 1 ? `，${effect.stacks} 层` : '';
     setAttr(entry.button, 'aria-label', `${effect.name}${stackLabel}，${seconds(effect.remaining)}`);
     setAttr(entry.button, 'title', `${effect.name}${stackLabel}\n${effect.description}\n${seconds(effect.remaining)}`);

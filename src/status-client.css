@@ -1,0 +1,23 @@
+/* Valve build 26466928: hud_reborn.css + dota_hud_buff.css. */
+.hud-vitals .status-effect{--status-color:#8bdd4f;--status-edge:#6bbd2f}
+.hud-vitals .status-effect[data-positive="false"]{--status-color:#e43c10;--status-edge:#b40000}
+.hud-vitals .status-effect[data-undispellable="true"]{--status-color:#6bbd2f}
+.hud-vitals .status-effect[data-positive="false"][data-undispellable="true"]{--status-color:#b40000}
+.hud-vitals .status-effect[data-undispellable="true"] .status-ring-progress{filter:brightness(4)}
+.hud-vitals .status-effect-time{display:none}
+.hud-vitals .status-effect-stacks{left:0;right:0;top:50%;bottom:auto;transform:translateY(-50%);min-width:0;width:100%;max-height:24px;padding:0 4px;border:0;border-radius:0;background:transparent!important;color:white!important;font:20px/24px Consolas,monospace;text-align:center;text-shadow:0 0 4px #000,0 0 4px #000;pointer-events:none}
+@media(min-width:701px){
+ .hud-vitals .status-bar{position:fixed;left:50%;right:auto;bottom:151px;width:0;height:40px;max-width:none;margin:0;pointer-events:none}
+ .hud-vitals .status-effects{position:absolute;inset:0;display:block;width:0;padding:0}
+ .hud-vitals .status-buffs,.hud-vitals .status-debuffs{position:absolute;bottom:0;display:flex;align-items:flex-end;align-content:flex-end;justify-content:flex-start;gap:4px;flex-wrap:wrap-reverse;width:calc(50vw - 8px);pointer-events:none}
+ .hud-vitals .status-buffs{left:2px;right:auto;flex-direction:row}
+ .hud-vitals .status-debuffs{right:2px;left:auto;flex-direction:row-reverse}
+ .hud-vitals .status-effect{flex:0 0 40px;width:40px;height:40px;pointer-events:auto;transition:opacity .15s ease-in-out,transform .15s ease-in-out}
+ .hud-vitals .status-ring{width:40px;height:40px}
+ .hud-vitals .status-effect-icon{inset:2px;height:36px;border:1px solid #000;box-shadow:inset 0 1px 16px #000a}
+ .game-hud[data-ownership="own"]:has(.learn-ability:not([hidden]),.extra-ability:not([hidden])) .status-bar{bottom:183px}
+ .game-hud:not([data-ownership="own"]) .status-effect{flex-basis:36px;width:36px;height:36px}
+ .game-hud:not([data-ownership="own"]) .status-ring{width:36px;height:36px}
+ .game-hud:not([data-ownership="own"]) .status-effect-icon{height:32px}
+}
+@media(max-width:700px){.hud-vitals .status-effect-stacks{font-size:16px;line-height:20px}}

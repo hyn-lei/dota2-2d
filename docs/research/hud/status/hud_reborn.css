@@ -1,0 +1,86 @@
+.HIDE_ACTION_PANEL #center_with_stats,.HIDE_ACTION_PANEL #buffs,.HIDE_ACTION_PANEL #debuffs,.HIDE_ACTION_PANEL #StatDrawerTopRight,.HIDE_ACTION_PANEL #StatBranchDrawer,.HIDE_ACTION_MINIMAP #minimap_block,.Reborn.CustomHUDSkin.HIDE_ACTION_MINIMAP #HUDSkinMinimap,.HIDE_ACTION_MINIMAP #GlyphScanContainer,.HIDE_ACTION_MINIMAP #RoshanTimerContainer,.HIDE_ACTION_MINIMAP #TormentorTimerContainer
+{
+	visibility: collapse;
+}
+
+#buffs
+{
+	margin-bottom: 151px;
+	margin-left: 50%;
+	horizontal-align: left;
+	vertical-align: bottom;
+	flow-children: right;
+	transform: translateY(0px);
+	transition-property: opacity, transform;
+	transition-duration: 0.12s;
+}
+
+.HasAbilityToSpend #debuffs,.HasAbilityToSpend #buffs,.HasSecondaryAbilities #debuffs,.HasSecondaryAbilities #buffs
+{
+	transform: translateY(-32px);
+}
+
+.IsLocalPlayerSpectating .HasSecondaryAbilities #debuffs,.IsLocalPlayerSpectating .HasSecondaryAbilities #buffs
+{
+	transform: translateY(0px);
+}
+
+.HUDFlipped .HasAbilityToSpend #debuffs,.HUDFlipped .HasAbilityToSpend #buffs,.HUDFlipped .HasSecondaryAbilities #debuffs,.HUDFlipped .HasSecondaryAbilities #buffs
+{
+	transform: translateY(-32px) scaleX(-1);
+}
+
+.IsLocalPlayerSpectating.HUDFlipped .HasSecondaryAbilities #debuffs,.IsLocalPlayerSpectating.HUDFlipped .HasSecondaryAbilities #buffs
+{
+	transform: translateY(0px) scaleX(-1);
+}
+
+.SpectatorDVRControlsVisible #buffs,.SpectatorDVRControlsVisible #debuffs
+{
+	transform: translateY( -48px );
+}
+
+.HUDFlipped.SpectatorDVRControlsVisible #buffs,.HUDFlipped.SpectatorDVRControlsVisible #debuffs
+{
+	transform: translateY( -48px ) scaleX(-1);
+}
+
+.SpectatorDVRControlsVisible .HasSecondaryAbilities #buffs,.SpectatorDVRControlsVisible .HasSecondaryAbilities #debuffs
+{
+	transform: translateY( -48px );
+}
+
+.HUDFlipped.SpectatorDVRControlsVisible .HasSecondaryAbilities #buffs,.HUDFlipped.SpectatorDVRControlsVisible .HasSecondaryAbilities #debuffs
+{
+	transform: translateY( -48px ) scaleX(-1);
+}
+
+#debuffs
+{
+	margin-bottom: 151px;
+	margin-right: 50%;
+	horizontal-align: right;
+	vertical-align: bottom;
+	flow-children: left;
+	transform: translateY(0px);
+	transition-property: opacity, transform;
+	transition-duration: 0.12s;
+}
+
+.HUDFlipped #buffs
+{
+	flow-children: right;
+	horizontal-align: right;
+	margin-left: 0%;
+	margin-right: 50%;
+	transform: ScaleX(-1);
+}
+
+.HUDFlipped #debuffs
+{
+	flow-children: left;
+	horizontal-align: left;
+	margin-right: 0%;
+	margin-left: 50%;
+	transform: ScaleX(-1);
+}

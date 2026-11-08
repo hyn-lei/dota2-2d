@@ -26,7 +26,7 @@ test('explicit combat status overrides duplicate legacy state and keeps stacks',
   assert.equal(effects.length, 2);
   assert.deepEqual(effects.find(effect => effect.id === 'stun'), {
     id:'stun', name:'洪流眩晕', description:'无法移动、攻击或施法', remaining:2,
-    duration:3, positive:false, icon:'torrent', stacks:3
+    duration:3, positive:false, icon:'torrent', stacks:3,hasStacks:true
   });
   assert.equal(effects.some(effect => effect.id === 'bladeDance'), false);
   assert.equal(statusEffects(unit, 13).some(effect => effect.id === 'stun'), false,
@@ -80,4 +80,8 @@ test('recall countdown and persistent explicit effects preserve their time seman
   assert.equal(aura.remaining, null);
   assert.equal(aura.duration, null);
   assert.equal(aura.stacks, 2);
+});
+test('an explicit one-stack counter remains visible while an ordinary modifier has no counter',()=>{
+ const effects=statusEffects({statuses:{shield:{startedAt:0,until:10,stacks:1},aura:{startedAt:0,until:10}}},1);
+ assert.equal(effects.find(e=>e.id==='shield').hasStacks,true);assert.equal(effects.find(e=>e.id==='aura').hasStacks,undefined);
 });
