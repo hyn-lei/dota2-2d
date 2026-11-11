@@ -28,3 +28,11 @@
 移动路线、落点和检查时钟有意改变完整模拟状态。保留 `simulation-with-safe-spawns.json` 历史基线，使用 `scripts/capture-obstacle-state.mjs` 对相同三个英雄 / 种子、90 秒输入各运行两遍，先确认独立对局状态哈希一致，再生成 `simulation-with-obstacle-navigation.json`。独立行为断言验证修复，完整快照检测后续非预期变化。
 
 2026-11-11 已核对 Valve 官方补丁列表，最新仍为 **7.41f**，结果保存在 `artifacts/hero-spawn-valve-version.json`。本次修改运行时判定，未改动官方数值快照和生成器；本工程二维碰撞与局部寻路不宣称等同 Source 2 客户端实现。来源与既有边界见 [键位与碰撞说明](../controls-and-collision.md)。
+
+## 云端检查补充
+
+`6276df5` 的 GitHub Actions 已通过规则、构建、容器和新增九组碰撞 / 泉水浏览器检查，随后旧 `browser-illusions.mjs` 的独立键盘控制断言失败，镜像发布和服务器更新因此未执行。该检查把左侧幻象向右移动，路径会经过静止本体和另一幻象，却要求 0.6 秒内横向移动超过 80 世界单位。重现时 30 FPS 步长下有效碰撞绕行约移动 77，其他步长约 84–86，原门槛不能稳定表达独立控制。
+
+控制检查改为让左侧幻象向左侧畅通地面移动，保留超过 80 的位移要求、松键停止、所有未控制单位完全静止，以及后续右键 / 停止 / 弱强幻象技能和移动端检查。本次补充只修改浏览器场景和验证说明，运行时代码与已通过 544 项规则检查的 `6276df5` 一致。
+
+修正后 `node tests/browser-illusions.mjs` 的 **6 组**和 `node tests/browser-illusion-coop.mjs` 的 **3 组**全部通过，均无浏览器错误；重新执行 `npm run build`、`npm run check:build` 通过，仍为 **56 个 JS 模块、186 个资源引用**。日志保存在 `artifacts/obstacle-navigation-browser-illusions-final.log`、`artifacts/obstacle-navigation-browser-illusion-coop-final.log`、`artifacts/obstacle-navigation-ci-fix-build.log` 和 `artifacts/obstacle-navigation-ci-fix-check-build.log`。
