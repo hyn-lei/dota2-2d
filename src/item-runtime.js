@@ -281,7 +281,10 @@ export function tickUnit(g,h,dt){
   if(channel.kind==='teleport')h.recallTimer=Math.max(0,channel.until-g.time);
   if(Skills.isStunned(g,h)||(channel.kind==='teleport'&&Skills.isRooted(g,h))||hasFlag(g,h,'muted')||distance(h,channel.origin)>5||(channel.kind==='teleport'&&!alive(target))){h.itemChannel=null;h.recallTimer=0;delete h.statuses.itemChannel;}
   else if(g.time>=channel.until){h.itemChannel=null;delete h.statuses.itemChannel;
-   if(channel.kind==='teleport')C.teleport(g,h,target.kind==='fountain'?target:{x:target.x+100,y:target.y+100});
+   if(channel.kind==='teleport'){
+    C.teleport(g,h,target.kind==='fountain'?target:{x:target.x+100,y:target.y+100});
+    if(target.kind==='fountain')g._placeHero(h,target);
+   }
    else if(channel.kind==='meteor')queueMeteor(g,h,i,channel);
   }
  }

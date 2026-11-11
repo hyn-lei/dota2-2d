@@ -9,6 +9,7 @@ const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
 const heroes=g=>g.entities.filter(e=>e.kind==='hero');
 function assertClearSpawn(g,h){
   assert.ok(g.navigation.isWalkable(h),`${h.id} spawned in blocked terrain`);
+  for(const f of g.entities.filter(e=>e.kind==='fountain'))assert.ok(distance(h,f)>=Math.max(200,f.radius)+h.collisionRadius,`${h.id} spawned inside the visible fountain circle`);
   for(const other of g.entities){
     if(other===h||other.dead||other.hp<=0||other.flying||other.noCollision)continue;
     const shape=collisionShape(other),radius=h.collisionRadius;

@@ -10,6 +10,7 @@ export function collisionShape(unit){
 }
 function solid(unit){return !unit.dead&&unit.hp>0&&!unit.flying&&!unit.noCollision&&(buildings.has(unit.kind)||mobiles.has(unit.kind));}
 const extent=s=>s.type==='box'?{x:s.hx,y:s.hy}:{x:s.radius,y:s.radius};
+export const fountainAreaRadius=unit=>Math.max(200,unit.radius||0);
 
 /** Footprint collision is separate from selection rings and attack ranges. */
 export class CollisionWorld{
@@ -26,24 +27,29 @@ export class CollisionWorld{
   }
   this.entries.set(unit,{shape,keys,x:unit.x,y:unit.y});
  }
- nearby(unit,dx=0,dy=0){
-  const radius=collisionShape(unit).radius||24,result=new Set();
-  for(let x=Math.floor((Math.min(unit.x,unit.x+dx)-radius)/CELL);x<=Math.floor((Math.max(unit.x,unit.x+dx)+radius)/CELL);x++)for(let y=Math.floor((Math.min(unit.y,unit.y+dy)-radius)/CELL);y<=Math.floor((Math.max(unit.y,unit.y+dy)+radius)/CELL);y++)for(const other of this.buckets.get(`${x},${y}`)||[])if(other!==unit&&solid(other)&&!phased(other,this.time))result.add(other);
+ nearby(unit,dx=0,dy=0,origin=unit,padding=0){
+  const radius=(collisionShape(unit).radius||24)+padding,result=new Set();
+  for(let x=Math.floor((Math.min(origin.x,origin.x+dx)-radius)/CELL);x<=Math.floor((Math.max(origin.x,origin.x+dx)+radius)/CELL);x++)for(let y=Math.floor((Math.min(origin.y,origin.y+dy)-radius)/CELL);y<=Math.floor((Math.max(origin.y,origin.y+dy)+radius)/CELL);y++)for(const other of this.buckets.get(`${x},${y}`)||[])if(other!==unit&&solid(other)&&!phased(other,this.time))result.add(other);
   if(phased(unit,this.time))for(const other of result)if(!buildings.has(other.kind))result.delete(other);
   return result;
  }
- overlaps(unit,point=unit){
-  const radius=collisionShape(unit).radius||24;
-  for(const other of this.nearby(unit,point.x-unit.x,point.y-unit.y)){
+ overlaps(unit,point=unit,padding=0){
+  const radius=(collisionShape(unit).radius||24)+padding;
+  for(const other of this.nearby(unit,0,0,point,padding)){
    const shape=this.entries.get(other)?.shape||collisionShape(other),dx=point.x-other.x,dy=point.y-other.y;
    if(shape.type==='circle'?Math.hypot(dx,dy)<radius+shape.radius-EPS:Math.abs(dx)<shape.hx+radius-EPS&&Math.abs(dy)<shape.hy+radius-EPS)return true;
   }
   return false;
  }
  /** Reserve nearby walkable ground using the same footprints as normal movement. */
- place(unit,point,navigator,from=null){
-  const origin=navigator?navigator.nearestWalkable(point):{x:point.x,y:point.y},step=(collisionShape(unit).radius||24)*2+8;
-  const valid=p=>(!navigator||navigator.isWalkable(p))&&(!from||!navigator||navigator.lineClear(from,p))&&!this.overlaps(unit,p);
+ place(unit,point,navigator,{from=null,avoidFountains=false}={}){
+  const origin=navigator?navigator.nearestWalkable(point):{x:point.x,y:point.y},radius=collisionShape(unit).radius||24,step=radius*2+8;
+  const fountains=avoidFountains?[...this.entries.keys()].filter(e=>e.kind==='fountain'&&solid(e)):[];
+  for(const fountain of fountains){
+   const dx=origin.x-fountain.x,dy=origin.y-fountain.y,d=Math.hypot(dx,dy),edge=fountainAreaRadius(fountain)+radius+8;
+   if(d<edge){const angle=d?Math.atan2(dy,dx):unit.team?Math.PI*.75:-Math.PI*.25;origin.x=fountain.x+Math.cos(angle)*edge;origin.y=fountain.y+Math.sin(angle)*edge;}
+  }
+  const valid=p=>(!navigator||navigator.isWalkable(p))&&(!from||!navigator||navigator.lineClear(from,p))&&fountains.every(f=>Math.hypot(p.x-f.x,p.y-f.y)>=fountainAreaRadius(f)+radius+8-EPS)&&!this.overlaps(unit,p);
   const apply=p=>{unit.x=p.x;unit.y=p.y;this.update(unit);return true;};
   if(valid(origin))return apply(origin);
   for(let ring=1;ring<=16;ring++){
@@ -54,10 +60,10 @@ export class CollisionWorld{
   }
   return false;
  }
- sweep(unit,dx,dy){
-  const radius=collisionShape(unit).radius||24;let result=null;
-  for(const other of this.nearby(unit,dx,dy)){
-   const shape=this.entries.get(other)?.shape||collisionShape(other),px=unit.x-other.x,py=unit.y-other.y;let t,nx,ny;
+ sweep(unit,dx,dy,origin=unit,padding=0){
+  const radius=(collisionShape(unit).radius||24)+padding;let result=null;
+  for(const other of this.nearby(unit,dx,dy,origin,padding)){
+   const shape=this.entries.get(other)?.shape||collisionShape(other),px=origin.x-other.x,py=origin.y-other.y;let t,nx,ny;
    if(shape.type==='circle'){
     const r=radius+shape.radius,a=dx*dx+dy*dy,b=px*dx+py*dy,c=px*px+py*py-r*r;
     if(c<0){if(b>=0)continue;t=0;const d=Math.hypot(px,py)||1;nx=px/d;ny=py/d;}
@@ -100,7 +106,7 @@ export class CollisionWorld{
    }
    if(!changed)break;
   }
-  if(this.overlaps(unit))this.place(unit,unit,navigator,unit);
+  if(this.overlaps(unit))this.place(unit,unit,navigator,{from:unit});
   return unit.x!==before.x||unit.y!==before.y;
  }
  move(unit,dx,dy,navigator){

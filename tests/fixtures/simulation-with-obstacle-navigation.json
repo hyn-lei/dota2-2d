@@ -1,0 +1,34 @@
+{
+  "baseRevision": "d97fd3b011d7fc67ef5d921645ce123f7aae5579",
+  "change": "Front obstruction checks, collision-aware local paths and arrival positions outside the visible fountain circle intentionally change movement and combat. The safe-spawn baseline is retained as history.",
+  "cases": [
+    {
+      "config": {
+        "hero": "juggernaut",
+        "seed": 42
+      },
+      "steps": 1800,
+      "dt": 0.05,
+      "sha256": "edf7e29686cecbec60b6c5e7f6c741e67eea18db5ebf4e7e461475e09856f33b"
+    },
+    {
+      "config": {
+        "hero": "drow_ranger",
+        "difficulty": "hard",
+        "seed": 51
+      },
+      "steps": 1800,
+      "dt": 0.05,
+      "sha256": "23c8c12b60aefd39df9c07c2283d58b7f97ec91a0b902ed1ab0a308b90f9bdf4"
+    },
+    {
+      "config": {
+        "hero": "ogre_magi",
+        "seed": 99
+      },
+      "steps": 1800,
+      "dt": 0.05,
+      "sha256": "2f4e86fc5c041481bbf5adef52b7d576b7454784a145a088ae8e4b3d7457b0d8"
+    }
+  ]
+}

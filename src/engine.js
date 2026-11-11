@@ -15,6 +15,7 @@ import * as Bots from './bot-ai.js';
 import {flagbearerAura} from './unit-auras.js';
 import {armletHealthBonus} from './armlet-runtime.js';
 import {CollisionWorld} from './collision.js';
+import {obstaclePath} from './local-navigation.js';
 import {ownsIllusion,weakIllusion} from './illusions.js';
 import {manaState,spendMana,restoreMana} from './mana-runtime.js';
 
@@ -85,7 +86,7 @@ export class Game {
     this.roshanRespawnAt=0;
     this._spawnRoshan();
     this.collisions.rebuild(this.entities,this.time);
-    for(const h of this.entities)if(h.kind==='hero')this.collisions.place(h,h,this.navigation);
+    for(const h of this.entities)if(h.kind==='hero')this._placeHero(h);
   }
 
   get player() { return this._commandActor||(this.controlledHeroId&&this.entities.find(e => e.id===this.controlledHeroId))||this.entities.find(e => e.isPlayer); }
@@ -145,6 +146,8 @@ export class Game {
     this.entities.push(h);
     return h;
   }
+
+  _placeHero(h,point=h){return this.collisions.place(h,point,this.navigation,{avoidFountains:true});}
 
   _refreshHero(h) {
     const hp=h.hp, mana=h.mana, oldHp=h.maxHp, oldMana=h.maxMana,temporary=manaState(h);
@@ -740,10 +743,18 @@ export class Game {
       if(!e.navPath.length){e.navRetryAt=this.time+1;return;}
     }
     while(e.navIndex<e.navPath.length-1&&distance(e,e.navPath[e.navIndex])<8)e.navIndex++;
-    const waypoint=e.navPath[e.navIndex];
-    const d=distance(e,waypoint);
+    let waypoint=e.navPath[e.navIndex],d=distance(e,waypoint);
     if(d<3){e.navIndex++;return;}
     const speed = this.combatStats(e).speed;
+    const autonomous=e.kind==='creep'||e.kind==='hero'&&!e.isPlayer&&!e.isHuman;
+    if(autonomous&&speed>0&&this.time>=(e.obstacleCheckAt||0)){
+      const look=Math.min(d,Math.max(e.collisionRadius*2+16,speed*.35));
+      const ahead={x:e.x+(waypoint.x-e.x)/d*look,y:e.y+(waypoint.y-e.y)/d*look};
+      if(this.collisions.sweep(e,ahead.x-e.x,ahead.y-e.y)||!navigator.lineClear(e,ahead)){
+        if(this._routeObstacle(e,waypoint,navigator)){waypoint=e.navPath[0];d=distance(e,waypoint);}
+      }
+      e.obstacleCheckAt=this.time+.35;
+    }
     const amount = Math.min(speed * dt,d);
     // In-range chase retries and completed waypoints must not cancel a windup.
     if(amount>0&&e.attackPhase){e.attackPhase=null;e.attackCooldown=0;}
@@ -751,13 +762,24 @@ export class Game {
     const contact=this.collisions.move(e,dx*amount,dy*amount,navigator);
     e.x=clamp(e.x,25,WORLD.width-25);e.y=clamp(e.y,25,WORLD.height-25);
     if(contact.blocked&&distance(before,e)<amount*.6&&this.time>=(e.collisionRetryAt||0)){
-      const detour=this.collisions.detour(e,contact.obstacle,goal,navigator);
-      if(detour){e.navPath=[detour,...e.navPath.slice(e.navIndex)];e.navIndex=0;}
-      else if(!contact.obstacle){e.navPath=null;e.navRetryAt=this.time+.25;}
+      const routeDue=autonomous&&this.time>=(e.obstacleCheckAt||0),routed=routeDue&&this._routeObstacle(e,waypoint,navigator);
+      if(!routed){
+        const detour=this.collisions.detour(e,contact.obstacle,goal,navigator);
+        if(detour){e.navPath=[detour,...e.navPath.slice(e.navIndex)];e.navIndex=0;}
+        else if(autonomous||!contact.obstacle){e.navPath=null;e.navRetryAt=this.time+.25;}
+      }
+      if(routeDue)e.obstacleCheckAt=this.time+.35;
       e.collisionRetryAt=this.time+.25;
     }
     e.angle = Math.atan2(dy,dx);
     e.moving = distance(before,e) > .05;
+  }
+
+  _routeObstacle(e,waypoint,navigator){
+    const path=obstaclePath(this.collisions,e,waypoint,navigator);if(!path?.length)return false;
+    const remaining=e.navPath.slice(e.navIndex);
+    if(distance(path.at(-1),remaining[0])<3)remaining.shift();
+    e.navPath=[...path,...remaining];e.navIndex=0;return true;
   }
 
   _followLane(e,dt) {
@@ -850,7 +872,7 @@ export class Game {
     h.xMark=null;
     h.buffs = {};h.statuses={};h.castPhase=null;h.channel=null;h.omnislash=null; h.lastDamagers = {}; h.retreating = false; h.pathIndex = 1;
     if (h.isPlayer) this.clearMovement(h);
-    this.collisions.place(h,h,this.navigation);
+    this._placeHero(h);
     this._effect('heal',h.x,h.y,{radius:65,color:TEAM_COLORS[h.team],life:1});
   }
 }

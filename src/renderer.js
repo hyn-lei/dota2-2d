@@ -2,6 +2,7 @@ import { HEROES, TEAM_COLORS } from './data.js';
 import { WORLD, BASES, MAP_IMAGE, CAMP_LAYOUT, MAP_OBJECTIVES, TREES } from './map-data.js';
 import { drawCombatEffect, drawUnitCombatEffects, unitAuraRadius } from './combat-effects.js';
 import { unitOpacity } from './combat-visuals.js';
+import {fountainAreaRadius} from './collision.js';
 
 const TAU = Math.PI * 2;
 const clamp = (n,a,b) => Math.max(a,Math.min(b,n));
@@ -188,7 +189,7 @@ export class Renderer {
       else{c.beginPath();c.arc(-1,0,4.5,-1.25,1.25);c.strokeStyle=color;c.lineWidth=1;c.stroke();line(c,[{x:0,y:-4},{x:0,y:4}],color,1);}
       c.restore();
     }else if(e.kind==='fountain'){
-      const r=Math.max(200,radius);circle(c,0,0,r,null,color,1.5/this.zoom);c.globalAlpha=.2;
+      const r=fountainAreaRadius(e);circle(c,0,0,r,null,color,1.5/this.zoom);c.globalAlpha=.2;
       const glow=c.createRadialGradient(0,0,20,0,0,r);glow.addColorStop(0,e.team?'#de9b78':'#90e1d3');glow.addColorStop(1,'transparent');circle(c,0,0,r,glow);
       c.globalAlpha=.65;for(let i=0;i<6;i++){const a=t*.4+i*TAU/6;circle(c,Math.cos(a)*r*.7,Math.sin(a)*r*.7,3/this.zoom,color);}
     }else{
