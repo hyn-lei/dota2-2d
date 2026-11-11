@@ -29,6 +29,15 @@ test('moving collision index follows units across cells, overlap recovery permit
  const a=unit('a','hero',300,300),b=unit('b','creep',300,300),world=new CollisionWorld();world.rebuild([a,b],0);world.move(a,100,0);assert.ok(a.x>b.x+48);
  b.x=650;world.update(b);a.x=500;a.y=280;world.update(a);world.move(a,200,80);assert.ok(a.y>280);assert.ok(Math.hypot(a.x-b.x,a.y-b.y)>=48-.001);
 });
+test('overlap recovery finds another reachable direction when the shortest push is blocked by terrain',()=>{
+ const terrain=Array(20*20).fill('0');for(let y=0;y<20;y++)terrain[y*20+11]='1';
+ const nav=new Navigator({cols:20,rows:20,cellSize:32,blocked:terrain.join('')},[]);
+ const a=unit('a','hero',320,320),b=unit('b','hero',320,320),world=new CollisionWorld();world.rebuild([a,b],0);
+ world.separate(a,nav);
+ assert.ok(Math.hypot(a.x-b.x,a.y-b.y)>=48-.001);
+ assert.equal(nav.lineClear({x:320,y:320},a),true,'recovery must stay on this side of the terrain wall');
+ assert.deepEqual({x:b.x,y:b.y},{x:320,y:320},'the idle blocker should keep its position');
+});
 test('engine moves around a blocking unit without overlap, and phase boots expire in actual gameplay',()=>{
  const g=new Game(),p=g.player;g.entities=[p];g.navigation=openNav();g.nextWave=g.nextNeutralSpawn=g.roshanRespawnAt=Infinity;
  Object.assign(p,{x:1000,y:1000});const blocker=g._unit('creep',0,1180,1000,{radius:16,speed:0,maxHp:10000});g.entities.push(blocker);g._creepTick=()=>{};g.moveTo(1450,1000);

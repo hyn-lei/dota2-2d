@@ -59,7 +59,7 @@ export class Game {
     const choices = Object.keys(HEROES);
     const allies = choices.length >= 5 ? choices.filter(id=>id!==this.heroChoice) : choices;
     if(humanHeroes){
-      humanHeroes.forEach((member,i)=>{const h=this._makeHero(member.heroId,0,[1,0,2,1,2][i],true,i);Object.assign(h,{isHuman:true,controller:'human',clientId:member.clientId,playerName:member.name,movementInput:{x:0,y:0},x:BASES[0].x+(i%3-1)*70,y:BASES[0].y+Math.floor(i/3)*70});});
+      humanHeroes.forEach((member,i)=>{const h=this._makeHero(member.heroId,0,[1,0,2,1,2][i],true,i);Object.assign(h,{isHuman:true,controller:'human',clientId:member.clientId,playerName:member.name,movementInput:{x:0,y:0}});});
       if(fillWithAI)coopAllyHeroIds(humanHeroes).forEach((heroId,index)=>{
         const slot=humanHeroes.length+index,h=this._makeHero(heroId,0,[1,0,2,1,2][slot],false,slot);
         Object.assign(h,{isHuman:false,controller:'ai',aiDifficulty:'hard',playerName:'困难 AI'});
@@ -85,6 +85,7 @@ export class Game {
     this.roshanRespawnAt=0;
     this._spawnRoshan();
     this.collisions.rebuild(this.entities,this.time);
+    for(const h of this.entities)if(h.kind==='hero')this.collisions.place(h,h,this.navigation);
   }
 
   get player() { return this._commandActor||(this.controlledHeroId&&this.entities.find(e => e.id===this.controlledHeroId))||this.entities.find(e => e.isPlayer); }
@@ -130,7 +131,7 @@ export class Game {
 
   _makeHero(heroId, team, lane, isPlayer, index) {
     const data = HEROES[heroId], base = BASES[team], stats=calculateHeroStats(heroId,1,[]);
-    const h = this._unit('hero', team, base.x + (isPlayer ? 0 : (index % 3 - 1) * 34), base.y + (isPlayer ? 0 : (index % 2) * 30 - 15), {
+    const h = this._unit('hero', team, base.x + (index % 3 - 1) * 80, base.y + Math.floor(index / 3) * 80, {
       ...stats, heroId, name:data.name, isPlayer, controller:isPlayer?'human':'ai', lane, mana:stats.maxMana, radius:24,
       level:1, xp:0, xpNext:XP_TO_NEXT[1] || 230, gold:600, inventory:[], kills:0, deaths:0,
       assists:0, lastHits:0, cooldowns:[0,0,0,0], respawnTimer:0, recallTimer:0,
@@ -728,9 +729,10 @@ export class Game {
   }
   _move(e, point, dt, stop = 0) {
     if(this.isStunned(e)||this.isRooted(e)||(Skills.isInvulnerable(this,e)&&!Skills.hasStatusFlag(this,e,'canMoveInvulnerable')))return;
+    const navigator=Skills.movementNavigator(this,e);
+    if(this.collisions.separate(e,navigator)){e.navPath=null;e.navRetryAt=0;}
     const originalDistance=distance(e,point);
     if(originalDistance<=Math.max(3,stop))return;
-    const navigator=Skills.movementNavigator(this,e);
     const goal=stop?{x:point.x+(e.x-point.x)/originalDistance*stop,y:point.y+(e.y-point.y)/originalDistance*stop}:point;
     if(!e.navPath||!e.navGoal||distance(e.navGoal,goal)>96||e.navIndex>=e.navPath.length){
       if(e.navRetryAt>this.time)return;
@@ -848,6 +850,7 @@ export class Game {
     h.xMark=null;
     h.buffs = {};h.statuses={};h.castPhase=null;h.channel=null;h.omnislash=null; h.lastDamagers = {}; h.retreating = false; h.pathIndex = 1;
     if (h.isPlayer) this.clearMovement(h);
+    this.collisions.place(h,h,this.navigation);
     this._effect('heal',h.x,h.y,{radius:65,color:TEAM_COLORS[h.team],life:1});
   }
 }

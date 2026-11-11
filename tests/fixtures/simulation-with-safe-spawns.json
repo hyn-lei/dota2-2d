@@ -1,0 +1,34 @@
+{
+  "baseRevision": "48792ca87c082d75002b059ba1f5e78ca85c77f2",
+  "change": "Walkable, unoccupied hero spawns and respawns plus recovery before navigation intentionally change movement and combat. The prior team-tactics baseline is retained as history.",
+  "cases": [
+    {
+      "config": {
+        "hero": "juggernaut",
+        "seed": 42
+      },
+      "steps": 1800,
+      "dt": 0.05,
+      "sha256": "a9e8b84d1d6253a69341785b12e2c2fdea0f805654ce675f292aff8d9b0efacf"
+    },
+    {
+      "config": {
+        "hero": "drow_ranger",
+        "difficulty": "hard",
+        "seed": 51
+      },
+      "steps": 1800,
+      "dt": 0.05,
+      "sha256": "5947e7e800f751bee5140cd0be2937c61c10995e7b444e66332dad4f3acba6e3"
+    },
+    {
+      "config": {
+        "hero": "ogre_magi",
+        "seed": 99
+      },
+      "steps": 1800,
+      "dt": 0.05,
+      "sha256": "6e097bbc66b0c041e31adcc0ce4333112eed72fa03d1879ac1dd27952d83622c"
+    }
+  ]
+}

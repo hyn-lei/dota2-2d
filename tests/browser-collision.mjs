@@ -8,6 +8,20 @@ try{
  await page.goto(process.env.GAME_URL||'http://localhost:5194',{waitUntil:'networkidle'});await closeDevelopmentNotice(page);
  await page.evaluate(async()=>{const {Renderer}=await import('/src/renderer.js'),render=Renderer.prototype.render;Renderer.prototype.render=function(g,t){window.g=g;window.r=this;return render.call(this,g,t);};});
  await page.locator('#start-game').click();await page.waitForFunction(()=>g?.time>.1);
+ const opening=await page.evaluate(async()=>{
+  const {collisionShape}=await import('/src/collision.js'),heroes=g.entities.filter(e=>e.kind==='hero');
+  return {time:g.time,heroes:heroes.map(h=>({id:h.id,x:h.x,y:h.y,isPlayer:h.isPlayer,walkable:g.navigation.isWalkable(h),overlaps:g.entities.filter(e=>{
+   if(e===h||e.dead||e.hp<=0||e.flying||e.noCollision)return false;
+   const shape=collisionShape(e),radius=h.collisionRadius;
+   return shape.type==='circle'?Math.hypot(h.x-e.x,h.y-e.y)<radius+shape.radius-.001:Math.abs(h.x-e.x)<shape.hx+radius-.001&&Math.abs(h.y-e.y)<shape.hy+radius-.001;
+  }).map(e=>e.id)}))};
+ });
+ assert.equal(opening.heroes.length,10);assert.ok(opening.heroes.every(h=>h.walkable&&!h.overlaps.length),JSON.stringify(opening));
+ await page.screenshot({path:'artifacts/collision-spawns.png'});check('Both teams start on walkable ground without overlapping heroes, couriers or buildings');
+ await page.waitForFunction(t=>g.time>t+5,opening.time);
+ const departures=await page.evaluate(starts=>starts.map(start=>{const h=g.entities.find(e=>e.id===start.id);return {id:h.id,isPlayer:h.isPlayer,moved:Math.hypot(h.x-start.x,h.y-start.y)};}),opening.heroes);
+ assert.ok(departures.filter(h=>!h.isPlayer).every(h=>h.moved>700),JSON.stringify(departures));assert.equal(departures.find(h=>h.isPlayer).moved,0);
+ check('All nine AI heroes leave the fountain while the player remains idle');
  await page.evaluate(async()=>{
   const {Navigator}=await import('/src/navigation.js'),{createMeta}=await import('/src/inventory.js');const p=g.player;g.entities=[p];g.nextWave=g.nextNeutralSpawn=g.roshanRespawnAt=1e9;
   Object.assign(p,{x:6000,y:6016,destination:null,navPath:null});const blocker=g._unit('creep',0,6160,6016,{radius:16,speed:0,maxHp:10000}),walls=[5866,6166].map(y=>g._unit('filler',0,6160,y,{bounds:[400,220],radius:200,speed:0,maxHp:10000}));
@@ -19,5 +33,5 @@ try{
  const started=await page.evaluate(()=>g.time);await page.keyboard.down('ArrowUp');await page.waitForFunction(t=>g.time>t+.7,started);await page.keyboard.up('ArrowUp');assert.ok(await page.evaluate(()=>g.player.y>=6000-.01));check('Buildings still block movement during phase');
  await page.waitForFunction(()=>!Object.values(g.player.statuses).some(s=>s.phased&&s.until>g.time));
  await page.evaluate(()=>{const p=g.player;Object.assign(p,{x:6000,y:6016,destination:null,navPath:null});g._index();});const resumed=await page.evaluate(()=>g.time);await page.keyboard.down('ArrowRight');await page.waitForFunction(t=>g.time>t+1,resumed);await page.keyboard.up('ArrowRight');assert.ok(await page.evaluate(()=>g.player.x<=6120.01));check('Collision returns after the phase status expires');
- assert.deepEqual(errors,[]);await writeFile('artifacts/collision-report.json',JSON.stringify({checks,errors},null,2)+'\n');
+ assert.deepEqual(errors,[]);await writeFile('artifacts/collision-report.json',JSON.stringify({checks,opening,departures,errors},null,2)+'\n');
 }finally{await browser.close();}

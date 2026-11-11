@@ -32,6 +32,28 @@ export class CollisionWorld{
   if(phased(unit,this.time))for(const other of result)if(!buildings.has(other.kind))result.delete(other);
   return result;
  }
+ overlaps(unit,point=unit){
+  const radius=collisionShape(unit).radius||24;
+  for(const other of this.nearby(unit,point.x-unit.x,point.y-unit.y)){
+   const shape=this.entries.get(other)?.shape||collisionShape(other),dx=point.x-other.x,dy=point.y-other.y;
+   if(shape.type==='circle'?Math.hypot(dx,dy)<radius+shape.radius-EPS:Math.abs(dx)<shape.hx+radius-EPS&&Math.abs(dy)<shape.hy+radius-EPS)return true;
+  }
+  return false;
+ }
+ /** Reserve nearby walkable ground using the same footprints as normal movement. */
+ place(unit,point,navigator,from=null){
+  const origin=navigator?navigator.nearestWalkable(point):{x:point.x,y:point.y},step=(collisionShape(unit).radius||24)*2+8;
+  const valid=p=>(!navigator||navigator.isWalkable(p))&&(!from||!navigator||navigator.lineClear(from,p))&&!this.overlaps(unit,p);
+  const apply=p=>{unit.x=p.x;unit.y=p.y;this.update(unit);return true;};
+  if(valid(origin))return apply(origin);
+  for(let ring=1;ring<=16;ring++){
+   const candidates=[];
+   for(let y=-ring;y<=ring;y++)for(let x=-ring;x<=ring;x++)if(Math.abs(x)===ring||Math.abs(y)===ring)candidates.push({x:origin.x+x*step,y:origin.y+y*step,d:x*x+y*y});
+   candidates.sort((a,b)=>a.d-b.d);
+   const free=candidates.find(valid);if(free)return apply(free);
+  }
+  return false;
+ }
  sweep(unit,dx,dy){
   const radius=collisionShape(unit).radius||24;let result=null;
   for(const other of this.nearby(unit,dx,dy)){
@@ -58,8 +80,10 @@ export class CollisionWorld{
   return result;
  }
  separate(unit,navigator){
-  if(!solid(unit)||phased(unit,this.time))return;
-  const radius=collisionShape(unit).radius;if(!radius)return;
+  if(!solid(unit)||phased(unit,this.time))return false;
+  const radius=collisionShape(unit).radius;if(!radius)return false;
+  if(navigator&&!navigator.isWalkable(unit))return this.place(unit,unit,navigator);
+  const before={x:unit.x,y:unit.y};
   for(let pass=0;pass<4;pass++){
    let changed=false;
    for(const other of this.nearby(unit)){
@@ -71,11 +95,13 @@ export class CollisionWorld{
      const hx=shape.hx+radius,hy=shape.hy+radius,ax=hx-Math.abs(dx),ay=hy-Math.abs(dy);if(ax<=EPS||ay<=EPS)continue;
      if(ax<ay)ox=(Math.sign(dx)||1)*(ax+EPS);else oy=(Math.sign(dy)||1)*(ay+EPS);
     }
-    const point={x:unit.x+ox,y:unit.y+oy};if(navigator&&!navigator.isWalkable(point))continue;
+    const point={x:unit.x+ox,y:unit.y+oy};if(navigator&&!navigator.lineClear(unit,point))continue;
     unit.x=point.x;unit.y=point.y;changed=true;this.update(unit);
    }
    if(!changed)break;
   }
+  if(this.overlaps(unit))this.place(unit,unit,navigator,unit);
+  return unit.x!==before.x||unit.y!==before.y;
  }
  move(unit,dx,dy,navigator){
   if(!solid(unit)){unit.x+=dx;unit.y+=dy;this.update(unit);return {blocked:false};}
