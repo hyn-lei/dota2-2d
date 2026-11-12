@@ -1,0 +1,34 @@
+{
+  "baseRevision": "ed3fe614b7e63ec42efd7ad3a90f2701c749aaf8",
+  "change": "Bots retain forward lane progress during a push and rejoin once after task changes or respawn. Advancing beyond the opening T3 waypoints intentionally changes movement and combat; the obstacle-navigation baseline is retained as history.",
+  "cases": [
+    {
+      "config": {
+        "hero": "juggernaut",
+        "seed": 42
+      },
+      "steps": 1800,
+      "dt": 0.05,
+      "sha256": "63cd67d73265427e422c279b97a8d4e95731587b617cfc2ae99f3c67db695a4c"
+    },
+    {
+      "config": {
+        "hero": "drow_ranger",
+        "difficulty": "hard",
+        "seed": 51
+      },
+      "steps": 1800,
+      "dt": 0.05,
+      "sha256": "f5111603fdea9eaf38482cea78f2c458b1a5f75db9693923bd2bea44033363d9"
+    },
+    {
+      "config": {
+        "hero": "ogre_magi",
+        "seed": 99
+      },
+      "steps": 1800,
+      "dt": 0.05,
+      "sha256": "63c7a7cdd72a766a47d2a4bd1da2f05572a59ec9fc4b7ec63141659b8fedf946"
+    }
+  ]
+}

@@ -21,6 +21,25 @@ try{
   assert.equal(opening.difficulty,'hard');assert.equal(opening.bots.length,9);assert.ok(opening.bots.every(inv=>inv.includes('boots')));assert.equal(opening.player.length,0);
   check('All nine bots buy useful opening equipment without buying for the player');
 
+  const lanes=await page.evaluate(async()=>{
+    const {TEAM_LANES}=await import('/src/map-data.js'),g=window.observedGame;
+    const playerStart={x:g.player.x,y:g.player.y};
+    const routes=g.entities.filter(h=>h.kind==='hero'&&!h.isPlayer).map(h=>({h,lane:h.lane,path:TEAM_LANES[h.team][h.lane],furthest:-Infinity}));
+    for(let frame=0;frame<750;frame++){
+      g.step(1/30);
+      for(const route of routes){
+        const a=route.path[1],b=route.path[2],dx=b.x-a.x,dy=b.y-a.y;
+        route.furthest=Math.max(route.furthest,((route.h.x-a.x)*dx+(route.h.y-a.y)*dy)/Math.hypot(dx,dy));
+      }
+    }
+    g.paused=true;window.observedRenderer.lookAt(routes[0].h.x,routes[0].h.y);window.observedRenderer.followPlayer=false;
+    return {time:g.time,playerMovement:Math.hypot(g.player.x-playerStart.x,g.player.y-playerStart.y),bots:routes.map(({h,lane,furthest})=>({id:h.id,hero:h.heroId,team:h.team,lane,x:h.x,y:h.y,furthest,mode:h.botState.mode}))};
+  });
+  await writeFile('artifacts/ai-opening-lanes-report.json',JSON.stringify(lanes,null,2));
+  assert.equal(lanes.playerMovement,0);assert.ok(lanes.bots.every(h=>h.furthest>600),JSON.stringify(lanes.bots));
+  check('All nine bots advance past their opening T3 waypoints during 25 seconds at 30 FPS with the player idle');
+  await page.waitForTimeout(100);await page.screenshot({path:'artifacts/ai-opening-lanes.png'});
+
   const report=await page.evaluate(async()=>{
     const {Game}=await import('/src/engine.js'),{BASES}=await import('/src/map-data.js');
     const Inventory=await import('/src/inventory.js'),Courier=await import('/src/courier.js');
@@ -55,6 +74,6 @@ try{
   assert.ok(report.fight.bkb>0&&report.fight.focus>0&&report.fight.shackle>0&&report.fight.targetHp<10000);check('Enemy Windranger activates BKB and combines control, focus and actual damage');
   assert.ok(report.fullBuild.completed>=11&&report.fullBuild.shard&&report.fullBuild.scepter&&report.fullBuild.boots&&report.fullBuild.gold>=0);check('Secret-shop courier trips, full slots and permanent upgrades continue working');
   await page.waitForTimeout(100);await page.screenshot({path:'artifacts/ai-combat.png'});
-  assert.deepEqual(errors,[]);await writeFile('artifacts/ai-browser-report.json',JSON.stringify({checks,...report,errors},null,2));
+  assert.deepEqual(errors,[]);await writeFile('artifacts/ai-browser-report.json',JSON.stringify({checks,opening,lanes,...report,errors},null,2));
   console.log(`Browser AI verification: ${checks.length} groups passed.`);
 }finally{await browser.close();}

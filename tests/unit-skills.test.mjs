@@ -54,7 +54,7 @@ test('render bounds optimization preserves visible models, ordering and offscree
  assert.deepEqual(optimized.entities,oldModels);assert.deepEqual(optimized.auraEntities,oldAuras);assert.ok(!optimized.entities.includes(ward));assert.ok(optimized.auraEntities.includes(ward));assert.ok(queries<g.entities.length/2);
 });
 
-test('collision, team-tactics and obstacle-aware matches preserve their complete deterministic simulation state',()=>{
- const fixture=JSON.parse(fs.readFileSync(new URL('./fixtures/simulation-with-obstacle-navigation.json',import.meta.url)));
+test('collision, team-tactics and advancing lane matches preserve their complete deterministic simulation state',()=>{
+ const fixture=JSON.parse(fs.readFileSync(new URL('./fixtures/simulation-with-lane-progress.json',import.meta.url)));
  for(const {config,steps,dt,sha256} of fixture.cases){const g=new Game(config);g.moveTo(7200,7600);for(let i=0;i<steps;i++)g.step(dt);assert.equal(createHash('sha256').update(serializeMatch(g,0)).digest('hex'),sha256,JSON.stringify(config));}
 });

@@ -871,6 +871,7 @@ export class Game {
     h.targetId = null; h.explicitTarget = null; h.destination = null;
     h.xMark=null;
     h.buffs = {};h.statuses={};h.castPhase=null;h.channel=null;h.omnislash=null; h.lastDamagers = {}; h.retreating = false; h.pathIndex = 1;
+    if(h.botState)h.botState.lane=null;
     if (h.isPlayer) this.clearMovement(h);
     this._placeHero(h);
     this._effect('heal',h.x,h.y,{radius:65,color:TEAM_COLORS[h.team],life:1});

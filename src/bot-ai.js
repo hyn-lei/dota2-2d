@@ -295,6 +295,7 @@ function macroGoal(g,h,ctx){
     if(plan.lane!=null&&plan.lane!==h.lane){h.lane=plan.lane;h.pathIndex=0;}
     return state.goal;
   }
+  const rejoinLane=state.objectiveKey||state.mode!=='push'||state.lane!==h.lane;
   if(state.objectiveKey){state.objectiveKey=null;state.objectiveId=null;state.goal=null;state.nextMacroAt=0;}
   if(g.time<state.nextMacroAt&&state.goal)return state.goal;
   state.nextMacroAt=g.time+(nightmare(g,h)? .2:1.2);
@@ -303,9 +304,13 @@ function macroGoal(g,h,ctx){
   }
   const neutral=ctx.units.find(e=>e.kind==='neutral'&&!e.ancient&&!e.isRoshan&&!e.returning&&distance(h,e)<1000);
   if(g.time>90&&h.level>=3&&h.hp/h.maxHp>.68&&['axe','juggernaut','kunkka'].includes(h.heroId)&&neutral){h.farmTargetId=neutral.id;state.mode='farm';return state.goal=neutral;}
-  const path=TEAM_LANES[h.team][h.lane],nearest=path.reduce((best,p,i)=>distance(p,h)<distance(path[best],h)?i:best,0);
-  // A defensive TP/lane switch invalidates the old lane's forward path index.
-  h.pathIndex=Math.min(path.length-1,nearest+(distance(h,path[nearest])<180?1:0));
+  // Rejoin once after a task/lane change. Repeated nearest-point resets pull a
+  // pushing hero back as soon as it moves 180 units beyond a passed waypoint.
+  if(rejoinLane){
+    const path=TEAM_LANES[h.team][h.lane],nearest=path.reduce((best,p,i)=>distance(p,h)<distance(path[best],h)?i:best,0);
+    h.pathIndex=Math.min(path.length-1,nearest+(distance(h,path[nearest])<180?1:0));
+    state.lane=h.lane;h.navPath=null;h.navRetryAt=0;
+  }
   state.mode='push';state.goal=null;return null;
 }
 
