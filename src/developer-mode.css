@@ -1,0 +1,24 @@
+.developer-mode-settings{margin-top:18px;border-top:1px solid #61705a;min-width:0}
+.developer-mode-settings .setting-row{gap:16px}
+.developer-mode-settings .setting-row>div{min-width:0}
+.developer-mode-settings .setting-row p{margin:7px 0 0;line-height:1.6}
+.developer-mode-settings .toggle{flex:0 0 44px;width:44px;height:30px}
+.developer-mode-settings button:disabled{opacity:.45;cursor:default}
+.developer-mode-controls{display:grid;gap:12px;min-width:0}
+.developer-mode-controls>label,.developer-password-form>label,.developer-level-entry label{font-size:12px;line-height:1.6;color:#d2dbc6}
+.developer-mode-settings input,.developer-mode-settings select{width:100%;max-width:100%;min-width:0;min-height:42px;padding:9px 11px;border:1px solid #596d63;border-radius:2px;background:#14221d;color:#dce4d3;font:inherit;font-size:13px}
+.developer-mode-settings input:focus-visible,.developer-mode-settings select:focus-visible,.developer-mode-settings button:focus-visible{outline:2px solid #d6bd79;outline-offset:2px}
+.developer-mode-settings button:not(.toggle){min-height:42px;padding:9px 12px;border:1px solid #65745b;background:#29382a;color:#dce4ca;font-size:12px;line-height:1.5}
+.developer-mode-settings button:not(.toggle):hover:not(:disabled){background:#3a4934;border-color:#b7bc85}
+.developer-password-form{display:grid;gap:9px;margin:4px 0 14px}
+.developer-password-form[hidden]{display:none}
+.developer-password-entry{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px}
+.developer-level-entry{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;align-items:end}
+.developer-level-entry label{grid-column:1 / -1;display:grid;gap:7px}
+.developer-mode-controls .setting-row{border-top:1px solid #81956b33}
+.developer-mode-help{font-size:11px;color:#a5b598;line-height:1.7;margin:0}
+.developer-mode-status{font-size:12px;line-height:1.7;min-height:20px;color:#c6dba8;margin:12px 0 0;overflow-wrap:anywhere}
+.developer-mode-status.invalid{color:#f0ad91}
+.settings-button.developer-mode-active{border-color:#d3bd74;color:#e7d6a0;background:#3a3e28}
+.keybindings-modal{scroll-padding-bottom:90px}
+@media(max-width:600px){.developer-mode-settings .setting-row{gap:12px}.developer-mode-settings input,.developer-mode-settings select{font-size:16px}.developer-mode-settings button:not(.toggle){min-height:44px}.developer-mode-settings .toggle{height:36px}.developer-mode-controls{gap:10px}}

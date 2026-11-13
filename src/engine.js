@@ -18,6 +18,7 @@ import {CollisionWorld} from './collision.js';
 import {obstaclePath} from './local-navigation.js';
 import {ownsIllusion,weakIllusion,WEAK_ILLUSION_TARGET_RADIUS} from './illusions.js';
 import {manaState,spendMana,restoreMana} from './mana-runtime.js';
+import {disableDeveloperMode,tickDeveloperMode} from './developer-mode.js';
 
 const distance = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
 const clamp = (n, low, high) => Math.max(low, Math.min(high, n));
@@ -579,6 +580,7 @@ export class Game {
   _resolveDelayedSpells() { Skills.tickWorldAbilities(this); }
 
   step(dt) {
+    if (this.status !== 'playing') disableDeveloperMode(this);
     if (this.paused || this.status !== 'playing' || !Number.isFinite(dt) || dt <= 0) return;
     let remaining = dt;
     while (remaining > 1e-8 && this.status === 'playing') {
@@ -640,6 +642,7 @@ export class Game {
     this._flagSources=null;
     // Keep persistent heroes/buildings for scoreboards; discarded creep corpses fade briefly.
     this.entities = this.entities.filter(e => !['creep','neutral','ward','droppedItem','illusion','summon'].includes(e.kind) || !e.dead || this.time - e.deathTime < 1.1);
+    tickDeveloperMode(this);
   }
 
   _index() {

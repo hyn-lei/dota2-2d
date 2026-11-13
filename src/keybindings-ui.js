@@ -18,6 +18,7 @@ export function mountKeybindings(root,{storage,onSave}){
  }
  root.querySelectorAll('[data-binding-group]').forEach(button=>button.onclick=()=>{capture={group:button.dataset.bindingGroup,index:+button.dataset.bindingIndex};message='';update();});
  root.querySelector('#reset-keybindings').onclick=()=>{draft=defaultBindings();capture=null;message='';update();};
+  root.addEventListener('focusin',event=>{if(capture&&['INPUT','SELECT','TEXTAREA'].includes(event.target.tagName)){capture=null;message='';update();}});
  save.onclick=()=>{const result=saveBindings(draft,storage);if(!result.ok){message=result.reason;update();return;}capture=null;onSave({extra:[extraKey('D'),extraKey('T')],shop:shopKey()});};
  update();
  return {handleKey(event){

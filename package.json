@@ -22,6 +22,7 @@
     "test:unit-skills": "node tests/browser-unit-skills.mjs",
     "test:economy": "node tests/browser-economy.mjs",
     "test:keybindings": "node tests/browser-keybindings.mjs",
+    "test:developer-mode": "node tests/browser-developer-mode.mjs",
     "test:collision": "node tests/browser-collision.mjs",
     "test:illusions": "node tests/browser-illusions.mjs",
     "test:tidebringer": "node tests/browser-tidebringer.mjs",

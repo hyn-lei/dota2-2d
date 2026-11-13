@@ -82,6 +82,7 @@ jobs:
           node tests/browser-unit-skills.mjs
           node tests/browser-economy.mjs
           node tests/browser-keybindings.mjs
+          node tests/browser-developer-mode.mjs
           node tests/browser-collision.mjs
           node tests/browser-illusions.mjs
           node tests/browser-illusion-coop.mjs

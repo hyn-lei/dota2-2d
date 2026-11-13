@@ -15,6 +15,8 @@ import { loadMatch, storeMatch, restoreMatch, clearMatch } from './game-save.js'
 import {loadBindings,getBindings,skillKey,coreBinding,extraKey,shopKey} from './keybindings.js';
 import {keybindingsHTML,mountKeybindings} from './keybindings-ui.js';
 import {weakIllusion,strongIllusion} from './illusions.js';
+import {developerModeHTML,mountDeveloperMode} from './developer-mode-ui.js';
+import {developerModeState,disableDeveloperMode} from './developer-mode.js';
 
 const $ = (s) => document.querySelector(s);
 const app = $('#app');
@@ -52,6 +54,7 @@ function setupRenderer(){renderer?.destroy();renderer=new Renderer($('#battlefie
 function portrait(h,cls=''){return `<img class="${cls}" src="/${h.portrait}" alt="${h.name}" draggable="false" />`;}
 function renderLobby(){
   if(game?.isNetwork){exitCoopMatch();return;}
+  disableDeveloperMode(game);
   if(game?.status==='playing'){game.clearMovement(game.player);game.setPaused(true);checkpointMatch();}
   cancelItemUse();
   view='lobby';game=null;modal=null;shopOpen=false;keys.clear();
@@ -113,6 +116,7 @@ function startGame(providedGame=null,resume=false){
     if(saved.hasSave&&!window.confirm('开始新对局将替换上次的单机存档，无法再继续原对局。确定开始吗？'))return;
   }
   if(providedGame instanceof Game)chosen=providedGame.player.heroId;
+  disableDeveloperMode(game);
   cancelItemUse();
   sound('start');view='match';modal=null;shopOpen=false;keys.clear();game=providedGame instanceof Game?providedGame:new Game({hero:chosen,difficulty:preferences.difficulty,seed:Math.floor(Math.random()*100000)});lastStatus='playing';checkpointAt=0;checkpointError=false;
   const h=HEROES[chosen];
@@ -205,6 +209,7 @@ async function recall(){if(!game)return;prepareControlledUnit();const activeGame
 let previousFeed='';
 function updateHud(){
   if(!game||view!=='match')return;const actor=game.player,p=game.selected,h=HEROES[p.heroId],hero=['hero','illusion'].includes(p.kind);
+  const developer=developerModeState(game).enabled;$('.settings-button').classList.toggle('developer-mode-active',developer);$('.settings-button').title=developer?'游戏设置 · 开发者模式已开启':'游戏设置';
   const hud=$('.game-hud');hud.dataset.unitId=p.id;hud.dataset.unitKind=p.kind;hud.dataset.ownership=p.id===actor.id?'own':p.team===actor.team?'ally':'enemy';
   $('.hud-hero-title strong').textContent=p.name||unitLabels[p.kind];
   const controls=$('.illusion-controls');if(controls){controls.hidden=p.kind!=='illusion'||!game.canControl(p)||p.dead;controls.querySelector('span').textContent=strongIllusion(p)?'强幻象 · 手动控制':'弱幻象 · 索敌 600';}
@@ -276,7 +281,7 @@ function openModal(type){
     const won=game.status==='won';title=won?'天辉，赢得胜利。':'遗迹陨落，战意未熄。';eyebrow=won?'RADIANT VICTORY':'THE ANCIENT HAS FALLEN';
     body=`<div class="result-emblem ${won?'victory':''}">${icon(won?'flag':'shield')}</div><p class="record-caption">${won?'敌方远古遗迹已被摧毁，这片战场属于你。':'天辉的远古遗迹已被摧毁。下一次，让我们重新改写战局。'}</p><div class="record-stats"><div><strong>${game.player.kills} / ${game.player.deaths}</strong><span>击杀 / 阵亡</span></div><div><strong>${game.player.lastHits}</strong><span>补刀</span></div><div><strong>${clock(game.time)}</strong><span>对局时长</span></div></div>`;footer='<button id="play-again" class="primary-button modal-primary">再战一局</button><div class="modal-secondary"><button id="back-lobby">返回大厅</button></div>';
   }
-  if(type==='settings'){body=keybindingsHTML()+body;footer='<button class="primary-button modal-primary" id="save-settings">保存并返回</button>';}
+  if(type==='settings'){body=keybindingsHTML()+body+developerModeHTML();footer='<button class="primary-button modal-primary" id="save-settings">保存并返回</button>';}
   if(type==='guide'){const bindings=getBindings();body=body.replaceAll('Q W E R',bindings.skills.map(k=>k.toUpperCase()).join(' ')).replaceAll('1–6',bindings.items.map(k=>k.toUpperCase()).join(' ')).replace('F / Tab / G',shopKey()+' / G').replace('D / F3',extraKey('D')+' / '+extraKey('T')+' / F3');}
   $('#modal-root').innerHTML=`<div class="modal-backdrop"><section class="modal ${type==='hero'?'hero-modal':type==='settings'?'keybindings-modal':''}" role="dialog" aria-modal="true" aria-labelledby="modal-title"><button class="icon-button modal-close" data-close aria-label="关闭">${icon('close')}</button><span class="eyebrow">${eyebrow}</span><h2 id="modal-title">${title}</h2><div class="modal-body">${body}</div><div class="modal-footer">${footer}</div></section></div>`;
   document.querySelectorAll('[data-close]').forEach(b=>b.onclick=closeModal);
@@ -284,6 +289,7 @@ function openModal(type){
   $('#restart-match')?.addEventListener('click',startGame);$('#play-again')?.addEventListener('click',startGame);$('#back-lobby')?.addEventListener('click',renderLobby);
   if(type==='settings'){$('#setting-difficulty').value=preferences.difficulty;$('#setting-difficulty').onchange=e=>{preferences.difficulty=e.target.value;save();if($('#difficulty'))$('#difficulty').value=preferences.difficulty;};$('#sound-setting').onclick=()=>{preferences.sound=!preferences.sound;save();$('#sound-setting').classList.toggle('on',preferences.sound);$('#sound-setting').setAttribute('aria-pressed',String(preferences.sound));$('.sound-toggle').innerHTML=icon(preferences.sound?'volume':'mute');};}
   bindingEditor=type==='settings'?mountKeybindings($('.modal'),{storage:browserStorage(),onSave:()=>{refreshBindingHints();closeModal();updateHud();toast('键位已保存');}}):null;
+  if(type==='settings')mountDeveloperMode($('#developer-mode-settings'),game,{changed:()=>{updateHud();checkpointMatch();}});
   $('.modal [data-close]')?.focus();
 }
 function closeModal(){if(modal==='result'){renderLobby();return;}$('#modal-root').innerHTML='';modal=null;bindingEditor=null;if(game)game.setPaused(false);returnFocus?.focus();}
@@ -298,7 +304,7 @@ window.addEventListener('keydown',async e=>{
   if(bindingEditor?.handleKey(e))return;
   if(modal){
     if(e.key==='Escape'){e.preventDefault();closeModal();return;}
-    if(e.key==='Tab'){const focusable=[...document.querySelectorAll('.modal button:not(:disabled),.modal select')];const first=focusable[0],last=focusable.at(-1);if(e.shiftKey&&document.activeElement===first){e.preventDefault();last?.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first?.focus();}}return;
+    if(e.key==='Tab'){const focusable=[...document.querySelectorAll('.modal button:not(:disabled),.modal select:not(:disabled),.modal input:not(:disabled)')].filter(el=>el.getClientRects().length);const first=focusable[0],last=focusable.at(-1);if(e.shiftKey&&document.activeElement===first){e.preventDefault();last?.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first?.focus();}}return;
   }
   if(view!=='match'||!game)return;
   if(['INPUT','SELECT','TEXTAREA'].includes(document.activeElement?.tagName))return;
@@ -326,7 +332,8 @@ window.addEventListener('keydown',async e=>{
 window.addEventListener('keyup',e=>{keys.delete(e.key.toLowerCase());if(e.key==='Alt'&&renderer)renderer.showCampBounds=$('#camp-bounds')?.classList.contains('active')||false;});
 window.addEventListener('blur',()=>{keys.clear();if(game&&!modal&&game.status==='playing')openModal('pause');});
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&game&&!modal&&game.status==='playing')openModal('pause');});
-window.addEventListener('pagehide',checkpointMatch);
+window.addEventListener('pagehide',()=>{disableDeveloperMode(game);checkpointMatch();});
+window.addEventListener('pageshow',event=>{if(event.persisted&&game){updateHud();if(modal==='settings')mountDeveloperMode($('#developer-mode-settings'),game,{changed:()=>{updateHud();checkpointMatch();}});}});
 window.addEventListener('beforeunload',event=>{
   if(view!=='match'||!game||game.isNetwork||game.status!=='playing')return;
   checkpointMatch();event.preventDefault();event.returnValue='';
