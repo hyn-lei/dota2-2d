@@ -114,6 +114,8 @@ npm run dev
 
 开局推进保留已通过的兵线路点，修复 AI 在 T3 附近反复折返的问题；换路、结束支援和复活后再重新定位。四档难度、联机补位和浏览器实际开局的验证见 [2026-11-12 记录](docs/verification/2026-11-12-ai-opening-lanes.md)。
 
+线上生产构建为入口脚本、全部 ES 模块和样式添加统一的内容版本，刷新网页后可以绕过此前缓存的旧 AI 代码。线上单人新局、旧存档恢复和四小时旧缓存回归见 [线上验证记录](docs/verification/2026-11-12-online-single-player-cache.md)。
+
 这是持续开发的二维版本，**尚不是全部 Dota 2 机制的 1:1 实现**。地图实体来源是 7.41 原始导出，底图投影最大校准误差约 66 世界单位；尚未逐格验证客户端碰撞。战争迷雾、反补、完整中立技能/掉落、独立微操与联网仍未完成。治疗守卫和召唤物自动跟随，超距离施法直接拒绝；部分物品弹道、光环叠加和客户端隐藏结算仍有简化。砍树会更新通路并留下树桩，地图底图仍是静态影像。已核实范围和数据冲突见 [完整物品目录](docs/item-catalog-complete.md)、[物品与信使运行时](docs/item-runtime-sources.md)。其他来源：[地图](docs/research/map-sources.md)、[属性](docs/research/attributes-sources.md)、[单位](docs/research/units-sources.md)、[技能](docs/research/abilities-sources.md)、[加点](docs/research/progression-sources.md)。
 
 ## 检查与构建

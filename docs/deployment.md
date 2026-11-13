@@ -115,6 +115,10 @@ npm run test:public-coop -- https://dota2.prismabyss.com
 
 自动部署通过网站 `/healthz` 的 `X-Game-Revision` 响应头核对运行中的提交 SHA；健康检查正文仍为 `ok`。反向代理应将该路径转发到 Node 容器并保留响应头，不缓存它。镜像构建自动写入 GAME_REVISION，本地开发可以不设置。
 
+生产构建另有独立的前端内容版本：`npm run build` 对 `index.html` 和 `src/` 内容计算 SHA-256，在 HTML 的入口脚本、样式 URL 和原生 import map 中加入相同的 `?v=...`。import map 覆盖全部 ES 模块，包括相对依赖和动态导入；HTML 中的 `game-build` 元数据记录该内容版本。模块文件及 Node 联机模拟仍沿用原有路径。`check:build` 验证映射、版本及实际文件，Actions 的 `test:release-cache` 保留旧入口、AI、渲染器和样式的四小时缓存，再验证刷新后的单人开局。
+
+2026-11-12 公网站点的 JS 响应头为 `Cache-Control: max-age=14400`，即使 `/healthz` 已返回最新提交，之前打开的浏览器仍可能复用旧脚本。生产构建通过更新整个模块图的 URL 处理这一情况；仅在 `main.js` 上添加查询参数无法更新其无版本依赖。部署后刷新页面，再通过“继续上次对局”恢复本地单人进度。详情见 [线上单人验证](verification/2026-11-12-online-single-player-cache.md)。
+
 ## 6. 本地构建和验证
 
 `npm test` 的 Nginx 修复工具检查需要 Python 3（Windows 使用 `python`，Linux 使用 `python3`），仅使用标准库；游戏运行及 Docker 镜像不需要 Python。

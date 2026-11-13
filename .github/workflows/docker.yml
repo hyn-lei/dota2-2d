@@ -71,6 +71,8 @@ jobs:
           npx playwright install --with-deps chromium
       - name: Verify the game opens in a browser
         run: npm run test:deployment -- http://127.0.0.1:18080
+      - name: Verify refreshed games bypass obsolete browser and CDN modules
+        run: npm run test:release-cache
       - name: Verify shop and gameplay interactions
         env:
           GAME_URL: http://127.0.0.1:18080

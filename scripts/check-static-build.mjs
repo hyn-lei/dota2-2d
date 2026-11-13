@@ -38,10 +38,23 @@ function files(dir) {
 }
 
 const html = readFileSync(resolve(root, 'index.html'), 'utf8');
+const buildRevision = html.match(/<meta\s+name="game-build"\s+content="([a-f0-9]{64})"/)?.[1];
+assert.ok(buildRevision, 'The static build must identify its frontend version');
+const importMapText = html.match(/<script\s+type="importmap">([\s\S]*?)<\/script>/)?.[1];
+assert.ok(importMapText, 'The static build must version the complete module graph');
+const importMap = JSON.parse(importMapText).imports;
+for (const [specifier, target] of Object.entries(importMap)) {
+  assert.equal(localFile(target), localFile(specifier), `Import map must retain the module path: ${specifier}`);
+  assert.equal(new URL(target, 'http://localhost').searchParams.get('v'), buildRevision, `Wrong module version: ${specifier}`);
+}
 const external = /^(?:[a-z][a-z\d+.-]*:|\/\/|#)/i;
 const entries = [];
 for (const match of html.matchAll(/<(?:script|link|img)\b[^>]*\b(?:src|href)=["']([^"']+)["'][^>]*>/gi)) {
   if (external.test(match[1])) continue;
+  if (/^\/src\/[^?#]+\.(?:js|css)(?:[?#]|$)/i.test(match[1])) {
+    assert.equal(new URL(match[1], 'http://localhost').searchParams.get('v'), buildRevision,
+      `Wrong entry or stylesheet version: ${match[1]}`);
+  }
   const url = localFile(match[1]);
   if (/^<script\b/i.test(match[0]) && /\btype=["']module["']/i.test(match[0])) entries.push(url);
 }
@@ -49,7 +62,11 @@ assert.ok(entries.length, 'index.html must contain a module entry point');
 
 for (const file of files(resolve(root, 'src'))) {
   const url = pathToFileURL(file).href;
-  if (extname(file) === '.js') compile(url);
+  if (extname(file) === '.js') {
+    const specifier = '/'+relative(root, file).replaceAll('\\','/');
+    assert.ok(importMap[specifier], `Module missing from the frontend version map: ${specifier}`);
+    compile(url);
+  }
   if (extname(file) === '.css') {
     for (const match of readFileSync(file, 'utf8').matchAll(/url\(\s*["']?([^\s"')]+)["']?\s*\)/gi)) {
       if (!external.test(match[1])) localFile(match[1], url);
