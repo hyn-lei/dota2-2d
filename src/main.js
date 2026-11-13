@@ -207,7 +207,7 @@ function updateHud(){
   if(!game||view!=='match')return;const actor=game.player,p=game.selected,h=HEROES[p.heroId],hero=['hero','illusion'].includes(p.kind);
   const hud=$('.game-hud');hud.dataset.unitId=p.id;hud.dataset.unitKind=p.kind;hud.dataset.ownership=p.id===actor.id?'own':p.team===actor.team?'ally':'enemy';
   $('.hud-hero-title strong').textContent=p.name||unitLabels[p.kind];
-  const controls=$('.illusion-controls');if(controls){controls.hidden=p.kind!=='illusion'||!game.canControl(p)||p.dead;controls.querySelector('span').textContent=strongIllusion(p)?'强幻象 · 可施法':'弱幻象 · 普攻与被动';}
+  const controls=$('.illusion-controls');if(controls){controls.hidden=p.kind!=='illusion'||!game.canControl(p)||p.dead;controls.querySelector('span').textContent=strongIllusion(p)?'强幻象 · 手动控制':'弱幻象 · 索敌 600';}
   const portraitImage=$('.hud-portrait>img'),portraitSrc=h?`/assets/hud/portraits/${h.id}.png`:null;portraitImage.hidden=!h;
   let symbol=$('.hud-unit-symbol');if(!symbol){symbol=document.createElement('div');symbol.className='hud-unit-symbol';$('.hud-portrait').append(symbol);}symbol.hidden=!!h;if(!h)symbol.innerHTML=icon(p.kind==='tower'?'tower':'shield');
   if(portraitSrc&&portraitImage.getAttribute('src')!==portraitSrc)portraitImage.src=portraitSrc;portraitImage.alt=(p.name||unitLabels[p.kind])+'头部肖像';

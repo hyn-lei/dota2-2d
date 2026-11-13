@@ -120,7 +120,7 @@ function updateTrueshot(g){
  const drows=g.entities.filter(e=>alive(e)&&['hero','illusion'].includes(e.kind)&&e.heroId==='drow_ranger'&&!Skills.hasStatusFlag(g,e,'break'));
  for(const h of g.entities)if(['hero','illusion'].includes(h.kind)&&alive(h)){
   let bonus=0;
-  for(const drow of drows){const a=innateAt('drow_ranger',drow.level).values,agi=Math.max(0,drow.agility-(drow.trueshotAgility||0));
+  for(const drow of drows){const a=innateAt('drow_ranger',drow.level,drow.talents||[],drow).values,agi=Math.max(0,drow.agility-(drow.trueshotAgility||0));
    if(h===drow||h.team===drow.team&&h.range>200&&distance(h,drow)<=a.radius)bonus=Math.max(bonus,agi*a.trueshot_agi_bonus/100*(h===drow?1:a.trueshot_agi_bonus_allies_pct/100));
   }
   if(Math.abs((h.trueshotAgility||0)-bonus)>.001){h.trueshotAgility=bonus;g._refreshHero(h);}

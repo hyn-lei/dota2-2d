@@ -17,8 +17,8 @@ test('Manta produces two weak illusions with independent item/ability copies and
  for(const c of clones){assert.equal(weakIllusion(c),true);assert.equal(c.ownerId,p.id);assert.deepEqual(c.abilityLevels,p.abilityLevels);assert.deepEqual(c.inventory,p.inventory);assert.notEqual(c.inventoryMeta[1].uid,p.inventoryMeta[1].uid);assert.equal(c.inventoryMeta[1].ownerId,c.id);assert.equal(c.illusionOutgoing,.33);assert.equal(c.illusionIncoming,3);assert.equal(c.mana,0);assert.equal(c.maxMana,0);assert.equal(g.unitCommand(c.id,'cast',[0,c]).ok,false);assert.equal(g.unitCommand(c.id,'useItem',[0,c,'inventory']).ok,false);}
  clones[0].inventoryMeta[1].charges=999;assert.notEqual(p.inventoryMeta[1].charges,999);assert.notEqual(clones[1].inventoryMeta[1].charges,999);
 });
-test('uncommanded illusions neither follow a moving owner nor acquire nearby enemies',()=>{
- const g=setup(),p=g.player,c=illusion(g,p,1,60,33,300)[0],enemy=g._unit('creep',1,c.x+80,c.y,{maxHp:10000,speed:0});g.entities.push(enemy);g._creepTick=()=>{};g._chooseTarget=()=>null;g.moveTo(6800,6000);const start={x:c.x,y:c.y,hp:enemy.hp};g.step(1);
+test('uncommanded strong illusions neither follow a moving owner nor acquire nearby enemies',()=>{
+ const g=setup(),p=g.player,c=illusion(g,p,1,60,33,300,{type:'strong'})[0],enemy=g._unit('creep',1,c.x+80,c.y,{maxHp:10000,speed:0});g.entities.push(enemy);g._creepTick=()=>{};g._chooseTarget=()=>null;g.moveTo(6800,6000);const start={x:c.x,y:c.y,hp:enemy.hp};g.step(1);
  assert.ok(p.x>6200);assert.equal(c.x,start.x);assert.equal(c.y,start.y);assert.equal(enemy.hp,start.hp);assert.equal(c.targetId,null);
  assert.equal(g.unitCommand(c.id,'attackTarget',[enemy.id]).ok,true);g.step(1);assert.ok(enemy.hp<start.hp);g.unitCommand(c.id,'stop');const hp=enemy.hp;g.step(1);assert.equal(enemy.hp,hp);
 });

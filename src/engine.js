@@ -16,7 +16,7 @@ import {flagbearerAura} from './unit-auras.js';
 import {armletHealthBonus} from './armlet-runtime.js';
 import {CollisionWorld} from './collision.js';
 import {obstaclePath} from './local-navigation.js';
-import {ownsIllusion,weakIllusion} from './illusions.js';
+import {ownsIllusion,weakIllusion,WEAK_ILLUSION_TARGET_RADIUS} from './illusions.js';
 import {manaState,spendMana,restoreMana} from './mana-runtime.js';
 
 const distance = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
@@ -692,6 +692,18 @@ export class Game {
     return target;
   }
 
+  _chooseIllusionTarget(h) {
+    let target=null,nearest=Infinity;
+    for(const unit of this._near(h,WEAK_ILLUSION_TARGET_RADIUS)){
+      const d=distance(h,unit);
+      if(d>WEAK_ILLUSION_TARGET_RADIUS||unit.team===h.team||unit.kind==='droppedItem'||
+        this.isProtected(unit)||!this.canSee(h,unit)||Skills.isInvulnerable(this,unit))continue;
+      if(unit.id===h.targetId)return unit;
+      if(d<nearest){target=unit;nearest=d;}
+    }
+    return target;
+  }
+
   _attack(e,target,options={}) {
     if(!target||!alive(target)||!alive(e)||this.isStunned(e)||Skills.hasStatusFlag(this,e,'disarmed')||!this.canSee(e,target)||
       (e.castPhase||e.channel||e.omnislash)&&!options.omni||Skills.isInvulnerable(this,target)||
@@ -746,7 +758,8 @@ export class Game {
     let waypoint=e.navPath[e.navIndex],d=distance(e,waypoint);
     if(d<3){e.navIndex++;return;}
     const speed = this.combatStats(e).speed;
-    const autonomous=e.kind==='creep'||e.kind==='hero'&&!e.isPlayer&&!e.isHuman;
+    const autonomous=e.kind==='creep'||e.kind==='hero'&&!e.isPlayer&&!e.isHuman||
+      weakIllusion(e)&&!e.explicitTarget&&!e.destination&&!e.movementInput?.x&&!e.movementInput?.y;
     if(autonomous&&speed>0&&this.time>=(e.obstacleCheckAt||0)){
       const look=Math.min(d,Math.max(e.collisionRadius*2+16,speed*.35));
       const ahead={x:e.x+(waypoint.x-e.x)/d*look,y:e.y+(waypoint.y-e.y)/d*look};
@@ -848,6 +861,7 @@ export class Game {
     let target = h.explicitTarget ? this.entities.find(e => e.id === h.explicitTarget && alive(e)) : null;
     if (h.explicitTarget && !target) { h.explicitTarget = null; h.targetId = null; }
     const input=h.movementInput||this.keyboard;
+    if(!target&&weakIllusion(h)&&!input.x&&!input.y&&!h.destination)target=this._chooseIllusionTarget(h);
     if (input.x || input.y) {
       this._move(h,{x:h.x+input.x*100,y:h.y+input.y*100},dt);
     } else if (target) {

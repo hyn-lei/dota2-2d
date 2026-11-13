@@ -377,7 +377,7 @@ export function tickWorldAbilities(g){
   const progress=Math.min(1,(g.time-spell.startedAt)/(spell.landAt-spell.startedAt)),at={x:spell.start.x+(spell.x-spell.start.x)*progress,y:spell.start.y+(spell.y-spell.start.y)*progress};
   if(!spell.effectStarted){spell.effectStarted=true;spellEffect(g,source,'ship',spell.start.x,spell.start.y,{tx:spell.x,ty:spell.y,radius:spell.skill.values.ghostship_width,life:spell.landAt-spell.startedAt,startedAt:spell.startedAt,color:'#8fcec5'});}
   while(spell.volleysFired<spell.cannonVolleys&&spell.nextCannonAt<=g.time+1e-7&&spell.nextCannonAt<spell.landAt){fireCannons(g,source,spell,at);spell.volleysFired++;spell.nextCannonAt+=spell.skill.values.cannon_fire_interval;}
-  for(const ally of g.entities)if(alive(ally)&&ally.kind==='hero'&&ally.team===source.team&&!spell.touched.includes(ally.id)&&distance(at,ally)<=spell.skill.values.ghostship_width){giveRum(g,ally,source,spell.skill.values.rum_factor);spell.touched.push(ally.id);}
+  for(const ally of g.entities)if(alive(ally)&&['hero','illusion'].includes(ally.kind)&&ally.team===source.team&&!spell.touched.includes(ally.id)&&distance(at,ally)<=spell.skill.values.ghostship_width+areaBonus(source)){giveRum(g,ally,source,spell.skill.values.rum_factor);spell.touched.push(ally.id);}
  }
  const ready=g.pendingSpells.filter(s=>s.landAt<=g.time+1e-7);g.pendingSpells=g.pendingSpells.filter(s=>s.landAt>g.time+1e-7);
  for(const spell of ready){const h=g.entities.find(e=>e.id===spell.sourceId);if(!h)continue;const s=spell.skill,v=s?.values;
