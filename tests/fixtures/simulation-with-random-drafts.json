@@ -1,0 +1,34 @@
+{
+  "baseRevision": "a50818726e8333eecfd9114c7ee95d958efb2ed4",
+  "change": "Seeded AI drafts use the full playable hero pool, complementary roles and 2-1-2 opening lanes. Different rosters and lanes intentionally change combat and movement; the lane-progress baseline is retained as history.",
+  "cases": [
+    {
+      "config": {
+        "hero": "juggernaut",
+        "seed": 42
+      },
+      "steps": 1800,
+      "dt": 0.05,
+      "sha256": "0a046955e75c9a013d727660085edbcf2d427ea616853e242753982b040b3899"
+    },
+    {
+      "config": {
+        "hero": "drow_ranger",
+        "difficulty": "hard",
+        "seed": 51
+      },
+      "steps": 1800,
+      "dt": 0.05,
+      "sha256": "5b1f462b0fe3c155756dfdf9eea0566687f277254e9bc97be6891046d966e88d"
+    },
+    {
+      "config": {
+        "hero": "ogre_magi",
+        "seed": 99
+      },
+      "steps": 1800,
+      "dt": 0.05,
+      "sha256": "3a347c24ca10e749b7cef1c75a1d6b8d761c4e949571bed109033f37c27000f5"
+    }
+  ]
+}

@@ -6,6 +6,7 @@ import { CoopGame } from '../server/coop-game.mjs';
 import * as Bots from '../src/bot-ai.js';
 import { createCoopServer } from '../server/coop-server.mjs';
 import { decodeMessage } from '../src/network-protocol.js';
+import {draftRecord,DRAFT_HISTORY_LIMIT} from '../src/bot-draft.js';
 
 const ids=['ogre_magi','juggernaut','crystal_maiden','windranger','axe'];
 const roster=n=>ids.slice(0,n).map((heroId,i)=>({heroId,name:`Human ${i+1}`,clientId:`human-${i}`}));
@@ -81,4 +82,46 @@ test('AI fill cannot label synthetic teammates as additional humans',async t=>{
   host.send({type:'create',name:'One human',heroId:'ogre_magi',fillWithAI:true});await host.next('room');
   host.send({type:'ready',ready:true});await host.next('room',m=>m.room.members[0].ready);host.send({type:'start'});
   await host.next('end',m=>m.reason==='simulation_error');assert.equal(host.messages.some(m=>m.type==='snapshot'),false);
+});
+
+test('successive room matches rotate both AI hero sets while readiness preserves the preview',async t=>{
+  const f=await setup(t),host=await f.connect(),signature=heroes=>[...heroes].sort().join(',');let previous=null;
+  for(let round=0;round<8;round++){
+    host.send({type:'create',name:'Human',heroId:'juggernaut',fillWithAI:true});
+    const preview=(await host.next('room',m=>m.room.phase==='lobby'&&!m.room.members[0].ready)).room;
+    const room=f.service.manager.rooms.get(preview.code);
+    for(let check=0;check<3;check++)assert.deepEqual(f.service.manager.roomView(room).aiAllies,preview.aiAllies);
+    host.send({type:'ready',ready:true});const ready=(await host.next('room',m=>m.room.code===preview.code&&m.room.members[0].ready)).room;
+    assert.deepEqual(ready.aiAllies,preview.aiAllies);
+    host.send({type:'start'});await host.next('snapshot',m=>m.roomCode===preview.code);
+    const record=draftRecord(room.game);assert.deepEqual(record.allies,preview.aiAllies.map(h=>h.heroId));
+    if(previous)for(const key of ['allies','enemies'])assert.notEqual(signature(record[key]),signature(previous[key]));
+    assert.equal(f.service.manager.draftHistory.length,Math.min(round+1,DRAFT_HISTORY_LIMIT));previous=record;
+    host.send({type:'leave'});await host.next('end',m=>m.reason==='player_left');
+  }
+});
+
+test('changing a human hero updates AI fill without taking that hero, and launch freezes the new preview',async t=>{
+  const f=await setup(t),host=await f.connect();
+  host.send({type:'create',name:'Human',heroId:'juggernaut',fillWithAI:true});const first=(await host.next('room')).room;
+  const replacement=first.aiAllies[0].heroId;host.send({type:'chooseHero',heroId:replacement});
+  const changed=(await host.next('room',m=>m.room.members[0].heroId===replacement)).room;
+  assert.equal(changed.aiAllies.length,4);assert.ok(changed.aiAllies.every(h=>h.heroId!==replacement));
+  host.send({type:'ready',ready:true});await host.next('room',m=>m.room.members[0].ready);host.send({type:'start'});
+  await host.next('snapshot');const game=f.service.manager.rooms.get(first.code).game;
+  assert.equal(game.player.heroId,replacement);assert.deepEqual(draftRecord(game).allies,changed.aiAllies.map(h=>h.heroId));
+});
+
+test('a participant keeps their previous draft guard after it leaves global recent history',async t=>{
+  const f=await setup(t),host=await f.connect();
+  host.send({type:'create',name:'Human',heroId:'juggernaut',fillWithAI:true});const first=(await host.next('room')).room;
+  host.send({type:'ready',ready:true});await host.next('room',m=>m.room.members[0].ready);host.send({type:'start'});await host.next('snapshot');
+  const manager=f.service.manager,room=manager.rooms.get(first.code),previous=draftRecord(room.game);
+  assert.deepEqual(manager.sessions.get(host.token).lastDraft,previous);
+  host.send({type:'leave'});await host.next('end',m=>m.reason==='player_left');
+  manager.draftHistory=[];
+  const next=manager.roomDraft({members:[{heroId:'juggernaut',token:host.token}],draftSeed:room.draftSeed});
+  const signature=ids=>[...ids].sort().join(',');
+  assert.notEqual(signature(next.allies.slice(1).map(h=>h.heroId)),signature(previous.allies));
+  assert.notEqual(signature(next.enemies.map(h=>h.heroId)),signature(previous.enemies));
 });

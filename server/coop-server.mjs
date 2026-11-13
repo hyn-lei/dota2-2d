@@ -3,7 +3,8 @@ import { readFile, realpath, stat } from 'node:fs/promises';
 import { resolve, extname, sep } from 'node:path';
 import { randomBytes } from 'node:crypto';
 import { WebSocketServer, WebSocket } from 'ws';
-import { CoopGame, coopAllyHeroIds } from './coop-game.mjs';
+import { CoopGame } from './coop-game.mjs';
+import {draftMatch,draftRecord,appendDraftHistory} from '../src/bot-draft.js';
 import { executeCommand, validHero, validName, messageHasOnly } from './commands.mjs';
 import { snapshotState } from './snapshot.mjs';
 import { encodeMessage } from '../src/network-protocol.js';
@@ -30,7 +31,7 @@ function consume(socket, kind, rate, now) {
 }
 
 export class RoomManager {
-  constructor(options) {this.options=options;this.rooms=new Map();this.matchQueue=[];this.sessions=new Map();this.sockets=new Set();this.pendingSnapshots=new WeakMap();this.deferredSnapshots=new WeakMap();this.frame=0;this.closed=false;}
+  constructor(options) {this.options=options;this.rooms=new Map();this.matchQueue=[];this.sessions=new Map();this.sockets=new Set();this.pendingSnapshots=new WeakMap();this.deferredSnapshots=new WeakMap();this.frame=0;this.closed=false;this.draftHistory=[];}
 
   send(socket,message) {
     if(socket?.readyState!==WebSocket.OPEN) return false;
@@ -62,9 +63,18 @@ export class RoomManager {
     }
   }
   error(socket,code,message,requestId) {this.send(socket,{type:'error',code,message,...(requestId!==undefined?{requestId}:{})});}
+  roomDraft(room) {
+    const humanHeroIds=room.members.map(member=>member.heroId),key=humanHeroIds.join(',');
+    if(room.draftKey!==key){
+      room.draftSeed??=randomBytes(4).readUInt32LE();
+      const previous=room.members.map(member=>this.sessions.get(member.token)?.lastDraft).filter(Boolean);
+      room.draft=draftMatch({humanHeroIds,seed:room.draftSeed,history:[...this.draftHistory,...previous]});room.draftKey=key;
+    }
+    return room.draft;
+  }
   roomView(room) {
     const deadlines=room.members.filter(m=>!m.connected&&m.reconnectDeadline).map(m=>m.reconnectDeadline);
-    const aiIds=room.fillWithAI?(room.game?room.game.entities.filter(e=>e.kind==='hero'&&e.team===0&&e.controller==='ai').map(e=>e.heroId):coopAllyHeroIds(room.members)):[];
+    const aiIds=room.fillWithAI?(room.game?room.game.entities.filter(e=>e.kind==='hero'&&e.team===0&&e.controller==='ai').map(e=>e.heroId):this.roomDraft(room).allies.slice(room.members.length).map(hero=>hero.heroId)):[];
     return {code:room.code,phase:room.phase,hostId:room.hostId,capacity:5,
       fillWithAI:!!room.fillWithAI,aiAllies:aiIds.map(heroId=>({heroId,name:HEROES[heroId].name,difficulty:'hard',controller:'ai'})),
       ...(room.matchmade?{matchmade:true}:{}),
@@ -249,7 +259,7 @@ export class RoomManager {
     const session=this.sessions.get(room.members[0]?.token);
     const fill=room.fillWithAI===true&&!room.matchmade,count=room.members.length;
     if(count<(fill?1:5)||count>5||!room.members.every(m=>m.connected&&m.ready&&this.sessions.get(m.token)?.socket?.readyState===WebSocket.OPEN)||new Set(room.members.map(m=>m.heroId)).size!==count||new Set(room.members.map(m=>m.clientId)).size!==count){this.error(session?.socket,'NOT_READY',fill?'所有真人需在线、选择不同英雄并准备':'必须五名在线成员选择不同英雄并全部准备');return false;}
-    const roster=room.members.map(({heroId,name,clientId})=>({heroId,name,clientId})),options={seed:randomBytes(4).readUInt32LE(),fillWithAI:fill};
+    const draft=this.roomDraft(room),roster=room.members.map(({heroId,name,clientId})=>({heroId,name,clientId})),options={seed:room.draftSeed,fillWithAI:fill,draft};
     try{
       room.game=this.options.gameFactory?this.options.gameFactory(roster,options):new CoopGame(roster,options);
       if(!room.game||!Array.isArray(room.game.entities)||typeof room.game.step!=='function'||typeof room.game.setPaused!=='function'||typeof room.game.clearMovement!=='function'||room.game.difficulty!=='nightmare')throw new Error('Invalid simulation');
@@ -258,6 +268,8 @@ export class RoomManager {
       for(const member of room.members) member.heroEntityId=room.game.entities.find(e=>e.isHuman&&e.clientId===member.clientId)?.id;
     }catch{room.game=null;this.end(room,'simulation_error');return false;}
     if(room.members.some(m=>!m.heroEntityId)) {this.end(room,'simulation_error');return false;}
+    const record=draftRecord(room.game);this.draftHistory=appendDraftHistory(this.draftHistory,record);
+    for(const member of room.members)this.sessions.get(member.token).lastDraft=record;
     room.phase='playing';this.broadcastRoom(room);this.broadcastSnapshot(room);
     return true;
   }

@@ -5,7 +5,7 @@ import * as Skills from '../src/hero-runtime.js';
 import { ABILITIES } from '../src/ability-data.js';
 
 function arena(hero,ranks=[1,1,1,1]){
- const g=new Game({hero}),p=g.player,e=g.entities.find(u=>u.kind==='hero'&&u.team===1&&u.heroId==='crystal_maiden');
+ const g=new Game({hero}),p=g.player,e=g._makeHero('crystal_maiden',1,1,false,0);
  g.entities=[p,e];g.nextWave=g.nextNeutralSpawn=g.roshanRespawnAt=Infinity;
  Object.assign(p,{x:10400,y:10400,abilityLevels:ranks,skillPoints:0,maxMana:5000,mana:5000,attackCooldown:999,hpRegen:0});
  Object.assign(e,{x:10540,y:10400,maxHp:100000,hp:100000,maxMana:5000,mana:5000,hpRegen:0,armor:0,magicResistance:0,speed:0,aiTimer:Infinity,attackCooldown:999,abilityLevels:[0,0,0,0],skillPoints:0});

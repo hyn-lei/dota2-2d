@@ -8,6 +8,7 @@ import { encodeMessage,decodeMessage } from '../src/network-protocol.js';
 
 function arena(hero='drow_ranger'){
  const g=new Game({hero,seed:42}),p=g.player;
+ if(!g.entities.some(e=>e.team===0&&e.heroId==='crystal_maiden'))g._makeHero('crystal_maiden',0,1,false,0);
  g.entities=g.entities.filter(e=>e.kind==='hero');g.nextWave=g.nextNeutralSpawn=g.roshanRespawnAt=Infinity;
  for(const e of g.entities)Object.assign(e,{x:10400+(e.team?2000:0),y:10400,aiTimer:Infinity,attackCooldown:999,abilityLevels:[0,0,0,0],cooldowns:[999,999,999,999]});
  g._index();return {g,p};

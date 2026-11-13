@@ -21,7 +21,7 @@ try{
   const {Game}=await import('/src/engine.js'),{unitOpacity,unitVisuals}=await import('/src/combat-visuals.js'),{drawUnitCombatEffects,drawCombatEffect}=await import('/src/combat-effects.js');
   const check=(ok,message)=>{if(!ok)throw Error(message);};window.observedDrowGame.paused=true;
   function scene(hero='drow_ranger'){
-   const g=new Game({hero}),p=g.player,e=g.entities.find(u=>u.heroId==='crystal_maiden'&&u.team===1);g.entities=[p,e];g.nextWave=g.nextNeutralSpawn=g.roshanRespawnAt=Infinity;
+   const g=new Game({hero}),p=g.player,e=g._makeHero('crystal_maiden',1,1,false,0);g.entities=[p,e];g.nextWave=g.nextNeutralSpawn=g.roshanRespawnAt=Infinity;
    Object.assign(p,{x:10400,y:10400,abilityLevels:[4,4,4,3],attackCooldown:999,hpRegen:0,manaRegen:0});
    Object.assign(e,{x:p.x+500,y:p.y,maxHp:10000,hp:10000,armor:0,magicResistance:0,speed:0,hpRegen:0,attackCooldown:999,aiTimer:Infinity,abilityLevels:[0,0,0,0],cooldowns:[999,999,999,999]});g._index();g.step(.05);p.hpRegen=p.manaRegen=0;p.mana=p.maxMana=3000;return {g,p,e};
   }

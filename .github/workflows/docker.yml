@@ -93,6 +93,7 @@ jobs:
           node tests/browser-items.mjs
           node tests/browser-vfx.mjs
           node tests/browser-ai.mjs
+          node tests/browser-ai-draft.mjs
           node tests/browser-ai-tactics.mjs
           node tests/browser-ogre.mjs
           node tests/browser-drow.mjs

@@ -18,6 +18,7 @@ try{
  await page.evaluate(async()=>{
   const g=window.hudGame,p=g.player,{createMeta}=await import('/src/inventory.js');
   const {addStatus}=await import('/src/hero-runtime.js');
+  if(!g.entities.some(e=>e.team===0&&e.heroId==='crystal_maiden'))g._makeHero('crystal_maiden',0,1,false,0);
   g.entities=g.entities.filter(e=>e.kind==='hero');g.nextWave=g.nextNeutralSpawn=g.roshanRespawnAt=Infinity;
   for(const e of g.entities)Object.assign(e,{x:10400+(e.team?2000:0),y:10400,aiTimer:Infinity,attackCooldown:999,destination:null,abilityLevels:[0,0,0,0],cooldowns:[999,999,999,999]});
   Object.assign(p,{abilityLevels:[4,4,4,3],cooldowns:[0,0,0,0],skillPoints:0,level:20,gold:9876,consumedShard:true,consumedScepter:true,hasShard:true,hasScepter:true});

@@ -17,6 +17,8 @@ import {keybindingsHTML,mountKeybindings} from './keybindings-ui.js';
 import {weakIllusion,strongIllusion} from './illusions.js';
 import {developerModeHTML,mountDeveloperMode} from './developer-mode-ui.js';
 import {developerModeState,disableDeveloperMode} from './developer-mode.js';
+import {appendDraftHistory,draftRecord} from './bot-draft.js';
+import {loadDraftHistory,storeDraftHistory} from './draft-history.js';
 
 const $ = (s) => document.querySelector(s);
 const app = $('#app');
@@ -30,6 +32,7 @@ let bindingEditor=null;
 let checkpointAt=0,checkpointError=false;
 const save=()=>{try{localStorage.setItem('af-preferences',JSON.stringify(preferences));localStorage.setItem('af-history',JSON.stringify(history));}catch{}};
 function browserStorage(){try{return localStorage;}catch{return null;}}
+let aiDraftHistory=loadDraftHistory(browserStorage());
 loadBindings(browserStorage());
 function checkpointMatch(){
   if(!game||game.isNetwork||game.status!=='playing')return;
@@ -118,7 +121,11 @@ function startGame(providedGame=null,resume=false){
   if(providedGame instanceof Game)chosen=providedGame.player.heroId;
   disableDeveloperMode(game);
   cancelItemUse();
-  sound('start');view='match';modal=null;shopOpen=false;keys.clear();game=providedGame instanceof Game?providedGame:new Game({hero:chosen,difficulty:preferences.difficulty,seed:Math.floor(Math.random()*100000)});lastStatus='playing';checkpointAt=0;checkpointError=false;
+  sound('start');view='match';modal=null;shopOpen=false;keys.clear();
+  const storage=browserStorage();aiDraftHistory=loadDraftHistory(storage,aiDraftHistory);
+  game=providedGame instanceof Game?providedGame:new Game({hero:chosen,difficulty:preferences.difficulty,seed:Math.floor(Math.random()*4294967296),draftHistory:aiDraftHistory});
+  if(!resume&&!game.isNetwork){aiDraftHistory=appendDraftHistory(aiDraftHistory,draftRecord(game));storeDraftHistory(storage,aiDraftHistory);}
+  lastStatus='playing';checkpointAt=0;checkpointError=false;
   const h=HEROES[chosen];
   app.innerHTML=`<main class="match"><canvas id="battlefield" aria-label="2D 对战战场，左键查看单位，右键移动与攻击，Q W E R 释放技能" tabindex="0"></canvas>
     <header class="match-header"><button class="match-brand" aria-label="暂停与菜单">${mark()}<span>ANCIENT<br/>FRONT</span></button><button class="match-settings-button settings-button" aria-label="游戏设置" title="游戏设置">${icon('settings')}</button><div class="scoreboard"><div class="team-name radiant">天辉 <span>RADIANT</span></div><strong id="radiant-score">0</strong><div class="match-clock">${icon('sun')}<b id="match-time">00:00</b><small id="match-mode">5V5 · 人机对战</small></div><strong id="dire-score">0</strong><div class="team-name dire">夜魇 <span>DIRE</span></div></div><div class="match-tools"><button class="icon-button" id="guide-button" aria-label="作战指南" title="作战指南 H">${icon('help')}</button><button class="icon-button sound-toggle" aria-label="切换音效">${icon(preferences.sound?'volume':'mute')}</button><button class="icon-button" id="pause-button" aria-label="暂停游戏" title="暂停 Esc">${icon('pause')}</button></div></header>

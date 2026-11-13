@@ -28,7 +28,7 @@ try{
     const canvas=document.createElement('canvas');canvas.width=380;canvas.height=260;const c=canvas.getContext('2d');
     const snapshot=draw=>{c.clearRect(0,0,380,260);draw();return canvas.toDataURL();};
     function arena(hero,team=0){
-      const g=new Game({hero}),p=g.player,e=g.entities.find(u=>u.kind==='hero'&&u.team===1&&u.heroId==='crystal_maiden');
+      const g=new Game({hero}),p=g.player,e=g._makeHero('crystal_maiden',1,1,false,0);
       g.entities=[p,e];g.nextWave=g.nextNeutralSpawn=g.roshanRespawnAt=Infinity;
       Object.assign(p,{x:10400,y:10400,team,abilityLevels:[4,4,4,3],level:25,skillPoints:0,mana:5000,maxMana:5000,attackCooldown:999,manaRegen:0,hpRegen:0});
       Object.assign(e,{x:10600,y:10400,team:1-team,maxHp:10000,hp:10000,armor:0,magicResistance:0,speed:0,hpRegen:0,attackCooldown:999,cooldowns:[999,999,999,999],aiTimer:Infinity,abilityLevels:[0,0,0,0]});g._index();return {g,p,e};

@@ -6,6 +6,7 @@
 .brand{gap:10px}.brand-mark{width:34px;height:34px}.brand-name{font-size:23px;letter-spacing:3px}.brand-name small{display:none}.brand-name>span{font-size:19px}
 .main-nav{gap:36px}.nav-item{font-size:16px;letter-spacing:2px;gap:0}.nav-item span{display:none}.nav-item.active:after{width:100%;background:#cecec3;height:2px;box-shadow:0 -4px 15px #b7c7d066}
 .header-tools{gap:3px}.online-label{color:#8090a0;letter-spacing:0}.icon-button{color:#9daab7}.lobby .masthead{flex-wrap:nowrap}.lobby-shortcuts{flex-basis:auto;margin:0;gap:6px;align-items:center}.shortcut-title{display:none}.lobby-shortcut{min-width:88px;min-height:32px;padding:5px 10px;background:#263743;border-color:#5b707c}.lobby-shortcut strong{font-size:11px;font-weight:400}.lobby-shortcut small{display:none}.lobby-shortcut:hover{background:#3a4c57}.launch-area .coop-open{min-height:25px;margin-top:6px;background:#1a2b37;border-color:#4e6471;color:#b8c5ce;font-size:10px}
+@media(min-width:601px) and (max-width:900px){.lobby .masthead{column-gap:18px}.lobby .main-nav{gap:14px}}
 .hero-stage{z-index:2}.hero-stage:after{height:100px;background:linear-gradient(transparent,#111b26)}
 .hero-stage-copy{margin-left:8%;padding-top:48px;width:440px}.hero-stage-copy>.eyebrow{color:#879cad;letter-spacing:3px;font-size:12px}
 .hero-stage h1{font:600 clamp(38px,4vw,65px)/1.2 "Microsoft YaHei",sans-serif;letter-spacing:4px;margin:20px 0 9px;color:#eceff0;text-shadow:0 2px 12px #05080a}

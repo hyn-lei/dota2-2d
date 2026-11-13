@@ -34,7 +34,7 @@ for(const count of [1,4])test(`${count}-human cooperative rooms advance both tea
 });
 
 function laneArena(team,state){
- const g=new Game({seed:42}),h=g.entities.find(e=>e.kind==='hero'&&e.team===team&&!e.isPlayer&&e.lane===1);
+ const g=new Game({seed:42}),h=g._makeHero('axe',team,1,false,0);
  g.entities=g.entities.filter(e=>e===g.player||e===h||['tower','barracks','ancient','fountain','filler'].includes(e.kind));
  g.nextWave=g.nextNeutralSpawn=g.roshanRespawnAt=Infinity;
  const path=TEAM_LANES[team][1];

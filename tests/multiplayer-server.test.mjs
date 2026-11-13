@@ -258,7 +258,9 @@ test('authoritative movement, spell damage and statuses appear in every player s
   const fixture=await lobby(t);await start(fixture);const host=fixture.clients[0],room=fixture.service.manager.rooms.get(fixture.code),game=room.game;
   const caster=game.entities.find(e=>e.clientId===fixture.clients[1].clientId),enemy=game.entities.find(e=>e.kind==='hero'&&e.team===1);
   game.nextWave=game.nextNeutralSpawn=game.roshanRespawnAt=Infinity;
-  Object.assign(caster,{x:10000,y:10000});Object.assign(enemy,{x:10100,y:10000});
+  // A randomized carry may buy health items during this step. Isolate spell
+  // damage from AI shopping and regeneration while checking real snapshots.
+  Object.assign(caster,{x:10000,y:10000});Object.assign(enemy,{x:10100,y:10000,aiTimer:Infinity,hpRegen:0});
   const client=fixture.clients[1];client.send({type:'command',id:1,action:'learnAbility',args:[1]});assert.equal((await client.next('ack')).result.ok,true);
   const oldHp=enemy.hp;client.send({type:'command',id:2,action:'cast',args:[1,{x:enemy.x,y:enemy.y}]});assert.equal((await client.next('ack')).result.ok,true);
   game.step(.35);assert.ok(enemy.hp<oldHp);assert.ok(Object.values(enemy.statuses).some(s=>s.rooted||s.disarmed));

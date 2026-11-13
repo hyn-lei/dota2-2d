@@ -4,7 +4,7 @@ import { Game } from '../src/engine.js';
 
 function arena(hero='kunkka',ranks=[0,0,0,0]) {
   const g=new Game({hero});
-  const p=g.player,e=g.entities.find(u=>u.kind==='hero'&&u.team===1&&u.heroId==='crystal_maiden');
+  const p=g.player,e=g._makeHero('crystal_maiden',1,1,false,0);
   g.entities=[p,e];g.nextWave=Infinity;g.nextNeutralSpawn=Infinity;g.roshanRespawnAt=Infinity;
   Object.assign(p,{x:10400,y:10400,abilityLevels:ranks,skillPoints:0,maxMana:2000,mana:2000,attackCooldown:999,hpRegen:0});
   Object.assign(e,{x:10540,y:10400,maxHp:10000,hp:10000,maxMana:2000,mana:2000,hpRegen:0,armor:0,magicResistance:0,speed:0,aiTimer:Infinity,attackCooldown:999,abilityLevels:[0,0,0,0],skillPoints:0});

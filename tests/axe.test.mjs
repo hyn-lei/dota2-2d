@@ -3,10 +3,9 @@ import assert from 'node:assert/strict';
 import { Game } from '../src/engine.js';
 import { arena } from './skill-arena.mjs';
 
-test('Axe is drafted on both teams; player begins untrained and bots have only one learned skill',()=>{
+test('Axe player begins untrained and an Axe bot has only one learned skill',()=>{
  const g=new Game({hero:'axe'});assert.deepEqual(g.player.abilityLevels,[0,0,0,0]);
- for(const team of [0,1])assert.ok(g.entities.some(e=>e.team===team&&e.heroId==='axe'));
- const bot=g.entities.find(e=>e.team===1&&e.heroId==='axe');assert.equal(bot.abilityLevels.reduce((a,b)=>a+b),1);
+ const bot=g._makeHero('axe',1,1,false,0);assert.equal(bot.abilityLevels.reduce((a,b)=>a+b),1);
 });
 test('Call forces enemy heroes to attack and rejects their movement and casting commands',()=>{
  const {g,p,e}=arena('axe');e.x=p.x+240;e.range=20;g.cast(0);g.step(.3);

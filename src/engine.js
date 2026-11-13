@@ -12,6 +12,7 @@ import * as Courier from './courier.js';
 import { attackVisualFields } from './combat-visuals.js';
 import { launchAttack, tickAttacks, attackProfile, isRangedAttack } from './attack-projectiles.js';
 import * as Bots from './bot-ai.js';
+import {draftMatch,validateMatchDraft} from './bot-draft.js';
 import {flagbearerAura} from './unit-auras.js';
 import {armletHealthBonus} from './armlet-runtime.js';
 import {CollisionWorld} from './collision.js';
@@ -25,14 +26,13 @@ const clamp = (n, low, high) => Math.max(low, Math.min(high, n));
 const alive = e => !e.dead && e.hp > 0;
 const building = e => ['tower','barracks','ancient','fountain','filler'].includes(e?.kind);
 const fighter = e => ['hero','creep','neutral','summon','illusion'].includes(e?.kind);
-export function coopAllyHeroIds(humans){
-  const used=new Set(humans.map(h=>h.heroId));
-  return Object.keys(HEROES).filter(id=>!used.has(id)).slice(0,5-humans.length);
+export function coopAllyHeroIds(humans,options={}){
+  return draftMatch({...options,humanHeroIds:humans.map(h=>h.heroId)}).allies.slice(humans.length).map(h=>h.heroId);
 }
 
 /** Deterministic game state. Positions use Source world units; time is real seconds. */
 export class Game {
-  constructor({ hero = 'juggernaut', difficulty = 'normal', seed = 42, humanHeroes = null, fillWithAI = false } = {}) {
+  constructor({ hero = 'juggernaut', difficulty = 'normal', seed = 42, humanHeroes = null, fillWithAI = false, draft = null, draftHistory = [] } = {}) {
     this.time = 0;
     this.status = 'playing';
     this.paused = false;
@@ -58,19 +58,22 @@ export class Game {
     if(typeof fillWithAI!=='boolean'||fillWithAI&&humanHeroes===null)throw new Error('AI 补位需要明确的联机真人名单');
     if(humanHeroes!==null&&(!Array.isArray(humanHeroes)||humanHeroes.length<(fillWithAI?1:5)||humanHeroes.length>5||humanHeroes.some(h=>!Object.hasOwn(HEROES,h?.heroId))||new Set(humanHeroes.map(h=>h.heroId)).size!==humanHeroes.length))throw new Error('联机真人名单或英雄选择无效');
     this.heroChoice = humanHeroes?.[0].heroId || (HEROES[hero] ? hero : 'juggernaut');
-    const choices = Object.keys(HEROES);
-    const allies = choices.length >= 5 ? choices.filter(id=>id!==this.heroChoice) : choices;
+    const humanIds=humanHeroes?humanHeroes.map(h=>h.heroId):[this.heroChoice];
+    const lineup=draft??draftMatch({humanHeroIds:humanIds,seed:this.seed,history:draftHistory});
+    validateMatchDraft(lineup,humanIds);
+    const spawn=(entry,team,isPlayer,index)=>{
+      const h=this._makeHero(entry.heroId,team,entry.lane,isPlayer,index);h.draftRole=entry.role;return h;
+    };
     if(humanHeroes){
-      humanHeroes.forEach((member,i)=>{const h=this._makeHero(member.heroId,0,[1,0,2,1,2][i],true,i);Object.assign(h,{isHuman:true,controller:'human',clientId:member.clientId,playerName:member.name,movementInput:{x:0,y:0}});});
-      if(fillWithAI)coopAllyHeroIds(humanHeroes).forEach((heroId,index)=>{
-        const slot=humanHeroes.length+index,h=this._makeHero(heroId,0,[1,0,2,1,2][slot],false,slot);
+      humanHeroes.forEach((member,i)=>{const h=spawn(lineup.allies[i],0,true,i);Object.assign(h,{isHuman:true,controller:'human',clientId:member.clientId,playerName:member.name,movementInput:{x:0,y:0}});});
+      if(fillWithAI)lineup.allies.slice(humanHeroes.length).forEach((entry,index)=>{
+        const slot=humanHeroes.length+index,h=spawn(entry,0,false,slot);
         Object.assign(h,{isHuman:false,controller:'ai',aiDifficulty:'hard',playerName:'困难 AI'});
       });
     }else{
-      this._makeHero(this.heroChoice, 0, 1, true, 0);
-      for (let i = 0; i < 4; i++) this._makeHero(allies[i % allies.length], 0, [0,2,1,0][i], false, i + 1);
+      lineup.allies.forEach((entry,i)=>spawn(entry,0,i===0,i));
     }
-    for (let i = 0; i < 5; i++) this._makeHero(choices[(i + 1) % choices.length], 1, [0,1,2,1,2][i], false, i);
+    lineup.enemies.forEach((entry,i)=>spawn(entry,1,false,i));
     for(const h of [...this.entities])if(h.kind==='hero')Courier.ensureCourier(this,h);
     for (const layout of BUILDING_LAYOUT) {
       const key=layout.kind==='tower'?`tower${layout.tier}`:layout.kind==='barracks'?`barracks${layout.barracksType==='melee'?'Melee':'Ranged'}`:layout.kind;

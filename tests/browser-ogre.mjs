@@ -29,7 +29,7 @@ try{
 
   await page.evaluate(()=>{
     const g=window.g,p=g.player;while(p.level<25)g._addXp(p,p.xpNext);for(let i=0;i<4;i++)while(g.learnAbility(i).ok){}
-    const e=g.entities.find(u=>u.kind==='hero'&&u.team===1&&u.heroId==='crystal_maiden'),c=g._unit('creep',1,10780,10400,{maxHp:10000,hp:10000,lane:1,speed:0,attackCooldown:999,damage:0,armor:0,magicResistance:0});
+    const e=g._makeHero('crystal_maiden',1,1,false,0),c=g._unit('creep',1,10780,10400,{maxHp:10000,hp:10000,lane:1,speed:0,attackCooldown:999,damage:0,armor:0,magicResistance:0});
     Object.assign(p,{x:10400,y:10400,destination:null,navPath:null,attackCooldown:999,mana:800,manaRegen:0,hpRegen:0});
     Object.assign(e,{x:10540,y:10400,maxHp:10000,hp:10000,hpRegen:0,damage:0,speed:0,magicResistance:0,armor:0,aiTimer:Infinity,attackCooldown:999,cooldowns:[999,999,999,999],abilityLevels:[0,0,0,0],skillPoints:0,statuses:{},buffs:{}});
     g.entities=[p,e,c];g.nextWave=g.nextNeutralSpawn=g.roshanRespawnAt=Infinity;g.effects=[];g._random=()=>0;g._index();window.enemy=e;window.r.zoom=.55;window.r.lookAt(10400,10400);window.r.followPlayer=false;

@@ -105,7 +105,7 @@ test('missing AI combat fields and malformed effects are rejected before enterin
 
 test('a restored farming bot damages the real neutral and earns its bounty only once', () => {
   const g = new Game({ hero: 'juggernaut' });
-  const bot = g.entities.find(e => e.kind === 'hero' && e.heroId === 'axe' && !e.isPlayer);
+  const bot = g._makeHero('axe',0,1,false,0);
   Object.assign(g, { time: 91, nextWave: 200, nextNeutralSpawn: 200, nextBuildingCheck: 200, roshanRespawnAt: Infinity });
   g.entities = [g.player, bot]; Object.assign(g.player, { x: 12000, y: 12000 });
   Object.assign(bot, { x: 5000, y: 5000, level: 3, aiTimer: 10, targetId: null, destination: null, attackCooldown: 0 });

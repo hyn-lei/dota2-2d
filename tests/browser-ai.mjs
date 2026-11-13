@@ -55,7 +55,7 @@ try{
       for(let i=0;i<15;i++){match.time+=.6;bot.aiTimer=0;match._botTick(bot,0);}
       routes.push({hero,equipment:bot.inventory.filter(Boolean),purchases:bot.botShop.purchases,spent:bot.botShop.spent});
     }
-    const match=new Game({hero:'axe',difficulty:'hard'}),p=match.player,bot=match.entities.find(h=>h.kind==='hero'&&h.team===1&&h.heroId==='windranger');
+    const match=new Game({hero:'axe',difficulty:'hard'}),p=match.player,bot=match._makeHero('windranger',1,1,false,0);
     match.entities=[p,bot];match.nextWave=match.nextNeutralSpawn=match.roshanRespawnAt=Infinity;
     Object.assign(p,{x:10400,y:10400,hp:10000,maxHp:10000,hpRegen:0,attackCooldown:999,abilityLevels:[0,0,0,0],mana:0});
     Object.assign(bot,{x:10600,y:10400,abilityLevels:[4,4,4,3],skillPoints:0,gold:0,aiTimer:0,inventory:['black_king_bar'],mana:5000,maxMana:5000});Inventory.ensureInventory(bot);match._index();
