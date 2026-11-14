@@ -42,6 +42,28 @@ test('a new direction and stop survive a snapshot confirming only the older held
   assert.equal(client.renderView().player.moving,false);
 });
 
+test('delayed movement confirmations converge without pulling a held direction backwards',()=>{
+  for(const [x,y]of [[1,0],[-1,0],[0,1],[0,-1],[Math.SQRT1_2,Math.SQRT1_2]]){
+    const {client,state,tick,snapshot}=setup();client.setMovement(x,y);tick(100);
+    let previous=client.renderView().player,initialError;
+    for(let n=0;n<6;n++){
+      const next=structuredClone(state);next.time=1.1+n*.1;
+      Object.assign(next.entities[0],{x:hero.x+(-80+n*30)*x,y:hero.y+(-80+n*30)*y,movementInput:{x,y}});
+      snapshot(next,1);const saved=structuredClone(next);
+      const predictor=client.presentation.predictors.get(hero.id);
+      initialError??=Math.hypot(predictor.offset.x,predictor.offset.y);
+      for(let frame=0;frame<5;frame++){
+        tick(20);const shown=client.renderView().player;
+        assert.ok((shown.x-previous.x)*x+(shown.y-previous.y)*y>0,'correction must preserve progress along the held input');
+        previous=shown;
+      }
+      assert.deepEqual(next,saved,'reconciliation must not edit authoritative snapshots');
+    }
+    const predictor=client.presentation.predictors.get(hero.id),error=Math.hypot(previous.x-predictor.unit.x,previous.y-predictor.unit.y);
+    assert.ok(error<initialError*.5,'the display must still converge to the confirmed position');
+  }
+});
+
 test('remote units move continuously between snapshots and all gameplay queries retain current server values',()=>{
   const {client,state,tick,snapshot}=setup({legacy:true});client.renderView();tick(100);
   const next=structuredClone(state);next.time=1.1;next.entities[1].x+=30;next.entities[1].hp-=10;snapshot(next);

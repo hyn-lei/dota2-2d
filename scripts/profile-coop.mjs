@@ -11,11 +11,14 @@ const label=args[0]||'current',mature=args.includes('--mature'),check=args.inclu
 if(!/^[a-z0-9-]+$/.test(label))throw Error('Use a simple report label');
 const source=resolve(argument('--source')||process.cwd()),root=resolve(argument('--root')||process.env.STATIC_ROOT||source);
 const {createCoopServer}=await import(pathToFileURL(resolve(source,'server/coop-server.mjs'))),{CoopGame}=await import(pathToFileURL(resolve(source,'server/coop-game.mjs')));
+const testGround={x:10000,y:11000};
 const timings={step:[],snapshot:[]};
 const service=createCoopServer({root,host:'127.0.0.1',port:0,gameFactory(roster,options){
  const game=new CoopGame(roster,{...options,seed:42});
  if(mature){game.time=180;game.nextWave=210;game.nextNeutralSpawn=240;game._spawnCamps();for(let i=0;i<4;i++)game._spawnWave();}
- const start=game.navigation.nearestWalkable({x:10400,y:10400});Object.assign(game.player,start);game._index();
+ const start=game.navigation.nearestWalkable(testGround);
+ assert.ok(game.navigation.lineClear(start,{x:start.x-450,y:start.y})&&game.navigation.lineClear(start,{x:start.x+450,y:start.y}),'the movement probe needs an unobstructed corridor away from combat');
+ Object.assign(game.player,start);game._index();
  const step=game.step;game.step=function(dt){const at=performance.now();step.call(this,dt);if(timings.active)timings.step.push(performance.now()-at);};return game;
 }});
 const broadcast=service.manager.broadcastSnapshot;service.manager.broadcastSnapshot=function(room){const at=performance.now();broadcast.call(this,room);if(timings.active)timings.snapshot.push(performance.now()-at);};
@@ -40,10 +43,10 @@ try{
   Renderer.prototype.render=function(game,time){
    const start=performance.now(),shown=game?.renderView?.()||game,result=render.call(this,shown,time);
    if(game?.isNetwork){window.coopGame=game;window.coopRenderer=this;const samples=window.coopSamples;
-    if(samples?.active){const now=performance.now(),p=shown.player;samples.frames.push({at:now,x:p.x,y:p.y,renderMs:now-start});if(samples.inputAt&&samples.firstMoveMs==null&&Math.hypot(p.x-samples.inputPosition.x,p.y-samples.inputPosition.y)>.5)samples.firstMoveMs=now-samples.inputAt;}}
+    if(samples?.active){const now=performance.now(),p=shown.player;samples.frames.push({at:now,x:p.x,y:p.y,inputX:game.lastMovement?.x||0,inputY:game.lastMovement?.y||0,alive:!game.player.dead&&game.player.hp>0,renderMs:now-start});if(samples.inputAt&&samples.firstMoveMs==null&&Math.hypot(p.x-samples.inputPosition.x,p.y-samples.inputPosition.y)>.5)samples.firstMoveMs=now-samples.inputAt;}}
    return result;
   };
-  CoopConnection.prototype.request=function(...args){const at=performance.now(),pending=request.apply(this,args);pending.then(result=>{if(window.coopSamples?.active)coopSamples.commands.push({action:args[0],ok:result.ok,rttMs:performance.now()-at});});return pending;};
+  CoopConnection.prototype.request=function(...args){const at=performance.now(),pending=request.apply(this,args);pending.then(result=>{if(window.coopSamples?.active)coopSamples.commands.push({action:args[0],ok:result.ok,reason:result.reason,rttMs:performance.now()-at});});return pending;};
  });
  await page.locator('#quick-coop-room').click();await page.waitForFunction(()=>document.querySelector('#coop-connection')?.textContent.includes('\u5df2\u8fde\u63a5'));
  await page.locator('#coop-name').fill('Performance probe');await page.locator('#coop-create').click();await page.waitForSelector('#coop-room-code');
@@ -55,17 +58,23 @@ try{
   await page.keyboard.down('ArrowLeft');await page.waitForTimeout(1000);await page.keyboard.up('ArrowLeft');
  }
  const stats=values=>{const a=[...values].sort((x,y)=>x-y);return {n:a.length,mean:a.length?a.reduce((s,n)=>s+n,0)/a.length:0,p50:a[Math.floor(a.length*.5)]||0,p95:a[Math.floor(a.length*.95)]||0,max:a.at(-1)||0};};
- const samples=await page.evaluate(()=>{coopSamples.active=false;return {samples:coopSamples,frontendBuild:document.querySelector('meta[name="game-build"]')?.content||null,ai:coopGame.entities.filter(e=>e.kind==='hero'&&e.controller==='ai').length,heroes:coopGame.entities.filter(e=>e.kind==='hero').map(e=>e.heroId),entities:coopGame.entities.length,time:coopGame.time};});
+ const samples=await page.evaluate(()=>{coopSamples.active=false;return {samples:coopSamples,player:{hp:coopGame.player.hp,maxHp:coopGame.player.maxHp,dead:coopGame.player.dead,statuses:coopGame.player.statuses},frontendBuild:document.querySelector('meta[name="game-build"]')?.content||null,ai:coopGame.entities.filter(e=>e.kind==='hero'&&e.controller==='ai').length,heroes:coopGame.entities.filter(e=>e.kind==='hero').map(e=>e.heroId),entities:coopGame.entities.length,time:coopGame.time};});
  timings.active=false;
  const frames=samples.samples.frames,packets=samples.samples.packets,intervals=a=>a.slice(1).map((v,i)=>v.at-a[i].at),duration=(frames.at(-1).at-frames[0].at)/1000;
  const changed=frames.slice(1).filter((f,i)=>Math.hypot(f.x-frames[i].x,f.y-frames[i].y)>.01).length;
- const report={label,mature,source,root,frontendBuild:samples.frontendBuild,simulatedRoundTripMs:300,ai:samples.ai,heroes:samples.heroes,entities:samples.entities,time:samples.time,durationSeconds:duration,firstVisibleMovementMs:samples.samples.firstMoveMs,positionChangesPerSecond:changed/duration,renderFramesPerSecond:frames.length/duration,snapshotIntervalsMs:stats(intervals(packets)),decodedPacketBytes:stats(packets.map(p=>p.bytes)),decodedIncomingBytesPerSecond:packets.reduce((s,p)=>s+p.bytes,0)/duration,compressedWebSocketBytesPerSecond:(wireBytes()-firstWireBytes)/duration,commandRoundTripMs:stats(samples.samples.commands.map(c=>c.rttMs)),renderMs:stats(frames.map(f=>f.renderMs)),serverStepMs:stats(timings.step),serverSnapshotMs:stats(timings.snapshot),serverSnapshotCpuMsPerSecond:timings.snapshot.reduce((s,n)=>s+n,0)/duration,errors};
+ const backwards=frames.slice(1).map((f,i)=>{const previous=frames[i];return f.inputX===previous.inputX&&f.inputY===previous.inputY?(f.x-previous.x)*f.inputX+(f.y-previous.y)*f.inputY:0;}).filter(d=>d<-.05);
+ const report={label,mature,source,root,frontendBuild:samples.frontendBuild,testGround,simulatedRoundTripMs:300,ai:samples.ai,heroes:samples.heroes,entities:samples.entities,time:samples.time,player:samples.player,deadFrames:frames.filter(f=>!f.alive).length,failedCommands:samples.samples.commands.filter(c=>!c.ok),durationSeconds:duration,firstVisibleMovementMs:samples.samples.firstMoveMs,positionChangesPerSecond:changed/duration,renderFramesPerSecond:frames.length/duration,snapshotIntervalsMs:stats(intervals(packets)),decodedPacketBytes:stats(packets.map(p=>p.bytes)),decodedIncomingBytesPerSecond:packets.reduce((s,p)=>s+p.bytes,0)/duration,compressedWebSocketBytesPerSecond:(wireBytes()-firstWireBytes)/duration,commandRoundTripMs:stats(samples.samples.commands.map(c=>c.rttMs)),renderMs:stats(frames.map(f=>f.renderMs)),serverStepMs:stats(timings.step),serverSnapshotMs:stats(timings.snapshot),serverSnapshotCpuMsPerSecond:timings.snapshot.reduce((s,n)=>s+n,0)/duration,errors};
+ report.backwardsFrames=backwards.length;report.maxBackwardsDistance=backwards.length?-Math.min(...backwards):0;
+ await writeFile(`artifacts/coop-${label}-samples.json`,JSON.stringify(samples.samples));
  await writeFile(`artifacts/coop-${label}-performance.json`,JSON.stringify(report,null,2));await page.screenshot({path:`artifacts/coop-${label}-performance.png`});console.log(JSON.stringify(report,null,2));
  if(check){
   assert.equal(report.ai,9);if(mature)assert.ok(report.entities>=200);
+  assert.ok(!report.player.dead&&report.player.hp>0,'the movement probe must stay alive throughout the measurement');
+  assert.equal(report.deadFrames,0,'every measured frame must represent a living movement probe');
   assert.ok(report.firstVisibleMovementMs!=null&&report.firstVisibleMovementMs<150,'movement must respond before the simulated network round trip');
   assert.ok(report.positionChangesPerSecond>35,'positions must advance on rendered frames, not only on snapshots');
   assert.ok(report.positionChangesPerSecond/report.renderFramesPerSecond>.8,'movement must remain continuous between snapshots');
+  assert.equal(report.backwardsFrames,0,'server confirmations must not pull movement against an unchanged input in the clear corridor');
   assert.ok(report.snapshotIntervalsMs.p95<275,'snapshot transmission must not wait for a complete round trip');
   assert.ok(report.commandRoundTripMs.p50>=280,'the test must retain its simulated 300ms latency');
   assert.equal(samples.samples.commands.filter(c=>!c.ok).length,0);assert.deepEqual(errors,[]);

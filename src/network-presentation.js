@@ -65,7 +65,7 @@ export class NetworkPresentation {
     if(this.enabled&&!this.suspended)for(const id of ids){
       const authoritative=latest.entities.get(id);if(!authoritative||!this.game.canControl(authoritative))continue;
       const unit={...authoritative,movementInput:{...authoritative.movementInput},navPath:null,navGoal:null};
-      this.predictors.set(id,{unit,at:this.baseAt,applied:new Set(),hold:false,offset:{x:0,y:0},correctedAt:now});
+      this.predictors.set(id,{unit,at:this.baseAt,applied:new Set(),hold:false,offset:{x:0,y:0},correctedAt:now,correctionMs:80});
     }
     this.world.time=this.game.time;
     this.world.entities=this.game.entities.map(e=>this.predictors.get(e.id)?.unit||e);
@@ -73,7 +73,13 @@ export class NetworkPresentation {
     this.advance(now);
     for(const [id,predictor]of this.predictors){
       const before=this.shown.get(id),latestBreak=this.cutoffs.get(id)===latest.time,canSmooth=before&&!snap&&!latestBreak&&!this.blocked(predictor.unit)&&distance(before,predictor.unit)<160;
-      if(canSmooth)predictor.offset={x:before.x-predictor.unit.x,y:before.y-predictor.unit.y};
+      if(canSmooth){
+        predictor.offset={x:before.x-predictor.unit.x,y:before.y-predictor.unit.y};
+        const speed=this.world.combatStats(predictor.unit).speed;
+        // A delayed direction confirmation must not pull a walking pose backwards.
+        // Limit the initial correction speed to half of the current walking speed.
+        if(predictor.unit.moving&&speed>0)predictor.correctionMs=Math.max(80,Math.hypot(predictor.offset.x,predictor.offset.y)*2000/speed);
+      }
     }
   }
   applyIntent(predictor,command){
@@ -127,7 +133,7 @@ export class NetworkPresentation {
       const predictor=this.predictors.get(entity.id);let pose;
       if(predictor&&this.blocked(entity))pose=entity;
       else if(predictor){
-        const decay=Math.exp(-(now-predictor.correctedAt)/80),unit=predictor.unit;
+        const decay=Math.exp(-(now-predictor.correctedAt)/predictor.correctionMs),unit=predictor.unit;
         pose={x:unit.x+predictor.offset.x*decay,y:unit.y+predictor.offset.y*decay,angle:unit.angle,moving:unit.moving};
       }else pose=this.remotePose(entity,this.renderTime);
       this.shown.set(entity.id,pose);return pose===entity?entity:{...entity,...pose};
