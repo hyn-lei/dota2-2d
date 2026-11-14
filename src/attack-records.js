@@ -180,5 +180,10 @@ export const ATTACK_PROFILES={
     "speed": 1250,
     "attackPoint": 0.5,
     "particle": "particles/units/heroes/hero_drow/drow_base_attack.vpcf"
+  },
+  "chen": {
+    "speed": 1100,
+    "attackPoint": 0.5,
+    "particle": "particles/units/heroes/hero_chen/chen_base_attack.vpcf"
   }
 };

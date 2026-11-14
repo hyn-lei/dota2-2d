@@ -26,7 +26,7 @@ const validators = {
   toggleAutocast:a=>args(a,1)&&integer(a[0],0,3),
   learnAbility:a=>args(a,1)&&integer(a[0],0,3),
   learnTalent:a=>args(a,1)&&integer(a[0],0,7),
-  learnAttributes:noArgs,recall:noArgs,
+  learnAttributes:noArgs,recall:noArgs,stop:noArgs,
   buy:a=>args(a,1)&&item(a[0]),
   moveItem:a=>args(a,4)&&slot(a[0],a[1])&&slot(a[2],a[3]),
   sellItem:a=>args(a,2)&&slot(a[0],a[1]),
@@ -62,7 +62,7 @@ export function executeCommand(game, actorId, message) {
   if(!Array.isArray(guards) || guards.length>4 || guards.some(g=>!exact(g,['area','index','uid'])||!slot(g.area,g.index)||!(g.uid===null||id(g.uid)))) return fail('无效的物品校验');
   return game.withActor(actorId, actor => {
     const inventoryActor=message.action==='unitCommand'?game.entities.find(e=>e.id===message.args[0]):actor;
-    if(message.action==='unitCommand'&&(!inventoryActor||!game.canControl(inventoryActor)||inventoryActor.kind!=='illusion'))return fail('只能操控自己制造的幻象');
+    if(message.action==='unitCommand'&&(!inventoryActor||!game.canControl(inventoryActor)||inventoryActor.id===actor.id))return fail('只能操控自己的单位');
     for(const [area,index] of required) {
       const matches=guards.filter(g=>g.area===area&&g.index===index);
       const uid=inventoryActor[area]?.[index] ? inventoryActor[area+'Meta']?.[index]?.uid : null;

@@ -1,4 +1,5 @@
 import { HEROES, TEAM_COLORS } from './data.js';
+import {drawLaneCreep} from './creep-visuals.js';
 import { WORLD, BASES, MAP_IMAGE, CAMP_LAYOUT, MAP_OBJECTIVES, TREES } from './map-data.js';
 import { drawCombatEffect, drawUnitCombatEffects, unitAuraRadius } from './combat-effects.js';
 import { unitOpacity } from './combat-visuals.js';
@@ -126,7 +127,7 @@ export class Renderer {
     const width=c.measureText(text).width+12;c.fillStyle='rgba(11,18,17,.82)';c.fillRect(x-width/2,y-9,width,18);c.fillStyle=color;c.fillText(text,x,y);c.restore();
   }
   drawEntityLabel(c,e,game){
-    const selected=e.id===(game.selectedId||game.player?.id),hovered=e.id===this.hoverId,hero=e.kind==='hero'||e.kind==='illusion',building=BUILDINGS.has(e.kind),neutral=e.kind==='neutral';
+    const selected=(game.selectedIds||[game.selectedId||game.player?.id]).includes(e.id),hovered=e.id===this.hoverId,hero=e.kind==='hero'||e.kind==='illusion',building=BUILDINGS.has(e.kind),neutral=e.kind==='neutral';
     if(e.dead&&!selected&&!hovered)return;
     if(this.zoom<.15){if(selected||hovered){const p=this.worldToScreen(e.x,e.y);circle(c,p.x,p.y,7,null,'#f4e9af',1.3);this.label(c,e.name||HEROES[e.heroId]?.name||'单位',p.x,p.y-16,unitColor(e),11);}return;}
     const p=this.worldToScreen(e.x,e.y),color=unitColor(e),worldRadius=e.selectionRadius||e.radius||24;
@@ -209,11 +210,13 @@ export class Renderer {
       buffer.globalCompositeOperation='source-atop';buffer.globalAlpha=.65;const blue=buffer.createLinearGradient(0,60,0,300);blue.addColorStop(0,'#80d8ff');blue.addColorStop(.5,'#318fdf');blue.addColorStop(1,'#185dbb');buffer.fillStyle=blue;buffer.fillRect(0,0,384,384);buffer.globalAlpha=1;buffer.globalCompositeOperation='source-over';
       c.drawImage(canvas,e.x-192,e.y-192);return;
     }
-    const hero=e.kind==='hero'||e.kind==='illusion',neutral=e.kind==='neutral',color=unitColor(e);
+    const hero=e.kind==='hero'||e.kind==='illusion',neutral=e.kind==='neutral'||e.kind==='summon'&&e.nativeKind==='neutral',color=unitColor(e);
     const invisible=Object.values(e.statuses||{}).some(s=>s.invisible&&s.startedAt<=game.time&&s.until>game.time);
     const floor=(e.team===game.player?.team||(invisible&&game.canSee?.(game.player,e))) ? 0.24 : 0;
     c.save();c.translate(e.x,e.y);c.globalAlpha*=unitOpacity(e,game.time,floor);
+    if(e.creatureTornado){for(let i=0;i<5;i++){c.save();c.rotate(t*5+i);c.scale(1,.45);circle(c,0,-i*11,35-i*5,null,'#c4dcd0',3);c.restore();}c.restore();return;}
     if(neutral){this.drawNeutral(c,e,t);c.restore();return;}
+    if(e.kind==='creep'||e.kind==='summon'&&e.nativeKind==='creep'){drawLaneCreep(c,e,t,e.statuses?.ogreBloodlust?.until>game.time?1+(e.statuses.ogreBloodlust.modelScale||0)/100:1);c.restore();return;}
     if(e.kind==='droppedItem'){poly(c,[[0,-22],[25,0],[0,22],[-25,0]],'#8b713c','#ead08c',3);circle(c,0,0,7,'#f3dfa8');c.restore();return;}
     if(e.kind==='courier'){
       c.scale(1.8,1.8);if(e.flying){const flap=Math.sin(t*10)*5;poly(c,[[-6,0],[-30,-15-flap],[-22,8],[0,8]],'#c2c9b5',color,1);poly(c,[[6,0],[30,-15-flap],[22,8],[0,8]],'#c2c9b5',color,1);}
@@ -235,7 +238,16 @@ export class Renderer {
     c.save();const angle=e.angle??(e.team?2.3:-.7);c.rotate(angle+Math.PI/2);
     const bob=e.moving?Math.sin(t*14+Number(String(e.id).replace(/\D/g,'')))*2:Math.sin(t*2)*.6;c.translate(0,bob);
     if(hero){
-      if(e.heroId==='ogre_magi'){
+      if(e.heroId==='chen'){
+        poly(c,[[-18,23],[-24,12],[-21,-6],[-12,-18],[8,-22],[23,-6],[21,17],[12,27]],'#d4c9a8','#504a35',2);
+        poly(c,[[-18,13],[-16,35],[-9,35],[-6,12],[7,12],[10,35],[17,35],[19,13]],'#bfb99a','#665e48',1.5);
+        poly(c,[[9,-15],[12,-34],[22,-40],[30,-33],[29,-19],[20,-8]],'#ded7ba','#726a51',1.5);circle(c,22,-30,2,'#403a29');
+        poly(c,[[-16,-5],[-22,16],[-7,21],[8,15],[10,-9]],'#386b6a','#d9c586',2);
+        poly(c,[[-12,-12],[-8,-22],[6,-22],[12,-12],[8,5],[-10,5]],'#c9b469','#f4e6bb',2);
+        circle(c,0,-25,9,'#c8ab86','#62563b',1);poly(c,[[-9,-24],[-8,-34],[0,-40],[9,-34],[10,-24],[4,-28],[-3,-28]],'#e4dabb','#9a895c',1.5);
+        poly(c,[[-16,-12],[-20,-20],[-8,-23],[-5,-12]],'#e4d6a2','#947947',1.5);
+        line(c,[{x:-24,y:14},{x:-24,y:-43}],'#d2bd74',4);poly(c,[[-32,-43],[-24,-52],[-16,-43],[-24,-35]],'#fff3c3','#a58c46',1.5);circle(c,-24,-43,3,'#fcf6dd');
+      }else if(e.heroId==='ogre_magi'){
         poly(c,[[-22,-9],[-27,10],[-15,24],[16,24],[28,10],[22,-9]],'#558cc0','#2d4b65',2);
         poly(c,[[-23,10],[-16,29],[0,24],[16,29],[24,11],[8,6],[-6,8]],'#a05b39','#5f442d',2);
         poly(c,[[-24,-4],[-34,2],[-31,15],[-21,12]],'#5f9acb');poly(c,[[24,-4],[34,2],[31,15],[21,12]],'#689cca');

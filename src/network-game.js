@@ -30,7 +30,7 @@ export class NetworkGame extends Game {
     pending.then(result=>{if(!result.ok)this.presentation.reject(pending.commandId,this.networkClock());});return pending;
   }
   unitCommand(id,action,args=[]){
-    const unit=this.entities.find(e=>e.id===id);if(!unit||!this.canControl(unit)||unit.kind!=='illusion')return Promise.resolve({ok:false,reason:'只能操控自己制造的幻象'});
+    const unit=this.entities.find(e=>e.id===id);if(!unit||!this.canControl(unit)||unit.id===this.playerId)return Promise.resolve({ok:false,reason:'只能操控自己的单位'});
     if(action==='setMovement'){
       this.unitMovements||=new Map();const now=performance.now(),previous=this.unitMovements.get(id);
       if(previous&&previous.x===args[0]&&previous.y===args[1]&&(!args[0]&&!args[1]||now-previous.at<250))return;
@@ -41,11 +41,13 @@ export class NetworkGame extends Game {
     return this.invoke('unitCommand',[id,action,values],slots.map(([area,index])=>({area,index,uid:unit[area+'Meta']?.[index]?.uid||null})));
   }
   selectEntity(id){
-    const previous=this.controlledUnit,input=previous?.id===this.playerId?this.lastMovement:this.unitMovements?.get(previous?.id);
-    if(previous&&previous.id!==id&&(input?.x||input?.y||previous.movementInput?.x||previous.movementInput?.y)){
-      if(previous.kind==='illusion')this.unitCommand(previous.id,'setMovement',[0,0]);else this.setMovement(0,0);
+    for(const selectedId of this.selectedIds||[this.controlledUnit?.id]){
+    const previous=this.entities.find(e=>e.id===selectedId),input=previous?.id===this.playerId?this.lastMovement:this.unitMovements?.get(previous?.id);
+    if(previous&&previous.id!==id&&this.canControl(previous)&&(input?.x||input?.y||previous.movementInput?.x||previous.movementInput?.y)){
+      if(previous.id!==this.playerId)this.unitCommand(previous.id,'setMovement',[0,0]);else this.setMovement(0,0);
     }
-    if(this.entities.some(e=>e.id===id))this.selectedId=id;
+    }
+    if(this.entities.some(e=>e.id===id)){this.selectedId=id;this.selectedIds=[id];}
   }
   setMovement(x,y){
     const now=performance.now();
@@ -54,6 +56,7 @@ export class NetworkGame extends Game {
   }
   moveTo(x,y){return this.invoke('moveTo',[x,y]);}
   attackTarget(id){return this.invoke('attackTarget',[id]);}
+  stop(){return this.invoke('stop');}
   cast(index,point){return this.invoke('cast',[index,this.point(point)]);}
   castExtra(id,point){return this.invoke('castExtra',[id,this.point(point)]);}
   toggleAutocast(index){return this.invoke('toggleAutocast',[index]);}

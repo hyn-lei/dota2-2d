@@ -67,7 +67,7 @@ test('independent seeds expose a broad range of balanced teams and every AI hero
     }
   }
   assert.ok(sets[0].size>=12);assert.ok(sets[1].size>=16);
-  assert.equal(seen[0].size,6);assert.equal(seen[1].size,7);
+  assert.equal(seen[0].size,ids.length-1);assert.equal(seen[1].size,ids.length);
 });
 
 test('four-human rooms rotate their single AI slot even after recent history exhausts the pool', () => {

@@ -151,19 +151,24 @@ function startGame(providedGame=null,resume=false){
   $('#hud-quickbuy').onclick=async()=>{const result=await game.buyQuick();if(!result.ok)toast(result.reason);updateHud();};
   const buyHudItem=async e=>{const button=e.target.closest('[data-hud-buy]');if(!button)return;e.preventDefault();const activeGame=game,result=await activeGame.buy(button.dataset.hudBuy);if(game!==activeGame)return;if(!result.ok)toast(result.reason);else sound();updateHud();};
   $('#hud-quickbuy-items').addEventListener('click',buyHudItem);$('#hud-quickbuy-items').addEventListener('contextmenu',buyHudItem);
-  $('.game-hud').insertAdjacentHTML('beforeend','<div class="illusion-controls" hidden><span></span><button id="stop-controlled-unit">停止</button><button id="return-own-hero">返回英雄</button></div>');
+  $('.game-hud').insertAdjacentHTML('beforeend','<div class="illusion-controls" hidden><span></span><button id="select-all-owned" title="F2 · 选择英雄和全部受控单位">全部单位</button><button id="select-owned-only" title="F4 · 选择英雄以外的受控单位">其他单位</button><button id="stop-controlled-unit">停止</button><button id="return-own-hero" title="F1 · 返回英雄">返回英雄</button><div id="owned-unit-buttons"></div></div>');
   $('#stop-controlled-unit').onclick=()=>controlledAction('stop');$('#return-own-hero').onclick=restoreOwnHero;
+  $('#select-all-owned').onclick=()=>{game.selectControlledGroup(true);updateHud();};$('#select-owned-only').onclick=()=>{game.selectControlledGroup(false);updateHud();};
   updateHud();
   $('.match-header').insertAdjacentHTML('afterend',`<div class="match-roster" aria-label="点击英雄头像查看属性与装备">${[0,1].map(team=>`<div class="roster-team ${team?'dire':'radiant'}"><span>${team?'夜魇':'天辉'}</span>${game.entities.filter(e=>e.kind==='hero'&&e.team===team).map(e=>`<button data-inspect-hero="${e.id}" title="查看${e.name}${game.isNetwork&&e.team===0&&e.controller==='ai'?'（困难 AI 队友）':''}的属性和装备" aria-label="查看${team?'敌方':'友方'}${e.name}">${portrait(HEROES[e.heroId])}${game.isNetwork&&e.team===0&&e.controller==='ai'?'<small class="roster-ai-label">AI</small>':''}</button>`).join('')}</div>`).join('')}</div>`);
-  document.querySelectorAll('[data-inspect-hero]').forEach(b=>b.onclick=()=>{game.selectEntity(b.dataset.inspectHero);updateHud();});
+  document.querySelectorAll('[data-inspect-hero]').forEach(b=>b.onclick=()=>{game.selectEntity(b.dataset.inspectHero);updateHud();if(b.dataset.inspectHero===game.player.id)showUnitDetails(true);});
   $('.hero-hud').insertAdjacentHTML('beforeend','<button id="hero-details" class="hero-details" title="查看所选单位完整属性">详细属性 <span id="attribute-summary"></span></button>');
   $('.hero-hud').insertAdjacentHTML('beforeend','<div id="hero-stat-tooltip" class="hero-stat-tooltip" role="tooltip" hidden></div>');
   const detail=$('#hero-details'),tip=$('#hero-stat-tooltip');
-  const showDetails=()=>{tip.hidden=false;updateInspection();};
+  const showDetails=()=>showUnitDetails();
   detail.onpointerenter=showDetails;detail.onfocus=showDetails;
-  $('.hero-hud').onpointerleave=()=>tip.hidden=true;
-  detail.onblur=()=>tip.hidden=true;
-  detail.onclick=showDetails;
+  $('.hero-hud').onpointerleave=()=>{if(tip.dataset.pinned!=='true')hideUnitDetails();};
+  detail.onblur=()=>{if(tip.dataset.pinned!=='true')hideUnitDetails();};
+  detail.onclick=()=>showUnitDetails(true);
+  const unitPortrait=$('.hud-portrait');unitPortrait.id='hud-unit-details';unitPortrait.tabIndex=0;unitPortrait.setAttribute('role','button');unitPortrait.setAttribute('aria-controls','hero-stat-tooltip');unitPortrait.setAttribute('aria-expanded','false');unitPortrait.title='点击查看详细属性';
+  unitPortrait.onclick=()=>tip.hidden||tip.dataset.pinned!=='true'?showUnitDetails(true):hideUnitDetails();
+  unitPortrait.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();e.stopPropagation();unitPortrait.click();}};
+  tip.onclick=e=>{if(e.target.closest('[data-close-unit-details]'))hideUnitDetails();};
   $('#map-overview').onclick=()=>{renderer.zoom=Math.max(.01,Math.min(renderer.w-40,renderer.h-360)/WORLD.width);renderer.lookAt(WORLD.width/2,WORLD.height/2);};
   $('#map-center').onclick=()=>{restoreOwnHero();renderer.zoom=Math.max(.3,Math.min(.5,renderer.w/3200));renderer.center(game.player);};
   $('#camp-bounds').onclick=()=>{renderer.showCampBounds=!renderer.showCampBounds;$('#camp-bounds').classList.toggle('active',renderer.showCampBounds);};
@@ -199,7 +204,13 @@ function startGame(providedGame=null,resume=false){
 }
 function restoreOwnHero(){if(game){game.selectEntity(game.player.id);updateHud();}}
 function prepareControlledUnit(){if(!game.canControl(game.selected))restoreOwnHero();return game.controlledUnit;}
-function controlledAction(action,args=[]){const unit=game.controlledUnit;return unit.kind==='illusion'?game.unitCommand(unit.id,action,args):game[action](...args);}
+function controlledAction(action,args=[]){
+ const unit=game.controlledUnit,group=['moveTo','setMovement','attackTarget','stop'].includes(action);
+ let units=group?(game.selectedIds||[unit.id]).map(id=>game.entities.find(e=>e.id===id)).filter(e=>e&&!e.dead&&e.hp>0&&game.canControl(e)):[unit];
+ if(!units.length)units=[unit];
+ const results=units.map(e=>e.id===game.player.id?game[action](...args):game.unitCommand(e.id,action,args));
+ if(results.length===1)return results[0];return Promise.all(results).then(values=>values.find(v=>v?.ok===false)||{ok:true});
+}
 async function cast(i,self=false){if(!game||modal)return;const unit=prepareControlledUnit(),activeGame=game,target=self?unit:renderer.screenToWorld(pointer.x||renderer.w/2,pointer.y||renderer.h/2);const r=await controlledAction('cast',[i,target]);if(game!==activeGame)return;if(r.ok){if(game.skill(i,unit).kind==='active'||unit.heroId==='ogre_magi')keys.clear();sound('cast');updateHud();}else toast(r.reason||'暂时无法施放技能');}
 let pendingItem=null;
 function cancelItemUse(){pendingItem=null;$('#battlefield')?.classList.remove('item-targeting');$('#item-target-prompt')?.remove();}
@@ -222,7 +233,13 @@ function updateHud(){
   const developer=developerModeState(game).enabled;$('.settings-button').classList.toggle('developer-mode-active',developer);$('.settings-button').title=developer?'游戏设置 · 开发者模式已开启':'游戏设置';
   const hud=$('.game-hud');hud.dataset.unitId=p.id;hud.dataset.unitKind=p.kind;hud.dataset.ownership=p.id===actor.id?'own':p.team===actor.team?'ally':'enemy';
   $('.hud-hero-title strong').textContent=p.name||unitLabels[p.kind];
-  const controls=$('.illusion-controls');if(controls){controls.hidden=p.kind!=='illusion'||!game.canControl(p)||p.dead;controls.querySelector('span').textContent=strongIllusion(p)?'强幻象 · 手动控制':'弱幻象 · 索敌 600';}
+  $('#hud-unit-details')?.setAttribute('aria-label',`查看${p.name||unitLabels[p.kind]}的详细属性`);
+  const controls=$('.illusion-controls');if(controls){
+   const units=game.entities.filter(e=>e.id!==actor.id&&game.canControl(e)&&!e.dead&&e.hp>0);controls.hidden=!units.length||!game.canControl(p)||p.dead;
+   controls.querySelector('span').textContent=p.zealot?`狂热者 · ${{follow:'跟随陈',attack:'优先攻击指定敌人',hunt:'自动索敌 600',hold:'移动后待命'}[p.creatureOrder||'follow']}`:p.kind==='illusion'?(strongIllusion(p)?'强幻象 · 手动控制':'弱幻象 · 索敌 600'):`受控单位 ${units.length} · ${(game.selectedIds||[p.id]).length>1?'编队':'独立控制'}`;
+   const html=units.map(e=>`<button data-owned-unit="${e.id}" aria-pressed="${(game.selectedIds||[p.id]).includes(e.id)}" title="选择${escapeHtml(e.name)}">${escapeHtml(e.name)} <small>${Math.round(e.hp/e.maxHp*100)}%</small></button>`).join(''),list=$('#owned-unit-buttons');
+   if(list.renderedContent!==html){list.innerHTML=html;list.renderedContent=html;list.querySelectorAll('[data-owned-unit]').forEach(b=>b.onclick=()=>{game.selectEntity(b.dataset.ownedUnit);updateHud();});}
+  }
   const portraitImage=$('.hud-portrait>img'),portraitSrc=h?`/assets/hud/portraits/${h.id}.png`:null;portraitImage.hidden=!h;
   let symbol=$('.hud-unit-symbol');if(!symbol){symbol=document.createElement('div');symbol.className='hud-unit-symbol';$('.hud-portrait').append(symbol);}symbol.hidden=!!h;if(!h)symbol.innerHTML=icon(p.kind==='tower'?'tower':'shield');
   if(portraitSrc&&portraitImage.getAttribute('src')!==portraitSrc)portraitImage.src=portraitSrc;portraitImage.alt=(p.name||unitLabels[p.kind])+'头部肖像';
@@ -251,13 +268,20 @@ function updateHud(){
 }
 const attributeLabels={strength:'力量',agility:'敏捷',intelligence:'智力',universal:'全才'};
 const unitLabels={ward:'守卫',hero:'英雄',creep:'兵线单位',neutral:'野怪',tower:'防御塔',barracks:'兵营',fountain:'泉水',ancient:'远古遗迹',filler:'基地建筑',courier:'信使',droppedItem:'地面物品',illusion:'幻象',summon:'召唤物'};
+function showUnitDetails(pinned=false){
+ const tip=$('#hero-stat-tooltip');if(!tip)return;
+ if(pinned)tip.dataset.pinned='true';tip.hidden=false;$('#hud-unit-details')?.setAttribute('aria-expanded','true');updateInspection();
+}
+function hideUnitDetails(){
+ const tip=$('#hero-stat-tooltip');if(tip){tip.hidden=true;delete tip.dataset.pinned;}$('#hud-unit-details')?.setAttribute('aria-expanded','false');
+}
 function updateInspection(){
   const body=$('#hero-stat-tooltip');if(!body||body.hidden||!game)return;
   const selected=game.selected,combat=game.combatStats(selected),delta=combat.damage-selected.damage;
   const e={...selected,...combat,damageMin:(selected.damageMin??selected.damage)+delta,damageMax:(selected.damageMax??selected.damage)+delta},hero=e.kind==='hero'||e.kind==='illusion',neutral=e.kind==='neutral',type=attributeLabels[e.primaryAttribute];
   const n=v=>Number.isFinite(v)?Number(v.toFixed(1)).toString():'—',percent=v=>`${n(v*100)}%`;
   const pair=(label,value)=>`<div><dt>${label}</dt><dd>${value}</dd></div>`;
-  const html=`<strong>${escapeHtml(e.name||unitLabels[e.kind])}</strong>
+  const html=`<strong>${escapeHtml(e.name||unitLabels[e.kind])}</strong><button type="button" class="close-unit-details" data-close-unit-details aria-label="关闭详细属性">×</button>
     ${hero?`<div class="attribute-trio">${['strength','agility','intelligence'].map(key=>{const a=e.attributes[key];return `<div class="${key} ${e.primaryAttribute===key?'primary-attribute':''}"><span>${attributeLabels[key]}</span><strong>${n(a.total)}</strong><small>${n(a.base)}${a.bonus?` + ${n(a.bonus)}`:''}</small><em>每级 +${n(a.gain)}</em></div>`;}).join('')}</div><p class="attribute-explainer">${e.primaryAttribute==='universal'?'全才：每点力量、敏捷、智力提供 0.45 攻击力。':`${type}主属性：每点${type}额外提供 1 攻击力。`}</p>`:''}
     <dl class="inspection-stats">${pair('攻击力',`${n(e.damageMin??e.damage)} – ${n(e.damageMax??e.damage)}`)}${pair('攻击距离',n(e.range))}${pair('护甲',n(e.armor))}${pair('物理抗性',percent(1-physicalDamageMultiplier(e.armor||0)))}${pair('攻击速度',n(e.attackSpeed??e.baseAttackSpeed??0))}${pair('攻击间隔',`${n(e.attackInterval)} 秒`)}${pair('移动速度',n(e.speed))}${pair('魔法抗性',percent(e.magicResistance||0))}${pair('白天视野',n(e.visionDay??e.dayVision))}${pair('夜晚视野',n(e.visionNight??e.nightVision))}${hero?pair('补刀 / KDA',`${e.lastHits} · ${e.kills}/${e.deaths}/${e.assists}`):neutral?pair('击杀奖励',`${e.goldMin}–${e.goldMax} 金 · ${e.xpBounty} 经验`):''}</dl>
     ${hero?`<dl class="inspection-stats">${pair('闪避',n(e.evasion)+'%')}${pair('攻击吸血',n(e.lifesteal)+'%')}${pair('技能吸血',n(e.spellLifesteal)+'%')}${pair('技能增强',n(e.spellAmp)+'%')}${pair('额外施法距离',n(e.castRangeBonus))}${pair('冷却缩减',n(e.cooldownReduction)+'%')}${pair('状态抗性',n(e.statusResistance)+'%')}${pair('减速抗性',n(e.slowResistance)+'%')}${pair('魔法消耗降低',n(e.manaCostReduction)+'%')}${pair('额外技能范围',n(e.spellAoE))}</dl><p class="inspection-note">神杖：${e.hasScepter?'已生效':'未获得'} · 魔晶：${e.hasShard?'已生效':'未获得'}${e.moonShard?' · 已吞服银月之晶':''}</p>`:''}`;
@@ -319,6 +343,7 @@ window.addEventListener('keydown',async e=>{
   if(view!=='match'||!game)return;
   if(['INPUT','SELECT','TEXTAREA'].includes(document.activeElement?.tagName))return;
   const key=e.key.toLowerCase();
+  if(['f1','f2','f4'].includes(key)&&!coreBinding(key)){e.preventDefault();if(key==='f1')restoreOwnHero();else{game.selectControlledGroup(key==='f2');updateHud();}return;}
   if([' ','arrowup','arrowdown','arrowleft','arrowright','escape','tab'].includes(key))e.preventDefault();
   if(e.repeat){if(!coreBinding(key)&&['arrowup','arrowdown','arrowleft','arrowright','a','s'].includes(key))keys.add(key);return;}
   if(key==='escape'&&pendingItem){e.preventDefault();cancelItemUse();return;}
@@ -329,7 +354,7 @@ window.addEventListener('keydown',async e=>{
   if(key==='f3'){e.preventDefault();const activeGame=game,result=await activeGame.courierCommand('deliver');if(game!==activeGame)return;toast(result.ok?'信使已收到运输指令':result.reason||'信使操作未完成');return;}
   if(key==='escape'){
     const tree=$('.talent-panel');if(tree&&!tree.hidden){tree.hidden=true;return;}
-    const details=$('#hero-stat-tooltip');if(details&&!details.hidden){details.hidden=true;return;}
+    const details=$('#hero-stat-tooltip');if(details&&!details.hidden){hideUnitDetails();return;}
   }
   if(key==='escape'||key==='p'){if(shopOpen)toggleShop();else openModal('pause');return;}
   if(key==='alt'){renderer.showCampBounds=true;return;}
@@ -340,6 +365,8 @@ window.addEventListener('keydown',async e=>{
   keys.add(key);
 });
 window.addEventListener('keyup',e=>{keys.delete(e.key.toLowerCase());if(e.key==='Alt'&&renderer)renderer.showCampBounds=$('#camp-bounds')?.classList.contains('active')||false;});
+window.addEventListener('resize',()=>document.querySelectorAll('.skill-tooltip').forEach(tip=>tip.hidden=true));
+document.addEventListener('pointerdown',e=>{const tip=$('#hero-stat-tooltip');if(tip&&!tip.hidden&&tip.dataset.pinned==='true'&&!e.target.closest('.hero-hud,[data-inspect-hero]'))hideUnitDetails();});
 window.addEventListener('blur',()=>{keys.clear();if(game&&!modal&&game.status==='playing')openModal('pause');});
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&game&&!modal&&game.status==='playing')openModal('pause');});
 window.addEventListener('pagehide',()=>{disableDeveloperMode(game);checkpointMatch();});
@@ -349,6 +376,8 @@ window.addEventListener('beforeunload',event=>{
   checkpointMatch();event.preventDefault();event.returnValue='';
 });
 function tick(ms){
+  // Keep later frames scheduled even if one simulation, HUD or render call throws.
+  requestAnimationFrame(tick);
   const dt=Math.min((ms-lastFrame)/1000||0,1/20);lastFrame=ms;
   if(game&&view==='match'){
     const x=(keys.has('arrowright')?1:0)-((keys.has('a')&&!coreBinding('a'))||keys.has('arrowleft')?1:0),y=((keys.has('s')&&!coreBinding('s'))||keys.has('arrowdown')?1:0)-(keys.has('arrowup')?1:0);
@@ -357,7 +386,7 @@ function tick(ms){
     if(ms-hudAt>100){updateHud();hudAt=ms;}
     if(game.status!=='playing'&&lastStatus==='playing'){lastStatus=game.status;history.matches++;if(game.status==='won')history.wins++;history.bestKills=Math.max(history.bestKills,game.player.kills);save();if(!game.isNetwork){const cleared=clearMatch(browserStorage());if(!cleared.ok)toast(cleared.reason);}updateHud();openModal('result');}
   }
-  renderer?.render(game,ms/1000);requestAnimationFrame(tick);
+  renderer?.render(game,ms/1000);
 }
 renderLobby();requestAnimationFrame(tick);
 

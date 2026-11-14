@@ -16,7 +16,7 @@ function resolve(record,rank,talents,heroId,heroLevel=0,upgrades={}){
 }
 export function abilityAt(heroId,index,rank=0,talents=[],upgrades={}){
  const record=ABILITIES[heroId]?.[index];if(!record)throw new RangeError(`Unknown ability ${heroId}:${index}`);
- return resolve(record,Math.max(0,Math.min(record.maxLevel,Math.floor(rank)||0)),talents,heroId,0,upgrades);
+ return resolve(record,Math.max(0,Math.min(record.maxLevel,Math.floor(rank)||0)),talents,heroId,heroId==='chen'?(upgrades.level||upgrades.heroLevel||0):0,upgrades);
 }
 export function innateAt(heroId,heroLevel=1,talents=[],upgrades={}){
  const record=INNATES[heroId];if(!record)throw new RangeError(`Unknown innate ${heroId}`);

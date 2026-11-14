@@ -2557,6 +2557,429 @@ export const ABILITIES={
         "射手天赋的触发效果拥有克敌机先。"
       ]
     }
+  ],
+  "chen": [
+    {
+      "id": "chen_penitence",
+      "sourceID": 5328,
+      "name": "赎罪",
+      "key": "Q",
+      "icon": "target",
+      "color": "#9dc0be",
+      "kind": "active",
+      "maxLevel": 4,
+      "requiredLevels": [
+        1,
+        3,
+        5,
+        7
+      ],
+      "cooldowns": [
+        20,
+        17,
+        14,
+        11
+      ],
+      "manaCosts": [
+        80,
+        90,
+        100,
+        110
+      ],
+      "castRanges": [
+        800
+      ],
+      "castPoints": [
+        0.3,
+        0.3,
+        0.3,
+        0.3
+      ],
+      "channelTimes": [
+        0
+      ],
+      "durations": [
+        0
+      ],
+      "damages": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "values": {
+        "duration": [
+          5,
+          6,
+          7,
+          8
+        ],
+        "speed": [
+          1400
+        ],
+        "bonus_movement_speed": [
+          -12,
+          -18,
+          -24,
+          -30
+        ],
+        "bonus_attack_speed": [
+          20,
+          40,
+          60,
+          80
+        ],
+        "damage": [
+          50,
+          100,
+          150,
+          200
+        ],
+        "AbilityCastRange": [
+          800
+        ],
+        "AbilityCastPoint": [
+          0.3
+        ],
+        "AbilityManaCost": [
+          80,
+          90,
+          100,
+          110
+        ],
+        "AbilityCooldown": [
+          20,
+          17,
+          14,
+          11
+        ],
+        "self_attack_range_bonus": [
+          0
+        ]
+      },
+      "scaling": {},
+      "description": "对敌方单位造成伤害，并使其移动变慢，友军攻击他时攻速提升。",
+      "damageType": "pure",
+      "targetTeam": "DOTA_UNIT_TARGET_TEAM_ENEMY",
+      "targetType": "DOTA_UNIT_TARGET_HERO | DOTA_UNIT_TARGET_BASIC",
+      "targetFlags": "",
+      "notes": []
+    },
+    {
+      "id": "chen_holy_persuasion",
+      "sourceID": 5330,
+      "name": "神圣劝化",
+      "key": "W",
+      "icon": "aura",
+      "color": "#99bda0",
+      "kind": "active",
+      "maxLevel": 4,
+      "requiredLevels": [
+        1,
+        3,
+        5,
+        7
+      ],
+      "cooldowns": [
+        15
+      ],
+      "manaCosts": [
+        110,
+        130,
+        150,
+        170
+      ],
+      "castRanges": [
+        600
+      ],
+      "castPoints": [
+        0.3
+      ],
+      "channelTimes": [
+        0
+      ],
+      "durations": [
+        0
+      ],
+      "damages": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "values": {
+        "max_units": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "level_req": [
+          3,
+          4,
+          5,
+          6
+        ],
+        "health_min": [
+          400
+        ],
+        "gold_pct": [
+          25,
+          50,
+          75,
+          100
+        ],
+        "movement_speed_bonus": [
+          5,
+          10,
+          20,
+          30
+        ],
+        "damage_bonus": [
+          5,
+          10,
+          15,
+          20
+        ],
+        "creep_ability_level": [
+          0
+        ],
+        "unsummon_time": [
+          3
+        ],
+        "unsummon_cooldown_reduction": [
+          12
+        ],
+        "AbilityCastRange": [
+          600
+        ],
+        "AbilityCastPoint": [
+          0.3
+        ],
+        "AbilityManaCost": [
+          110,
+          130,
+          150,
+          170
+        ],
+        "AbilityCooldown": [
+          15
+        ],
+        "is_martyr": [
+          0
+        ],
+        "current_hp_pct_tooltip": [
+          0
+        ]
+      },
+      "scaling": {
+        "health_min": 50
+      },
+      "description": "陈控制住敌方小兵或者中立生物，并获得击杀金钱一定百分比的金钱。被劝化目标的最大生命值会被设为400。被劝化的单位将提升移动速度和伤害输出。陈自己的单位如果在3秒内未受到伤害可以在全地图范围内成为技能的目标，施放后取消劝化。",
+      "damageType": "magical",
+      "targetTeam": "DOTA_UNIT_TARGET_TEAM_BOTH",
+      "targetFlags": "",
+      "notes": [
+        "如果达到劝化生物的数量上限后再劝化生物，最早劝化的单位将立即死亡。",
+        "拥有阿哈利姆魔晶后可以对远古中立生物施放本技能。",
+        "升级此技能后在升级前劝化的单位并不会增加生命值。",
+        "劝化时单位的魔法恢复至满魔。"
+      ]
+    },
+    {
+      "id": "chen_divine_favor",
+      "sourceID": 7306,
+      "name": "神力恩泽",
+      "key": "E",
+      "icon": "heal",
+      "color": "#d1b47e",
+      "kind": "active",
+      "maxLevel": 4,
+      "requiredLevels": [
+        1,
+        3,
+        5,
+        7
+      ],
+      "cooldowns": [
+        20,
+        18,
+        16,
+        14
+      ],
+      "manaCosts": [
+        75
+      ],
+      "castRanges": [
+        1200
+      ],
+      "castPoints": [
+        0.2
+      ],
+      "channelTimes": [
+        0
+      ],
+      "durations": [
+        0
+      ],
+      "damages": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "values": {
+        "heal_rate": [
+          1.5,
+          3,
+          4.5,
+          6
+        ],
+        "aura_radius": [
+          1200
+        ],
+        "duration": [
+          6
+        ],
+        "bonus_armor": [
+          5,
+          10,
+          15,
+          20
+        ],
+        "heal_amp": [
+          5,
+          10,
+          15,
+          20
+        ],
+        "creep_bonus": [
+          1
+        ],
+        "AbilityCastRange": [
+          1200
+        ],
+        "AbilityCastPoint": [
+          0.2
+        ],
+        "AbilityManaCost": [
+          75
+        ],
+        "AbilityCooldown": [
+          20,
+          18,
+          16,
+          14
+        ],
+        "armor": [
+          0
+        ]
+      },
+      "scaling": {},
+      "description": "被动提供光环，提供生命恢复加成。可以主动对友军施放，提供护甲加成，以及治疗和生命恢复增强。\n\n对陈施放后，陈控制的所有单位都会获得增益效果。",
+      "damageType": "magical",
+      "targetTeam": "DOTA_UNIT_TARGET_TEAM_FRIENDLY",
+      "targetType": "DOTA_UNIT_TARGET_HERO | DOTA_UNIT_TARGET_BASIC",
+      "targetFlags": "DOTA_UNIT_TARGET_FLAG_NOT_MAGIC_IMMUNE_ALLIES",
+      "notes": []
+    },
+    {
+      "id": "chen_hand_of_god",
+      "sourceID": 5331,
+      "name": "上帝之手",
+      "key": "R",
+      "icon": "heal",
+      "color": "#8ebcca",
+      "kind": "active",
+      "maxLevel": 3,
+      "requiredLevels": [
+        6,
+        12,
+        18
+      ],
+      "cooldowns": [
+        150,
+        130,
+        110
+      ],
+      "manaCosts": [
+        200,
+        300,
+        400
+      ],
+      "castRanges": [
+        0
+      ],
+      "castPoints": [
+        0.3,
+        0.3,
+        0.3
+      ],
+      "channelTimes": [
+        0
+      ],
+      "durations": [
+        0
+      ],
+      "damages": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "values": {
+        "heal_amount": [
+          200,
+          300,
+          400
+        ],
+        "hot_duration": [
+          10
+        ],
+        "heal_per_second": [
+          20,
+          30,
+          40
+        ],
+        "ancient_creeps_scepter": [
+          0
+        ],
+        "does_purge": [],
+        "full_heal_on_chen_and_creeps": [],
+        "debuff_immune_radius": [
+          0
+        ],
+        "debuff_immune_resist": [
+          0
+        ],
+        "nearby_hot_boost": [
+          0
+        ],
+        "AbilityChannelTime": [
+          0
+        ],
+        "AbilityCastPoint": [
+          0.3
+        ],
+        "AbilityManaCost": [
+          200,
+          300,
+          400
+        ],
+        "AbilityCooldown": [
+          150,
+          130,
+          110
+        ]
+      },
+      "scaling": {},
+      "description": "治疗地图上的所有友军英雄以及陈控制的所有单位。一开始先施加高额治疗，在之后10秒内持续进行小额治疗。",
+      "damageType": "magical",
+      "targetFlags": "",
+      "notes": [
+        "可以治疗无敌和被隐藏/放逐友军。"
+      ]
+    }
   ]
 };
 export const INNATES={
@@ -2973,6 +3396,82 @@ export const INNATES={
     "description": "卓尔游侠根据她自身的当前敏捷和英雄等级获得敏捷加成。附近远程英雄获得50%敏捷加成。",
     "damageType": "magical",
     "targetFlags": "",
+    "notes": []
+  },
+  "chen": {
+    "id": "chen_zealot",
+    "sourceID": 1755,
+    "name": "狂热者",
+    "key": "",
+    "icon": "aura",
+    "color": "#b9c19a",
+    "kind": "innate",
+    "maxLevel": 1,
+    "requiredLevels": [
+      1,
+      3,
+      5,
+      7
+    ],
+    "cooldowns": [
+      10
+    ],
+    "manaCosts": [
+      50
+    ],
+    "castRanges": [
+      0
+    ],
+    "castPoints": [
+      0.3
+    ],
+    "channelTimes": [
+      0
+    ],
+    "durations": [
+      0
+    ],
+    "damages": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "values": {
+      "zealots": [
+        1
+      ],
+      "zealot_respawn_time": [
+        60
+      ],
+      "damage": [
+        0
+      ],
+      "bonus_hp": [
+        0
+      ],
+      "teleport_delay": [
+        6
+      ],
+      "AbilityCastPoint": [
+        0.3
+      ],
+      "AbilityManaCost": [
+        50
+      ],
+      "AbilityCooldown": [
+        10
+      ]
+    },
+    "scaling": {
+      "zealot_respawn_time": -1,
+      "damage": 2
+    },
+    "description": "陈复活时都会带着一个狂热者加入战斗，这是近战小兵战士，可以牺牲自己治疗友军，或者对敌人造成伤害。狂热者会获得神圣劝化的加成效果，并且和其他线上近战小兵一样随着游戏时间的增加提升属性，获得额外基础攻击力。狂热者会在陈身边复活。狂热者技能可以主动使用，在6秒延迟后把控制下的目标单位传送到陈的身边。如果陈是技能的目标，将传送控制的所有单位。受到来自敌方英雄及其单位的伤害会中止传送过程。",
+    "damageType": "magical",
+    "targetTeam": "DOTA_UNIT_TARGET_TEAM_FRIENDLY",
+    "targetType": "DOTA_UNIT_TARGET_HERO | DOTA_UNIT_TARGET_CREEP",
+    "targetFlags": "DOTA_UNIT_TARGET_FLAG_NOT_CREEP_HERO",
     "notes": []
   }
 };
@@ -3862,6 +4361,134 @@ export const TALENTS={
           "field": "wave_count",
           "value": 2,
           "operation": 0
+        }
+      ]
+    }
+  ],
+  "chen": [
+    {
+      "id": "special_bonus_unique_chen_11",
+      "sourceID": 841,
+      "index": 0,
+      "requiredLevel": 10,
+      "name": "+75 赎罪伤害",
+      "effects": [
+        {
+          "abilityId": "chen_penitence",
+          "field": "damage",
+          "value": 75,
+          "operation": 0
+        }
+      ]
+    },
+    {
+      "id": "special_bonus_unique_chen_zealot",
+      "sourceID": 1818,
+      "index": 1,
+      "requiredLevel": 10,
+      "name": "+25% 狂热者生命值/攻击力",
+      "effects": [
+        {
+          "abilityId": "chen_zealot",
+          "field": "damage",
+          "value": 25,
+          "operation": 3
+        },
+        {
+          "abilityId": "chen_zealot",
+          "field": "bonus_hp",
+          "value": 25,
+          "operation": 0
+        }
+      ]
+    },
+    {
+      "id": "special_bonus_unique_chen_5",
+      "sourceID": 7869,
+      "index": 2,
+      "requiredLevel": 15,
+      "name": "+12% 神圣劝化伤害",
+      "effects": [
+        {
+          "abilityId": "chen_holy_persuasion",
+          "field": "damage_bonus",
+          "value": 12,
+          "operation": 0
+        }
+      ]
+    },
+    {
+      "id": "special_bonus_unique_chen_8",
+      "sourceID": 529,
+      "index": 3,
+      "requiredLevel": 15,
+      "name": "+15% 赎罪减速",
+      "effects": [
+        {
+          "abilityId": "chen_penitence",
+          "field": "bonus_movement_speed",
+          "value": 15,
+          "operation": 2
+        }
+      ]
+    },
+    {
+      "id": "special_bonus_unique_chen_divine_favor_healing",
+      "sourceID": 1653,
+      "index": 4,
+      "requiredLevel": 20,
+      "name": "+15% 神力恩泽治疗增强",
+      "effects": [
+        {
+          "abilityId": "chen_divine_favor",
+          "field": "heal_amp",
+          "value": 15,
+          "operation": 0
+        }
+      ]
+    },
+    {
+      "id": "special_bonus_unique_chen_4",
+      "sourceID": 6535,
+      "index": 5,
+      "requiredLevel": 20,
+      "name": "+1300 神圣劝化最低生命",
+      "effects": [
+        {
+          "abilityId": "chen_holy_persuasion",
+          "field": "health_min",
+          "value": 1300,
+          "operation": 0
+        }
+      ]
+    },
+    {
+      "id": "special_bonus_unique_chen_12",
+      "sourceID": 952,
+      "index": 6,
+      "requiredLevel": 25,
+      "name": "上帝之手施加强驱散",
+      "effects": [
+        {
+          "abilityId": "chen_hand_of_god",
+          "field": "does_purge",
+          "value": 1,
+          "operation": 0
+        }
+      ]
+    },
+    {
+      "id": "special_bonus_unique_chen_2",
+      "sourceID": 6260,
+      "index": 7,
+      "requiredLevel": 25,
+      "name": "上帝之手治愈陈和他的单位",
+      "effects": [
+        {
+          "abilityId": "chen_hand_of_god",
+          "field": "full_heal_on_chen_and_creeps",
+          "value": 1,
+          "operation": 5
         }
       ]
     }

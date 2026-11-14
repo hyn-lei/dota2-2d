@@ -56,7 +56,7 @@ export class NetworkPresentation {
     const game=this.game;
     return this.suspended||game.paused||game.status!=='playing'||unit.dead||unit.hp<=0||game.isStunned(unit)||game.isRooted(unit)||
       !!game._tauntSource(unit)||!!unit.itemChannel||!!unit.forcedMotion||!!unit.castPhase||!!unit.omnislash||!!unit.cloneHop||
-      unit.recallTimer>0||!!unit.channel&&unit.channel.kind!=='multishot';
+      unit.recallTimer>0||!!unit.neutralCast||!!unit.neutralChannel||!!unit.channel&&unit.channel.kind!=='multishot';
   }
   rebase(now,snap=false){
     const latest=this.samples.at(-1);if(!latest)return;

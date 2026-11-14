@@ -1,0 +1,45 @@
+{
+  "baseRevision": "0ca0ec7",
+  "baseFixture": "simulation-with-random-drafts.json",
+  "change": "Chen joins the draft pool with his Zealot and controlled neutrals. Summon orders use one movement controller. The user-requested Growth passive accumulates each Chen level-up, capped at +400 attack speed, +50 armor and +60% magic resistance, with no separate damage cap. A repeated seed brings back heroes absent from recent drafts. These intentional roster, combat and movement changes replace the baseline; historical fixtures remain unchanged.",
+  "cases": [
+    {
+      "config": {
+        "hero": "juggernaut",
+        "seed": 42
+      },
+      "steps": 1800,
+      "dt": 0.05,
+      "sha256": "76ba0d86515b3f42343450e2ef03ab10825e76bbf4ad14c8e3a8838597ebfa77"
+    },
+    {
+      "config": {
+        "hero": "drow_ranger",
+        "difficulty": "hard",
+        "seed": 51
+      },
+      "steps": 1800,
+      "dt": 0.05,
+      "sha256": "21b9e17c569c6e64b9e5f051334bef54057bf2f852b52d155763130256308030"
+    },
+    {
+      "config": {
+        "hero": "ogre_magi",
+        "seed": 99
+      },
+      "steps": 1800,
+      "dt": 0.05,
+      "sha256": "0f2bb304fb2b66411710deb30b03844eb334fb198409fe1a77d5393b4f7daab7"
+    },
+    {
+      "config": {
+        "hero": "chen",
+        "difficulty": "hard",
+        "seed": 66
+      },
+      "steps": 1800,
+      "dt": 0.05,
+      "sha256": "ae049a748248cb694d1b5ec1c5d8a2804ce5c4cc9f30a5f77ad6628d71e48cff"
+    }
+  ]
+}

@@ -8,7 +8,7 @@ const browser=await chromium.launch({headless:true}),page=await browser.newPage(
 page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});
 try{
  await page.goto(url,{waitUntil:'networkidle'});await closeDevelopmentNotice(page);
- assert.equal(await page.locator('.hero-option').count(),7);await page.locator('[data-hero="drow_ranger"]').click();
+ assert.equal(await page.locator('.hero-option').count(),8);await page.locator('[data-hero="drow_ranger"]').click();
  await page.waitForFunction(()=>document.querySelector('#hero-render')?.complete&&document.querySelector('#hero-render').naturalWidth>0);
  await page.screenshot({path:'artifacts/drow-lobby.png'});
  await page.evaluate(async()=>{const {Renderer}=await import('/src/renderer.js'),render=Renderer.prototype.render;Renderer.prototype.render=function(g,t){window.drowRenderer=this;window.observedDrowGame=g;return render.call(this,window.drowScene||g,window.drowScene?.time??t);};});

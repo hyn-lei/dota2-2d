@@ -24,15 +24,15 @@ try{
   await page.goto(base,{waitUntil:'networkidle'});
   await closeDevelopmentNotice(page);
   assert.equal(await page.title(),'Ancient Front · Dota 2D');
-  assert.equal(await page.locator('.hero-option').count(),7);
-  for(const hero of ['juggernaut','crystal_maiden','windranger','axe','ogre_magi','kunkka','drow_ranger']){
+  assert.equal(await page.locator('.hero-option').count(),8);
+  for(const hero of ['juggernaut','crystal_maiden','windranger','axe','ogre_magi','kunkka','drow_ranger','chen']){
     await page.locator(`[data-hero="${hero}"]`).click();
     await page.waitForFunction(()=>document.querySelector('#hero-render').complete&&document.querySelector('#hero-render').naturalWidth>0);
     if(hero==='windranger')assert.match(await page.locator('#selected-info').textContent(),/全才/);
   }
   await page.locator('.hero-detail').click();assert.equal(await page.locator('.skill-detail').count(),4);await page.keyboard.press('Escape');
   await page.screenshot({path:'artifacts/lobby-741f.png'});
-  check('All seven heroes load; Windranger is Universal and Kunkka remains playable');
+  check('All eight heroes load; Windranger is Universal and Kunkka remains playable');
 
   await page.locator('[data-hero="kunkka"]').click();
   await page.locator('.settings-button').click();await page.locator('#setting-difficulty').selectOption('normal');
@@ -124,8 +124,9 @@ try{
   assert.equal(await page.evaluate(()=>window.observedGame.entities[1].x),10720);
   check('Kunkka free E recast returns its marked target with zero mana');
   await page.evaluate(()=>{const g=window.observedGame;g.player.mana=900;const e=g.entities[1];g.entities.push({...e,id:'creep-test',kind:'creep',x:10740,y:10420,statuses:{},buffs:{},cooldowns:[],inventory:[],xpBounty:57,goldMin:34,goldMax:39});});
-  await aim(10720,10400);await page.keyboard.press('q');await page.waitForFunction(()=>window.observedGame.pendingSpells.some(s=>s.type==='torrent'));await page.keyboard.press('r');await page.waitForFunction(()=>window.observedGame.pendingSpells.length===2);
-  assert.ok(await page.evaluate(()=>window.observedGame.pendingSpells.length===2));
+  await aim(10720,10400);await page.keyboard.press('q');await page.waitForFunction(()=>window.observedGame.pendingSpells.some(s=>s.type==='torrent'));await page.keyboard.press('r');
+  const flight=await page.waitForFunction(()=>{const types=window.observedGame.pendingSpells.filter(s=>['torrent','ship'].includes(s.type)).map(s=>s.type);return types.includes('torrent')&&types.includes('ship')?types:false;});
+  assert.deepEqual((await flight.jsonValue()).sort(),['ship','torrent']);await flight.dispose();
   await page.screenshot({path:'artifacts/kunkka-ghostship-741f.png'});
   await page.waitForFunction(()=>window.observedGame.entities[2].hp<4540);
   assert.ok(await page.evaluate(()=>window.observedGame.entities[2].buffs.stunUntil>window.observedGame.time));

@@ -29,7 +29,7 @@ try{
   assert.equal(await page.locator('.hud-portrait>img').evaluate(i=>i.getAttribute('src').includes('portrait')||i.getAttribute('src').endsWith('.jpg')),true);
   assert.ok(await page.locator('.hud-portrait>img').evaluate(i=>i.complete&&i.naturalWidth>0));
  }
- assert.equal(await page.locator('#selection-panel').count(),0);check('All seven hero portraits use head assets at the same HUD position; no separate inspection panel');
+ assert.equal(await page.locator('#selection-panel').count(),0);check('All hero portraits use head assets at the same HUD position; no separate inspection panel');
  await page.locator(`[data-inspect-hero="${await page.evaluate(()=>window.enemyId)}"]`).click();
  await page.waitForFunction(()=>document.querySelector('#hp-label').textContent==='321 / 900');
  assert.equal(await page.locator('#mana-label').textContent(),'111 / 500');

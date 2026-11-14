@@ -288,13 +288,6 @@ export function tickUnit(g,h,dt){
    else if(channel.kind==='meteor')queueMeteor(g,h,i,channel);
   }
  }
- if(h.kind==='summon'){
-  if(h.expiresAt&&g.time>=h.expiresAt){g._kill(h,null);return;}
-  if(Skills.isStunned(g,h)||h.forcedMotion)return;
-  const master=g.entities.find(e=>e.id===h.ownerId),target=g.entities.find(e=>e.id===(master?.explicitTarget||h.controlTarget)&&alive(e))||g._chooseTarget(h,700);
-  if(target&&h.dominatedBy)g._neutralAbility(h,target);
-  if(target){if(!g._attack(h,target))g._move(h,target,dt,h.range+target.radius-3);}else if(master&&distance(h,master)>180)g._move(h,master,dt,130);
- }
 }
 export function tickWorld(g,dt){
  let treesChanged=false;

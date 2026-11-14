@@ -3,26 +3,29 @@ import { EXTRA_ABILITIES } from './upgrade-data.js';
 import { TREES } from './map-data.js';
 import * as Ogre from './ogre-runtime.js';
 import * as Drow from './drow-runtime.js';
+import * as Chen from './chen-runtime.js';
 import {weakIllusion,strongIllusion} from './illusions.js';
 import {spendMana,clearTemporaryMana} from './mana-runtime.js';
 const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
 const alive=e=>e&&!e.dead&&e.hp>0;
 const fighter=e=>['hero','creep','neutral','illusion','summon'].includes(e?.kind);
 const structure=e=>['tower','barracks','ancient','filler','fountain'].includes(e?.kind);
+const worldSpellTypes=new Set(['shackle','torrent','ship','gale','tidal','cannon','powershot']);
 const active=(g,e,id)=>{const s=e?.statuses?.[id];return s&&s.startedAt<=g.time+1e-7&&s.until>g.time+1e-7?s:null;};
 export function skillOf(h,i){
- const key=`${h.heroId}:${h.abilityLevels?.join(',')}:${h.talents?.join(',')}:${!!h.hasScepter}:${!!h.hasShard}`;
+ const key=`${h.heroId}:${h.heroId==='chen'?h.level:''}:${h.abilityLevels?.join(',')}:${h.talents?.join(',')}:${!!h.hasScepter}:${!!h.hasShard}`;
  if(h.skillCacheKey!==key){h.skillCacheKey=key;h.skillCache=[];}
  return h.skillCache[i]??=(abilityAt(h.heroId,i,h.abilityLevels?.[i]||0,h.talents||[],h));
 }
 function innate(h){const key=`${h.heroId}:${h.level}:${h.talents?.join(',')}:${!!h.hasScepter}:${!!h.hasShard}`;if(h.innateCacheKey!==key){h.innateCacheKey=key;h.innateCache=innateAt(h.heroId,h.level,h.talents||[],h);}return h.innateCache;}
 export function extraSkillOf(h,id){
+ if(h.heroId==='chen'&&id==='chen_zealot')return {...innate(h),kind:'active',key:'D',name:'狂热者召回'};
  const extra=extraAbilityAt(h.heroId,id,h.talents||[],h);if(!extra)return null;
  if(id==='juggernaut_swift_slash'){const omni=skillOf(h,3);extra.values={...omni.values,...extra.values};extra.level=omni.level?1:0;}
  if(id==='ogre_magi_unrefined_fireblast')extra.mana=(h.mana||0)*extra.values.scepter_mana/100;
  return extra;
 }
-export function extraAbilities(h){return (EXTRA_ABILITIES[h.heroId]||[]).map(s=>extraSkillOf(h,s.id)).filter(Boolean);}
+export function extraAbilities(h){return (h.heroId==='chen'?[extraSkillOf(h,'chen_zealot')]:[]).concat((EXTRA_ABILITIES[h.heroId]||[]).map(s=>extraSkillOf(h,s.id)).filter(Boolean));}
 export const castingStats=(h,s)=>s&&({...s,range:s.range+(h.castRangeBonus||0),mana:s.mana*(1-(h.manaCostReduction||0)/100),castPoint:s.castPoint*(1-(h.castSpeed||0)/100)*(s.id==='ogre_magi_fireblast'?1-(s.values.bonus_cast_speed||0)/100:1)});
 const targets=(g,h,center,radius)=>g.entities.filter(e=>alive(e)&&fighter(e)&&e.team!==h.team&&distance(e,center)<=radius+e.radius);
 const areaBonus=h=>h.spellAoE||0;
@@ -77,6 +80,8 @@ export function applyDispel(g,e,strong=false){dispel(e,strong);}
 
 export function combatStats(g,h,target=null){
  let armor=h.armor||0,speed=h.speed||0,attackSpeed=h.attackSpeed||h.baseAttackSpeed||100,damage=h.damage||0,magicResistance=h.magicResistance||0,evasion=0;
+ const growth=h.zealot&&h.zealotGrowth;
+ if(growth){armor+=growth.armor;attackSpeed+=growth.attackSpeed;damage+=growth.damage;magicResistance=Math.min(1,magicResistance+growth.magicResistancePct/100);}
  let slowPct=0,movePercent=0,flatSpeed=0,slowMultiplier=1-(h.slowResistance||0)/100;
  for(const s of Object.values(h.statuses||{}))if(s.startedAt<=g.time&&s.until>g.time){
   const decay=s.decayingMove||s.decayingSlow?Math.max(0,1-(s.decayRate?Math.floor(Math.max(0,g.time-s.startedAt)*s.decayRate)/s.decayRate:g.time-s.startedAt)/(s.until-s.startedAt||1)):1;
@@ -103,7 +108,7 @@ export function combatStats(g,h,target=null){
  const maxSpeed=h.heroId==='windranger'?innate(h).values.max_movespeed:550;
  slowPct=hasStatusFlag(g,h,'slowImmune')?0:slowPct*Math.max(0,slowMultiplier);
  speed=speed===0?0:Math.max(100,Math.min(maxSpeed,(speed+flatSpeed)*(1+movePercent/100)*(1-slowPct/100)));
- return Drow.drowCombatStats(g,h,{armor,speed,attackSpeed,attackInterval:h.baseAttackTime?h.baseAttackTime*100/attackSpeed:h.attackInterval,damage,magicResistance,evasion});
+ return Chen.chenCombatStats(g,h,Drow.drowCombatStats(g,h,{armor,speed,attackSpeed,attackInterval:h.baseAttackTime?h.baseAttackTime*100/attackSpeed:h.attackInterval,damage,magicResistance,evasion}),target);
 }
 
 export function castAbility(g,h,index,point){
@@ -126,7 +131,9 @@ export function castAbility(g,h,index,point){
  const ogreAlly=h.heroId==='ogre_magi'&&index===2;
  const unitTarget=(h.heroId==='axe'&&(index===1||index===3))||(h.heroId==='crystal_maiden'&&index===1)||(h.heroId==='juggernaut'&&index===3)||(h.heroId==='windranger'&&(index===0||index===3))||(h.heroId==='kunkka'&&index===2)||(h.heroId==='ogre_magi'&&index<3)||(h.heroId==='drow_ranger'&&index===0);
  let target;
- if(unitTarget){
+ if(h.heroId==='chen'&&index<3){
+  const result=Chen.chenTarget(g,h,index,point||aim);if(!result.ok)return result;target=result.target;
+ }else if(unitTarget){
   target=ogreAlly&&point?.id===h.id&&!isInvulnerable(g,h)?h:g.entities.filter(e=>alive(e)&&(ogreAlly&&structure(e)||!isInvulnerable(g,e))&&g.canSee(h,e)&&distance(e,aim)<=Math.max(e.radius||24,90)&&
    (ogreAlly?e.team===h.team&&(fighter(e)||structure(e)):h.heroId==='kunkka'?e.kind==='hero'||e.kind==='illusion':e.team!==h.team&&(fighter(e)||(h.heroId==='windranger'&&index===3&&structure(e))))).sort((a,b)=>distance(a,aim)-distance(b,aim))[0];
   if(!target)return {ok:false,reason:h.heroId==='kunkka'?'请指向友方或敌方英雄':'请指向有效敌方目标'};
@@ -161,7 +168,9 @@ export function castExtraAbility(g,h,id,point){
  if(id==='juggernaut_swift_slash'&&active(g,h,'spin'))return {ok:false,reason:'剑刃风暴期间无法使用迅风斩'};
  const aim=point&&Number.isFinite(point.x)&&Number.isFinite(point.y)?{x:point.x,y:point.y,direction:point.direction}:{x:h.x+Math.cos(h.angle||0)*100,y:h.y+Math.sin(h.angle||0)*100};
  let target;
- if(id==='ogre_magi_unrefined_fireblast'||id==='ogre_magi_smash'){
+ if(id==='chen_zealot'){
+  const result=Chen.recallTarget(g,h,point||aim);if(!result.ok)return result;target=result.target;
+ }else if(id==='ogre_magi_unrefined_fireblast'||id==='ogre_magi_smash'){
   const ally=id==='ogre_magi_smash';
   target=ally&&point?.id===h.id&&!isInvulnerable(g,h)?h:g.entities.filter(e=>alive(e)&&!isInvulnerable(g,e)&&g.canSee(h,e)&&distance(e,aim)<=Math.max(e.radius||24,90)&&(ally?e.team===h.team&&(fighter(e)||structure(e)):e.team!==h.team&&fighter(e))).sort((a,b)=>distance(a,aim)-distance(b,aim))[0];
   if(!target)return {ok:false,reason:ally?'请指向友方单位或建筑':'请指向敌方单位'};
@@ -183,6 +192,7 @@ export function interruptCast(g,h,releasePartial=true){
  if(h.attackPhase){h.attackPhase=null;h.attackCooldown=0;}
  if(h.itemChannel){h.itemChannel=null;h.recallTimer=0;removeStatus(h,'itemChannel');}
  h.castPhase=null;removeStatus(h,'casting');
+ h.neutralCast=null;h.neutralChannel=null;
  if(!releasePartial&&h.freezingField)stopFreezingField(h);
  if(h.channel){const channel=h.channel;h.channel=null;removeStatus(h,'channel');delete h.buffs.ultUntil;
   if(channel.kind==='powershot'&&releasePartial&&alive(h))firePowershot(g,h,channel,Math.min(1,(g.time-channel.startedAt)/channel.skill.channelTime));
@@ -197,12 +207,13 @@ function releaseCast(g,h,phase){
  if(phase.extraId&&!extraSkillOf(h,phase.extraId))return;
  if(phase.extraId==='ogre_magi_unrefined_fireblast')s.mana=h.mana*v.scepter_mana/100*(1-(h.manaCostReduction||0)/100);
  if(h.mana<s.mana)return;
- spendMana(h,s.mana);const cooldown=s.cooldown*(1-(h.cooldownReduction||0)/100);if(phase.extraId){h.extraCooldowns||={};h.extraCooldowns[phase.extraId]=cooldown;h.extraCooldownTick=g.time;}else h.cooldowns[index]=cooldown;if(s.id!=='drow_ranger_glacier')h.angle=Math.atan2(point.y-h.y,point.x-h.x);
+ spendMana(h,s.mana);const cooldown=s.cooldown*(1-(h.cooldownReduction||0)/100)*(1-(g._creatureCooldownReduction?.(h)||0)/100);if(phase.extraId){h.extraCooldowns||={};h.extraCooldowns[phase.extraId]=cooldown;h.extraCooldownTick=g.time;}else h.cooldowns[index]=cooldown;if(s.id!=='drow_ranger_glacier')h.angle=Math.atan2(point.y-h.y,point.x-h.x);
  if(h.heroId==='crystal_maiden'&&s.mana>0){const a=innate(h);const shield=addStatus(g,h,'barrier',{name:'冰川护体',description:'抵挡物理伤害；由消耗的魔法转化。',positive:true,icon:'shield',duration:a.values.barrier_duration,barrier:(active(g,h,'barrier')?.barrier||0)+s.mana*a.values.mana_multiplier/100});shield.stacks=Math.ceil(shield.barrier);}
  if(h.heroId==='windranger')grantTailwind(g,h);
  g.onSpellCast?.(h,s,target);
- if(h.heroId!=='ogre_magi'&&target&&target.team!==h.team&&hasStatusFlag(g,target,'spellReflect'))applyAbilityEffect(g,target,{...phase,targetId:h.id,point:{x:h.x,y:h.y},reflected:true},h.heroId);
- if(h.heroId!=='ogre_magi'&&target?.team!==h.team&&target&&g.blockTargetSpell?.(h,target,s))return;
+ const delayedTarget=h.heroId==='chen'&&index===0;
+ if(!delayedTarget&&h.heroId!=='ogre_magi'&&target&&target.team!==h.team&&hasStatusFlag(g,target,'spellReflect'))applyAbilityEffect(g,target,{...phase,targetId:h.id,point:{x:h.x,y:h.y},reflected:true},h.heroId);
+ if(!delayedTarget&&h.heroId!=='ogre_magi'&&target?.team!==h.team&&target&&g.blockTargetSpell?.(h,target,s))return;
  if(target&&target.team!==h.team)g.onSpellTarget?.(h,target,s);
  applyAbilityEffect(g,h,phase,h.heroId);
 }
@@ -212,6 +223,7 @@ function spellEffect(g,h,type,x,y,fields){
 function applyAbilityEffect(g,h,phase,heroId){
  const s=phase.skill,v=s.values,point=phase.point,index=phase.index,target=phase.targetId&&g.entities.find(e=>e.id===phase.targetId);
  if(heroId==='ogre_magi'){Ogre.releaseOgreAbility(g,h,phase);return;}
+ if(heroId==='chen'){Chen.releaseChen(g,h,phase);return;}
  if(phase.extraId==='drow_ranger_glacier'){Drow.releaseGlacier(g,h,s);return;}
  if(phase.extraId){releaseExtraAbility(g,h,s,point,target);return;}
  if(heroId==='drow_ranger'){Drow.releaseDrow(g,h,phase);return;}
@@ -379,7 +391,8 @@ export function tickWorldAbilities(g){
   while(spell.volleysFired<spell.cannonVolleys&&spell.nextCannonAt<=g.time+1e-7&&spell.nextCannonAt<spell.landAt){fireCannons(g,source,spell,at);spell.volleysFired++;spell.nextCannonAt+=spell.skill.values.cannon_fire_interval;}
   for(const ally of g.entities)if(alive(ally)&&['hero','illusion'].includes(ally.kind)&&ally.team===source.team&&!spell.touched.includes(ally.id)&&distance(at,ally)<=spell.skill.values.ghostship_width+areaBonus(source)){giveRum(g,ally,source,spell.skill.values.rum_factor);spell.touched.push(ally.id);}
  }
- const ready=g.pendingSpells.filter(s=>s.landAt<=g.time+1e-7);g.pendingSpells=g.pendingSpells.filter(s=>s.landAt>g.time+1e-7);
+ const ready=g.pendingSpells.filter(s=>worldSpellTypes.has(s.type)&&s.landAt<=g.time+1e-7);
+ g.pendingSpells=g.pendingSpells.filter(s=>!worldSpellTypes.has(s.type)||s.landAt>g.time+1e-7);
  for(const spell of ready){const h=g.entities.find(e=>e.id===spell.sourceId);if(!h)continue;const s=spell.skill,v=s?.values;
   if(spell.type==='torrent'||spell.type==='ship'){
    const radius=(spell.type==='torrent'?v.radius:v.ghostship_width)+areaBonus(h);

@@ -1,8 +1,8 @@
-# 七位英雄的神杖与魔晶
+# 八位英雄的神杖与魔晶
 
 基础等级、技能点与天赋机制保持不变，一级四项常规技能均未学习。神杖只在有效装备栏提供升级；魔晶和福佑送达后永久生效。移入背包、丢弃或消耗时会刷新英雄的升级标记与技能缓存。
 
-来源为 [Valve Hero Datafeed](https://www.dota2.com/datafeed/herodata?language=schinese&hero_id=23) 的当前技能阵容、升级说明与额外技能，以及客户端英雄 KV 的 `special_bonus_scepter` / `special_bonus_shard`。快照分别位于 `docs/research/abilities/{2,5,6,8,21,23,84}-schinese.json` 和 `docs/research/heroes/npc_dota_hero_*.txt`。
+来源为 [Valve Hero Datafeed](https://www.dota2.com/datafeed/herodata?language=schinese&hero_id=23) 的当前技能阵容、升级说明与额外技能，以及客户端英雄 KV 的 `special_bonus_scepter` / `special_bonus_shard`。快照分别位于 `docs/research/abilities/{2,5,6,8,21,23,66,84}-schinese.json` 和 `docs/research/heroes/npc_dota_hero_*.txt`。
 
 `scripts/extract-upgrades.mjs` 生成 `src/upgrade-records.js`。只使用当前 Datafeed 中的技能，避免把 KV 内保留的废弃技能加入游戏。`upgrade-data.js` 区分替换数值与增减数值，不污染未持有升级的基础技能。
 
@@ -15,9 +15,10 @@
 | 昆卡 | 神杖幽灵舰队按间隔航行并发射侧舷炮弹；魔晶潮汐波造成伤害并拖拽、缴械。 |
 | 食人魔魔法师 | 神杖强化火焰爆轰（-1 秒 CD、+25% 施法速度）并给予未精通的火焰爆轰；魔晶给予烈火护盾。完整来源和客户端证据缺口见 [食人魔说明](ogre-runtime-sources.md)。 |
 | 卓尔游侠 | 神杖低温叠层、额外冰箭伤害、恢复降低与爆炸；魔晶提供冰川，增加射程与伤害、推开敌人并阻挡前方通行，不打断多重射击。具体数值与二维高度/视野边界见 [Drow 说明](drow-runtime-sources.md)。 |
+| 陈 | 神杖令上帝之手持续施法，向附近其他友军提供减益免疫、魔抗及治疗增强；魔晶令神圣劝化按上帝之手等级获得远古名额，并提高受控生物的技能等级。数值和客户端证据缺口见 [陈说明](chen-runtime-sources.md)。 |
 
 额外技能显示在技能栏，默认快捷键 D（有第二项时为 T）。基础技能说明和当前/下一级数值会读取实际升级状态，装备带来的施法距离、耗魔与冷却变化也显示在提示中。潮汐波官方中文快照的伤害与拖拽数字为空，本工程用同一快照里的 `damage` 和 `knockback_distance` 数值补齐说明。
 
 `tests/hero-upgrades.test.mjs` 检查升级数值、触发、移除、克隆爆炸、舰队/炮弹及额外技能。`tests/item-effects.test.mjs` 与浏览器检查验证有效装备、永久消耗与实际操作入口。
 
-范围限制：当前接入七位英雄；狂风之力目前以英雄到目标的方向作为矢量，召唤物没有独立控制组，冰川高度与飞行视野采用二维近似。此实现未声称涵盖所有 Dota 英雄或客户端隐藏交互。
+范围限制：当前接入八位英雄；狂风之力目前以英雄到目标的方向作为矢量，冰川高度与飞行视野采用二维近似。受控单位已接入独立选择和编队指挥，完整中立能力隐藏时序仍未逐项完成客户端对照。此实现未声称涵盖所有 Dota 英雄或客户端隐藏交互。

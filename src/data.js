@@ -34,6 +34,11 @@ export const HEROES = {
     description:'潮汐听从号令，幽灵舰队破浪而来。用 X 标记锁定归途，让洪流与炮火准时抵达。',
     color:'#729fbc',portrait:'assets/kunkka.jpg',render:'assets/kunkka.png'
   },
+  chen: {
+    id:'chen',name:'陈',en:'CHEN',title:'圣骑士',role:'远程 / 辅助 / 召唤 / 推进',attribute:'智力',
+    description:'劝化野怪组成军队，驱使狂热者与中立技能支援队友。以神力恩泽守护友军，用上帝之手治疗全图。',
+    color:'#dbc68b',portrait:'assets/chen_portrait.png',render:'assets/chen.png'
+  },
   drow_ranger: {
     id:'drow_ranger',name:'卓尔游侠',en:'DROW RANGER',title:'寂静的冰霜猎手',role:'远程 / 核心 / 推进',attribute:'敏捷',
     description:'以冰霜之箭减速，以狂风沉默并推开敌人。多重射击覆盖前方，保持距离让射手天赋穿透护甲。',

@@ -12,6 +12,7 @@ const stateFields = new Set([
   'feed', 'wave', 'nextWave', 'difficulty', 'seed', 'serial', 'keyboard', 'camps',
   'nextNeutralSpawn', 'nextBuildingCheck', 'selectedId', 'heroChoice', 'roshanPit',
   'roshanRespawnAt', 'cutTrees', 'plantedTrees', 'shopStocks', 'itemZones', 'nextItemAuraAt',
+  '_chenTickAt','_creatureTickAt','_nextCreatureAuraAt',
 ]);
 const tag = '$singleMatch';
 const encode = value => {
@@ -62,11 +63,12 @@ function validHero(hero){
     hero.abilityLevels.every(rank=>Number.isInteger(rank)&&rank>=0&&rank<=4)&&
     Array.isArray(hero.cooldowns)&&hero.cooldowns.length===4&&hero.cooldowns.every(timer);
 }
-const skillSpellTypes=new Set(['shackle','torrent','gale','tidal','ship','cannon','powershot','ogre:fireblast','ogre:igniteCast','ogre:ignite','drowGust','drowMultishot']);
+const skillSpellTypes=new Set(['shackle','torrent','gale','tidal','ship','cannon','powershot','ogre:fireblast','ogre:igniteCast','ogre:ignite','drowGust','drowMultishot','chenProjectile','creatureMissile','creatureChain','creatureLine','creatureFireball']);
 function validSpell(spell){
   if(!object(spell)||typeof spell.sourceId!=='string'||!timer(spell.landAt))return false;
   if(spell.type==='attack')return typeof spell.targetId==='string'&&object(spell.result)&&Number.isFinite(spell.result.damage)&&Number.isFinite(spell.x)&&Number.isFinite(spell.y)&&Number.isFinite(spell.speed)&&spell.speed>0&&Number.isFinite(spell.lastTick);
   if(spell.type==='ogre:shieldCounter')return typeof spell.targetId==='string'&&Number.isFinite(spell.x)&&Number.isFinite(spell.y)&&Number.isFinite(spell.damage)&&Number.isFinite(spell.speed)&&spell.speed>0;
+  if(spell.type==='chenProjectile'&&spell.kind==='martyrdom')return typeof spell.targetId==='string'&&Number.isFinite(spell.amount)&&Number.isFinite(spell.speed)&&spell.speed>0;
   return skillSpellTypes.has(spell.type)&&object(spell.skill)&&object(spell.skill.values);
 }
 
@@ -116,6 +118,8 @@ export function restoreMatch(record) {
   const { state } = validate(decode(encode(record)));
   const game = new Game({ hero: state.heroChoice, difficulty: state.difficulty, seed: state.seed });
   Object.assign(game, state);
+  // Resume aura cleanup even when its last source died just before the checkpoint.
+  game._hadCreatureAuras=game.entities.some(e=>e.creatureHpBonus||Object.values(e.statuses||{}).some(s=>s.creatureAura));
   for(const unit of [...game.entities])if(unit.kind==='illusion'){
     if(!unit.illusionType){
       const owner=game.entities.find(e=>e.id===unit.ownerId&&e.kind==='hero');

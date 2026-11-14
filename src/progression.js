@@ -33,7 +33,7 @@ export function grantLevelPoints(h,previousLevel){
   if(level>=27){const first=(level-27)*2,chosen=h.talents.includes(first)?first:h.talents.includes(first+1)?first+1:null;if(chosen!==null)learnTalent(h,chosen^1);}
  }
 }
-const priorities={juggernaut:[0,2,1],crystal_maiden:[0,1,2],windranger:[1,2,0],axe:[2,0,1],kunkka:[1,0,2],ogre_magi:[1,0,2],drow_ranger:[2,0,1]};
+const priorities={juggernaut:[0,2,1],crystal_maiden:[0,1,2],windranger:[1,2,0],axe:[2,0,1],kunkka:[1,0,2],ogre_magi:[1,0,2],drow_ranger:[2,0,1],chen:[1,2,0]};
 export function autoLearn(h){
  for(let tier=3;tier>=0;tier--)if(h.talentPoints>0&&h.level>=[10,15,20,25][tier]&&!h.talents.some(i=>Math.floor(i/2)===tier))learnTalent(h,tier*2+(h.heroId==='kunkka'?1:0));
  let iterations=40;while(h.skillPoints>0&&iterations--){

@@ -43,7 +43,7 @@ try {
   const distinct=Object.fromEntries(['allies','enemies'].map(key=>[key,new Set(rounds.map(round=>signature(round[key]))).size]));
   assert.ok(distinct.allies>=7&&distinct.enemies>=7);
   const seen=Object.fromEntries(['allies','enemies'].map(key=>[key,[...new Set(rounds.flatMap(round=>round[key].map(hero=>hero.heroId)))].sort()]));
-  assert.equal(seen.allies.length,6);assert.equal(seen.enemies.length,7);
+  assert.equal(seen.allies.length,7);assert.equal(seen.enemies.length,8);
   console.log('PASS Ten real new-game starts change both hero sets across reloads with a repeated seed; every AI hero appears');
 
   await closeDevelopmentNotice(page);await observe();

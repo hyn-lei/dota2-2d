@@ -20,6 +20,9 @@ import {obstaclePath} from './local-navigation.js';
 import {ownsIllusion,weakIllusion,WEAK_ILLUSION_TARGET_RADIUS} from './illusions.js';
 import {manaState,spendMana,restoreMana} from './mana-runtime.js';
 import {disableDeveloperMode,tickDeveloperMode} from './developer-mode.js';
+import * as Chen from './chen-runtime.js';
+import * as Creatures from './neutral-runtime.js';
+import {ownsControlledUnit,isControlledCreature,controlUnit,setCreatureOrder} from './controlled-units.js';
 
 const distance = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
 const clamp = (n, low, high) => Math.max(low, Math.min(high, n));
@@ -91,29 +94,34 @@ export class Game {
     this._spawnRoshan();
     this.collisions.rebuild(this.entities,this.time);
     for(const h of this.entities)if(h.kind==='hero')this._placeHero(h);
+    for(const h of [...this.entities])if(h.heroId==='chen')Chen.spawnZealot(this,h);
   }
 
   get player() { return this._commandActor||(this.controlledHeroId&&this.entities.find(e => e.id===this.controlledHeroId))||this.entities.find(e => e.isPlayer); }
-  canControl(unit){return unit?.id===this.player?.id||ownsIllusion(this.player,unit);}
+  canControl(unit){return unit?.id===this.player?.id||ownsControlledUnit(this.player,unit);}
   get controlledUnit(){return this.canControl(this.selected)&&alive(this.selected)?this.selected:this.player;}
   unitCommand(id,action,args=[]){
     const actor=this.player,unit=this.entities.find(e=>e.id===id),allowed=['moveTo','setMovement','attackTarget','cast','castExtra','toggleAutocast','useItem','recall','stop'];
-    if(!ownsIllusion(actor,unit)||!alive(unit))return {ok:false,reason:'只能操控自己制造的存活幻象'};
+    if(!ownsControlledUnit(actor,unit)||!alive(unit))return {ok:false,reason:'只能操控自己的存活单位'};
     if(!allowed.includes(action)||!Array.isArray(args))return {ok:false,reason:'无效的幻象指令'};
     if(weakIllusion(unit)&&['cast','castExtra','toggleAutocast','useItem','recall'].includes(action))return {ok:false,reason:'弱幻象只能攻击，不能施放主动技能或使用物品'};
+    if(isControlledCreature(unit)&&['useItem','recall','castExtra'].includes(action))return {ok:false,reason:'受控生物不能使用英雄装备或回城卷轴'};
     const check=this._canAct(unit);if(!check.ok)return check;
     const previous=this._commandActor,keyboard=this.keyboard;this._commandActor=unit;
     try{
-      if(action==='stop'){Skills.interruptCast(this,unit,false);Object.assign(unit,{destination:null,explicitTarget:null,targetId:null,navPath:null,attackPhase:null,movementInput:{x:0,y:0}});return {ok:true};}
+      unit.manualControl=true;
+      if(action==='stop'){Skills.interruptCast(this,unit,false);Object.assign(unit,{destination:null,explicitTarget:null,targetId:null,navPath:null,attackPhase:null,movementInput:{x:0,y:0}});setCreatureOrder(unit,'hold');return {ok:true};}
       const values=[...args];if(['cast','castExtra','useItem'].includes(action)&&values[1]?.self)values[1]=unit;
       const result=this[action](...values);return result??{ok:true};
     }finally{this._commandActor=previous;this.keyboard=keyboard;}
   }
-  get selected() { const unit=this.entities.find(e=>e.id===this.selectedId);return unit&&!(ownsIllusion(this.player,unit)&&!alive(unit))?unit:this.player; }
+  get selected() { const unit=this.entities.find(e=>e.id===this.selectedId);return unit&&!(ownsControlledUnit(this.player,unit)&&!alive(unit))?unit:this.player; }
   get courier() { return Courier.ensureCourier(this,this.player); }
   courierCommand(command) { return Courier.courierCommand(this,this.player,command); }
   buyWithCourier(id) { return Courier.buyWithCourier(this,this.player,id); }
-  selectEntity(id) { if(this.entities.some(e=>e.id===id)){const previous=this.controlledUnit;if(previous&&id!==this.selectedId)this.clearMovement(previous);this.selectedId=id;} }
+  selectEntity(id) { if(this.entities.some(e=>e.id===id)){for(const selectedId of this.selectedIds||[this.controlledUnit?.id]){const previous=this.entities.find(e=>e.id===selectedId);if(previous&&id!==selectedId&&this.canControl(previous))this.clearMovement(previous);}this.selectedId=id;this.selectedIds=[id];} }
+  selectControlledGroup(includeHero=true){const units=this.entities.filter(e=>alive(e)&&this.canControl(e)&&(includeHero||e.id!==this.player.id));if(!units.length)return;this.selectEntity(units[0].id);this.selectedIds=units.map(e=>e.id);}
+  stop(){const h=this.player;if(!this._canAct(h).ok)return {ok:false,reason:'当前无法操作'};Skills.interruptCast(this,h,false);Object.assign(h,{destination:null,explicitTarget:null,targetId:null,navPath:null,movementInput:{x:0,y:0}});this.clearMovement(h);return {ok:true};}
 
   _id(prefix) { return `${prefix}-${++this.serial}`; }
 
@@ -160,21 +168,23 @@ export class Game {
     bonus.strength=(bonus.strength||0)+(h.innateStrength||0);bonus.agility=(bonus.agility||0)+(h.innateAgility||0)+(h.trueshotAgility||0);
     const items=ItemRuntime.statItems(this,h);
     Object.assign(h,calculateHeroStats(h.heroId,h.level,[...items,{stats:bonus}],h));
+    if(h.creatureHpPct){h.creatureHpBonus=h.maxHp*h.creatureHpPct/100;h.maxHp+=h.creatureHpBonus;}
     h.spellAoE+=talentArea;
     h.maxMana+=temporary.capacity;
     if(items.some(i=>i.id==='armlet')||h.armletHealthBonus!==undefined)h.armletHealthBonus=armletHealthBonus(items);
     h.hp=h.dead?0:clamp(hp+h.maxHp-oldHp,1,h.maxHp);
     h.mana=clamp(mana+h.maxMana-oldMana,0,h.maxMana);
     if(weakIllusion(h)){h.mana=0;h.maxMana=0;}
+    if(h.heroId==='chen')Chen.updateZealotGrowth(this,h);
   }
 
   setPaused(value) { this.paused = !!value; }
 
-  skill(index,hero=this.player) { return Skills.skillOf(hero,index); }
+  skill(index,hero=this.player) { return isControlledCreature(hero)?Creatures.creatureSkill(hero,index):Skills.skillOf(hero,index); }
   combatStats(unit,target=null) {
     const stats=ItemRuntime.combatStats(this,unit,Skills.combatStats(this,unit,target),target);
     if(unit.kind==='creep'){const aura=flagbearerAura(this,unit,this._flagSources||this.entities);if(aura)stats.magicResistance=1-(1-(stats.magicResistance||0))*(1-aura.magicResistance);}
-    return stats;
+    return Creatures.creatureCombatStats(this,unit,stats);
   }
   extraAbilities(hero=this.player) { return Skills.extraAbilities(hero); }
   castExtra(id,point) { return Skills.castExtraAbility(this,this.player,id,point); }
@@ -214,6 +224,7 @@ export class Game {
     p.explicitTarget = null;
     p.pickupTargetId = null;
     p.destination = this.navigation.nearestWalkable(this._point(x,y));
+    setCreatureOrder(p,'hold');
     p.navPath=null;
   }
 
@@ -223,6 +234,7 @@ export class Game {
     this.keyboard = length && Number.isFinite(length) ? {x:x / length, y:y / length} : {x:0, y:0};
     if(this.player)this.player.movementInput={...this.keyboard};
     if (length && this.player && !this.player.dead) {
+      if(this.player.zealot){setCreatureOrder(this.player,'hold');this.player.destination=null;}
       if(this.player.channel?.kind!=='multishot')Skills.interruptCast(this,this.player,true);
       this.player.recallTimer = 0;
       this.player.explicitTarget = null;
@@ -244,6 +256,8 @@ export class Game {
     this.player.destination = null;
     this.player.explicitTarget = id;
     this.player.targetId = id;
+    setCreatureOrder(this.player,'attack');
+    if(this.player.zealot)this.player.movementInput={x:0,y:0};
     this.player.navPath=null;
   }
 
@@ -307,6 +321,7 @@ export class Game {
       const hits=['hero','illusion'].includes(source?.kind)?(source.range>300?3:6):1;target.hp=Math.max(0,target.hp-hits);if(!target.hp)this._kill(target,source);return hits;
     }
     amount=ItemRuntime.outgoingDamage(this,source,amount,type,options);
+    amount=Creatures.creatureOutgoingDamage(this,source,amount,options);
     amount=ItemRuntime.blockAttackDamage(this,target,amount,type,options);
     const stats=this.combatStats(target);
     const armor=stats.armor-(options.ignoreBaseArmor?(target.baseArmor??target.armor??0):0);
@@ -323,9 +338,11 @@ export class Game {
     if(target.backdoorActive)value*=.5;
     value=Skills.fireShieldDamage(this,target,value,source,options,type);
     value=Skills.incomingDamage(this,target,value,source,type);
+    value=Creatures.creatureIncomingDamage(this,target,value,type);
     value=ItemRuntime.incomingDamage(this,target,value,source,type,options);
     value=Math.min(target.hp,value);
     target.hp = Math.max(0, target.hp - value);
+    Chen.chenDamage(this,target,value,source);
     ItemRuntime.afterDamage(this,target,value,source,type,options);
     if(target.kind==='neutral' && source && source.team!==2) this._aggroCamp(target.campId,source);
     if (target.kind === 'hero') {
@@ -337,7 +354,7 @@ export class Game {
     return value;
   }
 
-  _combatOwner(source) { return source?.kind==='illusion'?this.entities.find(e=>e.kind==='hero'&&e.id===source.ownerId&&e.team===source.team)||source:source; }
+  _combatOwner(source) { return source?.ownerId?this.entities.find(e=>e.kind==='hero'&&e.id===source.ownerId&&e.team===source.team)||source:source; }
 
   _kill(target, source) {
     if(target.dead)return;
@@ -350,6 +367,8 @@ export class Game {
     target.deathTime = this.time;
     Skills.onUnitKilled(this,target,source);
     ItemRuntime.onDeath(this,target,source);
+    Chen.chenDeath(this,target);
+    Creatures.creatureDeath(this,target);
     source=this._combatOwner(source);
     if(building(target))this.navigation.updateBuildings(this.entities.filter(building));
     for (const hero of this.entities) if (hero.xMark?.targetId===target.id || hero===target) hero.xMark=null;
@@ -375,7 +394,7 @@ export class Game {
         h.gold += 65;
       }
       this._feed(`${source?.name || (source?.kind === 'tower' ? '防御塔' : '军团')} 击败了 ${target.name}`, 1 - target.team);
-    } else if (target.kind === 'creep' || target.kind==='neutral'||target.dominatedBy) {
+    } else if (target.kind === 'creep' || target.kind==='neutral'||target.kind==='summon'||target.dominatedBy) {
       if (source?.kind === 'hero') {
         source.lastHits++;
         const gold=Math.floor((target.goldMin||0)+this._random()*((target.goldMax||target.goldMin||0)-(target.goldMin||0)+1));
@@ -386,7 +405,7 @@ export class Game {
         this.roshanRespawnAt=this.time+480+this._random()*180;
         if(source?.kind==='hero'){source.aegisUntil=this.time+300;this._feed(`${source.name}击败肉山，获得不朽之守护`,source.team);}
       }
-      if(target.unitId==='mud_golem'){
+      if(target.unitId==='mud_golem'&&!target.ownerId){
         const camp={id:target.campId,x:target.campCenter.x,y:target.campCenter.y};
         for(const dx of [-35,35])this._makeNeutral('mud_golem_split',{x:target.x+dx,y:target.y},camp);
       }
@@ -436,8 +455,9 @@ export class Game {
 
   cast(index, targetPoint) { return this._cast(this.player, index, targetPoint); }
 
-  _cast(h,index,point) { return Skills.castAbility(this,h,index,point); }
+  _cast(h,index,point) { return isControlledCreature(h)?Creatures.castCreature(this,h,index,point):Skills.castAbility(this,h,index,point); }
   toggleAutocast(index){
+    if(isControlledCreature(this.player))return Creatures.toggleCreatureAutocast(this,this.player,index);
     const h=this.player,s=this.skill(index,h);if(s.kind!=='autocast'||!s.level||!this._canAct(h).ok)return {ok:false,reason:'当前不能切换自动施放'};
     if(h.heroId==='kunkka')return this._cast(h,index,h);
     h.autocast||={};h.autocast[index]=!h.autocast[index];return {ok:true,autocast:h.autocast[index]};
@@ -579,8 +599,11 @@ export class Game {
     }
   }
 
+  _controlledAbility(e,target){return Creatures.autoCastCreature(this,e,target);}
+  _creatureCooldownReduction(e){return Creatures.creatureCooldownReduction(this,e);}
+
   _returnMark(h) { return Skills.returnMark(this,h); }
-  _resolveDelayedSpells() { Skills.tickWorldAbilities(this); }
+  _resolveDelayedSpells() { Skills.tickWorldAbilities(this);Chen.tickChenWorld(this);Creatures.tickCreatureWorld(this); }
 
   step(dt) {
     if (this.status !== 'playing') disableDeveloperMode(this);
@@ -627,13 +650,14 @@ export class Game {
       if (!alive(e) || this.status !== 'playing') continue;
       if(e.kind!=='hero'&&e.kind!=='illusion'){
         const aura=flagbearerAura(this,e,flagSources);
-        e.hp=Math.min(e.maxHp,e.hp+((e.hpRegen||0)+(aura?.hpRegen||0))*dt);
+        ItemRuntime.regenerate(this,e,((e.hpRegen||0)+(aura?.hpRegen||0)+Chen.chenRegen(this,e)+Creatures.creatureRegen(this,e))*dt);
         if(e.backdoorActive){e.backdoorHealth=Math.max(e.backdoorHealth,e.hp);e.hp=Math.min(e.backdoorHealth,e.hp+90*dt);}
         if(e.maxMana)restoreMana(e,(e.manaRegen||0)*dt);
       }
       if (e.kind === 'tower'||e.kind==='fountain') this._towerTick(e);
-      if (e.kind === 'creep') this._creepTick(e,dt);
-      if (e.kind === 'neutral') this._neutralTick(e,dt);
+      if(isControlledCreature(e)||e.kind==='summon')controlUnit(this,e,dt);
+      else if (e.kind === 'creep') this._creepTick(e,dt);
+      else if (e.kind === 'neutral') this._neutralTick(e,dt);
       if (e.kind === 'ward') Skills.tickWard(this,e,dt);
       if (e.kind === 'illusion') {
         if(e.expiresAt<=this.time){this._kill(e,null);continue;}
@@ -712,9 +736,9 @@ export class Game {
 
   _attack(e,target,options={}) {
     if(!target||!alive(target)||!alive(e)||this.isStunned(e)||Skills.hasStatusFlag(this,e,'disarmed')||!this.canSee(e,target)||
-      (e.castPhase||e.channel||e.omnislash)&&!options.omni||Skills.isInvulnerable(this,target)||
+      (e.castPhase||e.channel||e.omnislash||e.neutralCast||e.neutralChannel)&&!options.omni||Skills.isInvulnerable(this,target)||
       distance(e,target)>(this.combatStats(e,target).range||e.range)+target.radius+8||e.attackCooldown>0&&!options.attackReleased)return false;
-    if((e.heroId==='ogre_magi'||e.heroId==='drow_ranger')&&!options.attackReleased&&!options.omni){
+    if((e.heroId==='ogre_magi'||e.heroId==='drow_ranger'||e.heroId==='chen'||isControlledCreature(e))&&!options.attackReleased&&!options.omni){
       const stats=this.combatStats(e,target),duration=(e.attackPoint||attackProfile(e).attackPoint)*100/stats.attackSpeed;
       e.angle=Math.atan2(target.y-e.y,target.x-e.x);e.attackFlash=duration+.1;e.targetId=target.id;
       e.attackPhase={targetId:target.id,startedAt:this.time,executeAt:this.time+duration,options};e.attackCooldown=stats.attackInterval;return true;
@@ -722,6 +746,7 @@ export class Game {
     e.angle=Math.atan2(target.y-e.y,target.x-e.x);e.attackFlash=.24;e.targetId=target.id;
     const trueStrike=ItemRuntime.trueStrike(this,e,target);
     const result=ItemRuntime.attackModifiers(this,e,target,Skills.attackModifiers(this,e,target,options));e.attackCooldown=result.interval;
+    Creatures.creatureAttackModifiers(this,e,target,result);
     result.trueStrike=trueStrike||result.marksmanship;result.itemAttackProcs=[...(e.itemAttackProcs||[])];
     if(isRangedAttack(e))launchAttack(this,e,target,result);
     else{this._hitAttack(e,target,result);this._effect('slash',e.x,e.y,attackVisualFields(e,target));}
@@ -738,18 +763,20 @@ export class Game {
     else dealt=this.damage(target,result.damage,e,'physical',{attack:true,ignoreBaseArmor:result.marksmanship,armorIgnorePct:result.cleave?.values.pierces_armor||0});
     Skills.afterAttack(this,e,target,result,dealt);
     ItemRuntime.afterAttack(this,e,target,result,dealt);
+    Creatures.creatureAfterAttack(this,e,target,result,dealt);
     if(isRangedAttack(e))this._effect('burst',target.x,target.y,{visual:'attackImpact',radius:e.kind==='tower'?70:45,life:.28,color:attackVisualFields(e,target).color});
   }
 
   _resolveOgreAttack(e){
     const phase=e.attackPhase,target=this.entities.find(t=>t.id===phase.targetId&&alive(t)),taunt=this._tauntSource(e);
-    if(!alive(e)||!target||this.isStunned(e)||Skills.hasStatusFlag(this,e,'disarmed')||e.castPhase||e.channel||e.forcedMotion||taunt&&taunt.id!==target.id){e.attackPhase=null;e.attackCooldown=0;return;}
+    if(!alive(e)||!target||this.isStunned(e)||Skills.hasStatusFlag(this,e,'disarmed')||e.castPhase||e.channel||e.neutralCast||e.neutralChannel||e.forcedMotion||taunt&&taunt.id!==target.id){e.attackPhase=null;e.attackCooldown=0;return;}
     if(phase.executeAt>this.time+1e-7)return;e.attackPhase=null;
     const elapsed=this.time-phase.startedAt;
     if(this._attack(e,target,{...phase.options,attackReleased:true}))e.attackCooldown=Math.max(0,e.attackCooldown-elapsed);else e.attackCooldown=0;
   }
   _move(e, point, dt, stop = 0) {
     if(this.isStunned(e)||this.isRooted(e)||(Skills.isInvulnerable(this,e)&&!Skills.hasStatusFlag(this,e,'canMoveInvulnerable')))return;
+    if(e.flying){const d=distance(e,point),amount=Math.min(this.combatStats(e).speed*dt,Math.max(0,d-stop));if(amount>0){e.angle=Math.atan2(point.y-e.y,point.x-e.x);e.x=clamp(e.x+Math.cos(e.angle)*amount,25,WORLD.width-25);e.y=clamp(e.y+Math.sin(e.angle)*amount,25,WORLD.height-25);e.moving=true;}return;}
     const navigator=Skills.movementNavigator(this,e);
     if(this.collisions.separate(e,navigator)){e.navPath=null;e.navRetryAt=0;}
     const originalDistance=distance(e,point);
@@ -839,7 +866,7 @@ export class Game {
 
   _heroTick(h,dt) {
     Inventory.tickInventory(this,h);
-    ItemRuntime.regenerate(this,h,h.hpRegen*dt);
+    ItemRuntime.regenerate(this,h,(h.hpRegen+Chen.chenRegen(this,h)+Creatures.creatureRegen(this,h))*dt);
     restoreMana(h,Skills.auraManaRegen(this,h)*dt);
     const ownBase=BASES[h.team];
     if(distance(h,ownBase)<1200){h.hp=Math.min(h.maxHp,h.hp+h.maxHp*.05*dt);restoreMana(h,(h.maxMana*.06+14)*dt);}
@@ -891,6 +918,7 @@ export class Game {
     h.targetId = null; h.explicitTarget = null; h.destination = null;
     h.xMark=null;
     h.buffs = {};h.statuses={};h.castPhase=null;h.channel=null;h.omnislash=null; h.lastDamagers = {}; h.retreating = false; h.pathIndex = 1;
+    if(h.heroId==='chen')Chen.spawnZealot(this,h);
     if(h.botState)h.botState.lane=null;
     if (h.isPlayer) this.clearMovement(h);
     this._placeHero(h);

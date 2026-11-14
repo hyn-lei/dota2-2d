@@ -24,7 +24,8 @@ function teleportEntry(g,h){
   return e.active&&e.cooldown<=0&&e.ready<=0&&h.mana>=e.item.mana?e:null;
 }
 function landingTargets(g,h,world,goal){
-  const boots=Items.statItems(g,h).find(e=>e.id.startsWith('travel_boots'));
+  // Permanent stat bonuses (such as a consumed Moon Shard) have no item ID.
+  const boots=Items.statItems(g,h).find(e=>e.id==='travel_boots'||e.id==='travel_boots_2');
   return [...world.teams[h.team].buildings,...(boots?world.teams[h.team].units.filter(e=>e!==h&&(boots.id==='travel_boots_2'||e.kind!=='hero')):[])]
     .filter(e=>alive(e)&&distance(e,goal)<2400&&e.hp/e.maxHp>.22)
     .sort((a,b)=>distance(a,goal)-distance(b,goal));

@@ -8,7 +8,7 @@ const page=await browser.newPage({viewport:{width:1440,height:900},deviceScaleFa
 page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});
 const check=name=>{checks.push(name);console.log(`PASS ${name}`);};
 try{
-  await page.goto(process.env.GAME_URL||'http://localhost:5184',{waitUntil:'networkidle'});await closeDevelopmentNotice(page);assert.equal(await page.locator('.hero-option').count(),7);
+  await page.goto(process.env.GAME_URL||'http://localhost:5184',{waitUntil:'networkidle'});await closeDevelopmentNotice(page);assert.equal(await page.locator('.hero-option').count(),8);
   await page.locator('[data-hero="ogre_magi"]').click();await page.waitForFunction(()=>document.querySelector('#hero-render').complete&&document.querySelector('#hero-render').naturalWidth>0);
   assert.match(await page.locator('#selected-info').textContent(),/食人魔魔法师/);await page.screenshot({path:'artifacts/ogre-lobby.png'});
   await page.evaluate(async()=>{const {Renderer}=await import('/src/renderer.js'),render=Renderer.prototype.render;Renderer.prototype.render=function(g,t){window.g=g;window.r=this;return render.call(this,g,t);};});

@@ -1,0 +1,90 @@
+{
+  "checkedAt": "2026-11-14T10:51:53.898Z",
+  "manifest": [
+    {
+      "file": "docs/research/heroes/66.json",
+      "url": "https://www.dota2.com/datafeed/herodata?language=english&hero_id=66",
+      "sha256": "fdce30cb6cf5b3b689e531d74c8c96f1142419365991a97e29c5278da39fa184"
+    },
+    {
+      "file": "docs/research/abilities/66-schinese.json",
+      "url": "https://www.dota2.com/datafeed/herodata?language=schinese&hero_id=66",
+      "sha256": "c43495113442d53fadcae0e31388ebab6004e4bc6f0be2918782b7253074cf08"
+    },
+    {
+      "file": "docs/research/chen/patch-list.json",
+      "url": "https://www.dota2.com/datafeed/patchnoteslist?language=english",
+      "sha256": "9ec57bde0c37aee9b782bd7190cc0c18b68310d90b6cba0b9f9dd3b196bd29ea"
+    },
+    {
+      "file": "docs/research/heroes/npc_dota_hero_chen.txt",
+      "url": "https://raw.githubusercontent.com/SteamTracking/GameTracking-Dota2/3f630cc18bfa63f63b3ce259be52209d922558c3/game/dota/pak01_dir/scripts/npc/heroes/npc_dota_hero_chen.txt",
+      "sha256": "8b18c83d0aa2bc6a6ef8d9d6589f75fbb57e52f9e2a98a4e0de0904ef0d67a48"
+    },
+    {
+      "file": "docs/research/chen/martyrdom-schinese.json",
+      "url": "https://www.dota2.com/datafeed/abilitydata?language=schinese&ability_id=951",
+      "sha256": "7ea17f6bbe40173837863d273a86ab2986147b4c4959fa739127b3f256742418"
+    },
+    {
+      "file": "docs/research/units/npc_units.txt",
+      "url": "https://raw.githubusercontent.com/SteamTracking/GameTracking-Dota2/3f630cc18bfa63f63b3ce259be52209d922558c3/game/dota/pak01_dir/scripts/npc/npc_units.txt",
+      "sha256": "f9a4b9d946913324f4263af2d41a3be5436645fb17e411ac006350caa83e9d37"
+    },
+    {
+      "file": "docs/research/units/npc_abilities.txt",
+      "url": "https://raw.githubusercontent.com/SteamTracking/GameTracking-Dota2/3f630cc18bfa63f63b3ce259be52209d922558c3/game/dota/pak01_dir/scripts/npc/npc_abilities.txt",
+      "sha256": "5d5eaa33e8d78a9b5b842ada41d4d77a670889e0895f2288bdd03af67ffe2f8a"
+    },
+    {
+      "file": "assets/abilities/chen_penitence.png",
+      "url": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/abilities/chen_penitence.png",
+      "sha256": "0578d6fcae3875eeb8334513d9a549cd610053dddac0d0f5aae1b73525b2b4ea"
+    },
+    {
+      "file": "assets/abilities/chen_holy_persuasion.png",
+      "url": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/abilities/chen_holy_persuasion.png",
+      "sha256": "9d9b98bf1bb8b23ae1ac5ac70dfb69594871a9255a8a2a27543baa07410ea777"
+    },
+    {
+      "file": "assets/abilities/chen_divine_favor.png",
+      "url": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/abilities/chen_divine_favor.png",
+      "sha256": "d66d9c84d3e1a036b038b4d157ca245af3125cc49f0976098381529416da33aa"
+    },
+    {
+      "file": "assets/abilities/chen_hand_of_god.png",
+      "url": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/abilities/chen_hand_of_god.png",
+      "sha256": "d861cb4ba2bdf3862ad1578ba580b7ba5ab1e9824acf29c940ce784a20743364"
+    },
+    {
+      "file": "assets/abilities/chen_zealot.png",
+      "url": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/abilities/chen_zealot.png",
+      "sha256": "17c2d8e510d02c1183ccf2f197b0c118173479ebe950d5dab491cff135760d16"
+    },
+    {
+      "file": "assets/abilities/chen_martyrdom.png",
+      "url": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/abilities/chen_martyrdom.png",
+      "sha256": "fd2d007fc0f0e6921644cedb5dc7c02c32c38213880689e1e99e42507243858d"
+    },
+    {
+      "file": "assets/chen_portrait.png",
+      "url": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/heroes/chen.png",
+      "sha256": "3ed9ceaf4062e6702db3c95ec31d3234124b2f17dd2314e0bfc5494360cff06f"
+    },
+    {
+      "file": "assets/hud/portraits/chen.png",
+      "url": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/heroes/chen.png",
+      "sha256": "3ed9ceaf4062e6702db3c95ec31d3234124b2f17dd2314e0bfc5494360cff06f"
+    }
+  ],
+  "trackingCommit": "3f630cc18bfa63f63b3ce259be52209d922558c3",
+  "derivedAssets": [
+    {
+      "file": "assets/chen.png",
+      "sha256": "ca758bc246ec40e2611c552fda29147e28647bba5c4d075800ccb88ce24f16a2",
+      "sourceUrl": "https://cdn.akamai.steamstatic.com/apps/dota2/videos/dota_react/heroes/renders/chen.webm",
+      "sourceSha256": "a4bcecaad0da1212be33d675fa998978b6de86bae22657af2f3fa59aa60ea170",
+      "method": "PNG still converted from Valve's official Chen render WebM; 1440 by 1440 pixels."
+    }
+  ]
+}

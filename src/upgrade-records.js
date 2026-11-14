@@ -328,6 +328,74 @@ export const UPGRADE_EFFECTS={
       "scepterDescription": "霜冻之箭现在对敌人施加低温的叠加效果，提升霜冻之箭的伤害，并且每层叠加效果都会降低生命回复。若敌人在低温效果下阵亡，他们将会爆炸，对范围内的敌人造成伤害和减速。",
       "shardDescription": ""
     }
+  },
+  "chen": {
+    "chen_holy_persuasion": {
+      "scepter": [],
+      "shard": [
+        {
+          "field": "creep_ability_level",
+          "operation": "set",
+          "values": [
+            2
+          ]
+        }
+      ],
+      "scepterDescription": "",
+      "shardDescription": "神圣劝化可以对远古中立生物施放。根据上帝之手等级可以控制最多1/2/3个远古生物。使中立生物的部分技能额外升1级。"
+    },
+    "chen_hand_of_god": {
+      "scepter": [
+        {
+          "field": "AbilityCooldown",
+          "operation": "add",
+          "values": [
+            -40
+          ]
+        },
+        {
+          "field": "AbilityChannelTime",
+          "operation": "set",
+          "values": [
+            6
+          ]
+        },
+        {
+          "field": "debuff_immune_radius",
+          "operation": "set",
+          "values": [
+            800
+          ]
+        },
+        {
+          "field": "debuff_immune_resist",
+          "operation": "set",
+          "values": [
+            60
+          ]
+        },
+        {
+          "field": "nearby_hot_boost",
+          "operation": "set",
+          "values": [
+            200
+          ]
+        }
+      ],
+      "shard": [
+        {
+          "field": "ancient_creeps_scepter",
+          "operation": "set",
+          "values": [
+            1,
+            2,
+            3
+          ]
+        }
+      ],
+      "scepterDescription": "上帝之手的冷却时间降低至%AbilityCooldown%秒，并且变为持续施法型技能，持续最多%AbilityChannelTime%秒。初始治疗会在持续施法起始时发生，持续施法期间其他附近友方单位变为<font color='#d76907'>减益免疫</font>状态，拥有%debuff_immune_resist%%%魔法抗性，而且持续治疗的威力提升%nearby_hot_boost%%%。",
+      "shardDescription": ""
+    }
   }
 };
 export const EXTRA_ABILITIES={
@@ -835,5 +903,6 @@ export const EXTRA_ABILITIES={
       "description": "卓尔游侠在她脚下创造一片冰山，击退附近的敌人。站在山上的单位会获得飞行视野，而卓尔游侠和她的远程友军会获得攻击距离加成。卓尔游侠站在山上时攻击下方目标时获得额外伤害。山的前面会阻挡视野，并且除了卓尔游侠外无法穿行。施放时不会打断数箭齐发。",
       "damageType": "magical"
     }
-  ]
+  ],
+  "chen": []
 };

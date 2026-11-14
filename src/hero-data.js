@@ -193,5 +193,32 @@ export const HERO_STATS = Object.freeze({
     "visionDay": 1800,
     "visionNight": 800,
     "baseMagicResistance": 0.25
+  },
+  "chen": {
+    "id": "chen",
+    "dotaId": 66,
+    "primaryAttribute": "intelligence",
+    "baseStrength": 23,
+    "strengthGain": 2.2,
+    "baseAgility": 15,
+    "agilityGain": 2.1,
+    "baseIntelligence": 19,
+    "intelligenceGain": 3.2,
+    "baseHealth": 120,
+    "baseMana": 75,
+    "baseHealthRegen": 0.25,
+    "baseManaRegen": 0.5,
+    "baseDamageMin": 29,
+    "baseDamageMax": 39,
+    "baseArmor": -1,
+    "baseAttackTime": 1.7,
+    "attackPoint": 0.5,
+    "projectileSpeed": 1100,
+    "baseAttackSpeed": 100,
+    "moveSpeed": 305,
+    "range": 650,
+    "visionDay": 1800,
+    "visionNight": 800,
+    "baseMagicResistance": 0.25
   }
 });

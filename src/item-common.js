@@ -35,7 +35,8 @@ export function dot(g,e,item,duration,dps,source,type='magical',extra={}){
 export function heal(g,e,amount,source,isRegen=false){
  const reduction=Object.values(e.statuses||{}).filter(s=>s.until>g.time).reduce((a,s)=>Math.max(a,s.healReduction||0),0);
  const received=Object.values(e.statuses||{}).filter(s=>s.until>g.time).reduce((a,s)=>a+(s.healReceivedAmp||0),0);
- const amp=isRegen?1:1+(source?.healAmp||0)/100;
+ const auraAmp=Object.values(source?.statuses||{}).filter(s=>s.until>g.time).reduce((n,s)=>n+(s.creatureHealAmp||0),0);
+ const amp=isRegen?1:1+((source?.healAmp||0)+auraAmp)/100;
  let result=Math.max(0,amount*amp*(1-reduction/100)*(1+received/100));
  const theft=isRegen&&e.itemAura?.regenTheft;
  if(theft){const lost=result*theft.percent/100;result-=lost;const thief=g.entities.find(h=>h.id===theft.sourceId);if(theft.active&&alive(thief))thief.hp=Math.min(thief.maxHp,thief.hp+lost);}

@@ -1,6 +1,15 @@
 .illusion-controls{position:absolute;left:calc(50% - 414px);bottom:158px;display:flex;align-items:center;gap:5px;padding:6px;background:#112639ed;border:1px solid #477bab;color:#9ccefa;pointer-events:auto;font-size:11px}
 .illusion-controls[hidden]{display:none}
 .illusion-controls>button{background:#193c57;border:1px solid #45749a;color:#c3e2ff;padding:7px 9px;font-size:11px}
+.illusion-controls{flex-wrap:wrap;max-width:min(650px,calc(100vw - 20px))}
+#owned-unit-buttons{display:flex;gap:4px;flex-basis:100%;max-width:100%;overflow-x:auto;padding-top:3px}
+#owned-unit-buttons button{flex-shrink:0;border:1px solid #3d645d;background:#172d28;color:#d2dfc7;padding:5px 8px;font-size:11px}
+#owned-unit-buttons button[aria-pressed="true"]{border-color:#ddce96;background:#30483a;color:#fff0c1}
+#owned-unit-buttons small{color:#9eb9a8}
+.hud-portrait[role="button"]{cursor:pointer}
+.hud-portrait[role="button"]:focus-visible{outline:2px solid #ddce96;outline-offset:3px}
+.hero-stat-tooltip .close-unit-details{position:absolute;right:6px;top:6px;width:30px;height:30px;font-size:24px;color:#c7d6d6;line-height:1;padding:0}
+.hero-stat-tooltip>strong{padding-right:26px}
 .game-hud[data-unit-kind="illusion"] .hud-hero-title>strong{color:#81caff}
 .game-hud[data-unit-kind="illusion"] .hud-portrait>img{filter:grayscale(1) sepia(1) hue-rotate(165deg) saturate(3)}
 @media(max-width:700px){.illusion-controls{left:5px;bottom:270px;flex-wrap:wrap;max-width:calc(100vw - 10px)}.illusion-controls>button{min-height:36px}.match:has(.illusion-controls:not([hidden])) .control-hint{display:none}}

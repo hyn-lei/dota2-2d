@@ -5,6 +5,27 @@ import * as Items from '../src/item-runtime.js';
 import {tacticalWorld,tacticalPlan} from '../src/bot-tactics.js';
 import {tacticalArena,supplyTp,tower,advanceBots} from './bot-tactics-scenarios.mjs';
 import {serializeMatch,parseMatch,restoreMatch} from '../src/game-save.js';
+import {createMeta} from '../src/inventory.js';
+
+for(const team of [0,1])test(`team ${team} can defend by TP after consuming Moon Shard, including after a save restore`,()=>{
+  const {g,bot,enemy}=tacticalArena(team,'hard'),baseSpeed=g.combatStats(bot).attackSpeed;
+  bot.inventory=['moon_shard'];bot.inventoryMeta=[createMeta(bot,'moon_shard')];g._refreshHero(bot);
+  assert.equal(Items.useItem(g,bot,0,bot).ok,true);
+  assert.equal(bot.moonShard,true);assert.equal(bot.inventory.filter(Boolean).length,0);
+  assert.equal(g.combatStats(bot).attackSpeed,baseSpeed+60);
+  const own=tower(g,team,15000);Object.assign(enemy,{x:15400,targetId:own.id});g._index();
+  // Keep the actual permanent-stat entry: it has no inventory ID or slot.
+  assert.ok(Items.statItems(g,bot).some(e=>e.id===undefined&&e.stats.attackSpeed===60));
+  for(const game of [g,(()=>{enemy.isHuman=false;g.heroChoice=enemy.heroId;return restoreMatch(parseMatch(serializeMatch(g)));})()]){
+    const hero=game.entities.find(e=>e.id===bot.id);game.paused=false;supplyTp(game,hero);game._index();
+    assert.doesNotThrow(()=>game._botTick(hero,.05));
+    assert.equal(hero.itemChannel?.kind,'teleport');assert.equal(hero.itemChannel.targetId,own.id);
+    assert.ok(hero.itemCooldowns.teleport>0);assert.equal(hero.tp.length,0);
+    game.time=3.1;Items.tickUnit(game,hero,.05);game._index();
+    assert.ok(distance(hero,own)<300);assert.doesNotThrow(()=>game.step(1));
+    assert.equal(hero.moonShard,true);
+  }
+});
 
 const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
 for(const team of [0,1])for(const difficulty of ['easy','normal','hard','nightmare']){

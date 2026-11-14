@@ -12,6 +12,7 @@ const number=n=>Number.isFinite(n)?Number(n.toFixed(2)).toString():'—';
 const labels={fireblast_damage:'火焰爆轰伤害',bonus_cast_speed:'施法速度加成 %',burn_damage:'燃烧伤害 / 秒',slow_movement_speed_pct:'移动速度调整 %',projectile_speed:'弹道速度',multicast_delay:'多重施法间隔 / 秒',bonus_movement_speed:'移动速度加成 %',self_bonus:'自身额外攻速',mana_per_str:'每点力量提供魔法',mana_regen_per_str:'每点力量回蓝 / 秒',multicast_2_times:'两重施法概率 %',multicast_3_times:'三重施法概率 %',multicast_4_times:'四重施法概率 %',strength_for_one_pct:'每增加 1% 概率所需力量',scepter_mana:'当前魔法消耗 %',damage_absorb_pct:'攻击伤害吸收 %',attacks:'抵挡攻击次数',radius:'作用范围',duration:'持续时间',bonus_armor:'额外护甲',damage_per_second:'每秒伤害',slow:'移动减速 %',trigger_attacks:'触发攻击次数',damage:'伤害',speed_bonus:'移动速度加成 %',armor_bonus:'护甲加成',armor_per_stack:'每次斩杀永久护甲',base_mana_regen:'全图回蓝 / 秒',proximity_mana_regen_tooltip:'近处回蓝 / 秒',mana_regen_amp:'自身回蓝增强 %',nova_damage:'伤害',movespeed_slow:'移动减速 %',attackspeed_slow:'攻速降低',creep_multiplier:'非远古小兵伤害倍率',blade_fury_damage:'每秒伤害',blade_fury_radius:'作用范围',immunity_resist:'额外魔抗 %',healing_ward_heal_amount:'每秒最大生命恢复 %',healing_ward_aura_radius:'治疗范围',blade_dance_crit_chance:'暴击概率 %',blade_dance_crit_mult:'暴击伤害 %',bonus_damage:'额外攻击伤害',bonus_attack_speed:'额外攻击速度',attack_rate_multiplier:'攻击频率倍率',stun_duration:'眩晕时间',fail_stun_duration:'未束缚时眩晕',powershot_damage:'满蓄力伤害',damage_reduction:'每个目标伤害递减 %',movespeed_bonus_pct:'移动速度加成 %',focusfire_damage_reduction:'攻击伤害调整 %',torrent_damage:'总伤害',delay:'生效延迟',slow_duration:'减速时间',damage_bonus:'强化攻击伤害',cleave_damage:'分裂伤害 %',cleave_distance:'分裂距离',allied_duration:'友方持续时间',ghostship_speed:'幽灵船速度',ghostship_width:'碰撞范围',rum_factor:'朗姆酒强化倍率',mana_multiplier:'魔法转护盾 %',barrier_duration:'护盾时间',armor_pct_as_strength:'护甲转力量 %',stack_gain_time:'获得一层间隔',max_stacks:'最高层数',agi_bonus_pct_per_stack:'每层基础敏捷 %',movement_speed_pct_per_stack:'每层移动速度 %',movespeed_bonus:'额外移动速度',ghostship_absorb:'延迟伤害 %',damage_threshold:'触发生命阈值 %',buff_duration:'增益时间',max_movespeed:'移动速度上限'};
 const contexts=new WeakMap();
 Object.assign(labels,{frost_arrows_movement_speed:'冰箭移动减速 %',chance:'射手天赋概率 %',disable_range:'近身失效距离',wave_speed:'狂风弹速',wave_width:'狂风宽度',wave_length:'狂风距离',silence_duration:'沉默时间',knockback_distance_max:'最大击退距离',arrow_count_per_wave:'每波箭数',wave_count:'波数',arrow_damage_pct:'攻击伤害 %',arrow_speed:'箭速',arrow_width:'箭碰撞半径',arrow_range_base:'额外射程',multishot_movespeed:'引导期间移速 %',trueshot_agi_bonus:'精准光环敏捷 %',trueshot_agi_bonus_allies_pct:'友军分享 %',shard_max_stacks:'低温最大层数',shard_bonus_damage_per_stack:'每层低温攻击伤害',shard_regen_reduction_pct_per_stack:'每层生命恢复降低 %',shard_burst_damage_per_stack:'每层爆发伤害'});
+Object.assign(labels,{max_units:'劝化单位上限',level_req:'可劝化最高等级',health_min:'最低生命值',gold_pct:'击杀金钱 %',movement_speed_bonus:'额外移动速度',creep_ability_level:'野怪技能等级',heal_rate:'光环生命恢复 / 秒',aura_radius:'光环范围',heal_amp:'治疗与恢复增强 %',heal_amount:'初始治疗',heal_per_second:'每秒治疗',hot_duration:'持续治疗时间',ancient_creeps_scepter:'远古控制上限',debuff_immune_radius:'引导减益免疫范围',debuff_immune_resist:'引导魔抗 %',nearby_hot_boost:'附近持续治疗增强 %',zealot_respawn_time:'狂热者复活时间',teleport_delay:'召回延迟',bonus_hp:'狂热者生命增幅 %'});
 function art(skill){return `<img src="/assets/abilities/${skill.id}.png" alt="" onerror="this.hidden=true;this.nextElementSibling.hidden=false"/><span hidden>${icon(skill.icon)}</span>`;}
 export function mountSkills(container,game,actions,unit=game.selected){
  const h=unit,abilities=ABILITIES[h.heroId];
@@ -84,14 +85,22 @@ function unitTipHTML(state,id){
  const s=unitSkill(state.game,state.unit,id),row=(k,v)=>`<tr><th>${escape(k)}</th><td>${escape(v)}</td></tr>`;
  return `<div class="skill-tip-heading"><strong>${escape(s.name)}</strong><span>${s.passive?'被动技能':'主动技能'}${s.locked?' · 尚未解锁':''}${s.active===false?' · 暂时失效':''}</span></div><p>${escape(s.description)}</p><table><tbody>${!s.passive?row('魔法消耗',s.mana)+row('冷却 / 秒',s.cooldown)+row('剩余冷却 / 秒',number(s.remaining))+row('施法前摇 / 秒',s.castPoint||0):''}${s.range?row('施法距离',s.range):''}${s.rows.map(([k,v])=>row(k,v)).join('')}</tbody></table>${s.notes.map(n=>`<p class="unit-skill-note">${escape(n)}</p>`).join('')}`;
 }
+function positionUnitTooltip(state,button){
+ const r=button.getBoundingClientRect(),controls=document.querySelector('.illusion-controls:not([hidden])'),top=Math.min(r.top,controls?.getBoundingClientRect().top??r.top);
+ state.tooltip.style.left=`${Math.max(10,Math.min(innerWidth-Math.min(350,innerWidth-20),r.left-120))}px`;
+ state.tooltip.style.bottom=`${Math.max(12,innerHeight-top+15)}px`;
+ state.tooltip.style.maxHeight=controls?`min(510px, 48dvh, ${Math.max(80,top-27)}px)`:'';
+}
 function mountUnitSkills(container,game,actions,unit){
  const ids=unitSkillIds(unit);
  container.innerHTML=`<div class="skill-point-summary"><span>${escape(unit.name||'所选单位')}</span><small>${unit.team===2?'中立单位':unit.team===game.player.team?'友方单位':'敌方单位'}</small></div><div class="skill-buttons unit-skill-buttons">${ids.map(id=>{const s=unitSkill(game,unit,id);return `<div class="ability-wrap"><button class="ability unit-ability" data-unit-ability="${escape(id)}" aria-readonly="true" aria-label="${escape(s.name)}"><span class="ability-art">${s.image?`<img src="/${s.image}" alt="">`:`<span>${icon(s.passive?'shield':'aura')}</span>`}</span><span class="ability-cost"></span><span class="cooldown"></span><span class="ability-name">${escape(s.name)}</span></button></div>`;}).join('')||'<div class="unit-no-skills">无技能</div>'}</div><div class="skill-tooltip" role="tooltip" hidden></div>`;
  const state={container,game,actions,unit,heroId:null,ids:ids.join('|'),tooltip:container.querySelector('.skill-tooltip'),buttons:[...container.querySelectorAll('[data-unit-ability]')]};contexts.set(container,state);
  const hide=()=>{clearTimeout(state.hideTimer);state.hideTimer=setTimeout(()=>{state.hover=null;state.tooltip.hidden=true;},180);};
  for(const button of state.buttons){
-  const show=()=>{clearTimeout(state.hideTimer);state.hover={id:button.dataset.unitAbility,button};state.tipContent=unitTipHTML(state,state.hover.id);state.tooltip.innerHTML=state.tipContent;state.tooltip.hidden=false;const r=button.getBoundingClientRect();state.tooltip.style.left=`${Math.max(10,Math.min(innerWidth-Math.min(350,innerWidth-20),r.left-120))}px`;state.tooltip.style.bottom=`${Math.max(12,innerHeight-r.top+15)}px`;};
+  const show=()=>{clearTimeout(state.hideTimer);state.hover={id:button.dataset.unitAbility,button};state.tipContent=unitTipHTML(state,state.hover.id);state.tooltip.innerHTML=state.tipContent;state.tooltip.hidden=false;positionUnitTooltip(state,button);};
   button.onpointerenter=button.onfocus=show;button.onpointerleave=button.onblur=hide;
+  button.onclick=()=>{const s=unitSkill(state.game,state.unit,button.dataset.unitAbility);if(!s.passive&&s.activeIndex>=0&&state.game.canControl(state.unit))actions.cast(s.activeIndex);};
+  button.oncontextmenu=e=>{e.preventDefault();const s=unitSkill(state.game,state.unit,button.dataset.unitAbility);if(s.activeIndex>=0&&state.game.canControl(state.unit))actions.autocast?.(s.activeIndex);};
  }
  state.tooltip.onpointerenter=()=>clearTimeout(state.hideTimer);state.tooltip.onpointerleave=hide;
  updateUnitSkills(state);return container;
@@ -101,6 +110,9 @@ function updateUnitSkills(state){
  if(unitSkillIds(unit).join('|')!==state.ids){mountUnitSkills(container,game,state.actions,unit);return;}
  for(const button of state.buttons){
   const s=unitSkill(game,unit,button.dataset.unitAbility);
+  const controlled=game.canControl(unit)&&!unit.dead;
+  button.setAttribute('aria-readonly',String(!controlled||s.passive));button.classList.toggle('no-mana',!s.passive&&(unit.mana||0)<s.mana);
+  let key=button.querySelector('kbd');if(controlled&&!s.passive&&s.activeIndex>=0){if(!key){key=document.createElement('kbd');button.append(key);}key.textContent=skillKey(s.activeIndex);}else key?.remove();
   button.classList.toggle('passive-skill',s.passive);button.classList.toggle('passive-disabled',s.active===false||s.locked||unit.dead);button.classList.toggle('on-cooldown',s.remaining>.05);
   button.style.setProperty('--cooldown-progress',`${Math.max(0,1-s.remaining/(s.cooldown||1))*360}deg`);
   button.querySelector('.cooldown').textContent=s.remaining>.05?Math.ceil(s.remaining):'';

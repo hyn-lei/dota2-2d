@@ -274,6 +274,17 @@ function castBotSkills(g,h,target,ctx,settings,retreating=false){
     if((target||retreating)&&allies[0]&&cast(2,allies[0]))return true;
     const shieldTarget=ctx.allies.filter(a=>distance(h,a)<=600&&(!has(g,a,'ogreFireShield')||a.statuses.ogreFireShield.stacks<2)).sort((a,b)=>a.hp/a.maxHp-b.hp/b.maxHp)[0];
     if(h.hasShard&&ctx.enemyHeroes.length&&shieldTarget&&Skills.castExtraAbility(g,h,'ogre_magi_smash',shieldTarget).ok)return true;
+  }else if(h.heroId==='chen'){
+    const wounded=g.entities.filter(e=>alive(e)&&e.kind==='hero'&&e.team===h.team&&e.hp/e.maxHp<.6);
+    if(wounded.length&&(wounded.length>1||wounded.some(e=>e.hp/e.maxHp<.35))&&cast(3,h))return true;
+    const ally=ctx.allies.filter(e=>distance(h,e)<=skill(2).range&&!has(g,e,'chenDivineFavor')).sort((a,b)=>a.hp/a.maxHp-b.hp/b.maxHp)[0];
+    if((target||retreating)&&ally&&cast(2,ally))return true;
+    if(target&&!has(g,target,'chenPenitence')&&cast(0,target))return true;
+    const units=g.entities.filter(e=>alive(e)&&e.chenPersuadedBy===h.id);
+    if(!retreating&&units.length<(skill(1).values.max_units||0)){
+      const food=g.entities.filter(e=>alive(e)&&['neutral','creep'].includes(e.kind)&&e.team!==h.team&&distance(h,e)<=skill(1).range&&!e.isRoshan).sort((a,b)=>b.maxHp-a.maxHp);
+      for(const unit of food)if(cast(1,unit))return true;
+    }
   }else if(h.heroId==='kunkka'&&target){
     if(!retreating&&hero&&!h.xMark&&cast(2))return true;
     const mark=h.xMark&&g.entities.find(e=>e.id===h.xMark.targetId&&alive(e));

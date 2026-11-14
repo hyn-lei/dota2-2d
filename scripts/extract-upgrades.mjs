@@ -1,5 +1,5 @@
 import fs from 'node:fs';
-const heroes={axe:[2,'axe'],crystal_maiden:[5,'crystal_maiden'],juggernaut:[8,'juggernaut'],windranger:[21,'windrunner'],kunkka:[23,'kunkka'],ogre_magi:[84,'ogre_magi'],drow_ranger:[6,'drow_ranger']};
+const heroes={axe:[2,'axe'],crystal_maiden:[5,'crystal_maiden'],juggernaut:[8,'juggernaut'],windranger:[21,'windrunner'],kunkka:[23,'kunkka'],ogre_magi:[84,'ogre_magi'],drow_ranger:[6,'drow_ranger'],chen:[66,'chen']};
 function parse(raw){
  const tokens=[...raw.replace(/\/\/[^\n]*/g,'').matchAll(/"((?:\\.|[^"\\])*)"|([{}])/g)].map(m=>m[2]||m[1]);let i=0;
  function object(){const out={};while(i<tokens.length){const key=tokens[i++];if(key==='}')return out;const value=tokens[i++];out[key]=value==='{'?object():value;}return out;}return object();
@@ -15,7 +15,7 @@ for(const [heroId,[id,prefix]]of Object.entries(heroes)){
   for(const [field,definition]of Object.entries(raw.AbilityValues||{})){
    if(typeof definition!=='object')continue;
    for(const type of ['scepter','shard']){const value=definition[`special_bonus_${type}`];if(value===undefined)continue;
-    effects[type].push({field,operation:/^[+-]/.test(value)?'add':'set',values:String(value).split(/\s+/).map(Number)});
+    effects[type].push({field,operation:/^[+-]/.test(value)?'add':'set',values:String(value).split(/\s+/).map(v=>Number(v.replace(/^=/,'')))});
    }
   }
   if(effects.scepter.length||effects.shard.length)upgrades[heroId][a.name]={...effects,scepterDescription:a.scepter_loc||'',shardDescription:a.shard_loc||''};

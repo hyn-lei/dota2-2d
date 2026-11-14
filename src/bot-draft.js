@@ -12,6 +12,7 @@ export const BOT_DRAFT_PROFILES = Object.freeze({
   ogre_magi:     { fits:[3,5,8,9,10], frontline:2, control:3, physical:1, spell:3, support:3 },
   kunkka:        { fits:[7,10,9,7,5], frontline:3, control:3, physical:2, spell:2, support:1 },
   drow_ranger:   { fits:[10,7,2,2,1], frontline:0, control:1, physical:3, spell:0, support:0 },
+  chen:          { fits:[1,2,3,9,10], frontline:1, control:2, physical:1, spell:1, support:3 },
 });
 
 function profile(id) {
@@ -140,6 +141,13 @@ function draftTeam({locked, team, seed, history, opponents = []}) {
   candidates = candidates.filter(candidate => candidate.score >= best-12);
   const usage = new Map();
   recent.forEach((ids,index) => ids.forEach(id => usage.set(id,(usage.get(id)||0)+(index+1)/recent.length)));
+  // A repeated seed must not leave a playable hero out of a permanent cycle.
+  // Within the competitive candidates, bring back heroes absent from the recent window.
+  if (recent.length) {
+    const unseen = new Set(pool.filter(id => !usage.has(id)));
+    const returning = candidates.filter(candidate => candidate.bots.some(id => unseen.has(id)));
+    if (returning.length) candidates = returning;
+  }
   const weights = candidates.map(candidate => Math.exp((candidate.score-best)/5) /
     (1+candidate.bots.reduce((total,id) => total+(usage.get(id)||0),0)*.25));
   let roll = random()*weights.reduce((total,weight) => total+weight,0), chosen = candidates.at(-1);
