@@ -19,6 +19,7 @@ import {developerModeHTML,mountDeveloperMode} from './developer-mode-ui.js';
 import {developerModeState,disableDeveloperMode} from './developer-mode.js';
 import {appendDraftHistory,draftRecord} from './bot-draft.js';
 import {loadDraftHistory,storeDraftHistory} from './draft-history.js';
+import {hasExpiredMatchTime} from './match-clock.js';
 
 const $ = (s) => document.querySelector(s);
 const app = $('#app');
@@ -30,17 +31,25 @@ let chosen=preferences.hero,view='lobby',game=null,renderer=null,modal=null,shop
 let audioContext,shopUI;
 let bindingEditor=null;
 let checkpointAt=0,checkpointError=false;
+let matchTimeResetting=false;
 const save=()=>{try{localStorage.setItem('af-preferences',JSON.stringify(preferences));localStorage.setItem('af-history',JSON.stringify(history));}catch{}};
 function browserStorage(){try{return localStorage;}catch{return null;}}
 let aiDraftHistory=loadDraftHistory(browserStorage());
 loadBindings(browserStorage());
 function checkpointMatch(){
-  if(!game||game.isNetwork||game.status!=='playing')return;
+  if(matchTimeResetting||!game||game.isNetwork||game.status!=='playing')return;
   const result=storeMatch(browserStorage(),game);checkpointAt=performance.now();
   const label=$('#match-mode');
   if(label){label.textContent=result.ok?'单机 · 已自动存档':'单机 · 存档失败';label.title=result.ok?`本地保存于 ${new Date(result.savedAt).toLocaleTimeString()}，关闭网页后可在大厅继续`:result.reason;label.classList.toggle('save-failed',!result.ok);}
   if(!result.ok&&!checkpointError)toast(result.reason);
   checkpointError=!result.ok;
+}
+function resetExpiredMatch(){
+  if(matchTimeResetting)return true;
+  if(!hasExpiredMatchTime(game))return false;
+  // Set the guard before deletion/reload so pagehide and beforeunload cannot save this match again.
+  matchTimeResetting=true;keys.clear();disableDeveloperMode(game);clearMatch(browserStorage());
+  window.location.reload();return true;
 }
 function resumeMatch(){
   const saved=loadMatch(browserStorage());
@@ -372,7 +381,7 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden&&game&&!mod
 window.addEventListener('pagehide',()=>{disableDeveloperMode(game);checkpointMatch();});
 window.addEventListener('pageshow',event=>{if(event.persisted&&game){updateHud();if(modal==='settings')mountDeveloperMode($('#developer-mode-settings'),game,{changed:()=>{updateHud();checkpointMatch();}});}});
 window.addEventListener('beforeunload',event=>{
-  if(view!=='match'||!game||game.isNetwork||game.status!=='playing')return;
+  if(matchTimeResetting||view!=='match'||!game||game.isNetwork||game.status!=='playing')return;
   checkpointMatch();event.preventDefault();event.returnValue='';
 });
 function tick(ms){
@@ -380,8 +389,10 @@ function tick(ms){
   requestAnimationFrame(tick);
   const dt=Math.min((ms-lastFrame)/1000||0,1/20);lastFrame=ms;
   if(game&&view==='match'){
+    if(resetExpiredMatch())return;
     const x=(keys.has('arrowright')?1:0)-((keys.has('a')&&!coreBinding('a'))||keys.has('arrowleft')?1:0),y=((keys.has('s')&&!coreBinding('s'))||keys.has('arrowdown')?1:0)-(keys.has('arrowup')?1:0);
     controlledAction('setMovement',[x,y]);game.step(dt);
+    if(resetExpiredMatch())return;
     if(!game.isNetwork&&game.status==='playing'&&ms-checkpointAt>=2000)checkpointMatch();
     if(ms-hudAt>100){updateHud();hudAt=ms;}
     if(game.status!=='playing'&&lastStatus==='playing'){lastStatus=game.status;history.matches++;if(game.status==='won')history.wins++;history.bestKills=Math.max(history.bestKills,game.player.kills);save();if(!game.isNetwork){const cleared=clearMatch(browserStorage());if(!cleared.ok)toast(cleared.reason);}updateHud();openModal('result');}

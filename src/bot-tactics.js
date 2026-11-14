@@ -8,6 +8,7 @@ const fighter=kind=>['hero','creep','neutral','illusion','summon'].includes(kind
 const building=kind=>['tower','barracks','ancient','fountain','filler'].includes(kind);
 const automated=h=>!h.isPlayer&&!h.isHuman&&h.aiTimer!==Infinity;
 const worlds=new WeakMap();
+export function resetTacticalWorld(game){worlds.delete(game);}
 
 export function fightingPower(g,h){
   const s=g.combatStats(h);

@@ -6,7 +6,7 @@ import * as ItemRuntime from './item-runtime.js';
 import { physicalDamageMultiplier } from './hero-stats.js';
 import { tickBotShopping } from './bot-items.js';
 import { ITEM_BY_ID } from './item-data.js';
-import {tacticalWorld,tacticalPlan,trySupportTeleport,safeStandPoint,fightingPower} from './bot-tactics.js';
+import {tacticalWorld,tacticalPlan,trySupportTeleport,safeStandPoint,fightingPower,resetTacticalWorld} from './bot-tactics.js';
 
 export const BOT_DIFFICULTY=Object.freeze({
   easy:{reaction:.35,jitter:.06,awareness:1100,lead:.45,advantage:1.85},
@@ -24,6 +24,7 @@ const nightmare=(g,h)=>h.team===1&&g.difficulty==='nightmare';
 // Server matches opt into nightmare. Keep plans out of entities/snapshots and
 // rebuild the team view once per 200 ms, rather than once per hero per frame.
 const directors=new WeakMap();
+export function resetBotTiming(game){directors.delete(game);resetTacticalWorld(game);}
 function director(g){
   let state=directors.get(g);
   if(!state){state={nextAt:0,plans:new Map(),controls:[]};directors.set(g,state);}

@@ -25,6 +25,7 @@
     "test:shop-effects": "node tests/browser-shop-effects.mjs",
     "test:keybindings": "node tests/browser-keybindings.mjs",
     "test:developer-mode": "node tests/browser-developer-mode.mjs",
+    "test:developer-time": "node tests/browser-developer-time.mjs",
     "test:developer-stability": "node tests/browser-developer-stability.mjs",
     "test:collision": "node tests/browser-collision.mjs",
     "test:illusions": "node tests/browser-illusions.mjs",

@@ -3,6 +3,7 @@ import { HEROES } from './data.js';
 import { ITEM_BY_ID } from './item-data.js';
 import { rebuildTrees } from './item-common.js';
 import {createIllusions} from './illusions.js';
+import {hasExpiredMatchTime,MAX_MATCH_MINUTES} from './match-clock.js';
 
 export const SAVE_KEY = 'af-single-match-v1';
 const VERSION = 1;
@@ -105,6 +106,7 @@ function validate(record) {
 }
 
 export function serializeMatch(game, savedAt = Date.now()) {
+  if(hasExpiredMatchTime(game))throw new Error(`对局已超过 ${MAX_MATCH_MINUTES} 分钟，不能再次保存`);
   if (game.isNetwork || game.status !== 'playing' || game.entities.some(e => e.isHuman)) throw new Error('只能保存正在进行的单机对局');
   const state = Object.fromEntries([...stateFields].filter(key => Object.hasOwn(game, key)).map(key => [key, game[key]]));
   const text = encode({ version: VERSION, ruleset: RULESET, savedAt, state });
@@ -116,6 +118,7 @@ export function parseMatch(text) { return validate(decode(text)); }
 
 export function restoreMatch(record) {
   const { state } = validate(decode(encode(record)));
+  if(hasExpiredMatchTime(state))throw new Error(`对局已超过 ${MAX_MATCH_MINUTES} 分钟，不能恢复`);
   const game = new Game({ hero: state.heroChoice, difficulty: state.difficulty, seed: state.seed });
   Object.assign(game, state);
   // Resume aura cleanup even when its last source died just before the checkpoint.
@@ -145,7 +148,12 @@ export function loadMatch(storage) {
   try {
     const text = storage.getItem(SAVE_KEY);
     hasSave = Boolean(text);
-    return { record: text ? parseMatch(text) : null, error: null, hasSave };
+    const record=text?parseMatch(text):null;
+    if(record&&hasExpiredMatchTime(record.state)){
+      const cleared=clearMatch(storage);
+      return {record:null,error:cleared.ok?null:cleared.reason,hasSave:!cleared.ok};
+    }
+    return {record,error:null,hasSave};
   } catch (error) { return { record: null, error: error.message || '无法读取浏览器存档', hasSave }; }
 }
 

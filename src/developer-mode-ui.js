@@ -1,6 +1,6 @@
 import {
-  DEVELOPER_MAX_LEVEL, DEVELOPER_GOLD, canUseDeveloperMode, developerModeState,
-  enableDeveloperMode, disableDeveloperMode, setDeveloperLevel, setDeveloperGold, setDeveloperRecovery,
+  DEVELOPER_MAX_LEVEL, DEVELOPER_GOLD, MAX_MATCH_MINUTES, canUseDeveloperMode, developerModeState,
+  enableDeveloperMode, disableDeveloperMode, setDeveloperLevel, setDeveloperGold, setDeveloperRecovery, setDeveloperTime,
 } from './developer-mode.js';
 
 const escape = value => String(value).replace(/[&<>"']/g, c => ({
@@ -41,6 +41,8 @@ export function mountDeveloperMode(root, game, { changed = () => {} } = {}) {
         <div class="developer-password-entry"><input id="developer-password" type="password" inputmode="numeric" minlength="6" maxlength="6" pattern="[0-9]{6}" autocomplete="off" required aria-describedby="developer-mode-status"/><button type="submit">开启</button></div>
       </form>
       ${state.enabled ? `<div class="developer-mode-controls">
+        <div class="developer-time-entry"><label for="developer-time">对局时间（0–${MAX_MATCH_MINUTES} 分钟）<input id="developer-time" type="number" min="0" max="${MAX_MATCH_MINUTES}" step="any" inputmode="decimal" value="${Number((game.time/60).toFixed(2))}" aria-describedby="developer-time-help developer-mode-status"/></label><button type="button" id="developer-time-apply">调整时间</button></div>
+        <p id="developer-time-help" class="developer-mode-help">可向前或向后调整；超过 ${MAX_MATCH_MINUTES} 分钟会清除本局存档并刷新页面。</p>
         <label for="developer-hero">目标英雄</label><select id="developer-hero">${game.entities.filter(e => e.kind === 'hero').map(e => `<option value="${escape(e.id)}" ${e.id === selectedId ? 'selected' : ''}>${e.id === game.player.id ? '自己' : e.team === game.player.team ? '友方 AI' : '敌方 AI'} · ${escape(e.name)} · ${e.level} 级${e.dead ? '（阵亡）' : ''}</option>`).join('')}</select>
         <div class="developer-level-entry"><label for="developer-level">目标等级（1–${DEVELOPER_MAX_LEVEL}）<input id="developer-level" type="number" min="${hero.level}" max="${DEVELOPER_MAX_LEVEL}" step="1" value="${Math.min(DEVELOPER_MAX_LEVEL, hero.level + 1)}" aria-describedby="developer-mode-status"/></label><button type="button" id="developer-level-apply" ${hero.level === DEVELOPER_MAX_LEVEL ? 'disabled' : ''}>升到指定等级</button><button type="button" id="developer-level-max" ${hero.level === DEVELOPER_MAX_LEVEL ? 'disabled' : ''}>升到满级（${DEVELOPER_MAX_LEVEL}）</button></div>
         <div class="setting-row"><div><strong>金钱 ${DEVELOPER_GOLD}</strong><p>当前目标金钱 ${Math.floor(hero.gold)}</p></div><button type="button" id="developer-gold">设为 ${DEVELOPER_GOLD}</button></div>
@@ -69,6 +71,11 @@ export function mountDeveloperMode(root, game, { changed = () => {} } = {}) {
       if (!result.ok) input.focus();
     };
     if (state.enabled) {
+      query('#developer-time-apply').onclick=()=>{
+        const minutes=query('#developer-time').valueAsNumber;
+        complete(setDeveloperTime(game,minutes),`对局时间已调整为 ${minutes} 分钟`,'developer-time');
+      };
+      query('#developer-time').onkeydown=event=>{if(event.key==='Enter'){event.preventDefault();query('#developer-time-apply').click();}};
       query('#developer-hero').onchange = event => {
         selectedId = event.target.value; message = ''; invalid = false; render('developer-hero');
       };

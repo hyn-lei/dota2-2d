@@ -1,5 +1,7 @@
 import { XP_TO_NEXT } from './hero-stats.js';
 import { restoreMana } from './mana-runtime.js';
+import {MAX_MATCH_MINUTES,rebaseMatchTime} from './match-clock.js';
+export {MAX_MATCH_MINUTES} from './match-clock.js';
 
 export const DEVELOPER_MAX_LEVEL = 30;
 export const DEVELOPER_GOLD = 99999;
@@ -70,6 +72,13 @@ export function setDeveloperGold(game, heroId) {
   if (!target.ok) return target;
   target.hero.gold = DEVELOPER_GOLD;
   return { ok: true, heroId, gold: DEVELOPER_GOLD };
+}
+
+export function setDeveloperTime(game,minutes){
+  if(!sessionOf(game))return fail('请先开启开发者模式');
+  if(!Number.isFinite(minutes)||minutes<0||minutes>MAX_MATCH_MINUTES)return fail(`请输入 0 至 ${MAX_MATCH_MINUTES} 分钟的有效时间`);
+  rebaseMatchTime(game,minutes*60);
+  return {ok:true,minutes,time:game.time};
 }
 
 function recoverHero(hero, recovery) {
