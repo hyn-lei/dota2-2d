@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import WebSocket from 'ws';
 import { RoomManager } from '../server/coop-server.mjs';
 import { decodeMessage } from '../src/network-protocol.js';
+import {SNAPSHOT_PROTOCOL,SNAPSHOT_WINDOW,applySnapshotDelta} from '../src/snapshot-delta.js';
 
 function transport(slow=true) {
  return {readyState:WebSocket.OPEN,bufferedAmount:0,frames:[],callbacks:[],
@@ -65,4 +66,49 @@ test('a responsive transport that never acknowledges a snapshot is disconnected'
  const socket=transport(false);socket.coopAlive=true;socket.ping=()=>{};manager.sockets.add(socket);
  manager.send(socket,{type:'snapshot',frame:1,state:{time:0}});manager.heartbeat();
  assert.equal(socket.readyState,WebSocket.CLOSED);
+});
+
+test('negotiated peers keep four bounded credits across RTT and coalesce excess snapshots to the latest state',()=>{
+ const manager=new RoomManager({maxBufferedBytes:2*1024*1024,lobbyRate:2}),socket=transport();socket.coopSnapshotProtocol=SNAPSHOT_PROTOCOL;
+ const session={token:'one',socket,roomCode:'TEST23',lastCommandId:7};socket.coopSession=session;socket.coopRates={};manager.sessions.set('one',session);
+ const game={time:0,status:'playing',paused:false,score:[0,0],entities:[{id:'hero',x:0,hp:100}],effects:[],feed:[],camps:[],pendingSpells:[]};
+ const room={code:'TEST23',game,members:[{token:'one',connected:true,heroEntityId:'hero'}]};
+ for(let i=0;i<8;i++){game.time=i;game.entities[0].x=i;manager.broadcastSnapshot(room);}
+ assert.equal(socket.frames.length,SNAPSHOT_WINDOW);assert.equal(manager.pendingSnapshots.get(socket).size,SNAPSHOT_WINDOW);
+ const first=socket.frames[0].message;manager.handle(socket,{type:'snapshotAck',frame:first.frame});
+ assert.equal(socket.frames.length,SNAPSHOT_WINDOW,'application ACK alone cannot release an undrained credit');
+ socket.callbacks.shift()();assert.equal(socket.frames.length,SNAPSHOT_WINDOW+1);
+ let state,frame;
+ for(const {message} of socket.frames){if(message.delta){assert.equal(message.baseFrame,frame);state=applySnapshotDelta(state,message.delta);}else state=message.state;frame=message.frame;assert.equal(message.commandId,7);}
+ assert.equal(state.time,7);assert.equal(state.entities[0].x,7);assert.equal(manager.pendingSnapshots.get(socket).size,SNAPSHOT_WINDOW);
+});
+
+test('an unrelated ACK cannot release another negotiated peer credit',()=>{
+ const manager=new RoomManager({maxBufferedBytes:2*1024*1024}),socket=transport(false);socket.coopSnapshotProtocol=SNAPSHOT_PROTOCOL;
+ const session={token:'one',socket};socket.coopSession=session;socket.coopRates={};
+ const state={entities:[],time:0};for(let frame=1;frame<=SNAPSHOT_WINDOW;frame++)manager.send(socket,{type:'snapshot',frame,state});
+ manager.handle(socket,{type:'snapshotAck',frame:100});assert.equal(manager.snapshotCapacity(socket),false);
+ manager.handle(socket,{type:'snapshotAck',frame:2});assert.equal(manager.snapshotCapacity(socket),true);
+});
+
+test('a new room or owned seat begins with a full snapshot even on the same negotiated connection',()=>{
+ const manager=new RoomManager({maxBufferedBytes:2*1024*1024}),socket=transport(false);socket.coopSnapshotProtocol=SNAPSHOT_PROTOCOL;
+ const state={time:0,entities:[{id:'one',x:0}]};
+ manager.send(socket,{type:'snapshot',frame:1,roomCode:'FIRST1',playerId:'one',state});
+ manager.send(socket,{type:'snapshot',frame:2,roomCode:'FIRST1',playerId:'one',state:{...state,time:1}});
+ manager.send(socket,{type:'snapshot',frame:3,roomCode:'NEXT23',playerId:'one',state});
+ manager.send(socket,{type:'snapshot',frame:4,roomCode:'NEXT23',playerId:'two',state});
+ assert.ok(socket.frames[1].message.delta);assert.ok(socket.frames[2].message.state);assert.ok(socket.frames[3].message.state);
+});
+
+test('simulation work cannot stretch a 100ms snapshot cadence and a delayed tick does not replay missed frames',t=>{
+ let now=1000;const sentAt=[];t.mock.method(Date,'now',()=>now);
+ const manager=new RoomManager({maxBufferedBytes:2*1024*1024,tickMs:50,snapshotMs:100}),socket=transport(false);
+ const session={token:'one',socket,roomCode:'TEST23'};socket.coopSession=session;socket.coopRates={};manager.sessions.set('one',session);
+ socket.onMessage=message=>{if(message.type==='snapshot'){sentAt.push(now);manager.handle(socket,{type:'snapshotAck',frame:message.frame});}};
+ const game={time:0,status:'playing',paused:false,entities:[],effects:[],feed:[],score:[0,0],camps:[],pendingSpells:[],step(dt){this.time+=dt;now+=12;}};
+ const room={code:'TEST23',phase:'playing',lastSnapshotAt:0,game,members:[{token:'one',connected:true,heroEntityId:'hero'}]};manager.rooms.set(room.code,room);
+ for(let i=0;i<=10;i++){now=1000+i*50;manager.tick();}
+ assert.deepEqual(sentAt,[1012,1112,1212,1312,1412,1512]);
+ now=1900;manager.tick();assert.equal(sentAt.length,7);assert.equal(sentAt.at(-1),1912);assert.equal(room.nextSnapshotAt,2000);
 });

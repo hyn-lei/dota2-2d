@@ -69,6 +69,7 @@ export class Renderer {
     c.restore();
   }
   render(game,time){
+    game=game?.renderView?.()||game;
     this.frame++;const c=this.ctx;c.setTransform(this.dpr,0,0,this.dpr,0,0);c.clearRect(0,0,this.w,this.h);
     if(!game){this.renderLobby(c,time);return;}
     const p=game.player;
@@ -332,6 +333,7 @@ export class Renderer {
     c.restore();
   }
   minimap(canvas,game){
+    game=game?.renderView?.()||game;
     if(!canvas||!game)return;const c=canvas.getContext('2d'),{side,x:offsetX,y:offsetY}=this.minimapBounds(canvas),scale=side/WORLD.width;
     c.clearRect(0,0,canvas.width,canvas.height);c.fillStyle='#111b18';c.fillRect(0,0,canvas.width,canvas.height);
     c.save();c.translate(offsetX,offsetY);c.beginPath();c.rect(0,0,side,side);c.clip();c.drawImage(this.terrain,0,0,side,side);

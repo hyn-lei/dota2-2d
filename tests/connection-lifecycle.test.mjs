@@ -7,9 +7,10 @@ import { CoopConnection } from '../src/coop-connection.js';
 import { decodeMessage } from '../src/network-protocol.js';
 
 function event(target,name,predicate=()=>true,timeout=10000){return new Promise((resolve,reject)=>{const listener=e=>{if(predicate(e.detail)){clearTimeout(timer);target.removeEventListener(name,listener);resolve(e.detail);}},timer=setTimeout(()=>{target.removeEventListener(name,listener);reject(new Error(`Timed out waiting for ${name}`));},timeout);target.addEventListener(name,listener);});}
-async function environment(t){
+async function environment(t,{legacy=false}={}){
  const original={WebSocket:globalThis.WebSocket,location:globalThis.location,localStorage:globalThis.localStorage};
  const service=createCoopServer({root:process.cwd(),port:0,autoTick:false});await service.listen();const port=service.server.address().port,store=new Map();
+ if(legacy){const hello=service.manager.hello;service.manager.hello=function(socket,message){if(message.snapshotProtocol)return this.reject(socket,'INVALID_HELLO','old server');return hello.call(this,socket,message);};}
  globalThis.WebSocket=WebSocket;globalThis.location=new URL(`http://127.0.0.1:${port}`);globalThis.localStorage={getItem:k=>store.get(k)||null,setItem:(k,v)=>store.set(k,v),removeItem:k=>store.delete(k)};
  const connection=new CoopConnection(),ready=event(connection,'welcome');connection.connect();await ready;
  const sockets=[];let activeService=service;
@@ -22,6 +23,40 @@ test('expired session credentials reconnect as a usable fresh identity',async t=
  service.manager.sessions.delete(connection.token);const welcome=event(connection,'welcome',m=>m.clientId!==oldId);connection.socket.close();await welcome;
  assert.notEqual(connection.clientId,oldId);assert.equal(connection.ready,true);
  const joined=event(connection,'room',room=>room.members.length===1);connection.send({type:'create',name:'Fresh human',heroId:'ogre_magi'});assert.equal((await joined).members[0].clientId,connection.clientId);
+});
+
+async function solo(fixture){
+ const {connection}=fixture,created=event(connection,'room',room=>room.members.length===1);
+ connection.send({type:'create',name:'Latency test',heroId:'juggernaut',fillWithAI:true});const room=await created;
+ const ready=event(connection,'room',room=>room.members[0].ready);connection.send({type:'ready',ready:true});await ready;
+ const first=event(connection,'snapshot');connection.send({type:'start'});await first;return fixture.service.manager.rooms.get(room.code);
+}
+
+test('the browser connection reconstructs ordered deltas, acknowledges movement and resumes from a full baseline',async t=>{
+ const fixture=await environment(t),{connection,service}=fixture,packets=[];
+ connection.socket.on('message',data=>{const message=decodeMessage(data.toString());if(message.type==='snapshot')packets.push(message);});
+ const room=await solo(fixture),game=room.game;
+ Object.assign(game.player,game.navigation.nearestWalkable({x:10400,y:10400}));game._index();
+ let applied=event(connection,'snapshot');service.manager.broadcastSnapshot(room);await applied;
+ assert.equal(connection.serverSnapshotProtocol,'delta-v1');assert.equal(packets[0].state.entities.filter(e=>e.controller==='ai'&&e.kind==='hero').length,9);
+ assert.equal((await connection.game.setMovement(1,0)).ok,true);
+ for(let i=0;i<4;i++){
+  game.step(.05);applied=event(connection,'snapshot');service.manager.broadcastSnapshot(room);await applied;
+  assert.equal(connection.game.player.x,game.player.x);assert.equal(connection.game.time,game.time);
+ }
+ assert.ok(packets.slice(1).every(message=>message.delta&&message.commandId!==undefined));
+ const former=connection.game,oldSocket=connection.socket,resumed=event(connection,'snapshot',()=>connection.socket!==oldSocket);
+ oldSocket.close();await once(oldSocket,'close');assert.equal(former.renderView(),former);
+ await resumed;assert.equal(connection.game,former);assert.equal(connection.game.player.x,game.player.x);assert.equal(connection.game.player.movementInput.x,0);
+ applied=event(connection,'snapshot');game.step(.05);service.manager.broadcastSnapshot(room);await applied;assert.equal(connection.game.time,game.time);
+});
+
+test('a new browser can negotiate down to an older full-snapshot service',async t=>{
+ const fixture=await environment(t,{legacy:true}),{connection,service}=fixture,room=await solo(fixture);
+ assert.equal(connection.ready,true);assert.equal(connection.snapshotProtocol,null);assert.equal(connection.serverSnapshotProtocol,undefined);
+ assert.equal(connection.game.presentation.enabled,false);
+ const applied=event(connection,'snapshot');room.game.step(.05);service.manager.broadcastSnapshot(room);await applied;
+ assert.equal(connection.game.time,room.game.time);assert.equal((await connection.game.setMovement(0,0)).ok,true);
 });
 test('closing a client cancels pending UI commands immediately',async t=>{
  const {connection}=await environment(t);const action=connection.request('learnAbility',[0]);connection.close();

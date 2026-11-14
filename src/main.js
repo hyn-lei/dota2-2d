@@ -168,7 +168,10 @@ function startGame(providedGame=null,resume=false){
   $('#map-center').onclick=()=>{restoreOwnHero();renderer.zoom=Math.max(.3,Math.min(.5,renderer.w/3200));renderer.center(game.player);};
   $('#camp-bounds').onclick=()=>{renderer.showCampBounds=!renderer.showCampBounds;$('#camp-bounds').classList.toggle('active',renderer.showCampBounds);};
   const canvas=$('#battlefield');canvas.addEventListener('contextmenu',e=>e.preventDefault());
-  const hitTest=(p,itemsFirst=false)=>game.entities.filter(u=>!u.dead&&game.canSee(game.player,u)&&Math.hypot(u.x-p.x,u.y-p.y)<Math.max(u.radius||24,18/renderer.zoom)).sort((a,b)=>(itemsFirst?Number(b.kind==='droppedItem')-Number(a.kind==='droppedItem'):0)||Math.hypot(a.x-p.x,a.y-p.y)-Math.hypot(b.x-p.x,b.y-p.y))[0];
+  const hitTest=(p,itemsFirst=false)=>{
+    const shown=game.renderView?.()||game;
+    return shown.entities.filter(u=>!u.dead&&shown.canSee(shown.player,u)&&Math.hypot(u.x-p.x,u.y-p.y)<Math.max(u.radius||24,18/renderer.zoom)).sort((a,b)=>(itemsFirst?Number(b.kind==='droppedItem')-Number(a.kind==='droppedItem'):0)||Math.hypot(a.x-p.x,a.y-p.y)-Math.hypot(b.x-p.x,b.y-p.y))[0];
+  };
   let dragging=null;
   canvas.addEventListener('pointermove',e=>{const r=canvas.getBoundingClientRect();pointer={x:e.clientX-r.left,y:e.clientY-r.top};if(dragging){renderer.pan(dragging.x-e.clientX,dragging.y-e.clientY);dragging={x:e.clientX,y:e.clientY};}renderer.hoverId=hitTest(renderer.screenToWorld(pointer.x,pointer.y))?.id;});
   canvas.addEventListener('pointerup',()=>dragging=null);

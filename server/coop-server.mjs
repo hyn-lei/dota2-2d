@@ -9,6 +9,7 @@ import { executeCommand, validHero, validName, messageHasOnly } from './commands
 import { snapshotState } from './snapshot.mjs';
 import { encodeMessage } from '../src/network-protocol.js';
 import { HEROES } from '../src/data.js';
+import {SNAPSHOT_PROTOCOL,SNAPSHOT_WINDOW,snapshotDelta} from '../src/snapshot-delta.js';
 
 const defaults = {
   revision:process.env.GAME_REVISION||'',
@@ -31,29 +32,41 @@ function consume(socket, kind, rate, now) {
 }
 
 export class RoomManager {
-  constructor(options) {this.options=options;this.rooms=new Map();this.matchQueue=[];this.sessions=new Map();this.sockets=new Set();this.pendingSnapshots=new WeakMap();this.deferredSnapshots=new WeakMap();this.frame=0;this.closed=false;this.draftHistory=[];}
+  constructor(options) {this.options=options;this.rooms=new Map();this.matchQueue=[];this.sessions=new Map();this.sockets=new Set();this.pendingSnapshots=new WeakMap();this.deferredSnapshots=new WeakMap();this.sentSnapshots=new WeakMap();this.deltaCache=new WeakMap();this.frame=0;this.closed=false;this.draftHistory=[];}
+
+  snapshotCapacity(socket){return (this.pendingSnapshots.get(socket)?.size||0)<(socket.coopSnapshotProtocol===SNAPSHOT_PROTOCOL?SNAPSHOT_WINDOW:1);}
+  snapshotPacket(socket,message){
+    if(socket.coopSnapshotProtocol!==SNAPSHOT_PROTOCOL)return message;
+    const previous=this.sentSnapshots.get(socket);let packet={...message,commandId:socket.coopSession?.lastCommandId||0};
+    if(previous&&previous.roomCode===message.roomCode&&previous.playerId===message.playerId){
+      let cached=this.deltaCache.get(message.state);if(!cached){cached=new WeakMap();this.deltaCache.set(message.state,cached);}
+      let delta=cached.get(previous.state);if(!delta){delta=snapshotDelta(previous.state,message.state);cached.set(previous.state,delta);}
+      packet={...packet,state:undefined,baseFrame:previous.frame,delta};
+    }
+    this.sentSnapshots.set(socket,{frame:message.frame,state:message.state,roomCode:message.roomCode,playerId:message.playerId});return packet;
+  }
 
   send(socket,message) {
     if(socket?.readyState!==WebSocket.OPEN) return false;
     if(socket.bufferedAmount>this.options.maxBufferedBytes) {socket.terminate();return false;}
     const snapshot=message.type==='snapshot';
-    if(snapshot&&this.pendingSnapshots.has(socket)) return false;
-    if(snapshot)this.pendingSnapshots.set(socket,{frame:message.frame,sent:false,applied:false,at:Date.now()});
+    if(snapshot&&!this.snapshotCapacity(socket)) return false;
+    if(snapshot){let frames=this.pendingSnapshots.get(socket);if(!frames){frames=new Map();this.pendingSnapshots.set(socket,frames);}frames.set(message.frame,{sent:false,applied:false,at:Date.now()});}
     try {
-      // Keep one snapshot outstanding until transport drain AND client application.
-      socket.send(encodeMessage(message),{compress:snapshot},error=>{
+      // Each bounded snapshot credit requires transport drain AND client application.
+      socket.send(encodeMessage(snapshot?this.snapshotPacket(socket,message):message),{compress:snapshot},error=>{
         if(error)socket.terminate();
         if(snapshot){
-          if(error){this.pendingSnapshots.delete(socket);this.deferredSnapshots.delete(socket);return;}
-          const pending=this.pendingSnapshots.get(socket);if(pending?.frame===message.frame){pending.sent=true;this.completeSnapshot(socket);}
+          if(error){this.pendingSnapshots.delete(socket);this.deferredSnapshots.delete(socket);this.sentSnapshots.delete(socket);return;}
+          const pending=this.pendingSnapshots.get(socket)?.get(message.frame);if(pending){pending.sent=true;this.completeSnapshot(socket,message.frame);}
         }
       });
       return true;
-    } catch {if(snapshot){this.pendingSnapshots.delete(socket);this.deferredSnapshots.delete(socket);}socket.terminate();return false;}
+    } catch {if(snapshot){this.pendingSnapshots.delete(socket);this.deferredSnapshots.delete(socket);this.sentSnapshots.delete(socket);}socket.terminate();return false;}
   }
-  completeSnapshot(socket) {
-    const pending=this.pendingSnapshots.get(socket);if(!pending?.sent||!pending.applied)return;
-    this.pendingSnapshots.delete(socket);
+  completeSnapshot(socket,frame) {
+    const frames=this.pendingSnapshots.get(socket),pending=frames?.get(frame);if(!pending?.sent||!pending.applied)return;
+    frames.delete(frame);if(!frames.size)this.pendingSnapshots.delete(socket);
     const deferred=this.deferredSnapshots.get(socket);this.deferredSnapshots.delete(socket);
     if(deferred){
       const {room,member}=deferred,session=socket.coopSession;
@@ -93,7 +106,7 @@ export class RoomManager {
       const socket=this.sessions.get(member.token)?.socket;
       if(!member.connected||socket?.readyState!==WebSocket.OPEN)continue;
       if(socket.bufferedAmount>this.options.maxBufferedBytes){socket.terminate();continue;}
-      if(!this.pendingSnapshots.has(socket))recipients.push({member,socket});
+      if(this.snapshotCapacity(socket))recipients.push({member,socket});
       else this.deferredSnapshots.set(socket,{room,member});
     }
     if(!recipients.length)return;
@@ -124,8 +137,8 @@ export class RoomManager {
     session.lastSeenAt=Date.now();
     if(message.type==='snapshotAck') {
       if(!messageHasOnly(message,['type','frame'])||!Number.isSafeInteger(message.frame)||message.frame<=0)return this.reject(socket,'INVALID_MESSAGE','无效快照确认');
-      const pending=this.pendingSnapshots.get(socket);
-      if(pending?.frame===message.frame){pending.applied=true;this.completeSnapshot(socket);}return;
+      const pending=this.pendingSnapshots.get(socket)?.get(message.frame);
+      if(pending){pending.applied=true;this.completeSnapshot(socket,message.frame);}return;
     }
     if(message.type==='ping') {
       if(!messageHasOnly(message,['type','sentAt'])||!Number.isFinite(message.sentAt)) return this.reject(socket,'INVALID_MESSAGE','无效 ping');
@@ -147,7 +160,7 @@ export class RoomManager {
     this.reject(socket,'INVALID_MESSAGE','未知或无效的消息');
   }
   hello(socket,message) {
-    if(socket.coopSession || !messageHasOnly(message,['type','token']) || message.token!==undefined && (typeof message.token!=='string'||!tokenPattern.test(message.token))) return this.reject(socket,'INVALID_HELLO','无效会话请求');
+    if(socket.coopSession || !messageHasOnly(message,['type','token','snapshotProtocol']) || message.token!==undefined && (typeof message.token!=='string'||!tokenPattern.test(message.token)) || message.snapshotProtocol!==undefined&&message.snapshotProtocol!==SNAPSHOT_PROTOCOL) return this.reject(socket,'INVALID_HELLO','无效会话请求');
     let session=message.token ? this.sessions.get(message.token) : null;
     if(message.token && !session) return this.error(socket,'TOKEN_EXPIRED','会话已失效，请重新加入');
     if(session?.socket?.readyState===WebSocket.OPEN) return this.error(socket,'TOKEN_ACTIVE','该会话已在另一连接中使用');
@@ -159,7 +172,8 @@ export class RoomManager {
     // A delayed close callback from a previous socket cannot detach its replacement.
     const previous=session.socket;session.socket=socket;socket.coopSession=session;session.lastSeenAt=Date.now();
     if(previous && previous!==socket && previous.readyState!==WebSocket.CLOSED) previous.terminate();
-    this.send(socket,{type:'welcome',token:session.token,clientId:session.clientId,lastCommandId:session.lastCommandId,roomCode:session.roomCode});
+    socket.coopSnapshotProtocol=message.snapshotProtocol;
+    this.send(socket,{type:'welcome',token:session.token,clientId:session.clientId,lastCommandId:session.lastCommandId,roomCode:session.roomCode,...(socket.coopSnapshotProtocol?{snapshotProtocol:socket.coopSnapshotProtocol}:{})});
     const room=this.rooms.get(session.roomCode),member=room?.members.find(m=>m.clientId===session.clientId);
     if(!room||!member) {session.roomCode=null;return;}
     if(room.phase==='ended'){const reason=room.abortReason||'match_finished';this.removeMember(session,room);this.send(socket,{type:'end',reason});return;}
@@ -328,12 +342,20 @@ export class RoomManager {
         try {room.game.step(this.options.tickMs/1000);} catch {this.end(room,'simulation_error');continue;}
         if(room.game.status!=='playing') {room.phase='ended';room.endedAt=now;this.broadcastRoom(room);this.broadcastSnapshot(room);}
       }
-      if(room.game&&['playing','reconnecting'].includes(room.phase)&&now-room.lastSnapshotAt>=this.options.snapshotMs) this.broadcastSnapshot(room);
+      if(room.game&&['playing','reconnecting'].includes(room.phase)){
+        const due=room.nextSnapshotAt??room.lastSnapshotAt+this.options.snapshotMs;
+        if(now>=due){
+          this.broadcastSnapshot(room);
+          // Keep the cadence anchored before simulation work. A delayed tick
+          // sends one current snapshot, never a burst of missed frames.
+          room.nextSnapshotAt=due+(Math.floor((now-due)/this.options.snapshotMs)+1)*this.options.snapshotMs;
+        }
+      }
     }
   }
   heartbeat() {
     for(const socket of this.sockets) {
-      const snapshot=this.pendingSnapshots.get(socket);
+      const snapshot=this.pendingSnapshots.get(socket)?.values().next().value;
       if(snapshot&&Date.now()-snapshot.at>=this.options.snapshotAckMs){socket.terminate();continue;}
       if(!socket.coopAlive) {socket.terminate();continue;}socket.coopAlive=false;
       if(socket.readyState===WebSocket.OPEN)socket.ping();

@@ -104,6 +104,10 @@ jobs:
           node tests/browser-matchmaking.mjs
           node tests/browser-coop.mjs
           node tests/browser-coop-review.mjs
+      - name: Verify movement with nine AI and simulated network latency
+        env:
+          STATIC_ROOT: dist
+        run: npm run test:coop-performance
       - name: Show container logs
         if: failure()
         run: docker compose logs --no-color --tail=100
