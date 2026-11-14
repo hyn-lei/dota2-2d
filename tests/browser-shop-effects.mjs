@@ -37,6 +37,15 @@ try{
  }
  check('Active items, multiple passives, auras, basic attributes and recipes all retain selected-item descriptions');
 
+ await select('boots');assert.deepEqual(await page.evaluate(()=>window.effectsGame.player.inventory),[]);
+ await page.locator('#item-search').fill('branch');await page.locator('.shop-catalog [data-item="branch"]').dblclick();
+ await page.waitForFunction(()=>window.effectsGame.player.inventory.includes('branch'));
+ assert.equal(await page.evaluate(()=>window.effectsGame.player.inventory.filter(id=>id==='branch').length),1);
+ await page.locator('#item-search').fill('blade');await page.locator('.shop-catalog [data-item="blade"]').click({button:'right'});
+ await page.waitForFunction(()=>window.effectsGame.player.inventory.includes('blade'));
+ assert.deepEqual(await page.evaluate(()=>window.effectsGame.player.inventory),['branch','blade']);
+ check('Single-click inspection never purchases; double-click and right-click each buy the intended item once despite detail movement');
+
  const catalog=await page.evaluate(async()=>{
   const {ITEMS}=await import('/src/item-data.js'),input=document.querySelector('#item-search'),missing=[];
   const normalize=text=>text.replace(/[\s：:·]/g,'');

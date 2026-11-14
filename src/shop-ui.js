@@ -45,6 +45,14 @@ export function mountShop(panel,inventory,game,actions){
   if(e.target.closest('#drop-selected')){state.slot=null;notify(game.dropItem(area,index));}
  });
  const buy=async id=>{const result=await notify(game.buy(id));if(result.ok)actions.notify(`已购买 ${ITEM_BY_ID[id].name}${result.area==='stash'?'，放入储藏处':result.area==='backpack'?'，放入背包':''}`);};
+ let itemClick=null;
+ const sameItemClick=e=>itemClick&&e.timeStamp-itemClick.time<1000&&Math.hypot(e.clientX-itemClick.x,e.clientY-itemClick.y)<=4;
+ // Detail updates can move the catalog between the two clicks. Keep the first
+ // click's item, and prevent the second click from activating a shifted control.
+ panel.addEventListener('click',e=>{
+  if(e.detail===1){const item=e.target.closest('[data-item]');itemClick=item&&!e.shiftKey?{id:item.dataset.item,x:e.clientX,y:e.clientY,time:e.timeStamp}:null;}
+  else if(e.detail===2&&!e.shiftKey&&sameItemClick(e)){e.preventDefault();e.stopImmediatePropagation();}
+ },true);
  function revealDetails(){panel.querySelector('.item-detail').scrollIntoView({block:'start',inline:'nearest'});}
  function select(id){const changed=state.selected!==id;state.selected=id;state.slot=null;update();if(changed)panel.querySelector('.item-description').scrollTop=0;revealDetails();}
  function inspect(area,index){
@@ -79,7 +87,7 @@ export function mountShop(panel,inventory,game,actions){
   if(e.target.closest('#queue-selected'))notify(game.queueItem(state.selected,e.shiftKey));
   if(e.target.closest('#sell-selected')&&state.slot){const {area,index}=state.slot;state.slot=null;const result=await notify(game.sellItem(area,index));if(result.ok)actions.notify(`已出售，获得 ${result.gold} 金币`);}
  });
- panel.addEventListener('dblclick',e=>{const b=e.target.closest('[data-item]');if(b&&!e.shiftKey)buy(b.dataset.item);});
+ panel.addEventListener('dblclick',e=>{const id=sameItemClick(e)?itemClick.id:e.target.closest('[data-item]')?.dataset.item;itemClick=null;if(id&&!e.shiftKey)buy(id);});
  panel.addEventListener('contextmenu',e=>{const b=e.target.closest('[data-item]');if(b){e.preventDefault();buy(b.dataset.item);}});
  panel.querySelector('#close-shop').onclick=()=>{itemTooltip.hidden=true;actions.close();};
  panel.querySelector('#item-search').oninput=e=>{state.query=e.target.value.trim().toLocaleLowerCase();update();};
