@@ -9,13 +9,25 @@ const escape=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&g
 const areaNames={inventory:'装备栏',backpack:'背包',stash:'储藏处',tp:'回城卷轴',cargo:'信使'};
 export const itemArt=item=>`<img src="/${item.image}" alt="" draggable="false" />`;
 const setHTML=(element,html)=>{if(element.renderedContent!==html){element.innerHTML=html;element.renderedContent=html;}};
+function effectDescription(item){
+ const full=String(item.description||'').trim(),abilities=String(item.activeDescription||'').trim();
+ const bonuses=abilities&&full.endsWith(abilities)?full.slice(0,-abilities.length).trim():abilities?'':full;
+ const effects=[];
+ for(const paragraph of abilities.split(/\n\s*\n|\n(?=(?:主动切换|主动|被动|光环|切换|开关|消耗|使用|升级)[：:])/).filter(Boolean)){
+  const heading=paragraph.match(/^(主动切换|主动|被动|光环|切换|开关|消耗|使用|升级)[：:]\s*([^：:\n]+)[：:]\s*([\s\S]*)$/);
+  if(heading)effects.push({type:heading[1],name:heading[2],paragraphs:heading[3]?[heading[3]]:[]});
+  else if(effects.length)effects.at(-1).paragraphs.push(paragraph);
+  else effects.push({type:'',name:item.recipeOnly?'合成说明':'装备效果',paragraphs:[paragraph]});
+ }
+ return `<div class="item-description">${bonuses?`<div class="item-bonuses" aria-label="装备属性">${bonuses.split(' · ').map(bonus=>`<span>${escape(bonus)}</span>`).join('')}</div>`:''}${effects.length?`<div class="item-effects" aria-label="装备效果">${effects.map(effect=>`<section class="item-effect"><h4>${effect.type?`<span>${escape(effect.type)}</span>`:''}${escape(effect.name)}</h4>${effect.paragraphs.map(paragraph=>`<p>${escape(paragraph)}</p>`).join('')}</section>`).join('')}</div>`:''}${item.notes?.length?`<details class="item-effect-notes"><summary>效果细节</summary><ul>${item.notes.map(note=>`<li>${escape(note)}</li>`).join('')}</ul></details>`:''}</div>`;
+}
 
 export function mountShop(panel,inventory,game,actions){
  const state={selected:'boots',category:'all',query:'',slot:null,displayedId:null};
  panel.innerHTML=`<div class="panel-heading"><div><span class="eyebrow">DOTA 2 · 7.41f</span><h2>装备商店</h2></div><button class="icon-button" id="close-shop" aria-label="关闭商店">${icon('close')}</button></div><div class="shop-location"></div><label class="shop-search">${icon('search')}<input id="item-search" type="search" placeholder="搜索物品、属性或英文名称" aria-label="搜索商店物品" autocomplete="off" /></label><nav class="shop-categories" aria-label="物品分类">${Object.entries({all:'基础与升级',basic:'基础',upgrades:'升级',secret:'神秘商店',recipes:'卷轴'}).map(([id,label])=>`<button data-category="${id}">${label}</button>`).join('')}</nav><div class="shop-content"><div class="shop-catalog" aria-label="可购买物品"></div><section class="item-detail" aria-label="物品详情"></section></div><section class="stash-section"><div><h3>储藏处 <span id="stash-used"></span></h3><button id="collect-stash">取出全部</button></div><div class="stash-slots"></div></section><section class="quickbuy-section"><div><h3>快捷购买 <small>Shift + 单击物品添加</small></h3><button id="clear-quickbuy" aria-label="清空快捷购买">清空</button></div><div class="quickbuy-items"></div><button id="buy-quick">购买队列物品 <kbd>G</kbd></button></section><p class="shop-foot"><span id="slots-used"></span><small>双击 / 右键购买 · 单击查看详情</small></p>`;
  panel.insertAdjacentHTML('beforeend','<div class="shop-item-tooltip" role="tooltip" hidden></div>');
  const itemTooltip=panel.querySelector('.shop-item-tooltip');
- const showItemTip=button=>{const item=ITEM_BY_ID[button?.dataset.item];if(!item)return;itemTooltip.innerHTML=`<div class="detail-heading">${itemArt(item)}<div><h3>${escape(item.name)}</h3><span>${escape(item.en)}</span><b>${item.cost} 金币</b></div></div><p>${escape(item.description)}</p>`;itemTooltip.hidden=false;const r=button.getBoundingClientRect();itemTooltip.style.left=`${Math.max(8,Math.min(innerWidth-308,r.left-300))}px`;itemTooltip.style.top=`${Math.max(8,Math.min(innerHeight-itemTooltip.offsetHeight-8,r.top))}px`;};
+ const showItemTip=button=>{const item=ITEM_BY_ID[button?.dataset.item];if(!item)return;itemTooltip.innerHTML=`<div class="detail-heading">${itemArt(item)}<div><h3>${escape(item.name)}</h3><span>${escape(item.en)}</span><b>${item.cost} 金币</b></div></div>${effectDescription(item)}`;itemTooltip.hidden=false;const r=button.getBoundingClientRect();itemTooltip.style.left=`${Math.max(8,Math.min(innerWidth-308,r.left-300))}px`;itemTooltip.style.top=`${Math.max(8,Math.min(innerHeight-itemTooltip.offsetHeight-8,r.top))}px`;};
  panel.addEventListener('pointerover',e=>{const b=e.target.closest('[data-item]');if(b)showItemTip(b);});
  panel.addEventListener('pointerout',e=>{if(e.target.closest('[data-item]'))itemTooltip.hidden=true;});
  panel.addEventListener('focusin',e=>{const b=e.target.closest('[data-item]');if(b)showItemTip(b);});
@@ -33,10 +45,11 @@ export function mountShop(panel,inventory,game,actions){
   if(e.target.closest('#drop-selected')){state.slot=null;notify(game.dropItem(area,index));}
  });
  const buy=async id=>{const result=await notify(game.buy(id));if(result.ok)actions.notify(`已购买 ${ITEM_BY_ID[id].name}${result.area==='stash'?'，放入储藏处':result.area==='backpack'?'，放入背包':''}`);};
- function select(id){state.selected=id;state.slot=null;update();}
+ function revealDetails(){panel.querySelector('.item-detail').scrollIntoView({block:'start',inline:'nearest'});}
+ function select(id){const changed=state.selected!==id;state.selected=id;state.slot=null;update();if(changed)panel.querySelector('.item-description').scrollTop=0;revealDetails();}
  function inspect(area,index){
   const id=game.player[area]?.[index];if(!id)return;
-  state.selected=id;state.slot={area,index};actions.open();update();
+  state.selected=id;state.slot={area,index};actions.open();update();revealDetails();
  }
  const slotHTML=(area,index,p=game.player)=>{
   const id=p[area]?.[index],item=ITEM_BY_ID[id],meta=p[area+'Meta']?.[index],info=['hero','illusion'].includes(p.kind)?itemState(game,p,index,area):{ready:0,cooldown:0},remaining=Math.ceil(Math.max(info.ready,info.cooldown));
@@ -93,7 +106,7 @@ export function mountShop(panel,inventory,game,actions){
   if(slot&&p[slot.area][slot.index]!==item.id)state.slot=null;
   const owned=slot&&state.slot,upgrades=ITEMS.filter(i=>i.components?.includes(item.id));
   const componentHTML=(item.components||[]).map(id=>{const part=ITEM_BY_ID[id],have=quote.consumed.some(c=>c.id===id);return `<button data-item="${id}" class="recipe-part ${have?'owned':''}">${itemArt(part)}<span>${part.name}</span><small>${have?'已有':part.cost}</small></button>`;}).join('');
-  setHTML(panel.querySelector('.item-detail'),`<div class="detail-heading">${itemArt(item)}<div><h3>${item.name}</h3><span>${item.en}</span><b>${item.cost} 金币</b></div></div><p class="item-description">${item.description.split(' · ').map(escape).join('<br>')}</p>${owned?`<p class="item-owned-location">${areaNames[slot.area]} · 第 ${slot.index+1} 格${slot.area!=='inventory'?' · 不提供属性':''}</p><div class="item-actions">${Object.keys(SLOT_COUNTS).filter(area=>area!==slot.area).map(area=>`<button data-transfer="${area}">${area==='inventory'?'装备':area==='backpack'?'放入背包':'存入储藏处'}</button>`).join('')}<button id="sell-selected">出售 · ${sellValue(game,p,slot.area,slot.index)} 金币</button></div>`:''}${componentHTML?`<h4>合成需要</h4><div class="recipe-components">${componentHTML}</div>`:item.recipeOnly?'<p class="item-note">卷轴本身不提供属性，组件齐全时自动合成。</p>':''}${upgrades.length?`<h4>可合成为</h4><div class="item-upgrades">${upgrades.map(i=>`<button data-item="${i.id}" title="${i.name}">${itemArt(i)}<span>${i.name}</span></button>`).join('')}</div>`:''}<div class="purchase-summary"><span>${quote.consumed.length?'购买剩余组件':'购买物品'}</span><strong>${quote.cost} 金币</strong></div><button id="buy-selected" ${quote.ok?'':'disabled'}>${quote.ok?'购买'+(quote.consumed.length?'并合成':''):escape(quote.reason)}</button><button id="queue-selected">加入快捷购买</button>`);
+  setHTML(panel.querySelector('.item-detail'),`<div class="detail-heading">${itemArt(item)}<div><h3>${item.name}</h3><span>${item.en}</span><b>${item.cost} 金币</b></div></div>${effectDescription(item)}${owned?`<p class="item-owned-location">${areaNames[slot.area]} · 第 ${slot.index+1} 格${slot.area!=='inventory'?' · 不提供属性':''}</p><div class="item-actions">${Object.keys(SLOT_COUNTS).filter(area=>area!==slot.area).map(area=>`<button data-transfer="${area}">${area==='inventory'?'装备':area==='backpack'?'放入背包':'存入储藏处'}</button>`).join('')}<button id="sell-selected">出售 · ${sellValue(game,p,slot.area,slot.index)} 金币</button></div>`:''}${componentHTML?`<h4>合成需要</h4><div class="recipe-components">${componentHTML}</div>`:item.recipeOnly?'<p class="item-note">卷轴本身不提供属性，组件齐全时自动合成。</p>':''}${upgrades.length?`<h4>可合成为</h4><div class="item-upgrades">${upgrades.map(i=>`<button data-item="${i.id}" title="${i.name}">${itemArt(i)}<span>${i.name}</span></button>`).join('')}</div>`:''}<div class="purchase-summary"><span>${quote.consumed.length?'购买剩余组件':'购买物品'}</span><strong>${quote.cost} 金币</strong></div><button id="buy-selected" ${quote.ok?'':'disabled'}>${quote.ok?'购买'+(quote.consumed.length?'并合成':''):escape(quote.reason)}</button><button id="queue-selected">加入快捷购买</button>`);
   panel.querySelector('#stash-used').textContent=`${p.stash.filter(Boolean).length} / 6`;
   setHTML(panel.querySelector('.stash-slots'),Array.from({length:6},(_,i)=>slotHTML('stash',i)).join(''));
   panel.querySelector('#collect-stash').disabled=!access.base||!p.stash.some(Boolean)||game.paused;

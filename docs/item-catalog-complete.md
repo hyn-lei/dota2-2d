@@ -1,6 +1,6 @@
 # 完整商店目录
 
-目标补丁为 **7.41f**。2026-10-31 再次检查 [Valve 补丁列表](https://www.dota2.com/datafeed/patchnoteslist?language=english)，该接口仍以 7.41f 为最新条目。完整物品快照获取于 2026-10-28。
+目标补丁为 **7.41f**。2026-11-14 再次检查 [Valve 补丁列表](https://www.dota2.com/datafeed/patchnoteslist?language=english)，该接口仍以 7.41f 为最新条目。完整物品快照获取于 2026-10-28。
 
 ## 范围与生成
 
@@ -31,3 +31,11 @@ node --test tests/full-item-data.test.mjs tests/attributes.test.mjs
 2026-10-31 直接复查 [撒旦之邪力数据](https://www.dota2.com/datafeed/itemdata?language=schinese&item_id=156) 发现：常驻吸血字段为 25%，主动额外吸血为 145%，描述用的总量字段仍为 175%。本实现使用数值字段相加，得到 170%；商店说明显示该实际值，原始 175% 仍保留在快照与 `values` 中。这是来源内部冲突，未宣称客户端实测结论。
 
 商店、运输及战斗的具体实现与限制见 [运行时说明](item-runtime-sources.md)；五位英雄升级见 [神杖与魔晶说明](hero-upgrades-sources.md)。
+
+## 所选装备效果显示
+
+2026-11-14 修复桌面商店把 `.item-description` 隐藏的问题。详情使用已有记录中的 `description`、`activeDescription` 和 `notes`，把属性与各项主动、被动、开关、升级等效果分开显示，保留说明内的数值、范围、持续时间与使用限制。多段数值说明归属其前面的效果，卷轴显示合成说明；补充规则可在“效果细节”中展开。悬停预览与所选详情共用效果排版，补充规则在可交互的所选详情中查看。
+
+选中目录、组件或已持有装备后，商店回到该物品的详情位置；换物品时重置说明滚动位置。效果区域有独立滚动条，手机不再把说明限制到原来的 90 像素。
+
+当天直接核对 [Valve 狂战斧数据](https://www.dota2.com/datafeed/itemdata?language=schinese&item_id=145)：常驻攻击力 +50、生命恢复/秒 +7.5、魔法恢复/秒 +2.75；近战分裂对英雄 60%、对非英雄 40% 物理伤害，最远 650 距离。砍伐、压制和分裂分别显示。这些数值与现有记录一致，本次只改变显示，不更新官方快照、生成器或战斗规则。测试覆盖全部 268 件可购物品的说明完整性及四种屏幕尺寸，证据见 [本轮验证](verification/2026-11-14-shop-effects.md)。
