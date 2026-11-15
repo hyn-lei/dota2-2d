@@ -68,19 +68,35 @@ test('a responsive transport that never acknowledges a snapshot is disconnected'
  assert.equal(socket.readyState,WebSocket.CLOSED);
 });
 
-test('negotiated peers keep four bounded credits across RTT and coalesce excess snapshots to the latest state',()=>{
+test('negotiated peers keep bounded credits across RTT and coalesce excess snapshots to the latest state',()=>{
  const manager=new RoomManager({maxBufferedBytes:2*1024*1024,lobbyRate:2}),socket=transport();socket.coopSnapshotProtocol=SNAPSHOT_PROTOCOL;
  const session={token:'one',socket,roomCode:'TEST23',lastCommandId:7};socket.coopSession=session;socket.coopRates={};manager.sessions.set('one',session);
  const game={time:0,status:'playing',paused:false,score:[0,0],entities:[{id:'hero',x:0,hp:100}],effects:[],feed:[],camps:[],pendingSpells:[]};
  const room={code:'TEST23',game,members:[{token:'one',connected:true,heroEntityId:'hero'}]};
- for(let i=0;i<8;i++){game.time=i;game.entities[0].x=i;manager.broadcastSnapshot(room);}
+ for(let i=0;i<12;i++){game.time=i;game.entities[0].x=i;manager.broadcastSnapshot(room);}
  assert.equal(socket.frames.length,SNAPSHOT_WINDOW);assert.equal(manager.pendingSnapshots.get(socket).size,SNAPSHOT_WINDOW);
  const first=socket.frames[0].message;manager.handle(socket,{type:'snapshotAck',frame:first.frame});
  assert.equal(socket.frames.length,SNAPSHOT_WINDOW,'application ACK alone cannot release an undrained credit');
  socket.callbacks.shift()();assert.equal(socket.frames.length,SNAPSHOT_WINDOW+1);
  let state,frame;
  for(const {message} of socket.frames){if(message.delta){assert.equal(message.baseFrame,frame);state=applySnapshotDelta(state,message.delta);}else state=message.state;frame=message.frame;assert.equal(message.commandId,7);}
- assert.equal(state.time,7);assert.equal(state.entities[0].x,7);assert.equal(manager.pendingSnapshots.get(socket).size,SNAPSHOT_WINDOW);
+ assert.equal(state.time,11);assert.equal(state.entities[0].x,11);assert.equal(manager.pendingSnapshots.get(socket).size,SNAPSHOT_WINDOW);
+});
+
+test('a 700ms acknowledgement round trip retains a 100ms negotiated snapshot cadence',t=>{
+ let now=1000;t.mock.method(Date,'now',()=>now);
+ const manager=new RoomManager({maxBufferedBytes:2*1024*1024,snapshotMs:100}),socket=transport(false);socket.coopSnapshotProtocol=SNAPSHOT_PROTOCOL;
+ const session={token:'one',socket,roomCode:'TEST23',lastCommandId:0};socket.coopSession=session;socket.coopRates={};manager.sessions.set('one',session);
+ const game={time:0,status:'playing',paused:false,score:[0,0],entities:[],effects:[],feed:[],camps:[],pendingSpells:[]};
+ const room={code:'TEST23',game,members:[{token:'one',connected:true,heroEntityId:'hero'}]};
+ for(let n=0;n<20;n++){
+  now=1000+n*100;
+  for(const {message,at}of socket.frames)if(!message.applied&&now-at>=700){manager.handle(socket,{type:'snapshotAck',frame:message.frame});message.applied=true;}
+  game.time=n*.1;manager.broadcastSnapshot(room);socket.frames.at(-1).at??=now;
+ }
+ assert.equal(socket.frames.length,20,'each scheduled snapshot must be sent across a measured 700ms round trip');
+ assert.deepEqual(socket.frames.map(frame=>frame.at),Array.from({length:20},(_,n)=>1000+n*100));
+ assert.ok(manager.pendingSnapshots.get(socket).size<=8,'the larger pipeline must remain bounded');
 });
 
 test('an unrelated ACK cannot release another negotiated peer credit',()=>{

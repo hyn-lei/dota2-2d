@@ -1,5 +1,5 @@
 export const SNAPSHOT_PROTOCOL='delta-v1';
-export const SNAPSHOT_WINDOW=4;
+export const SNAPSHOT_WINDOW=8;
 const none=new Set(),entityField=new Set(['entities']);
 
 function equal(a,b){

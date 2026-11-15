@@ -17,22 +17,68 @@ const CAMP_COLORS = {small:'#e0cc8e',medium:'#dbad6a',large:'#d18b60',ancient:'#
 const unitColor = e => TEAM_COLORS[e.team] || (e.ancient ? '#cfb0e0' : '#e4bd77');
 let sharedMapAsset;
 
-// Keep one decoded terrain image across lobby/match renderer lifecycles.
+// Reuse decoded map resolutions across lobby/match renderer lifecycles.
 // The only terrain canvas is the 1024-square minimap, never WORLD.width².
 function getMapAsset() {
   if(sharedMapAsset) return sharedMapAsset;
   const preview=document.createElement('canvas');preview.width=1024;preview.height=1024;
   const context=preview.getContext('2d');context.fillStyle='#18241e';context.fillRect(0,0,1024,1024);
-  const asset={image:new Image(),preview,ready:false,failed:false};sharedMapAsset=asset;
+  const asset={image:new Image(),preview,ready:false,failed:false,blob:null,bitmaps:new Map(),pending:new Map(),unavailable:new Set(),activeDivisor:1};sharedMapAsset=asset;
   asset.image.decoding='async';
-  asset.image.onload=()=>{
-    asset.ready=true;
+  asset.image.onload=async()=>{
     const s=1024/WORLD.width;
     context.drawImage(asset.image,MAP_IMAGE.x*s,MAP_IMAGE.y*s,MAP_IMAGE.width*s,MAP_IMAGE.height*s);
+    if(typeof createImageBitmap==='function'){
+      try{
+        const response=await fetch(MAP_IMAGE.url);if(!response.ok)throw new Error('Map bitmap source unavailable');
+        asset.blob=await response.blob();await prepareTerrainBitmap(asset,1);
+      }catch{
+        // Retain the loaded JPEG when bitmap decoding is unavailable.
+      }
+    }
+    asset.ready=true;
   };
   asset.image.onerror=()=>{asset.failed=true;};
   asset.image.src=MAP_IMAGE.url;
   return asset;
+}
+
+export function terrainResolution(image,pixelScale,rect=MAP_IMAGE){
+  const imageWidth=image.naturalWidth||image.width,imageHeight=image.naturalHeight||image.height;
+  if(!imageWidth||!imageHeight||!Number.isFinite(pixelScale)||pixelScale<=0)return 1;
+  const texelScale=pixelScale*Math.max(rect.width/imageWidth,rect.height/imageHeight);
+  let divisor=1;while(divisor<8&&texelScale*divisor*2<=1)divisor*=2;
+  return divisor;
+}
+
+function prepareTerrainBitmap(asset,divisor){
+  if(asset.bitmaps.has(divisor)||asset.unavailable.has(divisor)||!asset.blob)return;
+  if(asset.pending.has(divisor))return asset.pending.get(divisor);
+  const pending=createImageBitmap(asset.blob,{resizeWidth:Math.ceil(asset.image.naturalWidth/divisor),resizeHeight:Math.ceil(asset.image.naturalHeight/divisor),resizeQuality:'high'})
+    .then(bitmap=>{
+      asset.bitmaps.set(divisor,bitmap);
+      while(asset.bitmaps.size>2){
+        // Keep native detail ready when the camera returns from an overview.
+        const oldest=[...asset.bitmaps.keys()].find(key=>key!==1&&key!==asset.activeDivisor);
+        asset.bitmaps.get(oldest).close();asset.bitmaps.delete(oldest);
+      }
+    })
+    .catch(()=>asset.unavailable.add(divisor))
+    .finally(()=>asset.pending.delete(divisor));
+  asset.pending.set(divisor,pending);return pending;
+}
+
+export function terrainImageForScale(asset,pixelScale){
+  const divisor=terrainResolution(asset.image,pixelScale);asset.activeDivisor=divisor;
+  prepareTerrainBitmap(asset,divisor);
+  let chosen=divisor;
+  if(!asset.bitmaps.has(chosen)){
+    // Prefer a sharper existing source while the requested resolution decodes.
+    const available=[...asset.bitmaps.keys()].sort((a,b)=>a-b);
+    chosen=available.filter(key=>key<divisor).at(-1);
+  }
+  const bitmap=asset.bitmaps.get(chosen);if(!bitmap)return asset.image;
+  asset.bitmaps.delete(chosen);asset.bitmaps.set(chosen,bitmap);return bitmap;
 }
 
 export class Renderer {
@@ -78,7 +124,7 @@ export class Renderer {
     this.clampCamera();
     const halfW=this.w/2/this.zoom,halfH=this.h/2/this.zoom;
     c.fillStyle='#1b2927';c.fillRect(0,0,this.w,this.h);c.save();c.translate(this.w/2,this.h/2);c.scale(this.zoom,this.zoom);c.translate(-this.camera.x,-this.camera.y);
-    if(this.mapAsset.ready)c.drawImage(this.mapAsset.image,MAP_IMAGE.x,MAP_IMAGE.y,MAP_IMAGE.width,MAP_IMAGE.height);
+    if(this.mapAsset.ready)c.drawImage(terrainImageForScale(this.mapAsset,this.zoom*this.dpr),MAP_IMAGE.x,MAP_IMAGE.y,MAP_IMAGE.width,MAP_IMAGE.height);
     else c.drawImage(this.terrain,0,0,WORLD.width,WORLD.height);
     // The terrain reference is a baked image. Overlay clear ground and stumps where trees were cut.
     for(const [index]of game.cutTrees||[]){const tree=TREES[index];if(Math.abs(tree.x-this.camera.x)>halfW+100||Math.abs(tree.y-this.camera.y)>halfH+100)continue;circle(c,tree.x,tree.y,64,'#384936');circle(c,tree.x,tree.y,13,'#817052','#b0a079',2);}

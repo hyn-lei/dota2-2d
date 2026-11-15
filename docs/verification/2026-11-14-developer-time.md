@@ -36,3 +36,5 @@ a3a9e896b94389e923d2e6ac72d460e9c387337fa667b13be2ad58361f981feb
 陈批次提交 `4517ba6911b506b48cb4e11da7af7073b74eb52e` 的 Actions [43601168008](https://github.com/hyn-lei/dota2-2d/actions/runs/43601168008) 在 “Verify the game opens in a browser” 失败，镜像发布和部署被跳过。启动检查仍把英雄选项写死为七个，当前目录已经有八位。
 
 本次改为逐一比较页面 `data-hero` ID 与 `HEROES` 的完整 ID 集合；最终生产构建上的启动检查已通过。新时间浏览器检查接入同一发布工作流。推送后继续核对实际提交的 Actions、GHCR 发布和部署步骤；本机通过与镜像发布均不单独代表公网服务器已经更新。
+
+推送提交 `7add537382fe534bf60851c2657343420075c37f` 后，Actions [43605387546](https://github.com/hyn-lei/dota2-2d/actions/runs/43605387546) 的规则/浏览器/容器验证、amd64 与 arm64 镜像发布、服务器连接检查和 Compose 部署均成功。公网 `https://dota2.prismabyss.com/?verify=7add537` 返回上述 `a3a9e896…` 构建版本，`node scripts/check-public-coop.mjs https://dota2.prismabyss.com` 实际 Origin/hello 握手通过。此次陈与开发者功能已确认部署，证据 `artifacts/developer-time-actions-report.json`。
