@@ -1,4 +1,8 @@
-# 7.41f 建筑、野怪和兵线数据
+# 7.42 建筑、野怪和兵线数据
+
+2026-11-21 更新：当前 NPC 原始快照固定为 Valve 跟踪提交 `76ab89451c1384c2e106b676258c6e9f72787e11`，路径仍为 `game/dota/pak01_dir/scripts/npc/{npc_units,npc_abilities}.txt`。`generate.mjs` 提取 54 个保留/当前野怪 ID、82 个当前能力及死灵书/魔方世界单位，并递归展开 `include_keys_from`；`unit-extras.js` 同步重提。普通营地刷新表按 7.42 主场树林规则更新，退役 ID 为旧存档保留。全部七种新怪有真实主动/被动、自动施法、伤害、击杀、刷新和陈劝化行为，详细逐项记录及边界见 [7.42 世界覆盖](world-7.42-coverage.md)。
+
+简体技能 token 和图标已从本机最新 Steam build **26825343**（Client/Server 6989，2026-11-20）重新提取，原始 token、路径和哈希仍记录在 `units/client-ability-tokens.json`。提取器按当前 KV 的 `AbilityTextureName` 选择实际资源，生成 91 个技能展示，取得 87 个公开能力图标引用（含共享纹理别名）。当前地图建筑、树木、营地和触发框来自同一 build 的独立地图 VPK；原导航/纹理仍有 7.41 边界，详见 [地图来源](map-sources.md)。以下历史记录保留用于解释旧快照与初始实现。
 
 ## 来源
 

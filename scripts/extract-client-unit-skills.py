@@ -12,17 +12,23 @@ import shutil
 import struct
 import subprocess
 import tempfile
+import datetime
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--vpk', required=True, type=pathlib.Path)
 parser.add_argument('--decoder', required=True, type=pathlib.Path)
 args = parser.parse_args()
 root = pathlib.Path(__file__).resolve().parent.parent
-ids = json.loads(subprocess.check_output(['node', '--input-type=module', '-e',
-    "import {NEUTRAL_ABILITIES,NEUTRAL_UNITS,BUILDING_STATS,LANE_CREEPS,ROSHAN} from './src/unit-data.js'; console.log(JSON.stringify([...new Set([...Object.keys(NEUTRAL_ABILITIES),...Object.values(NEUTRAL_UNITS).flatMap(u=>u.abilities),...Object.values(BUILDING_STATS).flatMap(u=>u.abilities),...Object.values(LANE_CREEPS).flatMap(u=>u.abilities),...ROSHAN.abilities])]))"], cwd=root))
+source = json.loads(subprocess.check_output(['node', '--input-type=module', '-e',
+    "import {NEUTRAL_ABILITIES,NEUTRAL_UNITS,BUILDING_STATS,LANE_CREEPS,ROSHAN} from './src/unit-data.js'; console.log(JSON.stringify({ids:[...new Set([...Object.keys(NEUTRAL_ABILITIES),...Object.values(NEUTRAL_UNITS).flatMap(u=>u.abilities),...Object.values(BUILDING_STATS).flatMap(u=>u.abilities),...Object.values(LANE_CREEPS).flatMap(u=>u.abilities),...ROSHAN.abilities])],textures:Object.fromEntries(Object.entries(NEUTRAL_ABILITIES).map(([id,a])=>[id,a.textureName||id]))}))"], cwd=root))
+ids = source['ids']
+texture_names = source['textures']
 ids += ['courier_return_to_base', 'courier_transfer_items', 'courier_go_to_secretshop',
         'courier_burst', 'courier_shield', 'juggernaut_healing_ward']
-paths = {f'panorama/images/spellicons/{name}_png.vtex_c': name for name in ids}
+paths = {}
+for name in ids:
+    path = f'panorama/images/spellicons/{texture_names.get(name,name)}_png.vtex_c'
+    paths.setdefault(path, []).append(name)
 localizations = ['resource/localization/abilities_schinese.txt', 'resource/localization/abilities_english.txt']
 with args.vpk.open('rb') as stream:
     signature, version, tree_size = struct.unpack('<III', stream.read(12))
@@ -55,27 +61,31 @@ def read(path):
     with source.open('rb') as stream:
         stream.seek(offset + (header_size + tree_size if archive == 0x7fff else 0))
         return preload + stream.read(size)
-snapshot = {'source': 'Valve installed Dota 2 client, Steam build 26139613',
-            'referencePatch': '7.41f', 'retrieved': '2026-11-08', 'localization': {}, 'textures': {}, 'missingIcons': []}
+manifest = args.vpk.parents[4] / 'appmanifest_570.acf'
+match = re.search(r'"buildid"\s+"(\d+)"', manifest.read_text(encoding='utf8'))
+build = int(match[1]) if match else None
+snapshot = {'source': f'Valve installed Dota 2 client, Steam build {build}', 'steamBuild': build,
+            'referencePatch': '7.42', 'retrieved': datetime.date.today().isoformat(), 'localization': {}, 'textures': {}, 'textureNames': texture_names, 'missingIcons': []}
 for path in localizations:
     raw = read(path)
     tokens = dict(re.findall(r'"([^"\n]+)"\s+"((?:\\.|[^"\\])*)"', raw.decode('utf-8-sig')))
-    prefixes = tuple(('DOTA_Tooltip_ability_' + name).lower() for name in ids)
+    prefixes = tuple(('DOTA_Tooltip_ability_' + name).lower() for name in set(ids + list(texture_names.values())))
     snapshot['localization'][path] = {'sha256': hashlib.sha256(raw).hexdigest(),
         'tokens': {key: value for key, value in tokens.items() if key.lower().startswith(prefixes)}}
 with tempfile.TemporaryDirectory(prefix='game4-unit-skills-') as temporary:
     temporary = pathlib.Path(temporary)
-    for path, name in paths.items():
+    for path, names in paths.items():
         if path not in entries:
-            snapshot['missingIcons'].append(name)
+            snapshot['missingIcons'].extend(names)
             continue
         raw = read(path)
         target = temporary / 'raw' / path
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_bytes(raw)
-        snapshot['textures'][name] = {'path': path, 'sha256': hashlib.sha256(raw).hexdigest()}
+        for name in names:
+            snapshot['textures'][name] = {'path': path, 'sha256': hashlib.sha256(raw).hexdigest()}
     decoded = temporary / 'decoded'
-    subprocess.run([str(args.decoder.resolve()), '-i', str(temporary / 'raw'), '--recursive', '-d', '-o', str(decoded)], check=True)
+    subprocess.run([str(args.decoder.resolve()), '-i', str(temporary / 'raw'), '--recursive', '-d', '-o', str(decoded)], check=True, stdout=subprocess.DEVNULL)
     for name, source in snapshot['textures'].items():
         path = pathlib.Path(source['path'])
         png = decoded / path.parent / path.name.replace('.vtex_c', '.png')

@@ -8,10 +8,10 @@ export const MAX_MATCH_SECONDS=MAX_MATCH_MINUTES*60;
 export const hasExpiredMatchTime=game=>Boolean(game&&!game.isNetwork&&Number.isFinite(game.time)&&game.time>MAX_MATCH_SECONDS);
 
 // Only live state is traversed. Definitions and navigation grids are not clocks.
-const roots=['entities','effects','pendingSpells','itemZones','plantedTrees','feed'];
+const roots=['entities','effects','pendingSpells','itemZones','plantedTrees','feed','worldObjectives','madstoneDrops','glyphStates'];
 const skip=new Set(['skill','item','definition','skillCache','innateCache','navPath','navGoal','navigation','collisions','grid']);
-const dictionaries=new Set(['abilityCooldowns','itemBarrierCooldowns','drowWaveHits','dwell','lastDamagers']);
-const timestamps=new Set(['time','until','deathTime','targetLife','lastTick','nextTick','nextSlash','nextExplosion','extraCooldownTick','nextTornadoTick','nextBloodlustCheck','nextBuildingCheck','nextProc','nextCrozierSteal','clearSince']);
+const dictionaries=new Set(['abilityCooldowns','itemBarrierCooldowns','drowWaveHits','dwell','lastDamagers','rechargeAt']);
+const timestamps=new Set(['time','until','deathTime','targetLife','lastTick','nextTick','nextSlash','nextExplosion','extraCooldownTick','nextTornadoTick','nextBloodlustCheck','nextBuildingCheck','nextProc','nextCrozierSteal','clearSince','_nextWorldObjectiveTick']);
 const timestamp=key=>timestamps.has(key)||/(?:At|Until)$/.test(key);
 
 function rebase(value,delta,seen,allNumbers=false){
@@ -43,10 +43,12 @@ function rebaseStocks(game,oldTime,delta){
 
 export function rebaseMatchTime(game,seconds){
  const oldTime=game.time,delta=seconds-oldTime,seen=new WeakSet();
+ const firstTormentorPending=!(game.tormentorDeaths||0)&&!game.entities.some(e=>e.isTormentor);
  for(const key of roots)rebase(game[key],delta,seen);
  for(const key of Object.keys(game))if(key!=='time'&&Number.isFinite(game[key])&&timestamp(key))game[key]+=delta;
  for(const [id,until]of game.cutTrees||[])if(Number.isFinite(until))game.cutTrees.set(id,until+delta);
  game.time=seconds;
+ if(firstTormentorPending)game.tormentorRespawnAt=900;
  // Skip historical spawns and let the next actual wave use the selected time's growth.
  const interval=RULES.laneWaveInterval;
  game.wave=Math.floor(seconds/interval)+1;game.nextWave=game.wave*interval;

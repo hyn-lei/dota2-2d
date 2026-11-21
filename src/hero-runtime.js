@@ -4,6 +4,7 @@ import { TREES } from './map-data.js';
 import * as Ogre from './ogre-runtime.js';
 import * as Drow from './drow-runtime.js';
 import * as Chen from './chen-runtime.js';
+import * as Chaos from './chaos-runtime.js';
 import {weakIllusion,strongIllusion} from './illusions.js';
 import {spendMana,clearTemporaryMana} from './mana-runtime.js';
 const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
@@ -19,17 +20,18 @@ export function skillOf(h,i){
 }
 function innate(h){const key=`${h.heroId}:${h.level}:${h.talents?.join(',')}:${!!h.hasScepter}:${!!h.hasShard}`;if(h.innateCacheKey!==key){h.innateCacheKey=key;h.innateCache=innateAt(h.heroId,h.level,h.talents||[],h);}return h.innateCache;}
 export function extraSkillOf(h,id){
- if(h.heroId==='chen'&&id==='chen_zealot')return {...innate(h),kind:'active',key:'D',name:'狂热者召回'};
+ if(h.heroId==='chen'&&id==='chen_zealot')return {...innate(h),kind:'active',key:'D'};
+ if(h.heroId==='chaos_knight'&&id==='chaos_knight_armageddon')return {...innate(h),kind:'active',key:'D',range:999999,icon:'dash',...(h.chaosCharge?{name:h.chaosCharge.phase==='windup'?'开始冲锋':'停止冲锋',mana:0,castPoint:0,cooldown:0,image:'assets/abilities/chaos_knight_armageddons_flank_end.png'}:{})};
  const extra=extraAbilityAt(h.heroId,id,h.talents||[],h);if(!extra)return null;
- if(id==='juggernaut_swift_slash'){const omni=skillOf(h,3);extra.values={...omni.values,...extra.values};extra.level=omni.level?1:0;}
  if(id==='ogre_magi_unrefined_fireblast')extra.mana=(h.mana||0)*extra.values.scepter_mana/100;
  return extra;
 }
-export function extraAbilities(h){return (h.heroId==='chen'?[extraSkillOf(h,'chen_zealot')]:[]).concat((EXTRA_ABILITIES[h.heroId]||[]).map(s=>extraSkillOf(h,s.id)).filter(Boolean));}
+export function extraAbilities(h){return (h.heroId==='chen'?[extraSkillOf(h,'chen_zealot')]:h.heroId==='chaos_knight'?[extraSkillOf(h,'chaos_knight_armageddon')]:[]).concat((EXTRA_ABILITIES[h.heroId]||[]).map(s=>extraSkillOf(h,s.id)).filter(Boolean));}
 export const castingStats=(h,s)=>s&&({...s,range:s.range+(h.castRangeBonus||0),mana:s.mana*(1-(h.manaCostReduction||0)/100),castPoint:s.castPoint*(1-(h.castSpeed||0)/100)*(s.id==='ogre_magi_fireblast'?1-(s.values.bonus_cast_speed||0)/100:1)});
 const targets=(g,h,center,radius)=>g.entities.filter(e=>alive(e)&&fighter(e)&&e.team!==h.team&&distance(e,center)<=radius+e.radius);
 const areaBonus=h=>h.spellAoE||0;
 export function hasStatusFlag(g,e,flag){
+ if(flag==='disarmed'&&e?.heroId==='juggernaut'&&!e.hasScepter&&active(g,e,'spin'))return true;
  const aliases={stunned:'stun',rooted:'root',silenced:'silence',disarmed:'disarm',muted:'mute',break:'break',hex:'hex',invulnerable:'invulnerable',debuffImmune:'spin'};
  const statuses=Object.values(e?.statuses||{}),immune=statuses.some(s=>s.startedAt<=g.time+1e-7&&s.until>g.time+1e-7&&(s.debuffImmune||s.id==='spin'));
  return statuses.some(s=>s.startedAt<=g.time+1e-7&&s.until>g.time+1e-7&&(!s.suppressedByDebuffImmunity||!immune)&&(s[flag]||(aliases[flag]&&s.id===aliases[flag])||(flag==='disarmed'&&s.disarm)||(['silenced','muted','disarmed'].includes(flag)&&(s.hex||s.id==='hex'))));
@@ -41,8 +43,10 @@ export const debuffImmune=(g,e)=>hasStatusFlag(g,e,'debuffImmune');
 export const statusResistance=(g,e)=>1-(1-(e.statusResistance||0)/100)*Object.values(e.statuses||{}).filter(s=>s.until>g.time).reduce((n,s)=>n*(1-(s.statusResistance||0)/100),1);
 
 export function addStatus(g,e,id,fields){
- e.statuses||={};const old=e.statuses[id],duration=fields.duration??0,startedAt=fields.startedAt??g.time;
- const until=fields.until??startedAt+duration;
+ const source=!fields.positive&&!fields.debuffAmpApplied&&fields.sourceId?g.entities.find(unit=>unit.id===fields.sourceId):null;
+ const amplification=source&&source.team!==e.team?1+(source.debuffAmp||0)/100:1;
+ e.statuses||={};const old=e.statuses[id],duration=(fields.duration??0)*amplification,startedAt=fields.startedAt??g.time;
+ const until=fields.until===undefined?startedAt+duration:startedAt+(fields.until-startedAt)*amplification;
  if(old&&old.until>until&&fields.keepLonger!==false)return old;
  const status={id,name:id,description:'',positive:false,icon:'aura',...fields,startedAt,until,duration:until-startedAt};
  e.statuses[id]=status;return status;
@@ -55,9 +59,9 @@ function removeStatus(e,id){
 export function applyStun(g,e,duration,source,pierces=false){
  if(!alive(e)||isInvulnerable(g,e)||(!pierces&&debuffImmune(g,e)))return;
  e.buffs||={};
-  duration=Math.max(duration*(1-statusResistance(g,e)),(e.buffs.stunUntil||0)-g.time);
- addStatus(g,e,'stun',{name:'眩晕',description:'无法移动、攻击或施法。',duration,icon:'snow',sourceId:source?.id});
- e.buffs.stunUntil=Math.max(e.buffs.stunUntil||0,g.time+duration);e.recallTimer=0;interruptCast(g,e,false);
+  duration=Math.max(duration*(1+(source?.debuffAmp||0)/100)*(1-statusResistance(g,e)),(e.buffs.stunUntil||0)-g.time);
+ const status=addStatus(g,e,'stun',{name:'眩晕',description:'无法移动、攻击或施法。',duration,icon:'snow',sourceId:source?.id,debuffAmpApplied:true});
+ e.buffs.stunUntil=status.until;e.recallTimer=0;interruptCast(g,e,false);
 }
 const stun=applyStun;
 export function applyRoot(g,e,duration,source,pierces=false,fields={}){
@@ -72,24 +76,24 @@ function dot(g,e,id,h,duration,damage,interval,damageType,name){
  if(debuffImmune(g,e)||isInvulnerable(g,e))return;
  return addStatus(g,e,id,{name,description:`持续受到${damageType==='pure'?'纯粹':'魔法'}伤害。`,duration,sourceId:h.id,tickDamage:damage,tickInterval:interval,nextTick:g.time,damageType,icon:id==='hunger'?'hunger':'torrent'});
 }
-function dispel(e,strong=false){
- for(const [id,s]of Object.entries(e.statuses||{}))if(!s.positive&&(strong||!(['stun','taunt'].includes(id)||s.stunned))&&!s.undispellable)removeStatus(e,id);
+function dispel(e,strong=false,g=null){
+ for(const [id,s]of Object.entries(e.statuses||{}))if(!s.positive&&(strong||!(['stun','taunt'].includes(id)||s.stunned||s.strongDispelOnly))&&!s.undispellable){removeStatus(e,id);g?.onStatusExpired?.(e,s);}
  if(strong&&e.buffs){delete e.buffs.stunUntil;delete e.buffs.tauntUntil;delete e.buffs.tauntSourceId;delete e.buffs.rootUntil;}
 }
-export function applyDispel(g,e,strong=false){dispel(e,strong);}
+export function applyDispel(g,e,strong=false){dispel(e,strong,g);}
 
 export function combatStats(g,h,target=null){
  let armor=h.armor||0,speed=h.speed||0,attackSpeed=h.attackSpeed||h.baseAttackSpeed||100,damage=h.damage||0,magicResistance=h.magicResistance||0,evasion=0;
  const growth=h.zealot&&h.zealotGrowth;
  if(growth){armor+=growth.armor;attackSpeed+=growth.attackSpeed;damage+=growth.damage;magicResistance=Math.min(1,magicResistance+growth.magicResistancePct/100);}
- let slowPct=0,movePercent=0,flatSpeed=0,slowMultiplier=1-(h.slowResistance||0)/100;
+ let slowPct=0,movePercent=0,flatSpeed=0,slowMultiplier=1-Math.max(h.slowResistance||0,h.itemSlowResistance||0)/100;
  for(const s of Object.values(h.statuses||{}))if(s.startedAt<=g.time&&s.until>g.time){
   const decay=s.decayingMove||s.decayingSlow?Math.max(0,1-(s.decayRate?Math.floor(Math.max(0,g.time-s.startedAt)*s.decayRate)/s.decayRate:g.time-s.startedAt)/(s.until-s.startedAt||1)):1;
   armor+=s.armor||0;attackSpeed-=s.attackSlow||0;attackSpeed+=s.attackSpeed||0;flatSpeed+=s.flatSpeed||0;movePercent+=(s.movePercent||0)*(s.decayingMove?decay:1);evasion=Math.max(evasion,s.evasion||0);
   slowMultiplier*=1-(s.slowResistance||0)/100;
   if(s.slowPct){
    let applies=true;if(s.hunger||s.id==='hunger'){const source=g.entities.find(e=>e.id===s.sourceId);if(source)applies=Math.cos(h.angle||0)*(source.x-h.x)+Math.sin(h.angle||0)*(source.y-h.y)<0;}
-   if(applies&&!debuffImmune(g,h))slowPct=Math.max(slowPct,s.slowPct*(s.decayingSlow?decay:1));
+   if(applies&&(!debuffImmune(g,h)||s.piercesDebuffImmunity))slowPct=Math.max(slowPct,s.decayingSlow?(s.minimumSlow||0)+(s.slowPct-(s.minimumSlow||0))*decay:s.slowPct);
   }
  }
  if(h.heroId==='juggernaut'){
@@ -105,6 +109,7 @@ export function combatStats(g,h,target=null){
  if((h.buffs?.slowUntil||0)>g.time&&!slowPct)slowPct=45;
  if((h.buffs?.hasteUntil||0)>g.time&&!movePercent)movePercent=65;
  attackSpeed=Math.max(20,Math.min(700,attackSpeed));
+ if(h.heroId==='chaos_knight')flatSpeed+=h.armageddonSpeed||0;
  const maxSpeed=h.heroId==='windranger'?innate(h).values.max_movespeed:550;
  slowPct=hasStatusFlag(g,h,'slowImmune')?0:slowPct*Math.max(0,slowMultiplier);
  speed=speed===0?0:Math.max(100,Math.min(maxSpeed,(speed+flatSpeed)*(1+movePercent/100)*(1-slowPct/100)));
@@ -124,12 +129,13 @@ export function castAbility(g,h,index,point){
  if(h.channel?.index===index){interruptCast(g,h,true);return {ok:true};}
  if(h.freezingField&&h.heroId==='crystal_maiden'&&index===3){stopFreezingField(h);return {ok:true};}
  if(h.cooldowns[index]>1e-7)return {ok:false,reason:'技能尚未冷却'};
+ if(h.heroId==='chaos_knight'&&index===1&&isRooted(g,h))return {ok:false,reason:'缠绕期间不能使用实相裂隙'};
  if(h.mana<s.mana)return {ok:false,reason:'魔法不足'};
  if(h.castPhase)return {ok:false,reason:'正在施法'};
  if(active(g,h,'spin')&&index===3)return {ok:false,reason:'剑刃风暴期间无法使用无敌斩'};
  const aim=point&&Number.isFinite(point.x)&&Number.isFinite(point.y)?{x:point.x,y:point.y}:{x:h.x+Math.cos(h.angle)*100,y:h.y+Math.sin(h.angle)*100};
  const ogreAlly=h.heroId==='ogre_magi'&&index===2;
- const unitTarget=(h.heroId==='axe'&&(index===1||index===3))||(h.heroId==='crystal_maiden'&&index===1)||(h.heroId==='juggernaut'&&index===3)||(h.heroId==='windranger'&&(index===0||index===3))||(h.heroId==='kunkka'&&index===2)||(h.heroId==='ogre_magi'&&index<3)||(h.heroId==='drow_ranger'&&index===0);
+ const unitTarget=(h.heroId==='chaos_knight'&&index<2)||(h.heroId==='axe'&&(index===1||index===3))||(h.heroId==='crystal_maiden'&&index===1)||(h.heroId==='juggernaut'&&index===3)||(h.heroId==='windranger'&&(index===0||index===3))||(h.heroId==='kunkka'&&index===2)||(h.heroId==='ogre_magi'&&index<3)||(h.heroId==='drow_ranger'&&index===0);
  let target;
  if(h.heroId==='chen'&&index<3){
   const result=Chen.chenTarget(g,h,index,point||aim);if(!result.ok)return result;target=result.target;
@@ -158,27 +164,24 @@ export function castAbility(g,h,index,point){
 export function castExtraAbility(g,h,id,point){
  if(weakIllusion(h))return {ok:false,reason:'弱幻象不能施放主动技能'};
  const allowed=g._canAct(h);if(!allowed.ok)return allowed;
+ if(id==='chaos_knight_armageddon'&&h.chaosCharge){Chaos.interruptCharge(g,h,false);return {ok:true};}
  const s=castingStats(h,extraSkillOf(h,id));if(!s)return {ok:false,reason:'尚未获得对应的阿哈利姆升级'};
  if(!s.level)return {ok:false,reason:'需要先学习无敌斩'};
  if(isStunned(g,h)||g._tauntSource(h)||hasStatusFlag(g,h,'silenced'))return {ok:false,reason:'当前控制状态下无法施法'};
+ if(id==='chaos_knight_armageddon'&&!Chaos.canCharge(g,h))return {ok:false,reason:isRooted(g,h)?'缠绕期间不能冲锋':'需要至少一个主动混沌之军幻象存活'};
  if(h.castPhase||h.omnislash||h.cloneHop)return {ok:false,reason:'正在施法'};
  if((h.extraCooldowns?.[id]||0)>1e-7)return {ok:false,reason:'技能尚未冷却'};
  if(h.mana<s.mana)return {ok:false,reason:'魔法不足'};
- if((id==='crystal_maiden_crystal_clone'||id==='juggernaut_swift_slash')&&isRooted(g,h))return {ok:false,reason:'缠绕期间无法使用位移技能'};
- if(id==='juggernaut_swift_slash'&&active(g,h,'spin'))return {ok:false,reason:'剑刃风暴期间无法使用迅风斩'};
+ if(id==='crystal_maiden_crystal_clone'&&isRooted(g,h))return {ok:false,reason:'缠绕期间无法使用位移技能'};
  const aim=point&&Number.isFinite(point.x)&&Number.isFinite(point.y)?{x:point.x,y:point.y,direction:point.direction}:{x:h.x+Math.cos(h.angle||0)*100,y:h.y+Math.sin(h.angle||0)*100};
  let target;
  if(id==='chen_zealot'){
-  const result=Chen.recallTarget(g,h,point||aim);if(!result.ok)return result;target=result.target;
+  if(!h.zealotDead)return {ok:false,reason:'祝圣狂热者仍然存活'};
  }else if(id==='ogre_magi_unrefined_fireblast'||id==='ogre_magi_smash'){
   const ally=id==='ogre_magi_smash';
   target=ally&&point?.id===h.id&&!isInvulnerable(g,h)?h:g.entities.filter(e=>alive(e)&&!isInvulnerable(g,e)&&g.canSee(h,e)&&distance(e,aim)<=Math.max(e.radius||24,90)&&(ally?e.team===h.team&&(fighter(e)||structure(e)):e.team!==h.team&&fighter(e))).sort((a,b)=>distance(a,aim)-distance(b,aim))[0];
   if(!target)return {ok:false,reason:ally?'请指向友方单位或建筑':'请指向敌方单位'};
   if(distance(h,target)>s.range+target.radius)return {ok:false,reason:`目标超过 ${s.range} 施法距离`};
- }else if(id==='juggernaut_swift_slash'){
-  target=g.entities.filter(e=>alive(e)&&fighter(e)&&e.team!==h.team&&!isInvulnerable(g,e)&&g.canSee(h,e)&&distance(e,aim)<=Math.max(e.radius||24,90)).sort((a,b)=>distance(a,aim)-distance(b,aim))[0];
-  if(!target)return {ok:false,reason:'请指向有效敌方目标'};
-  if(distance(h,target)>s.range+(target.radius||0))return {ok:false,reason:`目标超过 ${s.range} 施法距离`};
  }else if(!['crystal_maiden_crystal_clone','drow_ranger_glacier'].includes(id)&&distance(h,aim)>s.range+1)return {ok:false,reason:`目标超过 ${s.range} 施法距离`};
  // Crystal Clone is explicitly usable without cancelling Freezing Field.
  if(!['crystal_maiden_crystal_clone','drow_ranger_glacier'].includes(id))interruptCast(g,h,true);
@@ -188,6 +191,7 @@ export function castExtraAbility(g,h,id,point){
  else releaseCast(g,h,phase);return {ok:true};
 }
 export function interruptCast(g,h,releasePartial=true){
+ Chaos.interruptCharge(g,h,releasePartial);
  h.frostArrowTarget=null;
  if(h.attackPhase){h.attackPhase=null;h.attackCooldown=0;}
  if(h.itemChannel){h.itemChannel=null;h.recallTimer=0;removeStatus(h,'itemChannel');}
@@ -211,7 +215,7 @@ function releaseCast(g,h,phase){
  if(h.heroId==='crystal_maiden'&&s.mana>0){const a=innate(h);const shield=addStatus(g,h,'barrier',{name:'冰川护体',description:'抵挡物理伤害；由消耗的魔法转化。',positive:true,icon:'shield',duration:a.values.barrier_duration,barrier:(active(g,h,'barrier')?.barrier||0)+s.mana*a.values.mana_multiplier/100});shield.stacks=Math.ceil(shield.barrier);}
  if(h.heroId==='windranger')grantTailwind(g,h);
  g.onSpellCast?.(h,s,target);
- const delayedTarget=h.heroId==='chen'&&index===0;
+ const delayedTarget=(h.heroId==='chen'||h.heroId==='chaos_knight')&&index===0;
  if(!delayedTarget&&h.heroId!=='ogre_magi'&&target&&target.team!==h.team&&hasStatusFlag(g,target,'spellReflect'))applyAbilityEffect(g,target,{...phase,targetId:h.id,point:{x:h.x,y:h.y},reflected:true},h.heroId);
  if(!delayedTarget&&h.heroId!=='ogre_magi'&&target?.team!==h.team&&target&&g.blockTargetSpell?.(h,target,s))return;
  if(target&&target.team!==h.team)g.onSpellTarget?.(h,target,s);
@@ -223,6 +227,7 @@ function spellEffect(g,h,type,x,y,fields){
 function applyAbilityEffect(g,h,phase,heroId){
  const s=phase.skill,v=s.values,point=phase.point,index=phase.index,target=phase.targetId&&g.entities.find(e=>e.id===phase.targetId);
  if(heroId==='ogre_magi'){Ogre.releaseOgreAbility(g,h,phase);return;}
+ if(heroId==='chaos_knight'){Chaos.releaseChaos(g,h,phase);return;}
  if(heroId==='chen'){Chen.releaseChen(g,h,phase);return;}
  if(phase.extraId==='drow_ranger_glacier'){Drow.releaseGlacier(g,h,s);return;}
  if(phase.extraId){releaseExtraAbility(g,h,s,point,target);return;}
@@ -231,7 +236,7 @@ function applyAbilityEffect(g,h,phase,heroId){
   if(index===0){
    addStatus(g,h,'call',{name:'狂战士之吼',description:`护甲增加 ${v.bonus_armor}。`,duration:v.duration,positive:true,icon:'roar',armor:v.bonus_armor});h.buffs.callUntil=g.time+v.duration;
    for(const e of targets(g,h,h,v.radius+areaBonus(h)).filter(e=>!isInvulnerable(g,e))){
-    addStatus(g,e,'taunt',{name:'嘲讽',description:'被迫攻击斧王。',duration:v.duration,icon:'roar',sourceId:h.id});Object.assign(e.buffs,{tauntUntil:g.time+v.duration,tauntSourceId:h.id});interruptCast(g,e,false);e.recallTimer=0;e.destination=null;e.explicitTarget=null;if(e.isPlayer)g.clearMovement(e);
+    const taunt=addStatus(g,e,'taunt',{name:'嘲讽',description:'被迫攻击斧王。',duration:v.duration,icon:'roar',sourceId:h.id});Object.assign(e.buffs,{tauntUntil:taunt.until,tauntSourceId:h.id});interruptCast(g,e,false);e.recallTimer=0;e.destination=null;e.explicitTarget=null;if(e.isPlayer)g.clearMovement(e);
     if(v.applies_battle_hunger)applyHunger(g,h,e);
    }spellEffect(g,h,'burst',h.x,h.y,{visual:'berserkerCall',radius:v.radius,life:.6,color:'#e85b3e'});
   }else if(index===1)applyHunger(g,h,target,s);
@@ -268,6 +273,7 @@ function applyAbilityEffect(g,h,phase,heroId){
 }
 
 function grantTailwind(g,h){
+ if(hasStatusFlag(g,h,'break'))return;
  const v=innate(h).values;h.tailwinds||=[];h.tailwinds=h.tailwinds.filter(t=>t.until>g.time);
  h.tailwinds.push({until:g.time+v.duration,duration:v.duration,bonus:v.movespeed_bonus,undispellable:!!v.undispellable});
  addStatus(g,h,'tailwind',{name:'顺风而行',description:'叠加移动速度，持续时间后半段逐渐衰减。',duration:v.duration,positive:true,icon:'wind',undispellable:!!v.undispellable,stacks:h.tailwinds.length});
@@ -294,10 +300,7 @@ function detonateClone(g,clone){
 }
 function releaseExtraAbility(g,h,s,point,target){
  const v=s.values,d=distance(h,point),dir=d>1e-6?{x:(point.x-h.x)/d,y:(point.y-h.y)/d}:{x:Math.cos(h.angle||0),y:Math.sin(h.angle||0)};
- if(s.id==='juggernaut_swift_slash'){
-  dispel(h);addStatus(g,h,'invulnerable',{name:'迅风斩',description:'短时间无敌，跳跃攻击附近敌人。',duration:v.duration,positive:true,icon:'swords'});
-  h.omnislash={skill:s,targetId:target.id,firstSlash:true,nextSlash:g.time,until:g.time+v.duration};h.explicitTarget=null;
- }else if(s.id==='crystal_maiden_crystal_clone'){
+ if(s.id==='crystal_maiden_crystal_clone'){
   const clone=g._unit('creep',h.team,h.x,h.y,{name:'冰晶克隆',heroId:h.heroId,crystalClone:true,ownerId:h.id,maxHp:v.clone_health,speed:0,range:0,damage:0,attackCooldown:Infinity,goldMin:0,goldMax:0,xpBounty:0,radius:24,expiresAt:g.time+v.clone_duration,frostbiteRadius:v.frostbite_radius+areaBonus(h)});g.entities.push(clone);
   addStatus(g,clone,'cloneBody',{duration:v.clone_duration,positive:true,undispellable:true,stunned:true});
   const to=g.navigation.nearestWalkable({x:h.x+dir.x*v.hop_distance,y:h.y+dir.y*v.hop_distance});
@@ -327,6 +330,11 @@ function fireCannons(g,h,ship,at){
   g.pendingSpells.push({type:'cannon',sourceId:h.id,skill:ship.skill,origin,dir,traveled:0,hits:[],startedAt:g.time,landAt:g.time+v.cannon_ball_distance/v.cannon_ball_speed});
   spellEffect(g,h,'projectile',origin.x,origin.y,{visual:'cannonBall',tx:origin.x+dir.x*v.cannon_ball_distance,ty:origin.y+dir.y*v.cannon_ball_distance,life:v.cannon_ball_distance/v.cannon_ball_speed,color:'#adcbc4'});
  }
+ for(let i=0;i<(v.forward_cannon_count||0);i++){
+  const dir={...ship.dir},offset=(i-(v.forward_cannon_count-1)/2)*v.distance_between_cannons,origin={x:at.x-ship.dir.y*offset,y:at.y+ship.dir.x*offset};
+  g.pendingSpells.push({type:'cannon',sourceId:h.id,skill:ship.skill,origin,dir,traveled:0,hits:[],startedAt:g.time,landAt:g.time+v.cannon_ball_distance/v.cannon_ball_speed});
+  spellEffect(g,h,'projectile',origin.x,origin.y,{visual:'cannonBall',tx:origin.x+dir.x*v.cannon_ball_distance,ty:origin.y+dir.y*v.cannon_ball_distance,life:v.cannon_ball_distance/v.cannon_ball_speed,color:'#adcbc4'});
+ }
 }
 
 function firePowershot(g,h,channel,fraction){
@@ -347,6 +355,7 @@ export function returnMark(g,h){
  if(target.isPlayer)g.clearMovement(target);g._effect('burst',mark.x,mark.y,{radius:48,life:.5,color:'#c4d9d1'});return {ok:true};
 }
 export function tickWorldAbilities(g){
+ Chaos.tickChaosWorld(g);
  Ogre.tickOgreWorld(g);
  Drow.tickDrowWorld(g);
  for(const h of g.entities)if(h.kind==='hero'||strongIllusion(h)){
@@ -423,12 +432,13 @@ export function tickStatuses(g,e,dt){
   if(s.forcedDirection&&alive(e)&&!debuffImmune(g,e)&&!isInvulnerable(g,e))forceMove(g,e,s.forcedDirection,s.forcedSpeed*Math.max(0,Math.min(dt,s.until-(g.time-dt))));
   if(s.tickInterval&&alive(e)){const source=g.entities.find(h=>h.id===s.sourceId);while(s.nextTick<=g.time+1e-7&&(s.endTickInclusive?s.nextTick<=s.until+1e-7:s.nextTick<s.until-1e-7)){if(source)g.damage(e,s.tickDamage*(s.fullDamageTicks?1:Math.min(s.tickInterval,s.until-s.nextTick)/s.tickInterval),source,s.damageType);s.nextTick+=s.tickInterval;}}
   if(s.until<=g.time+1e-7){
-   removeStatus(e,id);g.onStatusExpired?.(e,s);if(id==='spin')dispel(e,true);
+   removeStatus(e,id);g.onStatusExpired?.(e,s);if(id==='spin')dispel(e);
    if(id==='rum'&&s.debt>0)addStatus(g,e,'rumdebt',{name:'朗姆酒延迟伤害',description:'逐渐偿还延迟承受的伤害，不会因此死亡。',duration:10,icon:'ship',debtPerSecond:s.debt/10});
   }else if(id==='rumdebt')e.hp=Math.max(1,e.hp-s.debtPerSecond*dt);
  }
 }
 export function tickHeroAbilities(g,h,dt){
+ Chaos.tickArmageddon(g,h,dt);
  if(h.heroId==='ogre_magi'&&!weakIllusion(h))Ogre.tickBloodlustAutocast(g,h);
  if(h.cloneHop){const hop=h.cloneHop,t=Math.max(0,Math.min(1,(g.time-hop.startedAt)/(hop.until-hop.startedAt)));Object.assign(h,{x:hop.from.x+(hop.to.x-hop.from.x)*t,y:hop.from.y+(hop.to.y-hop.from.y)*t});if(t===1)h.cloneHop=null;}
  if(h.heroId==='windranger'&&h.tailwinds?.length){
@@ -446,7 +456,13 @@ export function tickHeroAbilities(g,h,dt){
   const spin=active(g,h,'spin');if(spin){const s=skillOf(h,0),v=s.values;while(spin.nextTick<=g.time+1e-7&&spin.nextTick<spin.until){
    const amount=v.blade_fury_damage*v.blade_fury_damage_tick;
    for(const e of targets(g,h,h,v.blade_fury_radius+areaBonus(h)))g.damage(e,amount,h,'magical');spin.nextTick+=v.blade_fury_damage_tick;
-  }}
+  }
+   if(h.hasScepter){
+    const explicit=g.entities.find(e=>e.id===h.explicitTarget&&alive(e)&&e.team!==h.team&&distance(h,e)<=h.range+(e.radius||0)+8);
+    const victim=explicit||targets(g,h,h,h.range+8).filter(e=>!isInvulnerable(g,e)).sort((a,b)=>distance(h,a)-distance(h,b))[0];
+    if(victim)g._attack(h,victim,{spinAttack:true});
+   }
+  }
  }
   if(h.omnislash){const omni=h.omnislash,v=omni.skill.values;
    if(g.time>=omni.until){h.omnislash=null;removeStatus(h,'invulnerable');}
@@ -482,7 +498,7 @@ export function tickHeroAbilities(g,h,dt){
   }else if(h.channel.kind==='multishot'){Drow.tickMultishot(g,h);if(g.time>=h.channel.until)interruptCast(g,h,false);}
   else if(g.time>=h.channel.until)interruptCast(g,h,true);
  }
- return !!h.castPhase||!!h.channel||!!h.omnislash||!!h.cloneHop;
+ return !!h.castPhase||!!h.channel||!!h.omnislash||!!h.cloneHop||!!h.chaosCharge||!!h.chaosChargeOwnerId;
 }
 function tickFreezingField(g,h,field){
  const v=field.skill.values,nearby=targets(g,h,h,v.radius+areaBonus(h));
@@ -533,14 +549,16 @@ export function attackModifiers(g,h,target,options={}){
  const stats=combatStats(g,h,target);let damage=stats.damage+(options.bonusDamage||0),critical=false,criticalMultiplier=1,cleave=null;
  if(h.heroId==='juggernaut'){
   const s=skillOf(h,2);if(s.level&&!hasStatusFlag(g,h,'break')&&g._random()*100<s.values.blade_dance_crit_chance){criticalMultiplier=s.values.blade_dance_crit_mult/100;damage*=criticalMultiplier;critical=true;}
-  if(active(g,h,'spin')&&!options.omni&&fighter(target))damage=0;
+  if(active(g,h,'spin')&&!options.omni)damage*=h.hasScepter?(skillOf(h,0).values.scepter_attack_damage_pct||75)/100:0;
  }
  if(h.heroId==='kunkka'&&fighter(target)&&!hasStatusFlag(g,h,'break')&&h.autocast?.[1]!==false&&(h.cooldowns[1]||0)<=0){const s=skillOf(h,1);if(s.level){damage+=s.values.damage_bonus;cleave=s;h.cooldowns[1]=s.cooldown;}}
  for(const s of Object.values(h.statuses||{}))if(s.until>g.time&&s.helixReduction&&s.sourceId===target.id)damage*=1-s.helixReduction*s.stacks/100;
- return Drow.drowAttack(g,h,target,options,{damage,critical,...(criticalMultiplier>1?{criticalMultiplier}:{}),cleave,interval:stats.attackInterval});
+ const itemPotency=active(g,h,'focus')&&h.heroId==='windranger'?75:active(g,h,'spin')&&h.heroId==='juggernaut'&&h.hasScepter?75:h.itemPotency??(h.kind==='illusion'?20:100);
+ return Chaos.chaosAttack(g,h,target,Drow.drowAttack(g,h,target,options,{itemPotency,damage,critical,...(criticalMultiplier>1?{criticalMultiplier}:{}),cleave,interval:stats.attackInterval}));
 }
 export const attackImpactDamage=(g,target,result)=>result.damage+Drow.frostBonusDamage(g,target,result.frostArrow);
 export function afterAttack(g,h,target,result,dealt){
+ Chaos.afterChaosAttack(g,h,result,dealt);
  if(result.frostArrow)Drow.frostHit(g,h,target,result.frostArrow);
  Ogre.ogreAttackProc(g,h,target);
  if(result.cleave){const v=result.cleave.values,bonus=h.spellAoE||0,reach=v.cleave_distance+bonus,start=v.cleave_starting_width+bonus,end=v.cleave_ending_width+bonus,dir={x:Math.cos(h.angle),y:Math.sin(h.angle)};
@@ -554,6 +572,7 @@ export function afterAttack(g,h,target,result,dealt){
  if(h.heroId==='axe'&&h.hasScepter&&fighter(target))countHelix(g,h);
  if(h.heroId==='windranger'&&h.hasScepter)grantTailwind(g,h);
 }
+export function onAttackMiss(g,h,target){if(alive(target)&&target.heroId==='axe')countHelix(g,target);if(h.heroId==='axe'&&h.hasScepter&&fighter(target))countHelix(g,h);}
 function countHelix(g,h){
  const s=skillOf(h,2);if(!s.level||hasStatusFlag(g,h,'break'))return;h.helixCounter=(h.helixCounter||0)+1;
  if(h.helixCounter<s.values.trigger_attacks||(h.cooldowns[2]||0)>0)return;
@@ -565,7 +584,7 @@ export function onUnitKilled(g,target,source){
  Drow.onDrowTargetKilled(g,target);
  if(target.crystalClone)detonateClone(g,target);
  if(source){for(const [id,s]of Object.entries(source.statuses||{}))if(s.hunger||id==='hunger')removeStatus(source,id);if(source.heroId==='windranger'&&active(g,source,'focus')&&source.focusTargetId===target.id&&target.kind==='hero'){const s=skillOf(source,3);source.cooldowns[3]=Math.max(0,source.cooldowns[3]-(s.values.cooldown_reduction_per_kill||0));}}
- interruptCast(g,target,false);clearTemporaryMana(target);target.statuses={};target.omnislash=null;target.bladeformStacks=0;target.tailwinds=[];target.focusTargetId=null;
+ Chaos.stopCharge(g,target);interruptCast(g,target,false);clearTemporaryMana(target);target.statuses={};target.omnislash=null;target.bladeformStacks=0;target.tailwinds=[];target.focusTargetId=null;
  if(target.kind==='hero'&&(target.innateStrength||target.innateAgility)){target.innateStrength=0;target.innateAgility=0;g._refreshHero(target);}
  for(const e of g.entities){
   if(e.statuses?.taunt?.sourceId===target.id||e.buffs?.tauntSourceId===target.id)removeStatus(e,'taunt');

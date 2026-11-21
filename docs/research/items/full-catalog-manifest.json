@@ -1,11 +1,11 @@
 {
-  "patch": "7.41f",
-  "retrieved": "2026-10-28",
+  "patch": "7.42",
+  "retrieved": "2026-11-21",
   "source": "https://www.dota2.com/datafeed/itemdata?language=schinese&item_id={id}",
-  "scope": "All current purchasable main/secret shop items and paid recipes; obsolete legacy quarterstaff and combined ward wrapper retained separately.",
-  "purchasableCount": 268,
-  "recordCount": 270,
-  "recipeCount": 80,
+  "scope": "Current purchasable main/secret shop items, paid recipes, all 48 active neutral artifacts, active enchantments, objective rewards and retained legacy identities.",
+  "purchasableCount": 274,
+  "recordCount": 354,
+  "recipeCount": 85,
   "items": [
     {
       "id": "blink",
@@ -120,7 +120,7 @@
       "id": "javelin",
       "dotaId": 7,
       "dotaName": "item_javelin",
-      "purchasable": true,
+      "purchasable": false,
       "cost": 900
     },
     {
@@ -141,8 +141,8 @@
       "id": "quarterstaff",
       "dotaId": 10,
       "dotaName": "item_quarterstaff",
-      "purchasable": false,
-      "cost": 875
+      "purchasable": true,
+      "cost": 900
     },
     {
       "id": "quelling_blade",
@@ -367,6 +367,13 @@
       "cost": 1300
     },
     {
+      "id": "cheese",
+      "dotaId": 33,
+      "dotaName": "item_cheese",
+      "purchasable": false,
+      "cost": 1000
+    },
+    {
       "id": "magic_stick",
       "dotaId": 34,
       "dotaName": "item_magic_stick",
@@ -421,6 +428,28 @@
       "dotaName": "item_blood_grenade",
       "purchasable": true,
       "cost": 50
+    },
+    {
+      "id": "recipe_bloodslinger",
+      "dotaId": 1941,
+      "dotaName": "item_recipe_bloodslinger",
+      "purchasable": true,
+      "cost": 420
+    },
+    {
+      "id": "bloodslinger",
+      "dotaId": 1942,
+      "dotaName": "item_bloodslinger",
+      "purchasable": true,
+      "cost": 925,
+      "components": [
+        "sobi",
+        "mantle",
+        "mantle",
+        "blood_grenade",
+        "recipe_bloodslinger"
+      ],
+      "recipesAlternative": []
     },
     {
       "id": "flask",
@@ -680,11 +709,31 @@
       "id": "angels_demise",
       "dotaId": 1808,
       "dotaName": "item_angels_demise",
-      "purchasable": true,
+      "purchasable": false,
       "cost": 5600,
       "components": [
         "phylactery",
         "soul_booster"
+      ],
+      "recipesAlternative": []
+    },
+    {
+      "id": "recipe_caduceus",
+      "dotaId": 1954,
+      "dotaName": "item_recipe_caduceus",
+      "purchasable": true,
+      "cost": 600
+    },
+    {
+      "id": "caduceus",
+      "dotaId": 1955,
+      "dotaName": "item_caduceus",
+      "purchasable": true,
+      "cost": 5400,
+      "components": [
+        "force_staff",
+        "phylactery",
+        "recipe_caduceus"
       ],
       "recipesAlternative": []
     },
@@ -725,7 +774,7 @@
       "dotaId": 533,
       "dotaName": "item_recipe_witch_blade",
       "purchasable": true,
-      "cost": 300
+      "cost": 650
     },
     {
       "id": "witch_blade",
@@ -736,7 +785,6 @@
       "components": [
         "oblivion_staff",
         "chainmail",
-        "orb_of_venom",
         "recipe_witch_blade"
       ],
       "recipesAlternative": []
@@ -848,6 +896,19 @@
       "recipesAlternative": []
     },
     {
+      "id": "ristuls_devotion",
+      "dotaId": 1944,
+      "dotaName": "item_ristuls_devotion",
+      "purchasable": true,
+      "cost": 3800,
+      "components": [
+        "vladmir",
+        "splintmail",
+        "voodoo_mask"
+      ],
+      "recipesAlternative": []
+    },
+    {
       "id": "recipe_buckler",
       "dotaId": 85,
       "dotaName": "item_recipe_buckler",
@@ -931,14 +992,14 @@
       "dotaId": 91,
       "dotaName": "item_recipe_urn_of_shadows",
       "purchasable": true,
-      "cost": 320
+      "cost": 370
     },
     {
       "id": "urn_of_shadows",
       "dotaId": 92,
       "dotaName": "item_urn_of_shadows",
       "purchasable": true,
-      "cost": 825,
+      "cost": 875,
       "components": [
         "sobi",
         "protection",
@@ -1011,18 +1072,17 @@
       "dotaId": 245,
       "dotaName": "item_recipe_bloodthorn",
       "purchasable": true,
-      "cost": 600
+      "cost": 1350
     },
     {
       "id": "bloodthorn",
       "dotaId": 250,
       "dotaName": "item_bloodthorn",
       "purchasable": true,
-      "cost": 6400,
+      "cost": 6250,
       "components": [
         "orchid",
         "oblivion_staff",
-        "javelin",
         "recipe_bloodthorn"
       ],
       "recipesAlternative": []
@@ -1086,14 +1146,14 @@
       "dotaId": 233,
       "dotaName": "item_recipe_aether_lens",
       "purchasable": true,
-      "cost": 775
+      "cost": 600
     },
     {
       "id": "aether_lens",
       "dotaId": 232,
       "dotaName": "item_aether_lens",
       "purchasable": true,
-      "cost": 2275,
+      "cost": 2100,
       "components": [
         "energy",
         "voidstone",
@@ -1417,11 +1477,31 @@
       "dotaId": 223,
       "dotaName": "item_meteor_hammer",
       "purchasable": true,
-      "cost": 2850,
+      "cost": 2750,
       "components": [
         "kaya",
         "crown",
         "recipe_meteor_hammer"
+      ],
+      "recipesAlternative": []
+    },
+    {
+      "id": "recipe_starforge",
+      "dotaId": 1945,
+      "dotaName": "item_recipe_starforge",
+      "purchasable": true,
+      "cost": 450
+    },
+    {
+      "id": "starforge",
+      "dotaId": 1946,
+      "dotaName": "item_starforge",
+      "purchasable": true,
+      "cost": 6000,
+      "components": [
+        "meteor_hammer",
+        "ultimate_orb",
+        "recipe_starforge"
       ],
       "recipesAlternative": []
     },
@@ -1462,14 +1542,14 @@
       "dotaId": 258,
       "dotaName": "item_recipe_kaya",
       "purchasable": true,
-      "cost": 650
+      "cost": 550
     },
     {
       "id": "kaya",
       "dotaId": 259,
       "dotaName": "item_kaya",
       "purchasable": true,
-      "cost": 2100,
+      "cost": 2000,
       "components": [
         "arcane",
         "robe",
@@ -1478,11 +1558,18 @@
       "recipesAlternative": []
     },
     {
+      "id": "refresher_shard",
+      "dotaId": 260,
+      "dotaName": "item_refresher_shard",
+      "purchasable": false,
+      "cost": 1000
+    },
+    {
       "id": "recipe_spirit_vessel",
       "dotaId": 266,
       "dotaName": "item_recipe_spirit_vessel",
       "purchasable": true,
-      "cost": 900
+      "cost": 850
     },
     {
       "id": "spirit_vessel",
@@ -1502,7 +1589,7 @@
       "dotaId": 1851,
       "dotaName": "item_recipe_essence_distiller",
       "purchasable": true,
-      "cost": 200
+      "cost": 150
     },
     {
       "id": "essence_distiller",
@@ -1535,7 +1622,7 @@
       "dotaId": 243,
       "dotaName": "item_recipe_crimson_guard",
       "purchasable": true,
-      "cost": 1050
+      "cost": 625
     },
     {
       "id": "crimson_guard",
@@ -1545,6 +1632,7 @@
       "cost": 3725,
       "components": [
         "vanguard",
+        "buckler",
         "helm_of_iron_will",
         "recipe_crimson_guard"
       ],
@@ -1555,14 +1643,14 @@
       "dotaId": 126,
       "dotaName": "item_recipe_blade_mail",
       "purchasable": true,
-      "cost": 450
+      "cost": 400
     },
     {
       "id": "blade_mail",
       "dotaId": 127,
       "dotaName": "item_blade_mail",
       "purchasable": true,
-      "cost": 2400,
+      "cost": 2350,
       "components": [
         "blade",
         "splintmail",
@@ -1652,7 +1740,7 @@
       "components": [
         "demonedge",
         "blitz_knuckles",
-        "javelin",
+        "quarterstaff",
         "recipe_monkey_king_bar"
       ],
       "recipesAlternative": []
@@ -1674,11 +1762,11 @@
       "dotaId": 139,
       "dotaName": "item_butterfly",
       "purchasable": true,
-      "cost": 5450,
+      "cost": 5000,
       "components": [
         "eagle",
-        "claymore",
-        "talisman_of_evasion"
+        "talisman_of_evasion",
+        "quarterstaff"
       ],
       "recipesAlternative": []
     },
@@ -1756,7 +1844,7 @@
       "dotaId": 147,
       "dotaName": "item_manta",
       "purchasable": true,
-      "cost": 4650,
+      "cost": 4550,
       "components": [
         "yasha",
         "diadem",
@@ -1863,7 +1951,7 @@
       "dotaId": 154,
       "dotaName": "item_sange_and_yasha",
       "purchasable": true,
-      "cost": 4200,
+      "cost": 4000,
       "components": [
         "sange",
         "yasha"
@@ -1875,7 +1963,7 @@
       "dotaId": 273,
       "dotaName": "item_kaya_and_sange",
       "purchasable": true,
-      "cost": 4200,
+      "cost": 4000,
       "components": [
         "kaya",
         "sange"
@@ -1887,7 +1975,7 @@
       "dotaId": 277,
       "dotaName": "item_yasha_and_kaya",
       "purchasable": true,
-      "cost": 4200,
+      "cost": 4000,
       "components": [
         "yasha",
         "kaya"
@@ -1945,14 +2033,14 @@
       "dotaId": 161,
       "dotaName": "item_recipe_sange",
       "purchasable": true,
-      "cost": 650
+      "cost": 550
     },
     {
       "id": "sange",
       "dotaId": 162,
       "dotaName": "item_sange",
       "purchasable": true,
-      "cost": 2100,
+      "cost": 2000,
       "components": [
         "ogreaxe",
         "belt",
@@ -1984,14 +2072,14 @@
       "id": "recipe_helm_of_the_overlord",
       "dotaId": 633,
       "dotaName": "item_recipe_helm_of_the_overlord",
-      "purchasable": true,
+      "purchasable": false,
       "cost": 300
     },
     {
       "id": "helm_of_the_overlord",
       "dotaId": 635,
       "dotaName": "item_helm_of_the_overlord",
-      "purchasable": true,
+      "purchasable": false,
       "cost": 5650,
       "components": [
         "helm_of_the_dominator",
@@ -2001,6 +2089,13 @@
       "recipesAlternative": []
     },
     {
+      "id": "recipe_maelstrom",
+      "dotaId": 165,
+      "dotaName": "item_recipe_maelstrom",
+      "purchasable": true,
+      "cost": 900
+    },
+    {
       "id": "maelstrom",
       "dotaId": 166,
       "dotaName": "item_maelstrom",
@@ -2008,8 +2103,8 @@
       "cost": 2950,
       "components": [
         "mithril",
-        "javelin",
-        "gloves"
+        "gloves",
+        "recipe_maelstrom"
       ],
       "recipesAlternative": []
     },
@@ -2052,14 +2147,14 @@
       "dotaId": 169,
       "dotaName": "item_recipe_yasha",
       "purchasable": true,
-      "cost": 650
+      "cost": 550
     },
     {
       "id": "yasha",
       "dotaId": 170,
       "dotaName": "item_yasha",
       "purchasable": true,
-      "cost": 2100,
+      "cost": 2000,
       "components": [
         "bladealacrity",
         "elvenskin",
@@ -2072,10 +2167,10 @@
       "dotaId": 172,
       "dotaName": "item_mask_of_madness",
       "purchasable": true,
-      "cost": 1900,
+      "cost": 1800,
       "components": [
-        "blade",
-        "lifesteal"
+        "lifesteal",
+        "quarterstaff"
       ],
       "recipesAlternative": []
     },
@@ -2220,11 +2315,12 @@
       "dotaId": 569,
       "dotaName": "item_orb_of_corrosion",
       "purchasable": true,
-      "cost": 1050,
+      "cost": 880,
       "components": [
-        "elvenskin",
         "orb_of_frost",
-        "blight_stone"
+        "blight_stone",
+        "slippers",
+        "slippers"
       ],
       "recipesAlternative": []
     },
@@ -2309,7 +2405,7 @@
       "dotaId": 227,
       "dotaName": "item_recipe_solar_crest",
       "purchasable": true,
-      "cost": 500
+      "cost": 600
     },
     {
       "id": "solar_crest",
@@ -2330,14 +2426,14 @@
       "dotaId": 1127,
       "dotaName": "item_recipe_pavise",
       "purchasable": true,
-      "cost": 675
+      "cost": 575
     },
     {
       "id": "pavise",
       "dotaId": 1128,
       "dotaName": "item_pavise",
       "purchasable": true,
-      "cost": 1350,
+      "cost": 1250,
       "components": [
         "wizard_hat",
         "fluffy_hat",
@@ -2375,26 +2471,6 @@
       "recipesAlternative": []
     },
     {
-      "id": "recipe_revenants_brooch",
-      "dotaId": 910,
-      "dotaName": "item_recipe_revenants_brooch",
-      "purchasable": true,
-      "cost": 650
-    },
-    {
-      "id": "revenants_brooch",
-      "dotaId": 911,
-      "dotaName": "item_revenants_brooch",
-      "purchasable": true,
-      "cost": 3300,
-      "components": [
-        "lesser_crit",
-        "voodoo_mask",
-        "recipe_revenants_brooch"
-      ],
-      "recipesAlternative": []
-    },
-    {
       "id": "recipe_devastator",
       "dotaId": 1805,
       "dotaName": "item_recipe_devastator",
@@ -2419,14 +2495,14 @@
       "dotaId": 230,
       "dotaName": "item_recipe_guardian_greaves",
       "purchasable": true,
-      "cost": 1175
+      "cost": 1075
     },
     {
       "id": "guardian_greaves",
       "dotaId": 231,
       "dotaName": "item_guardian_greaves",
       "purchasable": true,
-      "cost": 4450,
+      "cost": 4350,
       "components": [
         "arcane_boots",
         "mekansm",
@@ -2466,10 +2542,10 @@
       "dotaId": 208,
       "dotaName": "item_abyssal_blade",
       "purchasable": true,
-      "cost": 6250,
+      "cost": 6150,
       "components": [
         "basher",
-        "sange",
+        "dragon_lance",
         "recipe_abyssal_blade"
       ],
       "recipesAlternative": []
@@ -2479,19 +2555,39 @@
       "dotaId": 209,
       "dotaName": "item_recipe_heavens_halberd",
       "purchasable": true,
-      "cost": 350
+      "cost": 425
     },
     {
       "id": "heavens_halberd",
       "dotaId": 210,
       "dotaName": "item_heavens_halberd",
       "purchasable": true,
-      "cost": 3300,
+      "cost": 2400,
       "components": [
-        "talisman_of_evasion",
-        "splintmail",
-        "healthring",
+        "ogreaxe",
+        "helm_of_iron_will",
         "recipe_heavens_halberd"
+      ],
+      "recipesAlternative": []
+    },
+    {
+      "id": "recipe_skypiercer",
+      "dotaId": 1947,
+      "dotaName": "item_recipe_skypiercer",
+      "purchasable": true,
+      "cost": 300
+    },
+    {
+      "id": "skypiercer",
+      "dotaId": 1948,
+      "dotaName": "item_skypiercer",
+      "purchasable": true,
+      "cost": 6000,
+      "components": [
+        "heavens_halberd",
+        "sange",
+        "talisman_of_evasion",
+        "recipe_skypiercer"
       ],
       "recipesAlternative": []
     },
@@ -2536,11 +2632,116 @@
       "recipesAlternative": []
     },
     {
+      "id": "mind_breaker",
+      "dotaId": 309,
+      "dotaName": "item_mind_breaker",
+      "purchasable": false,
+      "cost": 0
+    },
+    {
+      "id": "imp_claw",
+      "dotaId": 334,
+      "dotaName": "item_imp_claw",
+      "purchasable": false,
+      "cost": 0
+    },
+    {
+      "id": "flicker",
+      "dotaId": 335,
+      "dotaName": "item_flicker",
+      "purchasable": false,
+      "cost": 0
+    },
+    {
+      "id": "demonicon",
+      "dotaId": 370,
+      "dotaName": "item_demonicon",
+      "purchasable": false,
+      "cost": 0
+    },
+    {
+      "id": "fallen_sky",
+      "dotaId": 371,
+      "dotaName": "item_fallen_sky",
+      "purchasable": false,
+      "cost": 0
+    },
+    {
+      "id": "minotaur_horn",
+      "dotaId": 377,
+      "dotaName": "item_minotaur_horn",
+      "purchasable": false,
+      "cost": 0
+    },
+    {
+      "id": "chipped_vest",
+      "dotaId": 565,
+      "dotaName": "item_chipped_vest",
+      "purchasable": false,
+      "cost": 0
+    },
+    {
+      "id": "possessed_mask",
+      "dotaId": 577,
+      "dotaName": "item_possessed_mask",
+      "purchasable": false,
+      "cost": 0
+    },
+    {
+      "id": "psychic_headband",
+      "dotaId": 675,
+      "dotaName": "item_psychic_headband",
+      "purchasable": false,
+      "cost": 0
+    },
+    {
+      "id": "ceremonial_robe",
+      "dotaId": 676,
+      "dotaName": "item_ceremonial_robe",
+      "purchasable": false,
+      "cost": 0
+    },
+    {
+      "id": "giants_ring",
+      "dotaId": 678,
+      "dotaName": "item_giants_ring",
+      "purchasable": false,
+      "cost": 0
+    },
+    {
+      "id": "stormcrafter",
+      "dotaId": 585,
+      "dotaName": "item_stormcrafter",
+      "purchasable": false,
+      "cost": 0
+    },
+    {
+      "id": "heavy_blade",
+      "dotaId": 837,
+      "dotaName": "item_heavy_blade",
+      "purchasable": false,
+      "cost": 0
+    },
+    {
+      "id": "pogo_stick",
+      "dotaId": 840,
+      "dotaName": "item_pogo_stick",
+      "purchasable": false,
+      "cost": 0
+    },
+    {
+      "id": "seeds_of_serenity",
+      "dotaId": 945,
+      "dotaName": "item_seeds_of_serenity",
+      "purchasable": false,
+      "cost": 0
+    },
+    {
       "id": "recipe_harpoon",
       "dotaId": 1101,
       "dotaName": "item_recipe_harpoon",
-      "purchasable": true,
-      "cost": 1000
+      "purchasable": false,
+      "cost": 0
     },
     {
       "id": "harpoon",
@@ -2550,10 +2751,233 @@
       "cost": 4700,
       "components": [
         "echo_sabre",
-        "diadem",
-        "recipe_harpoon"
+        "dragon_lance"
       ],
       "recipesAlternative": []
+    },
+    {
+      "id": "defiant_shell",
+      "dotaId": 950,
+      "dotaName": "item_defiant_shell",
+      "purchasable": false,
+      "cost": 0
+    },
+    {
+      "id": "revenants_brooch",
+      "dotaId": 911,
+      "dotaName": "item_revenants_brooch",
+      "purchasable": false,
+      "cost": 0
+    },
+    {
+      "id": "safety_bubble",
+      "dotaId": 1157,
+      "dotaName": "item_safety_bubble",
+      "purchasable": false,
+      "cost": 0
+    },
+    {
+      "id": "dandelion_amulet",
+      "dotaId": 2190,
+      "dotaName": "item_dandelion_amulet",
+      "purchasable": false,
+      "cost": 0
+    },
+    {
+      "id": "rattlecage",
+      "dotaId": 1168,
+      "dotaName": "item_rattlecage",
+      "purchasable": false,
+      "cost": 0
+    },
+    {
+      "id": "roshans_banner",
+      "dotaId": 1804,
+      "dotaName": "item_roshans_banner",
+      "purchasable": false,
+      "cost": 0
+    },
+    {
+      "id": "horn_of_battle_greater",
+      "dotaId": 1951,
+      "dotaName": "item_horn_of_battle_greater",
+      "purchasable": false,
+      "cost": 0
+    },
+    {
+      "id": "enhancement_quickened",
+      "dotaId": 1577,
+      "dotaName": "item_enhancement_quickened",
+      "purchasable": false,
+      "cost": 0
+    },
+    {
+      "id": "enhancement_audacious",
+      "dotaId": 1581,
+      "dotaName": "item_enhancement_audacious",
+      "purchasable": false,
+      "cost": 0
+    },
+    {
+      "id": "enhancement_mystical",
+      "dotaId": 1583,
+      "dotaName": "item_enhancement_mystical",
+      "purchasable": false,
+      "cost": 0
+    },
+    {
+      "id": "enhancement_alert",
+      "dotaId": 1584,
+      "dotaName": "item_enhancement_alert",
+      "purchasable": false,
+      "cost": 0
+    },
+    {
+      "id": "enhancement_brawny",
+      "dotaId": 1585,
+      "dotaName": "item_enhancement_brawny",
+      "purchasable": false,
+      "cost": 0
+    },
+    {
+      "id": "enhancement_tough",
+      "dotaId": 1586,
+      "dotaName": "item_enhancement_tough",
+      "purchasable": false,
+      "cost": 0
+    },
+    {
+      "id": "enhancement_feverish",
+      "dotaId": 1587,
+      "dotaName": "item_enhancement_feverish",
+      "purchasable": false,
+      "cost": 0
+    },
+    {
+      "id": "enhancement_fleetfooted",
+      "dotaId": 1588,
+      "dotaName": "item_enhancement_fleetfooted",
+      "purchasable": false,
+      "cost": 0
+    },
+    {
+      "id": "enhancement_crude",
+      "dotaId": 1589,
+      "dotaName": "item_enhancement_crude",
+      "purchasable": false,
+      "cost": 0
+    },
+    {
+      "id": "enhancement_timeless",
+      "dotaId": 1592,
+      "dotaName": "item_enhancement_timeless",
+      "purchasable": false,
+      "cost": 0
+    },
+    {
+      "id": "enhancement_greedy",
+      "dotaId": 1593,
+      "dotaName": "item_enhancement_greedy",
+      "purchasable": false,
+      "cost": 0
+    },
+    {
+      "id": "enhancement_vampiric",
+      "dotaId": 1594,
+      "dotaName": "item_enhancement_vampiric",
+      "purchasable": false,
+      "cost": 0
+    },
+    {
+      "id": "enhancement_keen_eyed",
+      "dotaId": 1595,
+      "dotaName": "item_enhancement_keen_eyed",
+      "purchasable": false,
+      "cost": 0
+    },
+    {
+      "id": "enhancement_evolved",
+      "dotaId": 1596,
+      "dotaName": "item_enhancement_evolved",
+      "purchasable": false,
+      "cost": 0
+    },
+    {
+      "id": "enhancement_titanic",
+      "dotaId": 1597,
+      "dotaName": "item_enhancement_titanic",
+      "purchasable": false,
+      "cost": 0
+    },
+    {
+      "id": "mana_draught",
+      "dotaId": 1599,
+      "dotaName": "item_mana_draught",
+      "purchasable": false,
+      "cost": 0
+    },
+    {
+      "id": "crippling_crossbow",
+      "dotaId": 1601,
+      "dotaName": "item_crippling_crossbow",
+      "purchasable": false,
+      "cost": 0
+    },
+    {
+      "id": "gunpowder_gauntlets",
+      "dotaId": 1603,
+      "dotaName": "item_gunpowder_gauntlets",
+      "purchasable": false,
+      "cost": 0
+    },
+    {
+      "id": "serrated_shiv",
+      "dotaId": 1605,
+      "dotaName": "item_serrated_shiv",
+      "purchasable": false,
+      "cost": 0
+    },
+    {
+      "id": "polliwog_charm",
+      "dotaId": 1606,
+      "dotaName": "item_polliwog_charm",
+      "purchasable": false,
+      "cost": 0
+    },
+    {
+      "id": "kobold_cup",
+      "dotaId": 1637,
+      "dotaName": "item_kobold_cup",
+      "purchasable": false,
+      "cost": 0
+    },
+    {
+      "id": "dormant_curio",
+      "dotaId": 1638,
+      "dotaName": "item_dormant_curio",
+      "purchasable": false,
+      "cost": 0
+    },
+    {
+      "id": "jidi_pollen_bag",
+      "dotaId": 1640,
+      "dotaName": "item_jidi_pollen_bag",
+      "purchasable": false,
+      "cost": 0
+    },
+    {
+      "id": "dezun_bloodrite",
+      "dotaId": 1642,
+      "dotaName": "item_dezun_bloodrite",
+      "purchasable": false,
+      "cost": 0
+    },
+    {
+      "id": "divine_regalia",
+      "dotaId": 1644,
+      "dotaName": "item_divine_regalia",
+      "purchasable": false,
+      "cost": 0
     },
     {
       "id": "recipe_specialists_array",
@@ -2597,11 +3021,206 @@
       "recipesAlternative": []
     },
     {
+      "id": "weighted_dice",
+      "dotaId": 1716,
+      "dotaName": "item_weighted_dice",
+      "purchasable": false,
+      "cost": 0
+    },
+    {
+      "id": "ash_legion_shield",
+      "dotaId": 1717,
+      "dotaName": "item_ash_legion_shield",
+      "purchasable": false,
+      "cost": 0
+    },
+    {
+      "id": "riftshadow_prism",
+      "dotaId": 1718,
+      "dotaName": "item_riftshadow_prism",
+      "purchasable": false,
+      "cost": 0
+    },
+    {
+      "id": "metamorphic_mandible",
+      "dotaId": 1719,
+      "dotaName": "item_metamorphic_mandible",
+      "purchasable": false,
+      "cost": 0
+    },
+    {
+      "id": "idol_of_screeauk",
+      "dotaId": 1720,
+      "dotaName": "item_idol_of_screeauk",
+      "purchasable": false,
+      "cost": 0
+    },
+    {
+      "id": "spellslinger",
+      "dotaId": 1859,
+      "dotaName": "item_spellslinger",
+      "purchasable": false,
+      "cost": 0
+    },
+    {
+      "id": "prophets_pendulum",
+      "dotaId": 1860,
+      "dotaName": "item_prophets_pendulum",
+      "purchasable": false,
+      "cost": 0
+    },
+    {
+      "id": "stonefeather_satchel",
+      "dotaId": 1861,
+      "dotaName": "item_stonefeather_satchel",
+      "purchasable": false,
+      "cost": 0
+    },
+    {
+      "id": "enchanters_bauble",
+      "dotaId": 1862,
+      "dotaName": "item_enchanters_bauble",
+      "purchasable": false,
+      "cost": 0
+    },
+    {
+      "id": "harmonizer",
+      "dotaId": 1863,
+      "dotaName": "item_harmonizer",
+      "purchasable": false,
+      "cost": 0
+    },
+    {
+      "id": "helm_of_the_hivemind",
+      "dotaId": 1911,
+      "dotaName": "item_helm_of_the_hivemind",
+      "purchasable": false,
+      "cost": 0
+    },
+    {
+      "id": "brick",
+      "dotaId": 1916,
+      "dotaName": "item_brick",
+      "purchasable": false,
+      "cost": 0
+    },
+    {
+      "id": "balmhook",
+      "dotaId": 1917,
+      "dotaName": "item_balmhook",
+      "purchasable": false,
+      "cost": 0
+    },
+    {
+      "id": "conjurers_catalyst",
+      "dotaId": 1864,
+      "dotaName": "item_conjurers_catalyst",
+      "purchasable": false,
+      "cost": 0
+    },
+    {
+      "id": "enhancement_vital",
+      "dotaId": 1865,
+      "dotaName": "item_enhancement_vital",
+      "purchasable": false,
+      "cost": 0
+    },
+    {
+      "id": "enhancement_hulking",
+      "dotaId": 1866,
+      "dotaName": "item_enhancement_hulking",
+      "purchasable": false,
+      "cost": 0
+    },
+    {
+      "id": "enhancement_manic",
+      "dotaId": 1867,
+      "dotaName": "item_enhancement_manic",
+      "purchasable": false,
+      "cost": 0
+    },
+    {
+      "id": "foragers_kit",
+      "dotaId": 1868,
+      "dotaName": "item_foragers_kit",
+      "purchasable": false,
+      "cost": 0
+    },
+    {
+      "id": "foragers_health",
+      "dotaId": 1869,
+      "dotaName": "item_foragers_health",
+      "purchasable": false,
+      "cost": 0
+    },
+    {
+      "id": "foragers_stats",
+      "dotaId": 1870,
+      "dotaName": "item_foragers_stats",
+      "purchasable": false,
+      "cost": 0
+    },
+    {
+      "id": "foragers_mana",
+      "dotaId": 1871,
+      "dotaName": "item_foragers_mana",
+      "purchasable": false,
+      "cost": 0
+    },
+    {
       "id": "chasm_stone",
       "dotaId": 1872,
       "dotaName": "item_chasm_stone",
       "purchasable": true,
       "cost": 900
+    },
+    {
+      "id": "partisans_brand",
+      "dotaId": 1873,
+      "dotaName": "item_partisans_brand",
+      "purchasable": false,
+      "cost": 0
+    },
+    {
+      "id": "enhancement_nimble",
+      "dotaId": 1874,
+      "dotaName": "item_enhancement_nimble",
+      "purchasable": false,
+      "cost": 0
+    },
+    {
+      "id": "red_ledger",
+      "dotaId": 1880,
+      "dotaName": "item_red_ledger",
+      "purchasable": false,
+      "cost": 0
+    },
+    {
+      "id": "vile_phial",
+      "dotaId": 1882,
+      "dotaName": "item_vile_phial",
+      "purchasable": false,
+      "cost": 0
+    },
+    {
+      "id": "recipe_berserkers_sabatons",
+      "dotaId": 1952,
+      "dotaName": "item_recipe_berserkers_sabatons",
+      "purchasable": true,
+      "cost": 2000
+    },
+    {
+      "id": "berserkers_sabatons",
+      "dotaId": 1953,
+      "dotaName": "item_berserkers_sabatons",
+      "purchasable": true,
+      "cost": 5950,
+      "components": [
+        "phase_boots",
+        "armlet",
+        "recipe_berserkers_sabatons"
+      ],
+      "recipesAlternative": []
     }
   ],
   "excluded": [
@@ -2614,11 +3233,6 @@
       "id": 246,
       "name": "item_recipe_moon_shard",
       "reason": "automatic-recipe"
-    },
-    {
-      "id": 33,
-      "name": "item_cheese",
-      "reason": "not-purchasable"
     },
     {
       "id": 4204,
@@ -2688,7 +3302,7 @@
     {
       "id": 1807,
       "name": "item_recipe_angels_demise",
-      "reason": "automatic-recipe"
+      "reason": "obsolete"
     },
     {
       "id": 66,
@@ -2718,6 +3332,11 @@
     {
       "id": 80,
       "name": "item_recipe_vladmir",
+      "reason": "automatic-recipe"
+    },
+    {
+      "id": 1943,
+      "name": "item_recipe_ristuls_devotion",
       "reason": "automatic-recipe"
     },
     {
@@ -2831,11 +3450,6 @@
       "reason": "not-purchasable"
     },
     {
-      "id": 260,
-      "name": "item_refresher_shard",
-      "reason": "not-purchasable"
-    },
-    {
       "id": 124,
       "name": "item_recipe_vanguard",
       "reason": "automatic-recipe"
@@ -2911,11 +3525,6 @@
       "reason": "automatic-recipe"
     },
     {
-      "id": 165,
-      "name": "item_recipe_maelstrom",
-      "reason": "automatic-recipe"
-    },
-    {
       "id": 167,
       "name": "item_recipe_desolator",
       "reason": "automatic-recipe"
@@ -2963,7 +3572,7 @@
     {
       "id": 239,
       "name": "item_iron_talon",
-      "reason": "not-purchasable"
+      "reason": "obsolete"
     },
     {
       "id": 211,
@@ -3062,7 +3671,7 @@
     },
     {
       "id": 292,
-      "name": "item_desolator_2",
+      "name": "item_stygian_desolator",
       "reason": "not-purchasable"
     },
     {
@@ -3156,11 +3765,6 @@
       "reason": "not-purchasable"
     },
     {
-      "id": 309,
-      "name": "item_mind_breaker",
-      "reason": "not-purchasable"
-    },
-    {
       "id": 310,
       "name": "item_third_eye",
       "reason": "not-purchasable"
@@ -3179,16 +3783,6 @@
       "id": 330,
       "name": "item_witless_shako",
       "reason": "not-purchasable"
-    },
-    {
-      "id": 334,
-      "name": "item_imp_claw",
-      "reason": "not-purchasable"
-    },
-    {
-      "id": 335,
-      "name": "item_flicker",
-      "reason": "obsolete"
     },
     {
       "id": 336,
@@ -3306,19 +3900,9 @@
       "reason": "not-purchasable"
     },
     {
-      "id": 370,
-      "name": "item_demonicon",
-      "reason": "not-purchasable"
-    },
-    {
       "id": 317,
       "name": "item_recipe_fallen_sky",
       "reason": "obsolete"
-    },
-    {
-      "id": 371,
-      "name": "item_fallen_sky",
-      "reason": "not-purchasable"
     },
     {
       "id": 372,
@@ -3338,11 +3922,6 @@
     {
       "id": 376,
       "name": "item_paladin_sword",
-      "reason": "not-purchasable"
-    },
-    {
-      "id": 377,
-      "name": "item_minotaur_horn",
       "reason": "not-purchasable"
     },
     {
@@ -3366,11 +3945,6 @@
       "reason": "not-purchasable"
     },
     {
-      "id": 565,
-      "name": "item_chipped_vest",
-      "reason": "not-purchasable"
-    },
-    {
       "id": 573,
       "name": "item_elven_tunic",
       "reason": "not-purchasable"
@@ -3386,11 +3960,6 @@
       "reason": "not-purchasable"
     },
     {
-      "id": 577,
-      "name": "item_possessed_mask",
-      "reason": "not-purchasable"
-    },
-    {
       "id": 638,
       "name": "item_penta_edged_sword",
       "reason": "not-purchasable"
@@ -3401,16 +3970,6 @@
       "reason": "not-purchasable"
     },
     {
-      "id": 675,
-      "name": "item_psychic_headband",
-      "reason": "not-purchasable"
-    },
-    {
-      "id": 676,
-      "name": "item_ceremonial_robe",
-      "reason": "not-purchasable"
-    },
-    {
       "id": 686,
       "name": "item_quicksilver_amulet",
       "reason": "not-purchasable"
@@ -3418,16 +3977,6 @@
     {
       "id": 677,
       "name": "item_book_of_shadows",
-      "reason": "not-purchasable"
-    },
-    {
-      "id": 678,
-      "name": "item_giants_ring",
-      "reason": "not-purchasable"
-    },
-    {
-      "id": 585,
-      "name": "item_stormcrafter",
       "reason": "not-purchasable"
     },
     {
@@ -3446,28 +3995,13 @@
       "reason": "not-purchasable"
     },
     {
-      "id": 837,
-      "name": "item_heavy_blade",
-      "reason": "not-purchasable"
-    },
-    {
       "id": 838,
       "name": "item_unstable_wand",
       "reason": "not-purchasable"
     },
     {
-      "id": 840,
-      "name": "item_pogo_stick",
-      "reason": "not-purchasable"
-    },
-    {
       "id": 835,
       "name": "item_paintball",
-      "reason": "not-purchasable"
-    },
-    {
-      "id": 945,
-      "name": "item_seeds_of_serenity",
       "reason": "not-purchasable"
     },
     {
@@ -3483,11 +4017,6 @@
     {
       "id": 949,
       "name": "item_ogre_seal_totem",
-      "reason": "not-purchasable"
-    },
-    {
-      "id": 950,
-      "name": "item_defiant_shell",
       "reason": "not-purchasable"
     },
     {
@@ -3566,11 +4095,6 @@
       "reason": "not-purchasable"
     },
     {
-      "id": 1157,
-      "name": "item_safety_bubble",
-      "reason": "not-purchasable"
-    },
-    {
       "id": 1158,
       "name": "item_whisper_of_the_dread",
       "reason": "not-purchasable"
@@ -3591,11 +4115,6 @@
       "reason": "not-purchasable"
     },
     {
-      "id": 2190,
-      "name": "item_dandelion_amulet",
-      "reason": "not-purchasable"
-    },
-    {
       "id": 2192,
       "name": "item_martyrs_plate",
       "reason": "not-purchasable"
@@ -3611,18 +4130,18 @@
       "reason": "not-purchasable"
     },
     {
-      "id": 1168,
-      "name": "item_rattlecage",
-      "reason": "not-purchasable"
-    },
-    {
       "id": 1803,
       "name": "item_doubloon",
       "reason": "not-purchasable"
     },
     {
-      "id": 1804,
-      "name": "item_roshans_banner",
+      "id": 1949,
+      "name": "item_stone_of_recall",
+      "reason": "not-purchasable"
+    },
+    {
+      "id": 1950,
+      "name": "item_horn_of_battle",
       "reason": "not-purchasable"
     },
     {
@@ -3641,51 +4160,6 @@
       "reason": "not-purchasable"
     },
     {
-      "id": 1577,
-      "name": "item_enhancement_quickened",
-      "reason": "not-purchasable"
-    },
-    {
-      "id": 1581,
-      "name": "item_enhancement_audacious",
-      "reason": "not-purchasable"
-    },
-    {
-      "id": 1583,
-      "name": "item_enhancement_mystical",
-      "reason": "not-purchasable"
-    },
-    {
-      "id": 1584,
-      "name": "item_enhancement_alert",
-      "reason": "not-purchasable"
-    },
-    {
-      "id": 1585,
-      "name": "item_enhancement_brawny",
-      "reason": "not-purchasable"
-    },
-    {
-      "id": 1586,
-      "name": "item_enhancement_tough",
-      "reason": "not-purchasable"
-    },
-    {
-      "id": 1587,
-      "name": "item_enhancement_feverish",
-      "reason": "not-purchasable"
-    },
-    {
-      "id": 1588,
-      "name": "item_enhancement_fleetfooted",
-      "reason": "not-purchasable"
-    },
-    {
-      "id": 1589,
-      "name": "item_enhancement_crude",
-      "reason": "not-purchasable"
-    },
-    {
       "id": 1590,
       "name": "item_enhancement_boundless",
       "reason": "not-purchasable"
@@ -3696,43 +4170,8 @@
       "reason": "not-purchasable"
     },
     {
-      "id": 1592,
-      "name": "item_enhancement_timeless",
-      "reason": "not-purchasable"
-    },
-    {
-      "id": 1593,
-      "name": "item_enhancement_greedy",
-      "reason": "not-purchasable"
-    },
-    {
-      "id": 1594,
-      "name": "item_enhancement_vampiric",
-      "reason": "not-purchasable"
-    },
-    {
-      "id": 1595,
-      "name": "item_enhancement_keen_eyed",
-      "reason": "not-purchasable"
-    },
-    {
-      "id": 1596,
-      "name": "item_enhancement_evolved",
-      "reason": "not-purchasable"
-    },
-    {
-      "id": 1597,
-      "name": "item_enhancement_titanic",
-      "reason": "not-purchasable"
-    },
-    {
       "id": 1598,
       "name": "item_unrelenting_eye",
-      "reason": "not-purchasable"
-    },
-    {
-      "id": 1599,
-      "name": "item_mana_draught",
       "reason": "not-purchasable"
     },
     {
@@ -3741,33 +4180,13 @@
       "reason": "not-purchasable"
     },
     {
-      "id": 1601,
-      "name": "item_crippling_crossbow",
-      "reason": "not-purchasable"
-    },
-    {
       "id": 1602,
       "name": "item_gale_guard",
       "reason": "not-purchasable"
     },
     {
-      "id": 1603,
-      "name": "item_gunpowder_gauntlets",
-      "reason": "not-purchasable"
-    },
-    {
       "id": 1604,
       "name": "item_searing_signet",
-      "reason": "not-purchasable"
-    },
-    {
-      "id": 1605,
-      "name": "item_serrated_shiv",
-      "reason": "not-purchasable"
-    },
-    {
-      "id": 1606,
-      "name": "item_polliwog_charm",
       "reason": "not-purchasable"
     },
     {
@@ -3791,23 +4210,8 @@
       "reason": "not-purchasable"
     },
     {
-      "id": 1637,
-      "name": "item_kobold_cup",
-      "reason": "not-purchasable"
-    },
-    {
-      "id": 1638,
-      "name": "item_dormant_curio",
-      "reason": "not-purchasable"
-    },
-    {
       "id": 1639,
       "name": "item_sisters_shroud",
-      "reason": "not-purchasable"
-    },
-    {
-      "id": 1640,
-      "name": "item_jidi_pollen_bag",
       "reason": "not-purchasable"
     },
     {
@@ -3816,18 +4220,8 @@
       "reason": "not-purchasable"
     },
     {
-      "id": 1642,
-      "name": "item_dezun_bloodrite",
-      "reason": "not-purchasable"
-    },
-    {
       "id": 1643,
       "name": "item_giant_maul",
-      "reason": "not-purchasable"
-    },
-    {
-      "id": 1644,
-      "name": "item_divine_regalia",
       "reason": "not-purchasable"
     },
     {
@@ -3866,113 +4260,28 @@
       "reason": "not-purchasable"
     },
     {
-      "id": 1716,
-      "name": "item_weighted_dice",
-      "reason": "not-purchasable"
-    },
-    {
-      "id": 1717,
-      "name": "item_ash_legion_shield",
-      "reason": "not-purchasable"
-    },
-    {
-      "id": 1718,
-      "name": "item_riftshadow_prism",
-      "reason": "not-purchasable"
-    },
-    {
-      "id": 1719,
-      "name": "item_metamorphic_mandible",
-      "reason": "not-purchasable"
-    },
-    {
-      "id": 1720,
-      "name": "item_idol_of_screeauk",
-      "reason": "not-purchasable"
-    },
-    {
       "id": 1721,
       "name": "item_flayers_bota",
       "reason": "not-purchasable"
     },
     {
-      "id": 1859,
-      "name": "item_spellslinger",
-      "reason": "not-purchasable"
-    },
-    {
-      "id": 1860,
-      "name": "item_prophets_pendulum",
-      "reason": "not-purchasable"
-    },
-    {
-      "id": 1861,
-      "name": "item_stonefeather_satchel",
-      "reason": "not-purchasable"
-    },
-    {
-      "id": 1862,
-      "name": "item_enchanters_bauble",
-      "reason": "not-purchasable"
-    },
-    {
-      "id": 1863,
-      "name": "item_harmonizer",
-      "reason": "not-purchasable"
-    },
-    {
-      "id": 1864,
-      "name": "item_conjurers_catalyst",
-      "reason": "not-purchasable"
-    },
-    {
-      "id": 1865,
-      "name": "item_enhancement_vital",
-      "reason": "not-purchasable"
-    },
-    {
-      "id": 1866,
-      "name": "item_enhancement_hulking",
-      "reason": "not-purchasable"
-    },
-    {
-      "id": 1867,
-      "name": "item_enhancement_manic",
-      "reason": "not-purchasable"
-    },
-    {
-      "id": 1868,
-      "name": "item_foragers_kit",
-      "reason": "not-purchasable"
-    },
-    {
-      "id": 1869,
-      "name": "item_foragers_health",
-      "reason": "not-purchasable"
-    },
-    {
-      "id": 1870,
-      "name": "item_foragers_stats",
-      "reason": "not-purchasable"
-    },
-    {
-      "id": 1871,
-      "name": "item_foragers_mana",
-      "reason": "not-purchasable"
-    },
-    {
-      "id": 1873,
-      "name": "item_partisans_brand",
-      "reason": "not-purchasable"
-    },
-    {
-      "id": 1874,
-      "name": "item_enhancement_nimble",
+      "id": 1884,
+      "name": "item_claszian_timepiece",
       "reason": "not-purchasable"
     },
     {
       "id": 1875,
       "name": "item_tidehunter_fish",
+      "reason": "not-purchasable"
+    },
+    {
+      "id": 1881,
+      "name": "item_berserkers_hood",
+      "reason": "not-purchasable"
+    },
+    {
+      "id": 1883,
+      "name": "item_nothl_sigil",
       "reason": "not-purchasable"
     }
   ]

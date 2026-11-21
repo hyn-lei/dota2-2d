@@ -1,5 +1,102 @@
 // Generated from Valve client localization; run node scripts/generate-unit-skill-ui.mjs.
 export const UNIT_SKILL_UI = {
+  "miniboss_unyielding_shield": {
+    "name": "刚强巨盾",
+    "description": "被动提供持续恢复的全伤害护盾。护甲不会低于0。",
+    "notes": [],
+    "labels": {},
+    "image": "assets/abilities/miniboss_unyielding_shield.png"
+  },
+  "miniboss_reflect": {
+    "name": "反弹",
+    "description": "所有的伤害都会反弹，均摊给1200范围内的攻击者以及其他所有英雄",
+    "notes": [
+      "这个技能造成的伤害被视为反弹伤害。反弹伤害不提供任何吸血，而且无法反弹。"
+    ],
+    "labels": {},
+    "image": "assets/abilities/miniboss_reflect.png"
+  },
+  "miniboss_radiance": {
+    "name": "闪耀",
+    "description": "只要受到攻击或伤害就会每秒对%aura_radius%范围内所有单位造成%aura_damage%点伤害，持续%attack_timer_duration%秒。",
+    "notes": [],
+    "labels": {},
+    "image": "assets/abilities/miniboss_radiance.png"
+  },
+  "miniboss_alleviation": {
+    "name": "镇痛",
+    "description": "痛苦魔方被消灭后留下一片青翠的山谷，使附近所有人的生命恢复提升，数值为各自最大生命值的%hp_restoration_pct%%%。",
+    "notes": [],
+    "labels": {},
+    "image": "assets/abilities/miniboss_alleviation.png"
+  },
+  "miniboss_inherent_buffs": {
+    "name": "miniboss_inherent_buffs",
+    "description": "",
+    "notes": [],
+    "labels": {},
+    "image": null
+  },
+  "necronomicon_warrior_mana_burn": {
+    "name": "魔力损毁",
+    "description": "每次攻击燃烧掉目标的魔法值，并造成相当于损毁魔法值一定百分比的伤害",
+    "notes": [],
+    "labels": {
+      "burn_amount": "每次攻击损毁魔法：",
+      "burn_damage_conversion": "%转换成伤害："
+    },
+    "image": "assets/abilities/necronomicon_warrior_mana_burn.png"
+  },
+  "necronomicon_warrior_last_will": {
+    "name": "遗愿",
+    "description": "对杀死死灵战士的单位造成伤害。",
+    "notes": [],
+    "labels": {
+      "explosion": "伤害："
+    },
+    "image": "assets/abilities/necronomicon_warrior_last_will.png"
+  },
+  "creep_irresolute": {
+    "name": "绵力",
+    "description": "绵力单位对英雄单位造成的伤害会减少。",
+    "notes": [],
+    "labels": {
+      "hero_damage_penalty": "%对英雄伤害降低："
+    },
+    "image": "assets/abilities/creep_irresolute.png"
+  },
+  "necronomicon_archer_purge": {
+    "name": "净化",
+    "description": "驱散敌人身上的有益状态，并且减缓其移动速度。\\n\\n驱散类型：弱驱散",
+    "notes": [
+      "减速效果起始时为100%%，然后持续减少至20%%。"
+    ],
+    "labels": {
+      "duration": "持续时间："
+    },
+    "image": "assets/abilities/necronomicon_archer_purge.png"
+  },
+  "necronomicon_archer_aoe": {
+    "name": "死灵射手光环",
+    "description": "提升周围单位的移动速度。",
+    "notes": [],
+    "labels": {
+      "radius": "作用范围：",
+      "ms_bonus": "%移动速度加成："
+    },
+    "image": "assets/abilities/necronomicon_archer_aoe.png"
+  },
+  "creep_piercing": {
+    "name": "穿刺",
+    "description": "穿刺单位对非英雄、非坚锐单位造成额外伤害，对英雄和坚锐单位造成的伤害减少。",
+    "notes": [],
+    "labels": {
+      "creep_damage_bonus": "%对非英雄额外伤害：",
+      "hero_damage_penalty": "%对英雄伤害降低：",
+      "heavy_damage_penalty": "%对坚锐单位伤害降低："
+    },
+    "image": "assets/abilities/creep_piercing.png"
+  },
   "kobold_tunneler_prospecting": {
     "name": "淘金光环",
     "description": "狗头人擅长淘金，提升了周围友方英雄的每分钟金钱。",
@@ -12,7 +109,7 @@ export const UNIT_SKILL_UI = {
   },
   "neutral_upgrade": {
     "name": "野怪成长",
-    "description": "野怪每%increase_time%秒成长一次，最多%max_level%次。",
+    "description": "野怪每%increase_time%秒成长一次，最多%max_level%次。金币奖励每%gold_interval%秒交替增加最小值和最大值。",
     "notes": [],
     "labels": {
       "max_level": "最多成长次数",
@@ -21,17 +118,20 @@ export const UNIT_SKILL_UI = {
       "increase_aspd": "每次攻击速度",
       "increase_health": "每次生命",
       "increase_armor": "每次护甲",
-      "increase_gold": "每次金币奖励",
+      "increase_gold": "每次成长金币奖励",
+      "increase_gold_per_minute": "每分钟交替增加金币上下限",
+      "gold_interval": "金币成长间隔 / 秒",
       "increase_xp": "每次经验奖励"
     },
     "image": null
   },
   "kobold_disarm": {
     "name": "偷窃武器",
-    "description": "冷却时间每到第三次攻击，狗头人士兵就会暂时<font color='#afb912'>缴械</font>目标。攻击计数在技能冷却期间不会增加。",
+    "description": "狗头人士兵向前发射一个弹道，对命中的敌人造成少量伤害并施加破坏效果",
     "notes": [],
     "labels": {
-      "duration": "持续时间："
+      "break_duration": "持续时间：",
+      "base_damage": "伤害："
     },
     "image": "assets/abilities/kobold_disarm.png"
   },
@@ -123,11 +223,11 @@ export const UNIT_SKILL_UI = {
     "image": "assets/abilities/furbolg_enrage_damage.png"
   },
   "warpine_raider_seed_shot": {
-    "name": "松果出击",
-    "description": "向目标扔出一颗松果，造成减速和伤害。松果可以向附近目标弹射多次。",
+    "name": "雪球射击",
+    "description": "向目标投掷一个雪球。雪球可以多次弹跳至附近的敌人和友军，对敌人造成伤害并使其被减速，同时治疗友军。",
     "notes": [],
     "labels": {
-      "damage": "伤害：",
+      "damage": "伤害/<font color='#07d738'>治疗</font>：",
       "bounces": "弹跳次数：",
       "bounce_range": "距离：",
       "slow": "%移动速度减缓：",
@@ -135,16 +235,16 @@ export const UNIT_SKILL_UI = {
     },
     "image": "assets/abilities/warpine_raider_seed_shot.png"
   },
-  "mud_golem_hurl_boulder": {
-    "name": "投石",
-    "description": "向目标扔出一块石头，造成伤害和<font color='#2dd5e4'>眩晕</font>。",
+  "mud_golem_hurl_big_boulder": {
+    "name": "投掷大巨石",
+    "description": "向目标位置投掷一块巨石，造成少量伤害并眩晕击中的单位。",
     "notes": [],
     "labels": {
-      "damage": "对英雄伤害：",
-      "damage_creeps": "对非英雄伤害：",
-      "duration": "<font color='#2dd5e4'>眩晕</font>时间："
+      "base_damage": "伤害：",
+      "impact_radius": "作用范围：",
+      "stun_duration": "<font color='#2dd5e4'>眩晕</font>时间："
     },
-    "image": "assets/abilities/mud_golem_hurl_boulder.png"
+    "image": "assets/abilities/mud_golem_hurl_big_boulder.png"
   },
   "mud_golem_rock_destroy": {
     "name": "碎土傀儡",
@@ -156,6 +256,17 @@ export const UNIT_SKILL_UI = {
       "shard_health": "碎土傀儡生命值："
     },
     "image": "assets/abilities/mud_golem_rock_destroy.png"
+  },
+  "mud_golem_hurl_boulder": {
+    "name": "投石",
+    "description": "向目标扔出一块石头，造成伤害和<font color='#2dd5e4'>眩晕</font>。",
+    "notes": [],
+    "labels": {
+      "damage": "对英雄伤害：",
+      "damage_creeps": "对非英雄伤害：",
+      "duration": "<font color='#2dd5e4'>眩晕</font>时间："
+    },
+    "image": "assets/abilities/mud_golem_hurl_boulder.png"
   },
   "ogre_bruiser_ogre_smash": {
     "name": "食人魔重击！",
@@ -349,10 +460,12 @@ export const UNIT_SKILL_UI = {
   },
   "big_thunder_lizard_slam": {
     "name": "猛击",
-    "description": "远古雷肤兽用它巨大的身体猛击地面。震击伤害附近敌人并掀倒他们。英雄在较短时间内即可恢复平衡。",
+    "description": "远古雷肤兽用他巨大的脚掌猛踏地面，产生%pulse_count%次震荡波，范围会逐次减少。每波对敌人造成伤害，并使其失去平衡，降低移动速度和攻击速度。英雄会更快地恢复平衡。",
     "notes": [],
     "labels": {
-      "radius": "作用范围：",
+      "pulse_count": "震荡波数量：",
+      "base_radius": "初始范围：",
+      "radius_increment_per_pulse": "每波作用范围减少：",
       "movespeed_slow": "%移动速度减缓：",
       "attack_slow_tooltip": "攻击速度降低：",
       "non_hero_duration": "持续时间：",
@@ -392,17 +505,6 @@ export const UNIT_SKILL_UI = {
     },
     "image": "assets/abilities/gnoll_assassin_envenomed_weapon.png"
   },
-  "creep_piercing": {
-    "name": "穿刺",
-    "description": "穿刺单位对非英雄、非坚锐单位造成额外伤害，对英雄和坚锐单位造成的伤害减少。",
-    "notes": [],
-    "labels": {
-      "creep_damage_bonus": "%对非英雄额外伤害：",
-      "hero_damage_penalty": "%对英雄伤害降低：",
-      "heavy_damage_penalty": "%对坚锐单位伤害降低："
-    },
-    "image": "assets/abilities/creep_piercing.png"
-  },
   "ghost_frost_attack": {
     "name": "寒霜攻击",
     "description": "鬼魂放出的诡异攻击，让敌人感受到刺骨的寒冷。",
@@ -413,15 +515,6 @@ export const UNIT_SKILL_UI = {
       "duration": "持续时间："
     },
     "image": "assets/abilities/ghost_frost_attack.png"
-  },
-  "berserker_troll_break": {
-    "name": "破坏",
-    "description": "丘陵巨魔狂战士攻击单位时就会施加破坏效果。",
-    "notes": [],
-    "labels": {
-      "duration": "持续时间："
-    },
-    "image": "assets/abilities/berserker_troll_break.png"
   },
   "forest_troll_high_priest_heal": {
     "name": "治疗",
@@ -478,14 +571,19 @@ export const UNIT_SKILL_UI = {
     "image": "assets/abilities/black_drake_magic_amplification_aura.png"
   },
   "black_dragon_fireball": {
-    "name": "火球",
-    "description": "对地面喷出火球，点燃%radius%范围内的区域，持续%duration%秒。火海内的敌人每秒将受到%damage%点伤害。",
-    "notes": [],
+    "name": "灼热俯冲",
+    "description": "朝目标方向呈弧线飞行，随后折返回起始位置，沿途留下一道火焰轨迹。火焰持续燃烧%duration%秒，每秒对困在其中的敌人造成%damage%点伤害。",
+    "notes": [
+      "飞行持续%dive_duration%秒，并且无法被施法者取消。",
+      "重叠的火焰区域不会叠加。"
+    ],
     "labels": {
       "radius": "作用范围：",
       "damage": "每秒伤害：",
       "burn_interval": "燃烧间隔：",
-      "duration": "持续时间："
+      "duration": "持续时间：",
+      "dive_length": "冲击长度：",
+      "dive_width": "俯冲宽度："
     },
     "image": "assets/abilities/black_dragon_fireball.png"
   },
@@ -581,6 +679,75 @@ export const UNIT_SKILL_UI = {
     },
     "image": "assets/abilities/frogmen_water_bubble_large.png"
   },
+  "radigull_eggstremism": {
+    "name": "极蛋主义",
+    "description": "狂海鸥会在其前方锥形区域内产下%egg_count%枚蛋。每枚蛋会在%fuse_duration%秒后爆炸，对附近的敌人造成伤害并使其沉默。",
+    "notes": [],
+    "labels": {
+      "egg_count": "下蛋数量：",
+      "egg_distance": "下蛋距离：",
+      "fuse_duration": "爆炸延迟：",
+      "damage": "伤害：",
+      "radius": "作用范围：",
+      "tooltip_egg_health": "蛋生命格数：",
+      "slow": "%MOVEMENT SLOW:",
+      "slow_duration": "<font color='#6db6e9'>沉默</font>持续时间："
+    },
+    "image": "assets/abilities/radigull_eggstremism.png"
+  },
+  "odobenus_blight": {
+    "name": "海象之祸",
+    "description": "海象步兵的攻击会侵蚀目标的防御，降低他们的护甲，持续%armor_reduction_duration%秒。",
+    "notes": [],
+    "labels": {
+      "armor_reduction": "护甲降低：",
+      "armor_reduction_duration": "持续时间："
+    },
+    "image": "assets/abilities/odobenus_blight.png"
+  },
+  "eimermole_miners_aura": {
+    "name": "矿工光环",
+    "description": "矿工鼠的守护存在使附近的敌人无法获得任何喘息的机会，减少他们获得的所有生命回复。",
+    "notes": [],
+    "labels": {
+      "restoration_reduction": "%生命回复降低：",
+      "radius": "半径范围："
+    },
+    "image": "assets/abilities/eimermole_miners_aura.png"
+  },
+  "eimermole_miners_slam": {
+    "name": "矿工猛击",
+    "description": "矿工鼠工头缓缓蓄力举起双手，然后在身前猛击地面%pulse_count%次。每次重击造成%damage%点伤害,并使目标减速%slow_pct%%%，持续%slow_duration%秒。",
+    "notes": [],
+    "labels": {
+      "radius": "作用范围："
+    },
+    "image": "assets/abilities/eimermole_miners_slam.png"
+  },
+  "ogre_seal_flop": {
+    "name": "海豹扑打",
+    "description": "远古食人魔海豹向前扑打%max_bounces%次，每次落地时对区域内的敌人造成伤害并使其减速。",
+    "notes": [],
+    "labels": {
+      "leap_distance": "跳跃距离：",
+      "radius": "作用范围：",
+      "flop_damage": "伤害：",
+      "slow": "%移动速度减缓：",
+      "slow_duration": "减速持续时间：",
+      "max_bounces": "弹跳次数："
+    },
+    "image": "assets/abilities/ogre_seal_flop.png"
+  },
+  "ogre_seal_pup_disapproval_aura": {
+    "name": "豹力光环",
+    "description": "远古食人魔海豹幼崽凋零般的凝视会减慢附近敌人的速度。",
+    "notes": [],
+    "labels": {
+      "movespeed_slow": "%移动速度减缓：",
+      "radius": "作用范围："
+    },
+    "image": "assets/abilities/ogre_seal_pup_disapproval_aura.png"
+  },
   "creep_siege": {
     "name": "坚锐",
     "description": "坚锐单位和建筑对其他坚锐单位和建筑造成额外伤害，并且受到其他单位的伤害变低。",
@@ -607,15 +774,6 @@ export const UNIT_SKILL_UI = {
     "notes": [],
     "labels": {},
     "image": "assets/abilities/backdoor_protection_in_base.png"
-  },
-  "creep_irresolute": {
-    "name": "绵力",
-    "description": "绵力单位对英雄单位造成的伤害会减少。",
-    "notes": [],
-    "labels": {
-      "hero_damage_penalty": "%对英雄伤害降低："
-    },
-    "image": "assets/abilities/creep_irresolute.png"
   },
   "flagbearer_creep_aura_effect": {
     "name": "鼓舞光环",
@@ -730,7 +888,7 @@ export const UNIT_SKILL_UI = {
   },
   "dark_troll_warlord_ensnare": {
     "name": "诱捕",
-    "description": "黑暗巨魔召唤法师向一个敌人脚下扔出诱捕网，使他暂时无法移动，被网住的单位仍然可以攻击和使用技能。",
+    "description": "黑暗巨魔捕手向一个敌人脚下扔出诱捕网，使他暂时无法移动，被网住的单位仍然可以攻击和使用技能。",
     "notes": [],
     "labels": {
       "duration": "持续时间："
@@ -821,7 +979,7 @@ export const UNIT_SKILL_UI = {
     "labels": {
       "healing_ward_heal_amount": "%每秒最大生命值回复：",
       "healing_ward_aura_radius": "作用范围：",
-      "healing_ward_hits_to_kill_tooltip": "摧毁所需次数："
+      "healing_ward_hits_to_kill_tooltip": "生命格数："
     },
     "image": "assets/abilities/juggernaut_healing_ward.png"
   }

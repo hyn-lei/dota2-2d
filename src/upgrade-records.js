@@ -1,4 +1,4 @@
-// Generated from Valve 7.41f feed and shipped hero KV; see docs/hero-upgrades-sources.md.
+// Generated from Valve 7.42 feed and shipped hero KV; see docs/hero-upgrades-sources.md.
 export const UPGRADE_EFFECTS={
   "axe": {
     "axe_berserkers_call": {
@@ -42,7 +42,7 @@ export const UPGRADE_EFFECTS={
           "field": "debuff_duration",
           "operation": "add",
           "values": [
-            6
+            7
           ]
         },
         {
@@ -105,11 +105,25 @@ export const UPGRADE_EFFECTS={
         }
       ],
       "shard": [],
-      "scepterDescription": "使自身在极寒领域期间可以移动、施法和攻击。仍然可以被敌人打断。在此期间移动速度降低%shard_self_movement_speed_slow_pct%%%。冰爆总数提升%shard_bonus_explosion%%%。对极寒领域内停留超过%frostbite_delay%秒的所有单位都会施加冰封禁制。",
+      "scepterDescription": "使自身在极寒领域期间可以移动、施法和攻击。仍然可以被敌人打断。在此期间移动速度降低-75%。冰爆总数提升20%。对极寒领域内停留超过2秒的所有单位都会施加冰封禁制。",
       "shardDescription": ""
     }
   },
   "juggernaut": {
+    "juggernaut_blade_fury": {
+      "scepter": [
+        {
+          "field": "scepter_attack_damage_pct",
+          "operation": "add",
+          "values": [
+            75
+          ]
+        }
+      ],
+      "shard": [],
+      "scepterDescription": "主宰可以在剑刃风暴期间攻击敌人，即使移动也可以攻击，攻击会造成75%伤害和物品威力。",
+      "shardDescription": ""
+    },
     "juggernaut_healing_ward": {
       "scepter": [],
       "shard": [
@@ -234,10 +248,17 @@ export const UPGRADE_EFFECTS={
           "values": [
             0.78
           ]
+        },
+        {
+          "field": "forward_cannon_count",
+          "operation": "set",
+          "values": [
+            2
+          ]
         }
       ],
       "shard": [],
-      "scepterDescription": "幽灵船在目标地点以%fleet_interval%秒的间隔产生%fleet_count%艘船组成的舰队。每艘船现在还会从左舷和右舷发射%num_cannon_volleys%波炮弹，穿过敌人时造成%cannon_ball_damage_pct%%%幽灵船伤害。",
+      "scepterDescription": "幽灵船在目标地点以2.5秒的间隔产生2艘船组成的舰队。每艘船现在还会从左舷和右舷各发射3波炮弹，同时正前方发射2波，穿过敌人时造成40%幽灵船伤害。",
       "shardDescription": ""
     }
   },
@@ -260,7 +281,7 @@ export const UPGRADE_EFFECTS={
         }
       ],
       "shard": [],
-      "scepterDescription": "很精通的火焰爆轰，冷却时间减少%bonus_AbilityCooldown%秒，施法速度提升%bonus_cast_speed%%%。",
+      "scepterDescription": "很精通的火焰爆轰，冷却时间减少1秒，施法速度提升25%。",
       "shardDescription": ""
     }
   },
@@ -271,14 +292,14 @@ export const UPGRADE_EFFECTS={
           "field": "shard_regen_reduction_pct_per_stack",
           "operation": "add",
           "values": [
-            10
+            13
           ]
         },
         {
           "field": "shard_bonus_damage_per_stack",
           "operation": "add",
           "values": [
-            18
+            22
           ]
         },
         {
@@ -299,7 +320,7 @@ export const UPGRADE_EFFECTS={
           "field": "shard_burst_damage_per_stack",
           "operation": "add",
           "values": [
-            60
+            70
           ]
         },
         {
@@ -320,7 +341,7 @@ export const UPGRADE_EFFECTS={
           "field": "shard_max_stacks",
           "operation": "add",
           "values": [
-            9
+            7
           ]
         }
       ],
@@ -393,7 +414,65 @@ export const UPGRADE_EFFECTS={
           ]
         }
       ],
-      "scepterDescription": "上帝之手的冷却时间降低至%AbilityCooldown%秒，并且变为持续施法型技能，持续最多%AbilityChannelTime%秒。初始治疗会在持续施法起始时发生，持续施法期间其他附近友方单位变为<font color='#d76907'>减益免疫</font>状态，拥有%debuff_immune_resist%%%魔法抗性，而且持续治疗的威力提升%nearby_hot_boost%%%。",
+      "scepterDescription": "上帝之手的冷却时间降低至110秒，并且变为持续施法型技能，持续最多6秒。初始治疗会在持续施法起始时发生，持续施法期间其他附近友方单位变为减益免疫状态，拥有60%魔法抗性，而且持续治疗的威力提升200%。",
+      "shardDescription": ""
+    }
+  },
+  "chaos_knight": {
+    "chaos_knight_chaos_bolt": {
+      "scepter": [],
+      "shard": [
+        {
+          "field": "AbilityCastRange",
+          "operation": "add",
+          "values": [
+            0
+          ]
+        },
+        {
+          "field": "illusion_duration",
+          "operation": "set",
+          "values": [
+            6
+          ]
+        },
+        {
+          "field": "illusion_effectiveness",
+          "operation": "set",
+          "values": [
+            25
+          ]
+        },
+        {
+          "field": "illusion_damage_reduction_pct",
+          "operation": "set",
+          "values": [
+            0
+          ]
+        }
+      ],
+      "scepterDescription": "",
+      "shardDescription": "混乱之箭会制造一个混沌之军的幻象来攻击目标。这个幻象继承混沌骑士的全额攻击力，拥有25%物品威力。"
+    },
+    "chaos_knight_phantasm": {
+      "scepter": [
+        {
+          "field": "bonus_illusion_chance",
+          "operation": "set",
+          "values": [
+            50
+          ]
+        },
+        {
+          "field": "bonus_illusion_count",
+          "operation": "set",
+          "values": [
+            1
+          ]
+        }
+      ],
+      "shard": [],
+      "scepterDescription": "增加被动效果。混沌骑士产生幻象时都会有50%几率额外产生一个在其控制下的幻象。施放混沌之军时，会产生全地图上所有友方英雄的一个幻象。",
       "shardDescription": ""
     }
   }
@@ -406,6 +485,7 @@ export const EXTRA_ABILITIES={
       "sourceID": 953,
       "name": "冰晶克隆",
       "key": "D",
+      "image": "assets/abilities/crystal_maiden_crystal_clone.png",
       "icon": "crystal",
       "color": "#a6ced4",
       "kind": "active",
@@ -447,7 +527,7 @@ export const EXTRA_ABILITIES={
           5
         ],
         "frostbite_radius": [
-          450
+          425
         ],
         "anim_delay": [
           0.02
@@ -465,75 +545,18 @@ export const EXTRA_ABILITIES={
           12
         ]
       },
-      "description": "向一个方向滑行，在原地制造一个自身的冰晶克隆，并且躲避多种飞行过程中的攻击和技能弹道。如果克隆受到了足量伤害，或者超过一定时间都会碎裂，对附近450范围内敌人施加冰封禁制。克隆体也可以被水晶室女自身的技能摧毁。",
+      "description": "向一个方向滑行，在原地制造一个自身的冰晶克隆，并且躲避多种飞行过程中的攻击和技能弹道。如果克隆受到了足量伤害，或者超过一定时间都会碎裂，对附近425范围内敌人施加冰封禁制。克隆体也可以被水晶室女自身的技能摧毁。",
       "damageType": "magical"
     }
   ],
-  "juggernaut": [
-    {
-      "id": "juggernaut_swift_slash",
-      "sourceID": 419,
-      "name": "迅风斩",
-      "key": "D",
-      "icon": "swords",
-      "color": "#a6ced4",
-      "kind": "active",
-      "maxLevel": 1,
-      "requiredLevels": [],
-      "upgrade": "scepter",
-      "cooldowns": [
-        25
-      ],
-      "manaCosts": [
-        150
-      ],
-      "castRanges": [
-        450
-      ],
-      "castPoints": [
-        0.3,
-        0.3,
-        0.3
-      ],
-      "channelTimes": [
-        0
-      ],
-      "durations": [
-        0
-      ],
-      "damages": [
-        0,
-        0,
-        0,
-        0
-      ],
-      "values": {
-        "duration": [
-          1
-        ],
-        "AbilityCastRange": [
-          450
-        ],
-        "AbilityCastPoint": [
-          0.3
-        ],
-        "AbilityManaCost": [
-          150
-        ],
-        "AbilityCooldown": [
-          25
-        ]
-      },
-      "description": "发动一次短时间的无敌斩，持续1秒。",
-      "damageType": "physical"
-    }
-  ],
+  "juggernaut": [],
   "windranger": [
     {
       "id": "windrunner_gale_force",
       "sourceID": 652,
       "name": "狂风之力",
       "key": "D",
+      "image": "assets/abilities/windrunner_gale_force.png",
       "icon": "wind",
       "color": "#a6ced4",
       "kind": "active",
@@ -597,6 +620,7 @@ export const EXTRA_ABILITIES={
       "sourceID": 605,
       "name": "潮汐波",
       "key": "D",
+      "image": "assets/abilities/kunkka_tidal_wave.png",
       "icon": "torrent",
       "color": "#a6ced4",
       "kind": "active",
@@ -669,6 +693,7 @@ export const EXTRA_ABILITIES={
       "sourceID": 5466,
       "name": "未精通的火焰爆轰",
       "key": "D",
+      "image": "assets/abilities/ogre_magi_unrefined_fireblast.png",
       "icon": "torrent",
       "color": "#a6ced4",
       "kind": "active",
@@ -736,6 +761,7 @@ export const EXTRA_ABILITIES={
       "sourceID": 648,
       "name": "烈火护盾",
       "key": "T",
+      "image": "assets/abilities/ogre_magi_smash.png",
       "icon": "torrent",
       "color": "#a6ced4",
       "kind": "active",
@@ -808,6 +834,7 @@ export const EXTRA_ABILITIES={
       "sourceID": 1121,
       "name": "冰川",
       "key": "D",
+      "image": "assets/abilities/drow_ranger_glacier.png",
       "icon": "torrent",
       "color": "#a6ced4",
       "kind": "active",
@@ -904,5 +931,6 @@ export const EXTRA_ABILITIES={
       "damageType": "magical"
     }
   ],
-  "chen": []
+  "chen": [],
+  "chaos_knight": []
 };

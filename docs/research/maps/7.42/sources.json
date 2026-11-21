@@ -1,0 +1,178 @@
+{
+  "patch": "7.42",
+  "retrieved": "2026-11-21",
+  "steamBuild": 26825343,
+  "clientVersion": 6989,
+  "sourceRevision": 11264029,
+  "vpk": "game/dota/maps/dota.vpk",
+  "vpkSha256": "7fc24ff13fcbe6840e5b9d76beb23f681368ecd2aa8b32a1e31e3cda959bd304",
+  "decoder": "Source 2 Viewer CLI 20.1",
+  "scope": "Gameplay entity layers, trees, lane routes and all 28 neutral spawn hulls; no inferred navigation or texture changes",
+  "resources": [
+    {
+      "file": "docs/research/maps/7.42/raw/maps/dota/entities/world_layer_radiant_destruction.vents_c",
+      "vpkPath": "maps/dota/entities/world_layer_radiant_destruction.vents_c",
+      "sha256": "5d333d0409ed3cce8b942a794c083fcb78d6ca13dcb8bc3707875990175b2de9"
+    },
+    {
+      "file": "docs/research/maps/7.42/raw/maps/dota/entities/world_layer_radiant_base.vents_c",
+      "vpkPath": "maps/dota/entities/world_layer_radiant_base.vents_c",
+      "sha256": "db213da9a4b5b46424ebbe92671f134411346d4c83c93a9cd1e70357849050e4"
+    },
+    {
+      "file": "docs/research/maps/7.42/raw/maps/dota/entities/world_layer_dire_destruction.vents_c",
+      "vpkPath": "maps/dota/entities/world_layer_dire_destruction.vents_c",
+      "sha256": "f204b1fde713c7a1b5af925fb060c3f30949f84d720729ac6cab1e55c5828a4f"
+    },
+    {
+      "file": "docs/research/maps/7.42/raw/maps/dota/entities/world_layer_dire_base.vents_c",
+      "vpkPath": "maps/dota/entities/world_layer_dire_base.vents_c",
+      "sha256": "7a720a328ebc26a3279728ae9335a6999ff7e2796343b5247a187d34039dcf12"
+    },
+    {
+      "file": "docs/research/maps/7.42/raw/maps/dota/entities/default_ents.vents_c",
+      "vpkPath": "maps/dota/entities/default_ents.vents_c",
+      "sha256": "5ca2410b8ddfbe528b6e3673e712ec10a4bc804a2c9f8771a31d1ca082c26cb2"
+    },
+    {
+      "file": "docs/research/maps/7.42/raw/maps/dota/entities/neutralcamp_good_9_2699_27484.vmdl_c",
+      "vpkPath": "maps/dota/entities/neutralcamp_good_9_2699_27484.vmdl_c",
+      "sha256": "72a912113dc16a512ddf74407d261b25bd2f8bbde14be1a600080364fed139fe"
+    },
+    {
+      "file": "docs/research/maps/7.42/raw/maps/dota/entities/neutralcamp_good_8_2699_27461.vmdl_c",
+      "vpkPath": "maps/dota/entities/neutralcamp_good_8_2699_27461.vmdl_c",
+      "sha256": "81380912a80e1133cdb155f07b2ece42aff98236612963fc91712d75fa5cff21"
+    },
+    {
+      "file": "docs/research/maps/7.42/raw/maps/dota/entities/neutralcamp_good_7_2699_27175.vmdl_c",
+      "vpkPath": "maps/dota/entities/neutralcamp_good_7_2699_27175.vmdl_c",
+      "sha256": "17e15cefdb65a074e7b8b5b8336216ea29bd7e63643a4d8c11cf635aad2c39ad"
+    },
+    {
+      "file": "docs/research/maps/7.42/raw/maps/dota/entities/neutralcamp_good_5_2699_27178.vmdl_c",
+      "vpkPath": "maps/dota/entities/neutralcamp_good_5_2699_27178.vmdl_c",
+      "sha256": "ee6c9d198cc249f93c57b68f02059568a634d633979646b1fe476fc784720acf"
+    },
+    {
+      "file": "docs/research/maps/7.42/raw/maps/dota/entities/neutralcamp_good_4_2699_9823.vmdl_c",
+      "vpkPath": "maps/dota/entities/neutralcamp_good_4_2699_9823.vmdl_c",
+      "sha256": "c04becb589ff41eb2655d339a69cfcf470d37aaf33be0319312f5eb8befa377a"
+    },
+    {
+      "file": "docs/research/maps/7.42/raw/maps/dota/entities/neutralcamp_good_2_2699_9827.vmdl_c",
+      "vpkPath": "maps/dota/entities/neutralcamp_good_2_2699_9827.vmdl_c",
+      "sha256": "e9ee887dc1a022a3228302c595a54b5d4abed704407226bb891cd90a039d362d"
+    },
+    {
+      "file": "docs/research/maps/7.42/raw/maps/dota/entities/neutralcamp_good_20_2699_29236.vmdl_c",
+      "vpkPath": "maps/dota/entities/neutralcamp_good_20_2699_29236.vmdl_c",
+      "sha256": "d7cc6254a8e31f1ddaf270dc7b97b75e1f0a7ae39a0440a00b7faeae7064f467"
+    },
+    {
+      "file": "docs/research/maps/7.42/raw/maps/dota/entities/neutralcamp_good_1_2699_9829.vmdl_c",
+      "vpkPath": "maps/dota/entities/neutralcamp_good_1_2699_9829.vmdl_c",
+      "sha256": "16690d10e10a5591bf5b03e07d71969897a17feb75fe5c3a2f37f163d37b0140"
+    },
+    {
+      "file": "docs/research/maps/7.42/raw/maps/dota/entities/neutralcamp_good_16_2699_28515.vmdl_c",
+      "vpkPath": "maps/dota/entities/neutralcamp_good_16_2699_28515.vmdl_c",
+      "sha256": "08977c803f72f698b087947e7e6b5590ccc237b0cb2e76e450c0c0680d565272"
+    },
+    {
+      "file": "docs/research/maps/7.42/raw/maps/dota/entities/neutralcamp_good_15_2699_28440.vmdl_c",
+      "vpkPath": "maps/dota/entities/neutralcamp_good_15_2699_28440.vmdl_c",
+      "sha256": "3728ca6ce475aae414c5621ef590ac3c18d2c7a3bed5847d536f0de240a3be8a"
+    },
+    {
+      "file": "docs/research/maps/7.42/raw/maps/dota/entities/neutralcamp_good_14_2699_28437.vmdl_c",
+      "vpkPath": "maps/dota/entities/neutralcamp_good_14_2699_28437.vmdl_c",
+      "sha256": "b152c47814bd715fc6405026c1ae8f9d18239b940543b2d255b0605b3e426e5d"
+    },
+    {
+      "file": "docs/research/maps/7.42/raw/maps/dota/entities/neutralcamp_good_13_2699_28409.vmdl_c",
+      "vpkPath": "maps/dota/entities/neutralcamp_good_13_2699_28409.vmdl_c",
+      "sha256": "747f36bddacd670e39a4b72b1b5982854352ef8b7551bf0030cf10951f0e20e7"
+    },
+    {
+      "file": "docs/research/maps/7.42/raw/maps/dota/entities/neutralcamp_good_12_2699_29198.vmdl_c",
+      "vpkPath": "maps/dota/entities/neutralcamp_good_12_2699_29198.vmdl_c",
+      "sha256": "5f8d8efe66fa017e057c0ab9f7eb14236df03f9958e8c492ac3d528670d13469"
+    },
+    {
+      "file": "docs/research/maps/7.42/raw/maps/dota/entities/neutralcamp_good_11_2699_28319.vmdl_c",
+      "vpkPath": "maps/dota/entities/neutralcamp_good_11_2699_28319.vmdl_c",
+      "sha256": "2cddd3ed77b0ed874e211d3782e96713b47302d7825b515601b25320051069cc"
+    },
+    {
+      "file": "docs/research/maps/7.42/raw/maps/dota/entities/neutralcamp_evil_9_2699_27340.vmdl_c",
+      "vpkPath": "maps/dota/entities/neutralcamp_evil_9_2699_27340.vmdl_c",
+      "sha256": "fb4fb0d69e056bf622e69d8d870f650251af350eb2de934b65c1d4f7b6dda3ce"
+    },
+    {
+      "file": "docs/research/maps/7.42/raw/maps/dota/entities/neutralcamp_evil_8_2699_26645.vmdl_c",
+      "vpkPath": "maps/dota/entities/neutralcamp_evil_8_2699_26645.vmdl_c",
+      "sha256": "b7f14ff82255c6bb7e56f34fc63e492065a59a92dc415fafa0532250a0c2c4d5"
+    },
+    {
+      "file": "docs/research/maps/7.42/raw/maps/dota/entities/neutralcamp_evil_7_2699_28503.vmdl_c",
+      "vpkPath": "maps/dota/entities/neutralcamp_evil_7_2699_28503.vmdl_c",
+      "sha256": "e47d2584a4ea123f187f23f94f07d2dadd95aca93f9667d75993122631935558"
+    },
+    {
+      "file": "docs/research/maps/7.42/raw/maps/dota/entities/neutralcamp_evil_6_2699_27320.vmdl_c",
+      "vpkPath": "maps/dota/entities/neutralcamp_evil_6_2699_27320.vmdl_c",
+      "sha256": "b0afa7163887535a7f961f3746d06a40d8150d692eb460bc259e39d8b9c6c9d3"
+    },
+    {
+      "file": "docs/research/maps/7.42/raw/maps/dota/entities/neutralcamp_evil_5_2699_28402.vmdl_c",
+      "vpkPath": "maps/dota/entities/neutralcamp_evil_5_2699_28402.vmdl_c",
+      "sha256": "a32fe741f60bbfde8d0a41cde27f3f00fc9fa45b1f350aa5a5170d060b791cd8"
+    },
+    {
+      "file": "docs/research/maps/7.42/raw/maps/dota/entities/neutralcamp_evil_4_2699_9835.vmdl_c",
+      "vpkPath": "maps/dota/entities/neutralcamp_evil_4_2699_9835.vmdl_c",
+      "sha256": "da192cda22ef97dd3fd65d83918691c63a4ab1332eb66b3fdc433e67acb3fc87"
+    },
+    {
+      "file": "docs/research/maps/7.42/raw/maps/dota/entities/neutralcamp_evil_2_2699_9841.vmdl_c",
+      "vpkPath": "maps/dota/entities/neutralcamp_evil_2_2699_9841.vmdl_c",
+      "sha256": "fcdd736bfc802c56f748eeb336869cf19335714087c309bed4473c8b15773541"
+    },
+    {
+      "file": "docs/research/maps/7.42/raw/maps/dota/entities/neutralcamp_evil_20_2699_29239.vmdl_c",
+      "vpkPath": "maps/dota/entities/neutralcamp_evil_20_2699_29239.vmdl_c",
+      "sha256": "4f97078c18502f24f3ddf79c11ff5940d403e240948ece6c0633409d7ce5388a"
+    },
+    {
+      "file": "docs/research/maps/7.42/raw/maps/dota/entities/neutralcamp_evil_1_2699_29178.vmdl_c",
+      "vpkPath": "maps/dota/entities/neutralcamp_evil_1_2699_29178.vmdl_c",
+      "sha256": "88b4af6be8bd7b94bd1b509387435b4bc06f1d57992a8d9517cf4d38b30658bd"
+    },
+    {
+      "file": "docs/research/maps/7.42/raw/maps/dota/entities/neutralcamp_evil_15_2699_28434.vmdl_c",
+      "vpkPath": "maps/dota/entities/neutralcamp_evil_15_2699_28434.vmdl_c",
+      "sha256": "31f1e912abebe429bc3f994c94663b7bcf8caae6ac7202cd1525d4c994c83e3e"
+    },
+    {
+      "file": "docs/research/maps/7.42/raw/maps/dota/entities/neutralcamp_evil_14_2699_28400.vmdl_c",
+      "vpkPath": "maps/dota/entities/neutralcamp_evil_14_2699_28400.vmdl_c",
+      "sha256": "7e9ef21754f0cb76a45ca745328772deb2f2f2966f94bf956e4f274890e7c9cb"
+    },
+    {
+      "file": "docs/research/maps/7.42/raw/maps/dota/entities/neutralcamp_evil_13_2699_28406.vmdl_c",
+      "vpkPath": "maps/dota/entities/neutralcamp_evil_13_2699_28406.vmdl_c",
+      "sha256": "4fc7025d18cd7c291a8dc6ae830921f2df2dc9102f828103ddf17668c640178e"
+    },
+    {
+      "file": "docs/research/maps/7.42/raw/maps/dota/entities/neutralcamp_evil_12_2699_29195.vmdl_c",
+      "vpkPath": "maps/dota/entities/neutralcamp_evil_12_2699_29195.vmdl_c",
+      "sha256": "e876aecaf60434d604b91f65522149d6f14eb2df7a45637f6b3564ee06ef69a6"
+    },
+    {
+      "file": "docs/research/maps/7.42/raw/maps/dota/entities/neutralcamp_evil_11_2699_28429.vmdl_c",
+      "vpkPath": "maps/dota/entities/neutralcamp_evil_11_2699_28429.vmdl_c",
+      "sha256": "464d84c816d81ad0ab0be087ead3ee12008f77e20096710f1275e6ab67ae4dc8"
+    }
+  ]
+}

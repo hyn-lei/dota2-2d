@@ -10,7 +10,7 @@ import { marksmanshipActive,movementNavigator } from '../src/drow-runtime.js';
 import { serializeMatch,parseMatch,restoreMatch } from '../src/game-save.js';
 function setup(ranks=[4,4,4,3]){const a=arena('drow_ranger',ranks);a.e.x=a.p.x+500;a.g.step(.05);Object.assign(a.p,{maxMana:2000,mana:2000,hpRegen:0,manaRegen:0,attackCooldown:999});return a;}
 function fire(g,p,e){p.attackCooldown=0;assert.equal(g._attack(p,e,{attackReleased:true}),true);p.attackCooldown=999;}
-test('Drow base stats, all four ranked abilities, talents and upgrades come from 7.41f snapshots',()=>{
+test('Drow base stats, all four ranked abilities, talents and upgrades come from 7.42 snapshots',()=>{
  const feed=JSON.parse(fs.readFileSync('docs/research/heroes/6.json','utf8')).result.data.heroes[0];
  const stats=HERO_STATS.drow_ranger;assert.equal(stats.range,feed.attack_range);assert.equal(stats.projectileSpeed,1250);assert.equal(stats.attackPoint,.5);assert.equal(stats.baseAgility,feed.agi_base);assert.equal(stats.moveSpeed,feed.movement_speed);
  assert.deepEqual(ABILITIES.drow_ranger.map(s=>s.id),['drow_ranger_frost_arrows','drow_ranger_wave_of_silence','drow_ranger_multishot','drow_ranger_marksmanship']);
@@ -18,7 +18,7 @@ test('Drow base stats, all four ranked abilities, talents and upgrades come from
  assert.ok(Math.abs(abilityAt('drow_ranger',0,1,[0]).mana-9*.82)<1e-7);assert.equal(talentStats('drow_ranger',[2]).attackRange,75);
  assert.equal(abilityAt('drow_ranger',2,4,[1,3,5,7]).values.wave_count,5);assert.equal(abilityAt('drow_ranger',2,4,[1,3,5,7]).values.arrow_count_per_wave,5);assert.equal(abilityAt('drow_ranger',2,4,[1,3,5,7]).cooldown,9);
  assert.equal(innateAt('drow_ranger',1).values.trueshot_agi_bonus,11);assert.equal(innateAt('drow_ranger',30).values.trueshot_agi_bonus,40);
- assert.equal(abilityAt('drow_ranger',0,4,[],{hasScepter:true}).values.shard_max_stacks,9);
+ assert.equal(abilityAt('drow_ranger',0,4,[],{hasScepter:true}).values.shard_max_stacks,7);
 });
 test('Frost Arrows pay mana at release, fly at 1250, and slow only on actual impact',()=>{
  const {g,p,e}=setup([4,0,0,0]),mana=p.mana;p.attackCooldown=0;assert.equal(g.cast(0,e).ok,true);
@@ -44,12 +44,12 @@ test('Frost damage respects immunity gained during flight and Hypothermia uses s
  e.statuses.bkb={id:'bkb',startedAt:g.time,until:g.time+9,debuffImmune:true};g.step(.45);
  assert.ok(Math.abs(4000-e.hp-base)<.01);assert.equal(e.statuses.drowFrost,undefined);assert.equal(e.statuses.drowHypothermia,undefined);
  delete e.statuses.bkb;e.hp=4000;fire(g,p,e);fire(g,p,e);g.step(.45);
- assert.ok(Math.abs(4000-e.hp-(base*2+30*2+18+36))<.01);assert.equal(e.statuses.drowHypothermia.stacks,2);
+ assert.ok(Math.abs(4000-e.hp-(base*2+30*2+22+44))<.01);assert.equal(e.statuses.drowHypothermia.stacks,2);
 });
 test('Multishot includes Frost and Scepter bonus damage once per wave without spending Frost mana',()=>{
  const {g,p,e}=setup([4,0,1,0]);p.hasScepter=true;p.autocast[0]=false;const base=g.combatStats(p).damage,mana=p.mana;
  g.cast(2,e);g.step(.75);
- assert.ok(Math.abs(4000-e.hp-(base*.8+30+18))<.01);assert.equal(e.statuses.drowHypothermia.stacks,1);assert.equal(p.mana,mana-70);
+ assert.ok(Math.abs(4000-e.hp-(base*.8+30+22))<.01);assert.equal(e.statuses.drowHypothermia.stacks,1);assert.equal(p.mana,mana-70);
 });
 test('Gust travels before revealing, silencing and knocking back, and can miss a moving unit',()=>{
  const {g,p,e}=setup([0,4,0,0]);g.cast(1,{x:p.x+900,y:p.y});g.step(.26);assert.equal(e.statuses.drowGustSilence,undefined);
@@ -66,7 +66,7 @@ test('Multishot permits movement at 35 percent speed and does not auto-attack du
 });
 test('Marksmanship is disabled within 300, ignores base armor on proc, and keeps bonus armor',()=>{
  const {g,p,e}=setup([0,0,0,1]);g._random=()=>0;e.baseArmor=20;e.armor=30;assert.equal(marksmanshipActive(g,p),true);
- const damage=g.combatStats(p).damage+50;fire(g,p,e);g.step(.45);assert.ok(Math.abs(4000-e.hp-damage*physicalDamageMultiplier(10))<.01);
+ const damage=g.combatStats(p).damage+60;fire(g,p,e);g.step(.45);assert.ok(Math.abs(4000-e.hp-damage*physicalDamageMultiplier(10))<.01);
  e.x=p.x+299;assert.equal(marksmanshipActive(g,p),false);fire(g,p,e);assert.equal(g.pendingSpells[0].result.marksmanship,undefined);p.statuses.break={id:'break',startedAt:g.time,until:g.time+9,break:true};e.x=p.x+500;assert.equal(marksmanshipActive(g,p),false);
 });
 test('Trueshot grants Drow 11 percent agility at level one and shares half with nearby ranged allies without recursive growth',()=>{
@@ -74,11 +74,11 @@ test('Trueshot grants Drow 11 percent agility at level one and shares half with 
  assert.ok(Math.abs(p.trueshotAgility-24*.11)<.001);assert.ok(Math.abs(ally.trueshotAgility-24*.11*.5)<.001);const agi=p.agility;g.step(2);assert.equal(p.agility,agi);
  ally.x=p.x+1400;g.step(.1);assert.equal(ally.trueshotAgility,0);p.statuses.break={id:'break',startedAt:g.time,until:g.time+9,break:true};g.step(.1);assert.equal(p.trueshotAgility,0);
 });
-test('Scepter stacks Hypothermia up to nine, reduces healing and explodes at maximum or death',()=>{
+test('Scepter stacks Hypothermia up to seven, reduces healing and explodes at maximum or death',()=>{
  const {g,p,e,c}=setup([4,0,0,0]);p.hasScepter=true;e.hp=e.maxHp=10000;c.x=e.x+300;const hp=c.hp;
- for(let i=0;i<8;i++){fire(g,p,e);g.step(.45);assert.equal(e.statuses.drowHypothermia.stacks,i+1);}
- assert.equal(e.statuses.drowHypothermia.healReduction,80);fire(g,p,e);g.step(.45);assert.equal(e.statuses.drowHypothermia,undefined);assert.ok(Math.abs(hp-c.hp-540)<.01);
- fire(g,p,e);g.step(.45);const before=c.hp;g.damage(e,99999,p,'pure');assert.ok(Math.abs(before-c.hp-60)<.01);
+ for(let i=0;i<6;i++){fire(g,p,e);g.step(.45);assert.equal(e.statuses.drowHypothermia.stacks,i+1);}
+ assert.equal(e.statuses.drowHypothermia.healReduction,78);fire(g,p,e);g.step(.45);assert.equal(e.statuses.drowHypothermia,undefined);assert.ok(Math.abs(hp-c.hp-490)<.01);
+ fire(g,p,e);g.step(.45);const before=c.hp;g.damage(e,99999,p,'pure');assert.ok(Math.abs(before-c.hp-70)<.01);
 });
 test('Shard Glacier preserves Multishot, grants range on its hill, blocks the front and expires after eight seconds',()=>{
  const {g,p,e}=setup();p.hasShard=true;g.cast(2,e);g.step(.2);const channel=p.channel;assert.equal(g.castExtra('drow_ranger_glacier',p).ok,true);g.step(.11);assert.equal(p.channel,channel);

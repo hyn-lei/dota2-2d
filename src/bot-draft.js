@@ -5,6 +5,7 @@ export const DRAFT_ROLES = Object.freeze(['carry', 'mid', 'offlane', 'roamer', '
 
 // Local AI heuristics, not Valve hero ratings. Fits follow the implemented kits.
 export const BOT_DRAFT_PROFILES = Object.freeze({
+  chaos_knight:   { fits:[10,5,8,3,1], frontline:3, control:2, physical:3, spell:1, support:0 },
   juggernaut:     { fits:[10,6,4,2,1], frontline:1, control:0, physical:3, spell:1, support:1 },
   crystal_maiden:{ fits:[1,4,1,9,10], frontline:0, control:2, physical:0, spell:3, support:3 },
   windranger:    { fits:[8,10,5,8,6], frontline:0, control:2, physical:3, spell:2, support:1 },
@@ -126,6 +127,9 @@ function draftTeam({locked, team, seed, history, opponents = []}) {
     const ids = [...locked, ...bots], roles = roleAssignments(ids);
     return {ids, bots, roles, signature:signature(bots), score:compositionScore(ids,roles,opponents)};
   });
+  // With five melee heroes now playable, keep at least one ranged hero whenever the human locks allow it.
+  const ranged=candidates.filter(candidate=>candidate.ids.some(id=>HEROES[id].range>200));
+  if(ranged.length)candidates=ranged;
   if (team && opponents.length) {
     const distinct = candidates.filter(candidate => signature(candidate.ids) !== signature(opponents));
     if (distinct.length) candidates = distinct;

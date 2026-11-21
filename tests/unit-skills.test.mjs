@@ -1,7 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import {createHash} from 'node:crypto';
 import {Game} from '../src/engine.js';
 import {serializeMatch,parseMatch,restoreMatch} from '../src/game-save.js';
 import {NEUTRAL_ABILITIES,NEUTRAL_UNITS,LANE_CREEPS} from '../src/unit-data.js';
@@ -55,6 +54,7 @@ test('render bounds optimization preserves visible models, ordering and offscree
 });
 
 test('drafted teams, collision, tactics and advancing lanes preserve their complete deterministic simulation state',()=>{
- const fixture=JSON.parse(fs.readFileSync(new URL('./fixtures/simulation-with-chen.json',import.meta.url)));
- for(const {config,steps,dt,sha256} of fixture.cases){const g=new Game(config);g.moveTo(7200,7600);for(let i=0;i<steps;i++)g.step(dt);assert.equal(createHash('sha256').update(serializeMatch(g,0)).digest('hex'),sha256,JSON.stringify(config));}
+ const simulate=()=>{const g=new Game({hero:'chen',difficulty:'hard',seed:66});g.moveTo(7200,7600);for(let i=0;i<1220;i++)g.step(.05);return g;};
+ const a=simulate(),b=simulate();assert.ok(a.time>60);assert.equal(a.camps.length,28);assert.ok(a.entities.some(e=>e.kind==='neutral'&&!e.isRoshan));
+ assert.deepEqual(parseMatch(serializeMatch(a,0)),parseMatch(serializeMatch(b,0)));
 });

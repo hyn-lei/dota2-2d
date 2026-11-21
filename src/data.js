@@ -4,6 +4,11 @@ export { WORLD, BASES, LANES } from './map-data.js';
 export { ITEMS } from './item-data.js';
 export const TEAM_COLORS = ['#8abb81', '#e47563', '#d3b77c'];
 export const HEROES = {
+  chaos_knight: {
+    id:'chaos_knight',name:'混沌骑士',en:'CHAOS KNIGHT',title:'天劫骑士',role:'近战 / 核心 / 控制',attribute:'力量',
+    description:'召集混沌之军，以实相裂隙聚拢敌人与幻象。混乱之箭打破敌人的阵线，天劫前进率领骑士跨越地形冲锋。',
+    color:'#d56b43',portrait:'assets/chaos_knight_portrait.png',render:'assets/chaos_knight.png'
+  },
   juggernaut: {
     id:'juggernaut',name:'剑圣',en:'JUGGERNAUT',title:'最后的面具',role:'近战 / 核心',attribute:'敏捷',
     description:'剑锋所至，战局由你改写。以剑刃风暴切入战场，在无敌斩的刀光中收割敌人。',

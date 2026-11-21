@@ -54,10 +54,15 @@ const extraFields = {
   solar_crest:{self_movement_speed:'speed'},
   specialists_array:{agility:'agility',damage:'damage',all_stats:'allAttributes'},
   hydras_breath:{strength:'strength',agility:'agility',damage:'damage'},
+  ristuls_devotion:{armor:'armor',mana_regen:'manaRegen'},
 };
 const excludedFields = {
   hurricane_pike:['bonus_attack_speed'], smoke_of_deceit:['bonus_movement_speed'],
   manta:['bonus_movement_speed'], rapier:['bonus_damage'],
+  metamorphic_mandible:['bonus_movement_speed','bonus_armor','bonus_magic_resistance'],
+  minotaur_horn:['bonus_spell_resist'],
+  balmhook:['bonus_health_regen'],gunpowder_gauntlets:['bonus_damage'],
+  ceremonial_robe:['magic_resistance'],idol_of_screeauk:['evasion','bonus_evasion','slow_resistance'],
 };
 const labels = {
   strength:'力量',agility:'敏捷',intelligence:'智力',allAttributes:'全属性',damage:'攻击力',
@@ -149,7 +154,21 @@ export async function generateFullItems({refresh = false} = {}) {
       && item.neutral_item_tier === -1 && (script.ItemRecipe !== '1' || Number(script.ItemCost) > 0)
       && Number.isFinite(Number(script.ItemCost)) && item.name !== 'item_ward_dispenser';
   };
-  const selected = list.filter(item => purchasable(item) || item.name === 'item_ward_dispenser' || item.id === 10);
+  const patches=JSON.parse(await readFile(new URL('docs/research/patches/7.42/patchnotes-english.json',root),'utf8'));
+  const poolsNote=patches.neutral_items.find(entry=>entry.title==='Artifact Pools');
+  const englishNames=new Map(english.map(item=>[item.name_english_loc?.toLowerCase(),item]));
+  const pools={};let tier=0;
+  for(const entry of poolsNote.ability_notes){
+    const match=entry.note.match(/^Tier (\d)$/);if(match){tier=Number(match[1]);pools[tier]=[];}
+    else if(entry.indent_level===2&&tier)pools[tier].push(entry.note.split(', ').map(name=>{
+      const item=englishNames.get(name.toLowerCase())||englishNames.get(name.toLowerCase().replace(/gauntlets$/,'gauntlet'));if(!item)throw Error(`Unknown neutral artifact ${name}`);return stableId(item);
+    }));
+  }
+  const artifactTier=new Map(Object.entries(pools).flatMap(([tier,groups])=>groups.flat().map(id=>[id,Number(tier)])));
+  const enchIds=new Set(patches.neutral_items.filter(e=>e.ability_id>0&&listByNumber.get(e.ability_id)?.name.startsWith('item_enhancement_')).map(e=>e.ability_id));
+  const legacy=JSON.parse((await readFile(new URL('full-catalog-manifest.json',research),'utf8'))).items;
+  const legacyIds=new Set(legacy.map(i=>i.dotaId));
+  const selected = list.filter(item => purchasable(item) || item.name === 'item_ward_dispenser' || legacyIds.has(item.id) || artifactTier.has(stableId(item)) || enchIds.has(item.id) || ['item_horn_of_battle_greater','item_roshans_banner','item_foragers_health','item_foragers_stats','item_foragers_mana','item_cheese','item_refresher_shard'].includes(item.name));
   const selectedNames = new Set(selected.map(item => item.name));
   for (const [id, number] of Object.entries(stableIds)) {
     if (!selected.some(item => item.id === number)) throw new Error(`Lost legacy identity ${id}:${number}`);
@@ -214,8 +233,12 @@ export async function generateFullItems({refresh = false} = {}) {
     const en = englishByNumber.get(item.id)?.name_english_loc || item.name_english_loc || (resultItem ? `${resultItem.name_english_loc} Recipe` : '');
     const descriptionValues = item.name==='item_satanic'
       ? {...values,unholy_lifesteal_total_tooltip:values.lifesteal_percent+values.unholy_lifesteal_percent} : values;
-    const description = substitute(plainText(official.desc_loc), descriptionValues, valueLevels)
+    let description = substitute(plainText(official.desc_loc), descriptionValues, valueLevels)
       || (recipeOnly ? `用于合成${resultItem.name_loc}，不提供属性加成。` : '');
+    if(enchIds.has(item.id)&&!description){
+      const enhancementLabels={bonus_damage:'攻击力',armor:'护甲',movement_speed:'移动速度',movespeed:'移动速度',movespeed_pct:'移动速度（%）',bonus_mana:'魔法值',max_mana:'最大魔法值',bonus_attack_speed:'攻击速度',attack_speed:'攻击速度',mana_regen:'魔法恢复/秒',bonus_mana_regen:'魔法恢复/秒',health_regen:'生命恢复/秒',health_bonus:'生命值',magic_res:'魔法抗性（%）',manacost_reduction:'魔法消耗降低（%）',bonus_night_vision:'夜间视野',bonus_attack_range:'远程攻击距离',bonus_attack_range_melee:'近战攻击距离',lifesteal:'攻击吸血（%）',knockback_resist:'击退抗性（%）',health_restoration:'生命恢复增强（%）',bat_reduce:'基础攻击间隔降低（%）',intelligence_pct:'智力变化（%）',bonus_gpm:'每分钟金币',mana_reduction_pct:'最大魔法降低（%）',cast_range_bonus:'施法距离',hp_regen_reduce:'生命恢复/秒降低（最低0）',base_attack_damage:'基础攻击力（%）',status_resistance:'状态抗性（%）',bonus_potency:'物品威力（%）',primary_stat:'主属性',primary_stat_universal:'全才英雄全属性',debuff_amp:'减益持续时间（%）',spell_amp:'技能增强（%）',cooldown_reduction:'冷却减少（%）',incoming_damage:'承受伤害增加（%）',attack_lifesteal:'攻击吸血（%）',spell_lifesteal:'技能吸血（%）',max_health:'最大生命（%）',max_health_regen:'每秒最大生命恢复（%）',cast_speed:'施法速度（%）',vision_reduce:'视野降低（%）',evasion:'闪避（%）'};
+      description=Object.entries(values).filter(([key])=>enhancementLabels[key]).map(([key,value])=>`${enhancementLabels[key]} ${valueLevels[key]?.join('/')||value}`).join('；');
+    }
     const icon = stats.damage ? 'sword' : stats.armor ? 'shield' : stats.strength || stats.maxHp ? 'heart'
       : stats.speed || stats.agility ? 'boots' : stats.intelligence || stats.maxMana ? 'staff' : 'relic';
     const field = (key, apiValues, fallback = 0) => atLevel(script[key] ?? apiValues, level, fallback);
@@ -228,10 +251,14 @@ export async function generateFullItems({refresh = false} = {}) {
       behaviors:enumValues(script.AbilityBehavior),targetTeam:script.AbilityUnitTargetTeam || '',
       targetType:script.AbilityUnitTargetType || '',targetFlags:enumValues(script.AbilityUnitTargetFlags),
       damageType:script.AbilityUnitDamageType || '',
+      neutralTier:artifactTier.get(id)||0,enchantment:enchIds.has(item.id),
+      curioFields:Object.entries(script.AbilityValues||{}).filter(([,field])=>field?.apply_curio_bonus==='1').map(([key])=>key),
+      potencyFields:Object.entries(script.AbilityValues||{}).filter(([,field])=>field?.apply_effectiveness==='1').map(([key])=>key),
+      backpackUsable:script.ItemCanBeUsedWithoutInventory==='1'||id==='smoke_of_deceit',
       cooldown:field('AbilityCooldown',official.cooldowns),mana:field('AbilityManaCost',official.mana_costs),
       healthCost:field('AbilityHealthCost',official.health_costs),range:field('AbilityCastRange',official.cast_ranges),
       castPoint:field('AbilityCastPoint',official.cast_points),channelTime:field('AbilityChannelTime',official.channel_times),
-      sharedCooldown:script.AbilitySharedCooldown || '',
+      sharedCooldown:script.AbilitySharedCooldown || (id==='refresher_shard'?'refresher':''),
       charges:field('ItemInitialCharges',official.item_initial_charges),
       abilityCharges:field('AbilityCharges',values.AbilityCharges),
       chargeRestoreTime:field('AbilityChargeRestoreTime',values.AbilityChargeRestoreTime),
@@ -246,8 +273,8 @@ export async function generateFullItems({refresh = false} = {}) {
       droppable:script.ItemDroppable !== '0',level,
       ...(recipes.length ? {components:recipes[0],recipesAlternative:recipes.slice(1)} : {}),
       ...(recipeOnly ? {recipeOnly:true,recipeFor:stableId(listByName.get(script.ItemResult))} : {}),
-      ...(['boots','power_treads','phase_boots','arcane_boots','guardian_greaves','tranquil_boots','boots_of_bearing','travel_boots','travel_boots_2'].includes(id) ? {movementGroup:'boots'} : {}),
-      ...(id === 'quarterstaff' ? {obsolete:true} : {}),
+      ...(['boots','power_treads','phase_boots','berserkers_sabatons','arcane_boots','guardian_greaves','tranquil_boots','boots_of_bearing','travel_boots','travel_boots_2'].includes(id) ? {movementGroup:'boots'} : {}),
+      ...(script.IsObsolete==='1' ? {obsolete:true} : {}),
     };
     records.push(record);
     sourceRecords[item.name] = script;
@@ -275,13 +302,24 @@ export async function generateFullItems({refresh = false} = {}) {
     return {id:item.id,file:item.image,source,sha256:createHash('sha256').update(buffer).digest('hex')};
   });
   const meta = {
-    patch:'7.41f',retrieved:'2026-10-28',source:apiURL('{id}'),
-    scope:'All current purchasable main/secret shop items and paid recipes; obsolete legacy quarterstaff and combined ward wrapper retained separately.',
+    patch:'7.42',retrieved:'2026-11-21',source:apiURL('{id}'),
+    scope:'Current purchasable main/secret shop items, paid recipes, all 48 active neutral artifacts, active enchantments, objective rewards and retained legacy identities.',
     purchasableCount:records.filter(item => item.purchasable).length,
     recordCount:records.length,recipeCount:records.filter(item => item.recipeOnly).length,
   };
   await writeFile(new URL('src/item-records.js',root),`// Generated by scripts/extract-full-items.mjs. See docs/item-catalog-complete.md.\nexport const ITEM_RECORDS = [\n${records.map(item => `  ${JSON.stringify(item)},`).join('\n')}\n];\nexport const ITEM_RECORDS_META = ${JSON.stringify(meta)};\n`);
+  const neutralKV=parseValveKV(await readFile(new URL('742/neutral_items.txt',research),'utf8')).neutral_items;
+  const seconds=s=>String(s).split(':').reduce((n,v)=>n*60+Number(v),0);
+  const craftRules=Object.fromEntries(Object.entries(neutralKV.neutral_tiers).map(([tier,rule])=>[tier,{startTime:seconds(rule.start_time),cost:Number(rule.craft_cost),recraftCost:Number(rule.recraft_cost??rule.craft_cost),enhancements:Object.fromEntries(Object.entries(rule.enhancements).map(([attribute,options])=>[attribute,Object.fromEntries(Object.entries(options).map(([name,rank])=>[name.replace(/^item_/,''),Number(rank)]))]))}]));
+  const heroBase=parseValveKV(await readFile(new URL('docs/research/heroes/npc_dota_hero_base.txt',root),'utf8')).DOTAHeroes.npc_dota_hero_base;
+  const adjectives={};
+  for(const hero of ['axe','crystal_maiden','drow_ranger','juggernaut','windranger','kunkka','chen','chaos_knight','ogre_magi']){
+    const name=hero==='windranger'?'windrunner':hero,raw=parseValveKV(await readFile(new URL(`docs/research/heroes/npc_dota_hero_${name}.txt`,root),'utf8')).DOTAHeroes[`npc_dota_hero_${name}`];
+    adjectives[hero]=Object.fromEntries(Object.entries({...heroBase.Adjectives,...raw.Adjectives}).map(([key,value])=>[key,Number(value)]));
+  }
+  await writeFile(new URL('src/item-neutral-data.js',root),`// Generated from Valve 7.42 artifact pools, hero adjectives and item snapshots.\nexport const NEUTRAL_ARTIFACT_POOLS = ${JSON.stringify(pools)};\nexport const NEUTRAL_ENCHANTMENTS = ${JSON.stringify(selected.filter(i=>enchIds.has(i.id)).map(i=>stableId(i)))};\nexport const NEUTRAL_CRAFT_RULES = ${JSON.stringify(craftRules)};\nexport const NEUTRAL_HERO_ADJECTIVES = ${JSON.stringify(adjectives)};\n`);
   await writeFile(new URL('full-items-script.json',research),JSON.stringify(sourceRecords,null,2)+'\n');
+  await writeFile(new URL('snapshots.json',full),JSON.stringify({retrieved:meta.retrieved,patch:meta.patch,kv:{source:'https://raw.githubusercontent.com/SteamTracking/GameTracking-Dota2/76ab89451c1384c2e106b676258c6e9f72787e11/game/dota/pak01_dir/scripts/npc/items.txt',sha256:createHash('sha256').update(await readFile(new URL('items.txt',research))).digest('hex')},items:await Promise.all(records.map(async item=>({id:item.dotaId,name:item.dotaName,source:apiURL(item.dotaId),sha256:createHash('sha256').update(await readFile(new URL(`${item.dotaId}-schinese.json`,full))).digest('hex')})))},null,2)+'\n');
   await writeFile(new URL('full-icons.json',research),JSON.stringify({retrieved:meta.retrieved,items:icons},null,2)+'\n');
   await writeFile(new URL('full-catalog-manifest.json',research),JSON.stringify({...meta,items:records.map(({id,dotaId,dotaName,purchasable,cost,components,recipesAlternative}) => ({id,dotaId,dotaName,purchasable,cost,components,recipesAlternative})),excluded:list.filter(item=>!selectedNames.has(item.name)).map(item=>({id:item.id,name:item.name,reason:scripts[item.name]?.IsObsolete==='1'?'obsolete':scripts[item.name]?.ItemPurchasable==='0'?'not-purchasable':item.neutral_item_tier!==-1?'neutral':scripts[item.name]?.ItemRecipe==='1'?'automatic-recipe':'not-shop-item'}))},null,2)+'\n');
   console.log(`Generated ${meta.purchasableCount} purchasable entries, ${meta.recordCount} records, ${meta.recipeCount} paid recipes, ${icons.length} local icons.`);

@@ -9,8 +9,8 @@ test('current catalog includes all item families while obsolete compatibility en
     assert.ok(ITEMS.includes(ITEM_BY_ID[id]), id);
   }
   assert.equal(ITEM_BY_ID.quarterstaff.dotaId, 10);
-  assert.equal(ITEM_BY_ID.quarterstaff.purchasable, false);
-  assert.ok(!ITEMS.includes(ITEM_BY_ID.quarterstaff));
+  assert.equal(ITEM_BY_ID.quarterstaff.purchasable, true);
+  assert.ok(ITEMS.includes(ITEM_BY_ID.quarterstaff));
   assert.equal(ITEM_BY_ID.ward_dispenser?.purchasable, false);
   assert.ok(!ITEMS.includes(ITEM_BY_ID.ward_dispenser));
   assert.equal(ITEM_BY_ID.staffwizardry, ITEM_BY_ID.arcane);

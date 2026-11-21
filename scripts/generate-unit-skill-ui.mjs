@@ -9,7 +9,7 @@ for(const id of [...Object.keys(NEUTRAL_ABILITIES),...Object.keys(details),'cour
  const prefix='dota_tooltip_ability_'+id;
  const labels=Object.fromEntries(Object.entries(tokens).filter(([k])=>k.startsWith(prefix+'_')&&!/_(description|note\d*|lore)$/.test(k)).map(([k,v])=>[k.slice(prefix.length+1),v]));
  const notes=Object.entries(tokens).filter(([k])=>k.startsWith(prefix+'_note')).map(([,v])=>v);
- const fallback=id==='neutral_upgrade'?{description:'野怪每%increase_time%秒成长一次，最多%max_level%次。',labels:{max_level:'最多成长次数',increase_time:'成长间隔 / 秒',increase_damage:'每次攻击力',increase_aspd:'每次攻击速度',increase_health:'每次生命',increase_armor:'每次护甲',increase_gold:'每次金币奖励',increase_xp:'每次经验奖励'}}:{};
+ const fallback=id==='neutral_upgrade'?{description:'野怪每%increase_time%秒成长一次，最多%max_level%次。金币奖励每%gold_interval%秒交替增加最小值和最大值。',labels:{max_level:'最多成长次数',increase_time:'成长间隔 / 秒',increase_damage:'每次攻击力',increase_aspd:'每次攻击速度',increase_health:'每次生命',increase_armor:'每次护甲',increase_gold:'每次成长金币奖励',increase_gold_per_minute:'每分钟交替增加金币上下限',gold_interval:'金币成长间隔 / 秒',increase_xp:'每次经验奖励'}}:{};
  skills[id]={name:tokens[prefix]||({neutral_upgrade:'野怪成长',roshan_inherent_buffs:'肉山固有属性'}[id])||id,description:tokens[prefix+'_description']||fallback.description||'',notes,labels:{...fallback.labels,...labels},image:snapshot.textures[id]?`assets/abilities/${id}.png`:null};
  if(details[id]){
   const d=details[id],join=a=>a.join(' ');

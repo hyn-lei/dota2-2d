@@ -1,0 +1,12 @@
+{
+  "patch": "7.42",
+  "steamBuild": 26825343,
+  "counts": {
+    "buildings": 52,
+    "camps": 28,
+    "trees": 2394,
+    "laneSpawns": 6
+  },
+  "navigation": "Retains the separately documented 7.41 navigation snapshot",
+  "updates": []
+}

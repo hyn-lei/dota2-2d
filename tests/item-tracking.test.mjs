@@ -11,7 +11,7 @@ function equipped(id,hero='kunkka'){
 const at=(g,time)=>{const dt=time-g.time;g.time=time;tickWorld(g,dt);};
 test('Ethereal Blast flies at 1400, applies damage and debuff only on impact, and spends mana/cooldown once',()=>{
  const {g,p,e}=equipped('ethereal_blade');const mana=p.mana,damage=(50+p.strength+p.agility+p.intelligence)*1.3;
- assert.equal(g.useItem(0,e).projectile,true);assert.equal(e.hp,4000);assert.equal(e.statuses.ethereal,undefined);close(p.mana,mana-100);assert.equal(p.inventoryMeta[0].cooldownRemaining,22);
+ assert.equal(g.useItem(0,e).projectile,true);assert.equal(e.hp,4000);assert.equal(e.statuses.ethereal,undefined);close(p.mana,mana-100);assert.equal(p.inventoryMeta[0].cooldownRemaining,20);
  at(g,.49);assert.equal(e.hp,4000);assert.ok(g.effects.some(f=>f.tracked&&f.itemId==='ethereal_blade'));at(g,.5);close(4000-e.hp,damage);assert.ok(e.statuses.ethereal);assert.equal(g.itemZones.filter(z=>z.type==='itemTracking').length,0);assert.ok(!g.effects.some(f=>f.tracked&&f.itemId==='ethereal_blade'));
 });
 test('Tracking item follows a moving target beyond cast range and does not lose it merely to invisibility',()=>{

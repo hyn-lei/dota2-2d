@@ -22,7 +22,7 @@ export class NetworkGame extends Game {
   suspendPresentation(){this.lastMovement=null;this.unitMovements?.clear();this.presentation.suspend();}
   step(){} // The server is the only simulation clock.
   setPaused(){} // A personal menu cannot pause the other four players.
-  guard(area,index){return {area,index,uid:this.player[area+'Meta']?.[index]?.uid||null};}
+  guard(area,index){return {area,index,uid:(area==='neutral'?this.player.neutralItemMeta:this.player[area+'Meta']?.[index])?.uid||null};}
   point(p){return p?{x:p.x,y:p.y,...(p.id===this.player.id?{self:true}:{}),...(p.direction?{direction:{x:p.direction.x,y:p.direction.y}}:{})}:null;}
   invoke(action,args=[],slotGuards=[]){
     const pending=this.request(action,args,slotGuards);
@@ -38,7 +38,7 @@ export class NetworkGame extends Game {
     }
     const values=[...args];if(['cast','castExtra','useItem'].includes(action))values[1]=values[1]?{x:values[1].x,y:values[1].y,...(values[1].id===id||values[1].self?{self:true}:{})}:null;
     const slots=action==='useItem'?[[values[2]||'inventory',values[0]]]:action==='recall'?[['tp',0]]:[];
-    return this.invoke('unitCommand',[id,action,values],slots.map(([area,index])=>({area,index,uid:unit[area+'Meta']?.[index]?.uid||null})));
+    return this.invoke('unitCommand',[id,action,values],slots.map(([area,index])=>({area,index,uid:(area==='neutral'?unit.neutralItemMeta:unit[area+'Meta']?.[index])?.uid||null})));
   }
   selectEntity(id){
     for(const selectedId of this.selectedIds||[this.controlledUnit?.id]){
@@ -72,6 +72,9 @@ export class NetworkGame extends Game {
   queueItem(id,append=false){return this.invoke('queueItem',[id,append]);}
   clearQuickbuy(){return this.invoke('clearQuickbuy');}
   buyQuick(){return this.invoke('buyQuick');}
+  craftNeutral(artifactId,enchantmentId){return this.invoke('craftNeutral',[artifactId,enchantmentId]);}
+  useGlyph(){return this.invoke('useGlyph');}
+  interactObjective(id){return this.invoke('interactObjective',[id]);}
   setCombineLock(area,index,locked){return this.invoke('setCombineLock',[area,index,locked??!this.player[area+'Meta']?.[index]?.combineLocked],[this.guard(area,index)]);}
   disassembleItem(area,index){return this.invoke('disassembleItem',[area,index],[this.guard(area,index)]);}
   dropItem(area,index,point){return this.invoke('dropItem',[area,index,this.point(point)],[this.guard(area,index)]);}

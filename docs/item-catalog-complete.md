@@ -1,10 +1,10 @@
 # 完整商店目录
 
-目标补丁为 **7.41f**。2026-11-14 再次检查 [Valve 补丁列表](https://www.dota2.com/datafeed/patchnoteslist?language=english)，该接口仍以 7.41f 为最新条目。完整物品快照获取于 2026-10-28。
+目标补丁为 **7.42**。2026-11-21 已核对 Valve 官方补丁和固定客户端 KV，目录与中文 Datafeed 已重新获取。全部逐项改动、接入与边界见 [7.42 物品覆盖](item-742-coverage.md)。
 
 ## 范围与生成
 
-`src/item-records.js` 包含 270 条记录，其中 268 条可购买，包含 80 张收费卷轴。非收费自动配方、中立物品及过时装备不放入购买列表。额外保留已下架短棍的兼容记录，以及不可直接购买的组合眼包装记录。运行时为 85 件可主动使用的物品提供施放处理。
+`src/item-records.js` 包含354条记录，其中274条可购买，含85张收费卷轴。48件活跃中立宝物、19类附魔、3种采菌消耗物与地图奖励单独取得；下架普通装备保留兼容ID并退出商店。短棍已在7.42重新上架。运行时提供118个主动处理（含兼容记录）。
 
 原有项目 ID 保留，例如 `blade` 为阔剑、`arcane` 为魔力法杖、`robe` 为法师长袍。不要凭英文名称猜测 ID。`staffwizardry` 仍作为 `arcane` 别名。
 
@@ -13,7 +13,7 @@
 - [Valve Item List](https://www.dota2.com/datafeed/itemlist?language=english)：名称、物品类别和配方关系。
 - [Valve Item Datafeed](https://www.dota2.com/datafeed/itemdata?language=schinese&item_id=1)：中文说明、价格、属性、施法与充能数值。逐件响应位于 `docs/research/items/full/{id}-schinese.json`。
 - 客户端 KV 快照 `docs/research/items/items.txt`：可购买标记、商店、替代配方、库存、共享、拆分、掉落及背包限制。快照来源链见 [旧物品来源说明](item-shop-sources.md) 与 [属性来源说明](research/attributes-sources.md)。
-- [Valve CDN](https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/blink.png)：270 个本地物品图标；收费卷轴采用官方通用 recipe 图标。
+- [Valve CDN](https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/blink.png)：354个本地物品图标；收费卷轴采用官方通用recipe图标。
 
 完整清单及排除原因位于 `docs/research/items/full-catalog-manifest.json`；提取的 KV 字段位于 `full-items-script.json`；图标 URL 和摘要位于 `full-icons.json`。
 

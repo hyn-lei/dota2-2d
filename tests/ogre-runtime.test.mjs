@@ -8,7 +8,7 @@ import * as Skills from '../src/hero-runtime.js';
 function ogre(ranks=[1,1,1,0]){const a=arena('ogre_magi',ranks);assert.equal(a.p.heroId,'ogre_magi');a.g._random=()=>.99;return a;}
 test('Fireblast respects cast point, rank damage, stun, resource cost and cooldown',()=>{
   const {g,p,e}=ogre();const mana=p.mana;assert.ok(g.cast(0,e).ok);g.step(.44);assert.equal(e.hp,4000);assert.equal(p.mana,mana);
-  g.step(.06);assert.equal(e.hp,3930);assert.equal(p.mana,mana-70);assert.ok(g.isStunned(e));assert.ok(p.cooldowns[0]>10);
+  g.step(.06);assert.equal(e.hp,3900);assert.equal(p.mana,mana-85);assert.ok(g.isStunned(e));assert.ok(p.cooldowns[0]>13);
 });
 test('Multicast repeats actual Fireblast hits on the same target at 0.6 second intervals and pays once',()=>{
   const {g,p,e}=ogre([4,1,1,3]);g._random=()=>0;const mana=p.mana;g.cast(0,e);g.step(.5);assert.equal(e.hp,3750);assert.equal(p.mana,mana-115);
@@ -21,7 +21,7 @@ test('Ignite has two real projectiles and damage only starts after flight',()=>{
 });
 test('Ignite refresh adds burn duration instead of replacing the remaining duration',()=>{
   const {g,p,e}=ogre();g.cast(1,e);g.step(1);const until=e.statuses.ogreIgnite.until;p.cooldowns[1]=0;
-  g.cast(1,e);g.step(1);assert.ok(Math.abs(e.statuses.ogreIgnite.until-until-5)<1e-7);
+  g.cast(1,e);g.step(1);assert.ok(Math.abs(e.statuses.ogreIgnite.until-until-7)<1e-7);
 });
 test('Bloodlust targets allies, self and towers and applies actual attack speed and movement buffs',()=>{
   const {g,p,e}=ogre([1,1,4,0]);const attack=g.combatStats(p).attackSpeed,speed=g.combatStats(p).speed;

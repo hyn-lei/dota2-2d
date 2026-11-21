@@ -1,4 +1,4 @@
-// Generated from Valve 7.41f datafeed + shipped hero KV. See docs/research/abilities-sources.md.
+// Generated from Valve 7.42 datafeed + shipped hero KV. See docs/research/abilities-sources.md.
 export const ABILITIES={
   "axe": [
     {
@@ -7,6 +7,7 @@ export const ABILITIES={
       "name": "狂战士之吼",
       "key": "Q",
       "icon": "roar",
+      "image": "assets/abilities/axe_berserkers_call.png",
       "color": "#9dc0be",
       "kind": "active",
       "maxLevel": 4,
@@ -79,6 +80,9 @@ export const ABILITIES={
           16,
           14,
           12
+        ],
+        "bonus_attack_speed": [
+          0
         ]
       },
       "scaling": {},
@@ -91,6 +95,7 @@ export const ABILITIES={
       "name": "战斗饥渴",
       "key": "W",
       "icon": "hunger",
+      "image": "assets/abilities/axe_battle_hunger.png",
       "color": "#99bda0",
       "kind": "active",
       "maxLevel": 4,
@@ -141,10 +146,10 @@ export const ABILITIES={
           12
         ],
         "slow": [
-          18,
+          16,
+          19,
           22,
-          26,
-          30
+          25
         ],
         "damage_per_second": [
           12,
@@ -152,7 +157,9 @@ export const ABILITIES={
           20,
           24
         ],
-        "speed_bonus": [],
+        "speed_bonus": [
+          0
+        ],
         "should_stack": [
           0
         ],
@@ -188,6 +195,7 @@ export const ABILITIES={
       "name": "反击螺旋",
       "key": "E",
       "icon": "helix",
+      "image": "assets/abilities/axe_counter_helix.png",
       "color": "#d1b47e",
       "kind": "passive",
       "maxLevel": 4,
@@ -249,7 +257,9 @@ export const ABILITIES={
         "attacks_increase_counter": [
           0
         ],
-        "helix_lifesteal": [],
+        "helix_lifesteal": [
+          0
+        ],
         "AbilityCooldown": [
           0.3
         ]
@@ -264,6 +274,7 @@ export const ABILITIES={
       "name": "淘汰之刃",
       "key": "R",
       "icon": "axe",
+      "image": "assets/abilities/axe_culling_blade.png",
       "color": "#8ebcca",
       "kind": "active",
       "maxLevel": 3,
@@ -307,9 +318,7 @@ export const ABILITIES={
           475
         ],
         "speed_bonus": [
-          20,
-          25,
-          30
+          25
         ],
         "armor_bonus": [
           10,
@@ -359,6 +368,7 @@ export const ABILITIES={
       "name": "冰霜新星",
       "key": "Q",
       "icon": "snow",
+      "image": "assets/abilities/crystal_maiden_crystal_nova.png",
       "color": "#9dc0be",
       "kind": "active",
       "maxLevel": 4,
@@ -446,6 +456,15 @@ export const ABILITIES={
           10,
           9,
           8
+        ],
+        "physical_barrier_amount": [
+          0
+        ],
+        "physical_barrier_self_amount": [
+          0
+        ],
+        "physical_barrier_duration": [
+          0
         ]
       },
       "scaling": {},
@@ -458,6 +477,7 @@ export const ABILITIES={
       "name": "冰封禁制",
       "key": "W",
       "icon": "crystal",
+      "image": "assets/abilities/crystal_maiden_frostbite.png",
       "color": "#99bda0",
       "kind": "active",
       "maxLevel": 4,
@@ -545,6 +565,7 @@ export const ABILITIES={
       "name": "奥术光环",
       "key": "E",
       "icon": "aura",
+      "image": "assets/abilities/crystal_maiden_brilliance_aura.png",
       "color": "#d1b47e",
       "kind": "passive",
       "maxLevel": 4,
@@ -614,6 +635,7 @@ export const ABILITIES={
       "name": "极寒领域",
       "key": "R",
       "icon": "storm",
+      "image": "assets/abilities/crystal_maiden_freezing_field.png",
       "color": "#8ebcca",
       "kind": "active",
       "maxLevel": 3,
@@ -623,13 +645,13 @@ export const ABILITIES={
         18
       ],
       "cooldowns": [
+        110,
         100,
-        95,
         90
       ],
       "manaCosts": [
-        200,
-        400,
+        250,
+        425,
         600
       ],
       "castRanges": [
@@ -681,8 +703,8 @@ export const ABILITIES={
           785
         ],
         "damage": [
-          110,
-          180,
+          130,
+          190,
           250
         ],
         "frostbite_delay": [
@@ -704,14 +726,23 @@ export const ABILITIES={
           10
         ],
         "AbilityManaCost": [
-          200,
-          400,
+          250,
+          425,
           600
         ],
         "AbilityCooldown": [
+          110,
           100,
-          95,
           90
+        ],
+        "AbilityCastPoint": [
+          0
+        ],
+        "self_cast_range_bonus": [
+          0
+        ],
+        "aoe_bonus": [
+          0
         ]
       },
       "scaling": {},
@@ -726,6 +757,7 @@ export const ABILITIES={
       "name": "剑刃风暴",
       "key": "Q",
       "icon": "spin",
+      "image": "assets/abilities/juggernaut_blade_fury.png",
       "color": "#9dc0be",
       "kind": "active",
       "maxLevel": 4,
@@ -781,7 +813,12 @@ export const ABILITIES={
         "duration": [
           5
         ],
-        "bonus_movespeed": [],
+        "bonus_movespeed": [
+          0
+        ],
+        "scepter_attack_damage_pct": [
+          0
+        ],
         "immunity_resist": [
           80
         ],
@@ -793,10 +830,19 @@ export const ABILITIES={
           26,
           22,
           18
+        ],
+        "movement_slow": [
+          0
+        ],
+        "can_crit": [
+          0
+        ],
+        "blade_fury_outer_radius": [
+          0
         ]
       },
       "scaling": {},
-      "description": "舞起具有破坏性力量的剑刃风暴，使主宰获得减益免疫状态，魔法抗性提升80%，并且每0.2秒对主宰周围的敌方单位造成伤害。旋转结束时施加强驱散效果。",
+      "description": "舞起具有破坏性力量的剑刃风暴，使主宰获得减益免疫状态，魔法抗性提升80%，并且每0.2秒对主宰周围的敌方单位造成伤害。旋转开始和结束时施加弱驱散效果。\n\n驱散类型：弱驱散",
       "damageType": "magical"
     },
     {
@@ -805,6 +851,7 @@ export const ABILITIES={
       "name": "治疗守卫",
       "key": "W",
       "icon": "heal",
+      "image": "assets/abilities/juggernaut_healing_ward.png",
       "color": "#99bda0",
       "kind": "active",
       "maxLevel": 4,
@@ -892,6 +939,7 @@ export const ABILITIES={
       "name": "剑舞",
       "key": "E",
       "icon": "swords",
+      "image": "assets/abilities/juggernaut_blade_dance.png",
       "color": "#d1b47e",
       "kind": "passive",
       "maxLevel": 4,
@@ -935,7 +983,9 @@ export const ABILITIES={
           180,
           200
         ],
-        "blade_dance_lifesteal": []
+        "blade_dance_lifesteal": [
+          0
+        ]
       },
       "scaling": {},
       "description": "主宰有一定概率在攻击时触发致命一击。",
@@ -947,6 +997,7 @@ export const ABILITIES={
       "name": "无敌斩",
       "key": "R",
       "icon": "swords",
+      "image": "assets/abilities/juggernaut_omni_slash.png",
       "color": "#8ebcca",
       "kind": "active",
       "maxLevel": 3,
@@ -1016,10 +1067,13 @@ export const ABILITIES={
         ],
         "AbilityCooldown": [
           120
+        ],
+        "dispel": [
+          0
         ]
       },
       "scaling": {},
-      "description": "主宰挥剑跃向敌方目标单位，随后再以更短的攻击频率斩击该单位和附近的其它敌方单位。主宰在无敌斩期间无敌。\n\n驱散类型：弱驱散",
+      "description": "主宰挥剑跃向敌方目标单位，对其进行斩击。主宰会持续跃向附近的随机敌人（包括之前斩击过的敌人），直到持续时间结束或附近没有敌人。跃击频率取决于主宰的攻击速度。主宰在无敌斩期间为无敌，并拥有更高的攻击速度。\n\n驱散类型：弱驱散",
       "damageType": "physical"
     }
   ],
@@ -1030,6 +1084,7 @@ export const ABILITIES={
       "name": "束缚击",
       "key": "Q",
       "icon": "target",
+      "image": "assets/abilities/windrunner_shackleshot.png",
       "color": "#9dc0be",
       "kind": "active",
       "maxLevel": 4,
@@ -1132,6 +1187,7 @@ export const ABILITIES={
       "name": "强力击",
       "key": "W",
       "icon": "arrow",
+      "image": "assets/abilities/windrunner_powershot.png",
       "color": "#99bda0",
       "kind": "active",
       "maxLevel": 4,
@@ -1208,8 +1264,12 @@ export const ABILITIES={
         "vision_duration": [
           3.34
         ],
-        "min_execute_threshold": [],
-        "max_execute_threshold": [],
+        "min_execute_threshold": [
+          0
+        ],
+        "max_execute_threshold": [
+          0
+        ],
         "AbilityCastRange": [
           3000
         ],
@@ -1239,6 +1299,7 @@ export const ABILITIES={
       "name": "风行",
       "key": "E",
       "icon": "wind",
+      "image": "assets/abilities/windrunner_windrun.png",
       "color": "#d1b47e",
       "kind": "active",
       "maxLevel": 4,
@@ -1305,6 +1366,9 @@ export const ABILITIES={
           13,
           12,
           11
+        ],
+        "cannot_be_dispelled": [
+          0
         ]
       },
       "scaling": {},
@@ -1317,6 +1381,7 @@ export const ABILITIES={
       "name": "集中火力",
       "key": "R",
       "icon": "target",
+      "image": "assets/abilities/windrunner_focusfire.png",
       "color": "#8ebcca",
       "kind": "active",
       "maxLevel": 3,
@@ -1367,10 +1432,13 @@ export const ABILITIES={
           0
         ],
         "focusfire_damage_reduction": [
-          -25
+          -18
         ],
         "focusfire_fire_on_the_move": [
           1
+        ],
+        "focusfire_attack_effectiveness": [
+          75
         ],
         "process_procs": [
           1
@@ -1403,7 +1471,7 @@ export const ABILITIES={
         ]
       },
       "scaling": {},
-      "description": "风行者受风的引领，攻击敌方单位或建筑的攻击速度增加350/425/500，但是攻击力降低。不过次级物品效果的额外伤害不会降低。",
+      "description": "风行者受风的引领，攻击敌方单位或建筑的攻击速度增加350/425/500，但是攻击力和物品威力降低。",
       "damageType": "magical"
     }
   ],
@@ -1414,6 +1482,7 @@ export const ABILITIES={
       "name": "洪流",
       "key": "Q",
       "icon": "torrent",
+      "image": "assets/abilities/kunkka_torrent.png",
       "color": "#9dc0be",
       "kind": "active",
       "maxLevel": 4,
@@ -1492,6 +1561,9 @@ export const ABILITIES={
           14,
           12,
           10
+        ],
+        "percent_instant": [
+          0
         ]
       },
       "scaling": {},
@@ -1504,6 +1576,7 @@ export const ABILITIES={
       "name": "潮汐使者",
       "key": "W",
       "icon": "tide",
+      "image": "assets/abilities/kunkka_tidebringer.png",
       "color": "#99bda0",
       "kind": "autocast",
       "maxLevel": 4,
@@ -1568,19 +1641,32 @@ export const ABILITIES={
         "cleave_damage": [
           150
         ],
-        "movespeed_slow": [],
-        "movespeed_slow_duration": [],
-        "pierces_armor": [],
+        "movespeed_slow": [
+          0
+        ],
+        "movespeed_slow_duration": [
+          0
+        ],
+        "pierces_armor": [
+          0
+        ],
         "AbilityCastRange": [
           150
         ],
-        "AbilityCharges": [],
-        "AbilityChargeRestoreTime": [],
+        "AbilityCharges": [
+          0
+        ],
+        "AbilityChargeRestoreTime": [
+          0
+        ],
         "AbilityCooldown": [
           13,
           10,
           7,
           4
+        ],
+        "cooldown_reduction_per_hero_hit": [
+          0
         ]
       },
       "scaling": {},
@@ -1593,6 +1679,7 @@ export const ABILITIES={
       "name": "X标记",
       "key": "E",
       "icon": "xmark",
+      "image": "assets/abilities/kunkka_x_marks_the_spot.png",
       "color": "#d1b47e",
       "kind": "active",
       "maxLevel": 4,
@@ -1612,9 +1699,9 @@ export const ABILITIES={
         50
       ],
       "castRanges": [
-        550,
-        700,
-        850,
+        675,
+        750,
+        875,
         1000
       ],
       "castPoints": [
@@ -1661,9 +1748,9 @@ export const ABILITIES={
           35
         ],
         "AbilityCastRange": [
-          550,
-          700,
-          850,
+          675,
+          750,
+          875,
           1000
         ],
         "AbilityCastPoint": [
@@ -1677,6 +1764,12 @@ export const ABILITIES={
           20,
           16,
           12
+        ],
+        "ally_ms": [
+          0
+        ],
+        "ally_armor": [
+          0
         ]
       },
       "scaling": {},
@@ -1689,6 +1782,7 @@ export const ABILITIES={
       "name": "幽灵船",
       "key": "R",
       "icon": "ship",
+      "image": "assets/abilities/kunkka_ghostship.png",
       "color": "#8ebcca",
       "kind": "active",
       "maxLevel": 3,
@@ -1721,8 +1815,8 @@ export const ABILITIES={
       ],
       "damages": [
         350,
-        475,
-        600
+        450,
+        550
       ],
       "values": {
         "tooltip_delay": [
@@ -1773,6 +1867,9 @@ export const ABILITIES={
         "cannon_fire_interval": [
           0
         ],
+        "forward_cannon_count": [
+          0
+        ],
         "base_cannon_rotation": [
           20
         ],
@@ -1787,8 +1884,8 @@ export const ABILITIES={
         ],
         "AbilityDamage": [
           350,
-          475,
-          600
+          450,
+          550
         ],
         "AbilityCastRange": [
           1000
@@ -1819,6 +1916,7 @@ export const ABILITIES={
       "name": "火焰爆轰",
       "key": "Q",
       "icon": "fire",
+      "image": "assets/abilities/ogre_magi_fireblast.png",
       "color": "#9dc0be",
       "kind": "active",
       "maxLevel": 4,
@@ -1829,15 +1927,15 @@ export const ABILITIES={
         7
       ],
       "cooldowns": [
-        11,
+        14,
+        12,
         10,
-        9,
         8
       ],
       "manaCosts": [
-        70,
         85,
-        100,
+        95,
+        105,
         115
       ],
       "castRanges": [
@@ -1866,9 +1964,9 @@ export const ABILITIES={
           0.6
         ],
         "fireblast_damage": [
-          70,
-          130,
-          190,
+          100,
+          150,
+          200,
           250
         ],
         "fireblast_proc": [],
@@ -1882,15 +1980,15 @@ export const ABILITIES={
           0.45
         ],
         "AbilityManaCost": [
-          70,
           85,
-          100,
+          95,
+          105,
           115
         ],
         "AbilityCooldown": [
-          11,
+          14,
+          12,
           10,
-          9,
           8
         ]
       },
@@ -1910,6 +2008,7 @@ export const ABILITIES={
       "name": "引燃",
       "key": "W",
       "icon": "fire",
+      "image": "assets/abilities/ogre_magi_ignite.png",
       "color": "#99bda0",
       "kind": "active",
       "maxLevel": 4,
@@ -1951,16 +2050,13 @@ export const ABILITIES={
       ],
       "values": {
         "duration": [
-          5,
-          6,
-          7,
-          8
+          7
         ],
         "burn_damage": [
-          20,
-          30,
+          10,
+          25,
           40,
-          50
+          55
         ],
         "slow_movement_speed_pct": [
           -25
@@ -2010,6 +2106,7 @@ export const ABILITIES={
       "name": "嗜血术",
       "key": "E",
       "icon": "roar",
+      "image": "assets/abilities/ogre_magi_bloodlust.png",
       "color": "#d1b47e",
       "kind": "autocast",
       "maxLevel": 4,
@@ -2112,6 +2209,7 @@ export const ABILITIES={
       "name": "多重施法",
       "key": "R",
       "icon": "aura",
+      "image": "assets/abilities/ogre_magi_multicast.png",
       "color": "#8ebcca",
       "kind": "passive",
       "maxLevel": 3,
@@ -2182,6 +2280,7 @@ export const ABILITIES={
       "name": "霜冻之箭",
       "key": "Q",
       "icon": "snow",
+      "image": "assets/abilities/drow_ranger_frost_arrows.png",
       "color": "#9dc0be",
       "kind": "autocast",
       "maxLevel": 4,
@@ -2290,6 +2389,7 @@ export const ABILITIES={
       "name": "狂风",
       "key": "W",
       "icon": "wind",
+      "image": "assets/abilities/drow_ranger_wave_of_silence.png",
       "color": "#99bda0",
       "kind": "active",
       "maxLevel": 4,
@@ -2300,10 +2400,10 @@ export const ABILITIES={
         7
       ],
       "cooldowns": [
-        19,
-        17,
-        15,
-        13
+        18,
+        16,
+        14,
+        12
       ],
       "manaCosts": [
         55
@@ -2370,10 +2470,10 @@ export const ABILITIES={
           55
         ],
         "AbilityCooldown": [
-          19,
-          17,
-          15,
-          13
+          18,
+          16,
+          14,
+          12
         ],
         "knockback_height": [
           0
@@ -2394,6 +2494,7 @@ export const ABILITIES={
       "name": "数箭齐发",
       "key": "E",
       "icon": "arrow",
+      "image": "assets/abilities/drow_ranger_multishot.png",
       "color": "#d1b47e",
       "kind": "active",
       "maxLevel": 4,
@@ -2500,6 +2601,7 @@ export const ABILITIES={
       "name": "射手天赋",
       "key": "R",
       "icon": "target",
+      "image": "assets/abilities/drow_ranger_marksmanship.png",
       "color": "#8ebcca",
       "kind": "passive",
       "maxLevel": 3,
@@ -2539,8 +2641,8 @@ export const ABILITIES={
           40
         ],
         "bonus_damage": [
-          50,
-          70,
+          60,
+          75,
           90
         ],
         "disable_range": [
@@ -2565,6 +2667,7 @@ export const ABILITIES={
       "name": "赎罪",
       "key": "Q",
       "icon": "target",
+      "image": "assets/abilities/chen_penitence.png",
       "color": "#9dc0be",
       "kind": "active",
       "maxLevel": 4,
@@ -2630,10 +2733,10 @@ export const ABILITIES={
           80
         ],
         "damage": [
-          50,
-          100,
-          150,
-          200
+          60,
+          120,
+          180,
+          240
         ],
         "AbilityCastRange": [
           800
@@ -2671,6 +2774,7 @@ export const ABILITIES={
       "name": "神圣劝化",
       "key": "W",
       "icon": "aura",
+      "image": "assets/abilities/chen_holy_persuasion.png",
       "color": "#99bda0",
       "kind": "active",
       "maxLevel": 4,
@@ -2720,26 +2824,11 @@ export const ABILITIES={
           5,
           6
         ],
-        "health_min": [
-          400
-        ],
         "gold_pct": [
           25,
           50,
           75,
           100
-        ],
-        "movement_speed_bonus": [
-          5,
-          10,
-          20,
-          30
-        ],
-        "damage_bonus": [
-          5,
-          10,
-          15,
-          20
         ],
         "creep_ability_level": [
           0
@@ -2749,6 +2838,12 @@ export const ABILITIES={
         ],
         "unsummon_cooldown_reduction": [
           12
+        ],
+        "teleport_delay": [
+          6,
+          5,
+          4,
+          3
         ],
         "AbilityCastRange": [
           600
@@ -2765,24 +2860,18 @@ export const ABILITIES={
         "AbilityCooldown": [
           15
         ],
-        "is_martyr": [
-          0
-        ],
         "current_hp_pct_tooltip": [
           0
         ]
       },
-      "scaling": {
-        "health_min": 50
-      },
-      "description": "陈控制住敌方小兵或者中立生物，并获得击杀金钱一定百分比的金钱。被劝化目标的最大生命值会被设为400。被劝化的单位将提升移动速度和伤害输出。陈自己的单位如果在3秒内未受到伤害可以在全地图范围内成为技能的目标，施放后取消劝化。",
+      "scaling": {},
+      "description": "陈控制住敌方小兵或者中立生物，并获得其击杀金钱的一定百分比。陈自己的单位如果在3秒内未受到伤害可以在全地图范围内成为技能的目标，施放后取消劝化。对陈自身施放神圣劝化会把他控制的所有非英雄单位在一定延迟后传送到他身边。受到来自敌方英雄或其单位的伤害会中止传送。",
       "damageType": "magical",
       "targetTeam": "DOTA_UNIT_TARGET_TEAM_BOTH",
       "targetFlags": "",
       "notes": [
         "如果达到劝化生物的数量上限后再劝化生物，最早劝化的单位将立即死亡。",
         "拥有阿哈利姆魔晶后可以对远古中立生物施放本技能。",
-        "升级此技能后在升级前劝化的单位并不会增加生命值。",
         "劝化时单位的魔法恢复至满魔。"
       ]
     },
@@ -2792,6 +2881,7 @@ export const ABILITIES={
       "name": "神力恩泽",
       "key": "E",
       "icon": "heal",
+      "image": "assets/abilities/chen_divine_favor.png",
       "color": "#d1b47e",
       "kind": "active",
       "maxLevel": 4,
@@ -2889,6 +2979,7 @@ export const ABILITIES={
       "name": "上帝之手",
       "key": "R",
       "icon": "heal",
+      "image": "assets/abilities/chen_hand_of_god.png",
       "color": "#8ebcca",
       "kind": "active",
       "maxLevel": 3,
@@ -2980,6 +3071,382 @@ export const ABILITIES={
         "可以治疗无敌和被隐藏/放逐友军。"
       ]
     }
+  ],
+  "chaos_knight": [
+    {
+      "id": "chaos_knight_chaos_bolt",
+      "sourceID": 5426,
+      "name": "混乱之箭",
+      "key": "Q",
+      "icon": "fire",
+      "image": "assets/abilities/chaos_knight_chaos_bolt.png",
+      "color": "#9dc0be",
+      "kind": "active",
+      "maxLevel": 4,
+      "requiredLevels": [
+        1,
+        3,
+        5,
+        7
+      ],
+      "cooldowns": [
+        13,
+        12,
+        11,
+        10
+      ],
+      "manaCosts": [
+        110
+      ],
+      "castRanges": [
+        600
+      ],
+      "castPoints": [
+        0.4,
+        0.4,
+        0.4,
+        0.4
+      ],
+      "channelTimes": [
+        0
+      ],
+      "durations": [
+        0
+      ],
+      "damages": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "values": {
+        "chaos_bolt_speed": [
+          900
+        ],
+        "stun_min": [
+          1.25,
+          1.5,
+          1.75,
+          2
+        ],
+        "stun_max": [
+          1.75,
+          2.25,
+          2.75,
+          3.25
+        ],
+        "damage_min": [
+          90,
+          120,
+          150,
+          180
+        ],
+        "damage_max": [
+          155,
+          240,
+          325,
+          410
+        ],
+        "fake_bolt_distance": [
+          675
+        ],
+        "illusion_duration": [
+          0
+        ],
+        "illusion_effectiveness": [
+          0
+        ],
+        "illusion_damage_reduction_pct": [
+          0
+        ],
+        "AbilityCastRange": [
+          600
+        ],
+        "AbilityCastPoint": [
+          0.4
+        ],
+        "AbilityManaCost": [
+          110
+        ],
+        "AbilityCooldown": [
+          13,
+          12,
+          11,
+          10
+        ],
+        "bounce_range_pct": [
+          0
+        ]
+      },
+      "scaling": {},
+      "description": "对目标单位投掷一支神秘的能量箭。造成随机时间的眩晕和随机的伤害。",
+      "damageType": "magical"
+    },
+    {
+      "id": "chaos_knight_reality_rift",
+      "sourceID": 5427,
+      "name": "实相裂隙",
+      "key": "W",
+      "icon": "xmark",
+      "image": "assets/abilities/chaos_knight_reality_rift.png",
+      "color": "#99bda0",
+      "kind": "active",
+      "maxLevel": 4,
+      "requiredLevels": [
+        1,
+        3,
+        5,
+        7
+      ],
+      "cooldowns": [
+        15,
+        12,
+        9,
+        6
+      ],
+      "manaCosts": [
+        50
+      ],
+      "castRanges": [
+        600,
+        650,
+        700,
+        750
+      ],
+      "castPoints": [
+        0.25
+      ],
+      "channelTimes": [
+        0
+      ],
+      "durations": [
+        0
+      ],
+      "damages": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "values": {
+        "pull_distance": [
+          300,
+          350,
+          400,
+          450
+        ],
+        "armor_reduction": [
+          4,
+          5,
+          6,
+          7
+        ],
+        "duration": [
+          6
+        ],
+        "pierces_immunity": [
+          0
+        ],
+        "AbilityCastRange": [
+          600,
+          650,
+          700,
+          750
+        ],
+        "AbilityCastPoint": [
+          0.25
+        ],
+        "AbilityManaCost": [
+          50
+        ],
+        "AbilityCooldown": [
+          15,
+          12,
+          9,
+          6
+        ],
+        "additional_debuff_duration_percent": [
+          0
+        ],
+        "additional_debuff_duration_tooltip": [
+          0
+        ]
+      },
+      "scaling": {},
+      "description": "将混沌骑士及混沌骑士的幻象和目标单位传送到混沌骑士与目标连线上的一点。降低敌方单位的护甲，持续6秒。",
+      "damageType": "magical"
+    },
+    {
+      "id": "chaos_knight_chaos_strike",
+      "sourceID": 5428,
+      "name": "混沌一击",
+      "key": "E",
+      "icon": "swords",
+      "image": "assets/abilities/chaos_knight_chaos_strike.png",
+      "color": "#d1b47e",
+      "kind": "passive",
+      "maxLevel": 4,
+      "requiredLevels": [
+        1,
+        3,
+        5,
+        7
+      ],
+      "cooldowns": [
+        0
+      ],
+      "manaCosts": [
+        0
+      ],
+      "castRanges": [
+        0
+      ],
+      "castPoints": [
+        0
+      ],
+      "channelTimes": [
+        0
+      ],
+      "durations": [
+        0
+      ],
+      "damages": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "values": {
+        "chance": [
+          33.33
+        ],
+        "crit_min": [
+          120
+        ],
+        "crit_max": [
+          150,
+          190,
+          230,
+          270
+        ],
+        "lifesteal": [
+          30,
+          40,
+          50,
+          60
+        ],
+        "creep_multiplier": [
+          1
+        ]
+      },
+      "scaling": {},
+      "description": "混沌骑士和他的幻象在攻击时有几率造成威力不一的致命一击，并且触发时具有吸血效果。",
+      "damageType": "magical"
+    },
+    {
+      "id": "chaos_knight_phantasm",
+      "sourceID": 5429,
+      "name": "混沌之军",
+      "key": "R",
+      "icon": "swords",
+      "image": "assets/abilities/chaos_knight_phantasm.png",
+      "color": "#8ebcca",
+      "kind": "active",
+      "maxLevel": 3,
+      "requiredLevels": [
+        6,
+        12,
+        18
+      ],
+      "cooldowns": [
+        85,
+        80,
+        75
+      ],
+      "manaCosts": [
+        100,
+        200,
+        300
+      ],
+      "castRanges": [
+        0
+      ],
+      "castPoints": [
+        0.4,
+        0.4,
+        0.4
+      ],
+      "channelTimes": [
+        0
+      ],
+      "durations": [
+        0
+      ],
+      "damages": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "values": {
+        "images_count": [
+          3
+        ],
+        "illusion_effectiveness": [
+          100
+        ],
+        "illusion_duration": [
+          30
+        ],
+        "outgoing_damage": [
+          -40,
+          -20,
+          0
+        ],
+        "outgoing_damage_tooltip": [
+          60,
+          80,
+          100
+        ],
+        "incoming_damage": [
+          250
+        ],
+        "incoming_damage_tooltip": [
+          350
+        ],
+        "invuln_duration": [
+          0.5
+        ],
+        "vision_radius": [
+          400
+        ],
+        "bonus_illusion_chance": [
+          0
+        ],
+        "bonus_illusion_count": [
+          0
+        ],
+        "AbilityCastPoint": [
+          0.4
+        ],
+        "AbilityManaCost": [
+          100,
+          200,
+          300
+        ],
+        "AbilityCooldown": [
+          85,
+          80,
+          75
+        ],
+        "magic_resistance": [
+          0
+        ]
+      },
+      "scaling": {},
+      "description": "从其他维度召唤若干个混沌骑士的幻象。幻象继承60/80/100%攻击力，但是承受350%伤害。\n驱散类型：弱驱散",
+      "damageType": "magical"
+    }
   ]
 };
 export const INNATES={
@@ -2989,6 +3456,7 @@ export const INNATES={
     "name": "一人之军",
     "key": "",
     "icon": "aura",
+    "image": "assets/abilities/axe_one_man_army.png",
     "color": "#b9c19a",
     "kind": "innate",
     "maxLevel": 1,
@@ -3046,6 +3514,7 @@ export const INNATES={
     "name": "冰川护体",
     "key": "",
     "icon": "aura",
+    "image": "assets/abilities/crystal_maiden_glacial_guard.png",
     "color": "#b9c19a",
     "kind": "innate",
     "maxLevel": 1,
@@ -3099,6 +3568,7 @@ export const INNATES={
     "name": "剑心犹在",
     "key": "",
     "icon": "aura",
+    "image": "assets/abilities/juggernaut_bladeform.png",
     "color": "#b9c19a",
     "kind": "innate",
     "maxLevel": 1,
@@ -3161,6 +3631,7 @@ export const INNATES={
     "name": "一路顺风",
     "key": "",
     "icon": "aura",
+    "image": "assets/abilities/windrunner_tailwind.png",
     "color": "#b9c19a",
     "kind": "innate",
     "maxLevel": 1,
@@ -3221,6 +3692,7 @@ export const INNATES={
     "name": "统帅朗姆酒",
     "key": "",
     "icon": "aura",
+    "image": "assets/abilities/kunkka_admirals_rum.png",
     "color": "#b9c19a",
     "kind": "innate",
     "maxLevel": 1,
@@ -3284,6 +3756,7 @@ export const INNATES={
     "name": "傻福",
     "key": "",
     "icon": "aura",
+    "image": "assets/abilities/ogre_magi_dumb_luck.png",
     "color": "#b9c19a",
     "kind": "innate",
     "maxLevel": 1,
@@ -3346,6 +3819,7 @@ export const INNATES={
     "name": "精准光环",
     "key": "",
     "icon": "aura",
+    "image": "assets/abilities/drow_ranger_trueshot.png",
     "color": "#b9c19a",
     "kind": "innate",
     "maxLevel": 1,
@@ -3404,6 +3878,7 @@ export const INNATES={
     "name": "狂热者",
     "key": "",
     "icon": "aura",
+    "image": "assets/abilities/chen_zealot.png",
     "color": "#b9c19a",
     "kind": "innate",
     "maxLevel": 1,
@@ -3414,10 +3889,10 @@ export const INNATES={
       7
     ],
     "cooldowns": [
-      10
+      60
     ],
     "manaCosts": [
-      50
+      0
     ],
     "castRanges": [
       0
@@ -3441,8 +3916,14 @@ export const INNATES={
       "zealots": [
         1
       ],
-      "zealot_respawn_time": [
-        60
+      "health_min": [
+        400
+      ],
+      "movement_speed_bonus": [
+        5
+      ],
+      "damage_bonus": [
+        5
       ],
       "damage": [
         0
@@ -3450,29 +3931,143 @@ export const INNATES={
       "bonus_hp": [
         0
       ],
-      "teleport_delay": [
-        6
-      ],
       "AbilityCastPoint": [
         0.3
+      ],
+      "AbilityCooldown": [
+        60
+      ]
+    },
+    "scaling": {
+      "AbilityCooldown": -1,
+      "health_min": 50,
+      "movement_speed_bonus": 2,
+      "damage_bonus": 2,
+      "damage": 2
+    },
+    "description": "被动为陈控制下的非英雄单位提供额外生命值、攻击力和移动速度。陈可以祝圣他控制下的单位，将其转化为祝圣狂热者，使其获得额外基础攻击力和殉道技能。祝圣狂热者不再被秒杀非英雄单位的技能秒杀。主动使用本技能会使当前祝圣狂热者复活。比赛开始时会有一个近战线上小兵作为祝圣狂热者。",
+    "damageType": "magical",
+    "targetFlags": "",
+    "notes": [
+      "同一时间只能存在一个狂热者。"
+    ]
+  },
+  "chaos_knight": {
+    "id": "chaos_knight_armageddon",
+    "sourceID": 1910,
+    "name": "天劫前进",
+    "key": "",
+    "icon": "aura",
+    "image": "assets/abilities/chaos_knight_armageddon.png",
+    "color": "#b9c19a",
+    "kind": "innate",
+    "maxLevel": 1,
+    "requiredLevels": [
+      1,
+      3,
+      5,
+      7
+    ],
+    "cooldowns": [
+      30
+    ],
+    "manaCosts": [
+      50
+    ],
+    "castRanges": [
+      0
+    ],
+    "castPoints": [
+      0.4
+    ],
+    "channelTimes": [
+      0
+    ],
+    "durations": [
+      0
+    ],
+    "damages": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "values": {
+      "speed_per_second": [
+        5
+      ],
+      "drain_rate_multiplier": [
+        4
+      ],
+      "think_interval": [
+        0.1
+      ],
+      "max_bonus_speed": [
+        20
+      ],
+      "charge_speed_multiplier": [
+        2
+      ],
+      "current_max_charge_speed": [
+        0
+      ],
+      "charge_accel_time": [
+        0.5
+      ],
+      "charge_decel_time": [
+        0.5
+      ],
+      "illusion_radius": [
+        1300
+      ],
+      "turn_rate": [
+        25
+      ],
+      "hit_radius": [
+        150
+      ],
+      "formation_spacing": [
+        130
+      ],
+      "formation_jitter": [
+        60
+      ],
+      "formation_width": [
+        100
+      ],
+      "run_animation_rate": [
+        1.8
+      ],
+      "max_charge_time": [
+        1
+      ],
+      "windup_turn_rate": [
+        120
+      ],
+      "attack_while_charging": [
+        1
+      ],
+      "jump_distance": [
+        500
+      ],
+      "jump_height": [
+        160
+      ],
+      "AbilityCastPoint": [
+        0.4
       ],
       "AbilityManaCost": [
         50
       ],
       "AbilityCooldown": [
-        10
+        30
       ]
     },
     "scaling": {
-      "zealot_respawn_time": -1,
-      "damage": 2
+      "max_bonus_speed": 2
     },
-    "description": "陈复活时都会带着一个狂热者加入战斗，这是近战小兵战士，可以牺牲自己治疗友军，或者对敌人造成伤害。狂热者会获得神圣劝化的加成效果，并且和其他线上近战小兵一样随着游戏时间的增加提升属性，获得额外基础攻击力。狂热者会在陈身边复活。狂热者技能可以主动使用，在6秒延迟后把控制下的目标单位传送到陈的身边。如果陈是技能的目标，将传送控制的所有单位。受到来自敌方英雄及其单位的伤害会中止传送过程。",
-    "damageType": "magical",
-    "targetTeam": "DOTA_UNIT_TARGET_TEAM_FRIENDLY",
-    "targetType": "DOTA_UNIT_TARGET_HERO | DOTA_UNIT_TARGET_CREEP",
-    "targetFlags": "DOTA_UNIT_TARGET_FLAG_NOT_CREEP_HERO",
-    "notes": []
+    "description": "混沌骑士每持续移动一秒并且不停下或攻击，天劫就会获得移动速度加成。加成效果在停下时会逐渐消失，攻击则会失去加成。混沌骑士的混沌之军至少有一个存活时，天劫前进可以主动使用，跨越地形冲锋，在释放前提升至最大速度。混沌骑士及其幻象会攻击冲过的单位。",
+    "damageType": "physical"
   }
 };
 export const TALENTS={
@@ -3571,12 +4166,12 @@ export const TALENTS={
       "sourceID": 6608,
       "index": 6,
       "requiredLevel": 25,
-      "name": "+85 狂战士之吼范围",
+      "name": "+70 狂战士之吼范围",
       "effects": [
         {
           "abilityId": "axe_berserkers_call",
           "field": "radius",
-          "value": 85,
+          "value": 70,
           "operation": 0
         }
       ]
@@ -3676,12 +4271,12 @@ export const TALENTS={
       "sourceID": 6520,
       "index": 5,
       "requiredLevel": 20,
-      "name": "+50 极寒领域伤害",
+      "name": "+45 极寒领域伤害",
       "effects": [
         {
           "abilityId": "crystal_maiden_freezing_field",
           "field": "damage",
-          "value": 50,
+          "value": 45,
           "operation": 0
         }
       ]
@@ -3794,17 +4389,17 @@ export const TALENTS={
       ]
     },
     {
-      "id": "special_bonus_unique_juggernaut",
-      "sourceID": 6105,
+      "id": "special_bonus_unique_juggernaut_blade_fury_cooldown",
+      "sourceID": 1150,
       "index": 5,
       "requiredLevel": 20,
-      "name": "+120 剑刃风暴每秒伤害",
+      "name": "-3秒 剑刃风暴冷却",
       "effects": [
         {
           "abilityId": "juggernaut_blade_fury",
-          "field": "blade_fury_damage",
-          "value": 120,
-          "operation": 0
+          "field": "AbilityCooldown",
+          "value": 3,
+          "operation": 2
         }
       ]
     },
@@ -3920,12 +4515,12 @@ export const TALENTS={
       "sourceID": 7889,
       "index": 5,
       "requiredLevel": 20,
-      "name": "-10% 集中火力降低攻击力",
+      "name": "-8% 集中火力降低攻击力",
       "effects": [
         {
           "abilityId": "windrunner_focusfire",
           "field": "focusfire_damage_reduction",
-          "value": 10,
+          "value": 8,
           "operation": 0
         }
       ]
@@ -4030,12 +4625,12 @@ export const TALENTS={
       "sourceID": 6385,
       "index": 3,
       "requiredLevel": 15,
-      "name": "+75 潮汐使者攻击力",
+      "name": "+80 潮汐使者攻击力",
       "effects": [
         {
           "abilityId": "kunkka_tidebringer",
           "field": "damage_bonus",
-          "value": 75,
+          "value": 80,
           "operation": 0
         }
       ]
@@ -4071,15 +4666,15 @@ export const TALENTS={
       ]
     },
     {
-      "id": "special_bonus_spell_aoe_100",
-      "sourceID": 1446,
+      "id": "special_bonus_spell_aoe_75",
+      "sourceID": 1445,
       "index": 6,
       "requiredLevel": 25,
-      "name": "+100 技能作用范围",
+      "name": "+75 技能作用范围",
       "effects": [
         {
           "stat": "spellAoE",
-          "value": 100,
+          "value": 75,
           "operation": 0
         }
       ]
@@ -4121,12 +4716,12 @@ export const TALENTS={
       "sourceID": 1181,
       "index": 1,
       "requiredLevel": 10,
-      "name": "+2/0.01 傻福力量提供魔法/魔法恢复",
+      "name": "+3/0.01 傻福力量提供魔法/魔法恢复",
       "effects": [
         {
           "abilityId": "ogre_magi_dumb_luck",
           "field": "mana_per_str",
-          "value": 2,
+          "value": 3,
           "operation": 0
         },
         {
@@ -4173,15 +4768,15 @@ export const TALENTS={
       ]
     },
     {
-      "id": "special_bonus_strength_30",
-      "sourceID": 6708,
+      "id": "special_bonus_strength_25",
+      "sourceID": 5984,
       "index": 4,
       "requiredLevel": 20,
-      "name": "+30 力量",
+      "name": "+25 力量",
       "effects": [
         {
           "stat": "strength",
-          "value": 30,
+          "value": 25,
           "operation": 0
         }
       ]
@@ -4191,12 +4786,12 @@ export const TALENTS={
       "sourceID": 6707,
       "index": 5,
       "requiredLevel": 20,
-      "name": "+175 火焰爆轰伤害",
+      "name": "+125 火焰爆轰伤害",
       "effects": [
         {
           "abilityId": "ogre_magi_fireblast",
           "field": "fireblast_damage",
-          "value": 175,
+          "value": 125,
           "operation": 0
         }
       ]
@@ -4386,7 +4981,7 @@ export const TALENTS={
       "sourceID": 1818,
       "index": 1,
       "requiredLevel": 10,
-      "name": "+25% 狂热者生命值/攻击力",
+      "name": "祝圣狂热者获得+25%生命/攻击力",
       "effects": [
         {
           "abilityId": "chen_zealot",
@@ -4407,10 +5002,10 @@ export const TALENTS={
       "sourceID": 7869,
       "index": 2,
       "requiredLevel": 15,
-      "name": "+12% 神圣劝化伤害",
+      "name": "+12% 狂热者控制单位攻击力/技能增强",
       "effects": [
         {
-          "abilityId": "chen_holy_persuasion",
+          "abilityId": "chen_zealot",
           "field": "damage_bonus",
           "value": 12,
           "operation": 0
@@ -4452,10 +5047,10 @@ export const TALENTS={
       "sourceID": 6535,
       "index": 5,
       "requiredLevel": 20,
-      "name": "+1300 神圣劝化最低生命",
+      "name": "+1300 狂热者控制单位最低生命",
       "effects": [
         {
-          "abilityId": "chen_holy_persuasion",
+          "abilityId": "chen_zealot",
           "field": "health_min",
           "value": 1300,
           "operation": 0
@@ -4489,6 +5084,139 @@ export const TALENTS={
           "field": "full_heal_on_chen_and_creeps",
           "value": 1,
           "operation": 5
+        }
+      ]
+    }
+  ],
+  "chaos_knight": [
+    {
+      "id": "special_bonus_unique_chaos_knight_6",
+      "sourceID": 871,
+      "index": 0,
+      "requiredLevel": 10,
+      "name": "+30% 混沌一击吸血",
+      "effects": [
+        {
+          "abilityId": "chaos_knight_chaos_strike",
+          "field": "lifesteal",
+          "value": 30,
+          "operation": 0
+        }
+      ]
+    },
+    {
+      "id": "special_bonus_unique_chaos_knight_2",
+      "sourceID": 6618,
+      "index": 1,
+      "requiredLevel": 10,
+      "name": "+225 实相裂隙牵引距离",
+      "effects": [
+        {
+          "abilityId": "chaos_knight_reality_rift",
+          "field": "pull_distance",
+          "value": 225,
+          "operation": 0
+        }
+      ]
+    },
+    {
+      "id": "special_bonus_unique_chaos_knight_8",
+      "sourceID": 872,
+      "index": 2,
+      "requiredLevel": 15,
+      "name": "-3秒 混乱之箭冷却",
+      "effects": [
+        {
+          "abilityId": "chaos_knight_chaos_bolt",
+          "field": "AbilityCooldown",
+          "value": 3,
+          "operation": 2
+        }
+      ]
+    },
+    {
+      "id": "special_bonus_strength_10",
+      "sourceID": 6137,
+      "index": 3,
+      "requiredLevel": 15,
+      "name": "+10 力量",
+      "effects": [
+        {
+          "stat": "strength",
+          "value": 10,
+          "operation": 0
+        }
+      ]
+    },
+    {
+      "id": "special_bonus_unique_chaos_knight_3",
+      "sourceID": 6619,
+      "index": 4,
+      "requiredLevel": 20,
+      "name": "+0.6秒 混乱之箭最短/最长眩晕",
+      "effects": [
+        {
+          "abilityId": "chaos_knight_chaos_bolt",
+          "field": "stun_min",
+          "value": 0.6,
+          "operation": 0
+        },
+        {
+          "abilityId": "chaos_knight_chaos_bolt",
+          "field": "stun_max",
+          "value": 0.6,
+          "operation": 0
+        }
+      ]
+    },
+    {
+      "id": "special_bonus_unique_chaos_knight",
+      "sourceID": 6133,
+      "index": 5,
+      "requiredLevel": 20,
+      "name": "实相裂隙无视减益免疫",
+      "effects": [
+        {
+          "abilityId": "chaos_knight_reality_rift",
+          "field": "pierces_immunity",
+          "value": 1,
+          "operation": 5
+        }
+      ]
+    },
+    {
+      "id": "special_bonus_unique_chaos_knight_5",
+      "sourceID": 510,
+      "index": 6,
+      "requiredLevel": 25,
+      "name": "+10% 混沌一击几率",
+      "effects": [
+        {
+          "abilityId": "chaos_knight_chaos_strike",
+          "field": "chance",
+          "value": 10,
+          "operation": 0
+        }
+      ]
+    },
+    {
+      "id": "special_bonus_unique_chaos_knight_7",
+      "sourceID": 870,
+      "index": 7,
+      "requiredLevel": 25,
+      "name": "-125% 混沌之军幻象承受伤害",
+      "effects": [
+        {
+          "abilityId": "chaos_knight_phantasm",
+          "field": "incoming_damage",
+          "value": 125,
+          "operation": 2
+        },
+        {
+          "abilityId": "chaos_knight_phantasm",
+          "field": "incoming_damage_tooltip",
+          "value": 125,
+          "operation": 2
         }
       ]
     }

@@ -8,7 +8,7 @@ const ids=(g,p)=>statusEffects(p,g.time,g).map(s=>s.id);
 test('Talent area adds to the strongest item area once, with actual Torrent boundary hits',()=>{
  for(const items of [[],['chasm_stone'],['chasm_stone','shivas_guard']]){
   const {g,p,e,c}=arena('kunkka');p.level=25;p.talents=[6];p.inventory=items;p.inventoryMeta=[];g._refreshHero(p);p.mana=p.maxMana;p.cooldowns[0]=0;
-  const bonus=items.length===2?175:items.length?140:100;assert.equal(p.spellAoE,bonus);const radius=g.skill(0).values.radius;
+  const bonus=items.length===2?135:items.length?115:75;assert.equal(p.spellAoE,bonus);const radius=g.skill(0).values.radius;
   e.x=p.x+radius+bonus+e.radius-1;c.x=p.x-radius-bonus-c.radius-1;e.y=c.y=p.y;
   assert.equal(g.cast(0,p).ok,true);for(let i=0;i<70;i++)g.step(.05);assert.ok(e.hp<4000);assert.equal(c.hp,4000);
  }

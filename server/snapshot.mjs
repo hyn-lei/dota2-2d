@@ -29,5 +29,7 @@ export function snapshotState(game) {
     pendingSpells:game.pendingSpells.map(spell => project(Object.fromEntries(spellFields.filter(key=>key in spell).map(key=>[key,spell[key]])))),
     cutTrees:project([...(game.cutTrees || [])]),plantedTrees:project(game.plantedTrees || []),
     shopStocks:project(game.shopStocks || {}),
+    glyphStates:project(game.glyphStates),worldObjectives:project(game.worldObjectives),madstoneDrops:project(game.madstoneDrops),
+    tormentorDeaths:game.tormentorDeaths,tormentorRespawnAt:game.tormentorRespawnAt,roshanDeaths:game.roshanDeaths,
   };
 }

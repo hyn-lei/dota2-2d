@@ -1,0 +1,192 @@
+{
+  "patch": "7.42",
+  "checkedAt": "2026-11-21",
+  "trackingCommit": "76ab89451c1384c2e106b676258c6e9f72787e11",
+  "roster": {
+    "axe": 2,
+    "crystal_maiden": 5,
+    "drow_ranger": 6,
+    "juggernaut": 8,
+    "windranger": 21,
+    "kunkka": 23,
+    "chen": 66,
+    "chaos_knight": 81,
+    "ogre_magi": 84
+  },
+  "manifest": [
+    {
+      "file": "docs/research/heroes/2.json",
+      "url": "https://www.dota2.com/datafeed/herodata?language=english&hero_id=2",
+      "sha256": "cd4c288d62cd7aaedff59738b3c173be77341ae438c10f4fc1b91b5be6870e1f"
+    },
+    {
+      "file": "docs/research/abilities/2-schinese.json",
+      "url": "https://www.dota2.com/datafeed/herodata?language=schinese&hero_id=2",
+      "sha256": "c94700a580584c5b3a89b1afc8270b65020bbe25c90e45b09077479bac14eaee"
+    },
+    {
+      "file": "docs/research/heroes/npc_dota_hero_axe.txt",
+      "url": "https://raw.githubusercontent.com/SteamTracking/GameTracking-Dota2/76ab89451c1384c2e106b676258c6e9f72787e11/game/dota/pak01_dir/scripts/npc/heroes/npc_dota_hero_axe.txt",
+      "sha256": "17cb314f1d1a26fcca7695e44564008a8babec5279963c77dcd68355e508d615"
+    },
+    {
+      "file": "docs/research/heroes/5.json",
+      "url": "https://www.dota2.com/datafeed/herodata?language=english&hero_id=5",
+      "sha256": "e26f9d5ebe92fa2fe0a41bf852bc571c2ec11c58fdfeb6e4fe78d4a290e454d3"
+    },
+    {
+      "file": "docs/research/abilities/5-schinese.json",
+      "url": "https://www.dota2.com/datafeed/herodata?language=schinese&hero_id=5",
+      "sha256": "efb6595c83e0622d233ef2984dd7f7fbd6e860721edbd80455916f8692b92900"
+    },
+    {
+      "file": "docs/research/heroes/npc_dota_hero_crystal_maiden.txt",
+      "url": "https://raw.githubusercontent.com/SteamTracking/GameTracking-Dota2/76ab89451c1384c2e106b676258c6e9f72787e11/game/dota/pak01_dir/scripts/npc/heroes/npc_dota_hero_crystal_maiden.txt",
+      "sha256": "4b23b7d494457157c59d5e26c6a3e5519f4bf31cb4b5312edf74c7887762beb3"
+    },
+    {
+      "file": "docs/research/heroes/6.json",
+      "url": "https://www.dota2.com/datafeed/herodata?language=english&hero_id=6",
+      "sha256": "7c37cd5dc2f90bef212dd10008c3a0d34171ba1b5ae6fae0bdb502fbf5f9564f"
+    },
+    {
+      "file": "docs/research/abilities/6-schinese.json",
+      "url": "https://www.dota2.com/datafeed/herodata?language=schinese&hero_id=6",
+      "sha256": "3ecb51f21f0f9a36367e286399a359154dca469ba9257ab7985fe91b7f9ed72f"
+    },
+    {
+      "file": "docs/research/heroes/npc_dota_hero_drow_ranger.txt",
+      "url": "https://raw.githubusercontent.com/SteamTracking/GameTracking-Dota2/76ab89451c1384c2e106b676258c6e9f72787e11/game/dota/pak01_dir/scripts/npc/heroes/npc_dota_hero_drow_ranger.txt",
+      "sha256": "c17887f0f767cf0b2839796a12b97fcd27da6707d979d8740eaf91f9a4729a14"
+    },
+    {
+      "file": "docs/research/heroes/8.json",
+      "url": "https://www.dota2.com/datafeed/herodata?language=english&hero_id=8",
+      "sha256": "9321431de859048cf433817a82971ba53c3742df98f8db8a31ed3b71a1ff9153"
+    },
+    {
+      "file": "docs/research/abilities/8-schinese.json",
+      "url": "https://www.dota2.com/datafeed/herodata?language=schinese&hero_id=8",
+      "sha256": "715c041bb7fe5d9c8b95db53f2dcfc03709aafa3f17af158e88074a0f9187f62"
+    },
+    {
+      "file": "docs/research/heroes/npc_dota_hero_juggernaut.txt",
+      "url": "https://raw.githubusercontent.com/SteamTracking/GameTracking-Dota2/76ab89451c1384c2e106b676258c6e9f72787e11/game/dota/pak01_dir/scripts/npc/heroes/npc_dota_hero_juggernaut.txt",
+      "sha256": "f2061ae75fd2c23ed01db9888b6470b1164c78134d6d54edf861636dab804131"
+    },
+    {
+      "file": "docs/research/heroes/21.json",
+      "url": "https://www.dota2.com/datafeed/herodata?language=english&hero_id=21",
+      "sha256": "09dff45de42c9effaa555cd4de97fb0e17b27fb087e5af39ccbfeb4c333ea552"
+    },
+    {
+      "file": "docs/research/abilities/21-schinese.json",
+      "url": "https://www.dota2.com/datafeed/herodata?language=schinese&hero_id=21",
+      "sha256": "fdac7c6d4a67ea9310830a9c70894e8f40e132fdd9cf5344519c283a3e64a599"
+    },
+    {
+      "file": "docs/research/heroes/npc_dota_hero_windrunner.txt",
+      "url": "https://raw.githubusercontent.com/SteamTracking/GameTracking-Dota2/76ab89451c1384c2e106b676258c6e9f72787e11/game/dota/pak01_dir/scripts/npc/heroes/npc_dota_hero_windrunner.txt",
+      "sha256": "e1ead454c615fffc23d1213203f3d49ad2665c4b5118bebe5d8606efd5020f2a"
+    },
+    {
+      "file": "docs/research/heroes/23.json",
+      "url": "https://www.dota2.com/datafeed/herodata?language=english&hero_id=23",
+      "sha256": "393ce0182914dff99f27896f05429a444054da57c29a3126317e92b90d13f9ec"
+    },
+    {
+      "file": "docs/research/abilities/23-schinese.json",
+      "url": "https://www.dota2.com/datafeed/herodata?language=schinese&hero_id=23",
+      "sha256": "685ca6244ad0487c4d9a0159b9db488e4b2145e901e6cd57c40745e6fd6e732d"
+    },
+    {
+      "file": "docs/research/heroes/npc_dota_hero_kunkka.txt",
+      "url": "https://raw.githubusercontent.com/SteamTracking/GameTracking-Dota2/76ab89451c1384c2e106b676258c6e9f72787e11/game/dota/pak01_dir/scripts/npc/heroes/npc_dota_hero_kunkka.txt",
+      "sha256": "d1c1fb4f9223117b645fc3bbe9386b9df0248ff5c456c2fea5640e39be9b4e64"
+    },
+    {
+      "file": "docs/research/heroes/66.json",
+      "url": "https://www.dota2.com/datafeed/herodata?language=english&hero_id=66",
+      "sha256": "fbb2fe63047b1ef8faa155ef28510f90639a70ff86264828e1fd04cd747cb938"
+    },
+    {
+      "file": "docs/research/abilities/66-schinese.json",
+      "url": "https://www.dota2.com/datafeed/herodata?language=schinese&hero_id=66",
+      "sha256": "19f5f7031f1beb776a0f64b43026d01e40ac499202e550691430a15f86769b55"
+    },
+    {
+      "file": "docs/research/heroes/npc_dota_hero_chen.txt",
+      "url": "https://raw.githubusercontent.com/SteamTracking/GameTracking-Dota2/76ab89451c1384c2e106b676258c6e9f72787e11/game/dota/pak01_dir/scripts/npc/heroes/npc_dota_hero_chen.txt",
+      "sha256": "335b1e77c067c5ddde8dceed5d2129136f435e349fc1dfca9375518d517e2537"
+    },
+    {
+      "file": "docs/research/heroes/81.json",
+      "url": "https://www.dota2.com/datafeed/herodata?language=english&hero_id=81",
+      "sha256": "e2123332dc1e6a39e4321b868b06d32cde716ef29d948ff38a6de8919472bbfd"
+    },
+    {
+      "file": "docs/research/abilities/81-schinese.json",
+      "url": "https://www.dota2.com/datafeed/herodata?language=schinese&hero_id=81",
+      "sha256": "243bb603051d65c02cfbb372c161b056464e7e0c30d77e7552232d9554242a39"
+    },
+    {
+      "file": "docs/research/heroes/npc_dota_hero_chaos_knight.txt",
+      "url": "https://raw.githubusercontent.com/SteamTracking/GameTracking-Dota2/76ab89451c1384c2e106b676258c6e9f72787e11/game/dota/pak01_dir/scripts/npc/heroes/npc_dota_hero_chaos_knight.txt",
+      "sha256": "568266222864a1470ca164d080aa996de855010d5719eecaff5a7f4cf53b3a41"
+    },
+    {
+      "file": "docs/research/heroes/84.json",
+      "url": "https://www.dota2.com/datafeed/herodata?language=english&hero_id=84",
+      "sha256": "4f336070566e8f341d881c606cdd9dcb79716afbf26410c640e67ab045543710"
+    },
+    {
+      "file": "docs/research/abilities/84-schinese.json",
+      "url": "https://www.dota2.com/datafeed/herodata?language=schinese&hero_id=84",
+      "sha256": "1d15c3358a45578fce35742dde2972041256db0b86f94d8a988eb1863304ce75"
+    },
+    {
+      "file": "docs/research/heroes/npc_dota_hero_ogre_magi.txt",
+      "url": "https://raw.githubusercontent.com/SteamTracking/GameTracking-Dota2/76ab89451c1384c2e106b676258c6e9f72787e11/game/dota/pak01_dir/scripts/npc/heroes/npc_dota_hero_ogre_magi.txt",
+      "sha256": "cca40d71f30e932eae99f0409d112dfccde2406d25c4bf7cd80dba9f8c53413b"
+    },
+    {
+      "file": "assets/abilities/chaos_knight_chaos_bolt.png",
+      "url": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/abilities/chaos_knight_chaos_bolt.png",
+      "sha256": "825b0e27f01491c5a8aed33bb8d4c93f4c30f6859a83bac38a3d4a545df2e091"
+    },
+    {
+      "file": "assets/abilities/chaos_knight_reality_rift.png",
+      "url": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/abilities/chaos_knight_reality_rift.png",
+      "sha256": "b278c190fbf099557c2c32f64566a88949eef0ac7430abc7c58ac7c7de52fe55"
+    },
+    {
+      "file": "assets/abilities/chaos_knight_chaos_strike.png",
+      "url": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/abilities/chaos_knight_chaos_strike.png",
+      "sha256": "1ba3faa1a1fcc7f6ebeae0d286e5d17988211296e6eb628e96e36bca41b899cf"
+    },
+    {
+      "file": "assets/abilities/chaos_knight_phantasm.png",
+      "url": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/abilities/chaos_knight_phantasm.png",
+      "sha256": "67fa85ee77fbd3dba0e1e89b39b02cd0e713560b047ddec3bb15afdbd0cb4ff0"
+    },
+    {
+      "file": "assets/abilities/chaos_knight_armageddon.png",
+      "url": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/abilities/chaos_knight_armageddons_flank.png",
+      "sha256": "72cf37d01d980c427da56e9b33262d1825e7f76115b047d0d5b12ef850790467"
+    },
+    {
+      "file": "assets/chaos_knight_portrait.png",
+      "url": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/heroes/chaos_knight.png",
+      "sha256": "0ac22c4ce747c8286e8b1f597a6f1907b4b7284eec1b98b4b4f87b9020665246"
+    }
+  ],
+  "derivedAssets": [
+    {
+      "file": "assets/chaos_knight.png",
+      "sha256": "9f03cf7fd756cc10f5721a096bde20bc81def6312a39579c3df2ebb179a98e26",
+      "sourceUrl": "https://cdn.akamai.steamstatic.com/apps/dota2/videos/dota_react/heroes/renders/chaos_knight.webm",
+      "sourceSha256": "4ca5f7bdede8d34d513417646a69b4f324e967c2d8e10f0602c74a3f5345a1de",
+      "method": "PNG still at 0.8 seconds, retaining original transparency; scripts/extract-hero-render.mjs."
+    }
+  ]
+}

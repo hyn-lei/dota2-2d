@@ -1,5 +1,5 @@
 /* Default Dota HUD geometry; the Canvas world remains independently rendered. */
-:root{--bg:#10151b;--surface:#1b232b;--paper:#d6dce1;--muted:#84919c;--line:#53616b55;--gold:#c9b77c;font-family:"Arial","Microsoft YaHei",sans-serif;font-variant-numeric:tabular-nums}
+:root{--bg:#10151b;--surface:#1b232b;--paper:#d6dce1;--muted:#84919c;--line:#53616b55;--gold:#c9b77c;font-family:"Microsoft YaHei","Noto Sans SC","PingFang SC",Arial,sans-serif;font-variant-numeric:tabular-nums}
 .lobby{min-height:640px;grid-template-rows:78px 1fr minmax(165px,max-content) 32px;background:#18202a}.lobby:has(.resume-game){min-height:720px}
 .lobby:before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,#101820ef 0%,#182331dd 40%,#17232fb0 80%),radial-gradient(ellipse at 65% 40%,#49596355,transparent 70%);pointer-events:none;z-index:1}
 .masthead{z-index:3;padding:0 3%;gap:55px;background:#10161fda;border-bottom:1px solid #626d7850}

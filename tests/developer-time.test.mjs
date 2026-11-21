@@ -86,7 +86,7 @@ test('active cast points, traveling projectiles and damage ticks keep their rema
  g.setPaused(false);g.step(.31);assert.ok(g.pendingSpells.some(s=>s.type==='chenProjectile'));close(enemy.hp,10000);
  g.setPaused(true);const remainingBurn=enemy.statuses.clockBurn.until-g.time;
  assert.equal(setTime(g,1).ok,true);close(enemy.statuses.clockBurn.until-g.time,remainingBurn);
- g.setPaused(false);g.step(.51);close(enemy.hp,9950);g.step(.21);close(enemy.hp,9940);
+ g.setPaused(false);g.step(.51);close(enemy.hp,10000-g.skill(0).damage);g.step(.21);close(enemy.hp,10000-g.skill(0).damage-10);
  assert.equal(g.pendingSpells.some(s=>s.type==='chenProjectile'),false);
 });
 

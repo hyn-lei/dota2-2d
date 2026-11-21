@@ -24,7 +24,7 @@ test('Ogre has zero intellect and receives the innate strength mana and regenera
   assert.ok(HERO_STATS.ogre_magi);
   const h=calculateHeroStats('ogre_magi');
   assert.equal(h.strength,26);assert.equal(h.agility,14);assert.equal(h.intelligence,0);
-  assert.equal(h.maxHp,feed.max_health);assert.equal(h.damageMin,feed.damage_min);assert.equal(h.damageMax,feed.damage_max);
+  assert.equal(h.maxHp,200+26*20);assert.equal(h.damageMin,feed.damage_min);assert.equal(h.damageMax,feed.damage_max);
   assert.equal(h.maxMana,120+26*6);assert.ok(Math.abs(h.manaRegen-.52)<1e-7);
   const equipped=calculateHeroStats('ogre_magi',1,[{stats:{intelligence:100,strength:10,maxMana:175,manaRegen:2}}]);
   assert.deepEqual(equipped.attributes.intelligence,{base:0,bonus:0,total:0,gain:0});
@@ -32,10 +32,10 @@ test('Ogre has zero intellect and receives the innate strength mana and regenera
 });
 test('Ogre talents and both upgrades affect the correct official fields',()=>{
   assert.ok(ABILITIES.ogre_magi);
-  assert.equal(abilityAt('ogre_magi',0,4,[5]).damage,425);
+  assert.equal(abilityAt('ogre_magi',0,4,[5]).damage,375);
   assert.equal(abilityAt('ogre_magi',0,4,[],{hasScepter:true}).cooldown,7);
   assert.equal(abilityAt('ogre_magi',0,4,[],{hasScepter:true}).values.bonus_cast_speed,25);
-  assert.equal(innateAt('ogre_magi',10,[1]).values.mana_per_str,8);
+  assert.equal(innateAt('ogre_magi',10,[1]).values.mana_per_str,9);
   assert.equal(innateAt('ogre_magi',10,[1]).values.mana_regen_per_str,.03);
   assert.equal(TALENTS.ogre_magi[2].effects[0].stat,'damage');
   assert.deepEqual(EXTRA_ABILITIES.ogre_magi.map(s=>[s.id,s.upgrade]),[['ogre_magi_unrefined_fireblast','scepter'],['ogre_magi_smash','shard']]);

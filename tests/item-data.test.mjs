@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { ITEMS, ITEM_BY_ID } from '../src/item-data.js';
+import {calculateHeroStats,ATTRIBUTE_RULES} from '../src/hero-stats.js';
 
 const source = name => new URL(`../docs/research/items/${name}`, import.meta.url);
 const legacyIds = {
@@ -59,20 +60,22 @@ test('the six retained early upgrade recipes reproduce the official item list an
 
 test('secret shop access flags match Valve item scripts, including ordinary-quality rings', async () => {
   const raw = (await readFile(source('items.txt'), 'utf8')).replace(/\/\/[^\n]*/g, '');
-  const list = JSON.parse(await readFile(source('itemlist.json'), 'utf8')).result.data.itemabilities;
+  const list = JSON.parse(await readFile(source('full/itemlist-schinese.json'), 'utf8')).result.data.itemabilities;
   for (const item of ITEMS) {
     const official = list.find(entry => entry.id === item.dotaId);
+    assert.ok(official, `${item.id}: current official list identity`);
     const block = new RegExp(`^\\s*"${official.name}"\\s*\\{([\\s\\S]*?)(?=^\\s*"AbilityValues"|^\\s*"ItemRequirements"|^\\t\\})`, 'm').exec(raw)?.[1];
     assert.ok(block, item.id);
     assert.equal(item.secretShop, /"SecretShop"\s*"1"/.test(block), item.id);
   }
 });
 
-test('Null Talisman retains its official percent mana bonus instead of silently dropping it', async () => {
-  const official = JSON.parse(await readFile(source('77.json'), 'utf8')).result.data.items[0];
-  const percent = official.special_values.find(value => value.name === 'bonus_max_mana_percentage').values_float[0];
-  assert.equal(ITEM_BY_ID.null_talisman?.stats.maxManaPercent, percent);
-  assert.match(ITEM_BY_ID.null_talisman.description, /3%/);
+test('Null Talisman grants official flat mana and intelligence mana without a percent multiplier', async () => {
+  const official = JSON.parse(await readFile(source('full/77-schinese.json'), 'utf8')).result.data.items[0];
+  const flat=official.special_values.find(value=>value.name==='bonus_mana').values_float[0];
+  const intellect=official.special_values.find(value=>value.name==='bonus_intellect').values_float[0];
+  assert.equal(ITEM_BY_ID.null_talisman.stats.maxMana,flat);
+  for(const level of [1,20]){const base=calculateHeroStats('crystal_maiden',level),equipped=calculateHeroStats('crystal_maiden',level,['null_talisman']);assert.equal(equipped.maxMana-base.maxMana,flat+intellect*ATTRIBUTE_RULES.manaPerIntelligence);}
 });
 
 test('every catalog entry has a local official PNG and the obsolete unavailable-active marker is removed', async () => {

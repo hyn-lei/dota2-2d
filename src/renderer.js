@@ -2,6 +2,7 @@ import { HEROES, TEAM_COLORS } from './data.js';
 import {drawLaneCreep} from './creep-visuals.js';
 import { WORLD, BASES, MAP_IMAGE, CAMP_LAYOUT, MAP_OBJECTIVES, TREES } from './map-data.js';
 import { drawCombatEffect, drawUnitCombatEffects, unitAuraRadius } from './combat-effects.js';
+import {drawWorldObjectives} from './world-controls.js';
 import { unitOpacity } from './combat-visuals.js';
 import {fountainAreaRadius} from './collision.js';
 
@@ -217,6 +218,7 @@ export class Renderer {
       c.font=`${11/this.zoom}px Consolas,monospace`;c.textAlign='center';c.fillStyle=col;c.fillText(`${Math.max(0,mark.expiresAt-game.time).toFixed(1)}s`,mark.x,mark.y+52+14/this.zoom);c.restore();
     }
     const {entities,auraEntities}=visibleRenderUnits(game,p,this.camera,halfW,halfH);
+    drawWorldObjectives(c,game,this.zoom);
     for(const e of auraEntities)drawUnitCombatEffects(c,e,game,this.zoom,'ground');
     for(const e of entities){if(this.zoom<.15)this.drawOverviewEntity(c,e);else if(BUILDINGS.has(e.kind))this.drawBuilding(c,e,game,time);else this.drawUnit(c,e,game,time);}
     for(const e of auraEntities)drawUnitCombatEffects(c,e,game,this.zoom,'above');
@@ -257,6 +259,13 @@ export class Renderer {
     const y=p.y-modelTop-9,width=hero?62:building?(e.kind==='ancient'?84:58):neutral?46:30;
     if(!e.dead&&e.kind!=='filler'&&e.kind!=='fountain'){
       this.healthbar(c,p.x,y,e.hp/e.maxHp,width,color,hero||building?5:4);
+      if(Object.values(e.statuses||{}).some(s=>s.bountyTarget&&s.until>game.time))this.label(c,'悬赏',p.x,y-17,'#ee9b78',9);
+      if(e.pipHealth||e.kind==='ward'||e.kind==='courier'){
+        c.save();c.strokeStyle='#142126';c.lineWidth=1;
+        for(let i=1;i<Math.min(e.maxHp,20);i++){const x=p.x-width/2+width*i/e.maxHp;c.beginPath();c.moveTo(x,y);c.lineTo(x,y+4);c.stroke();}
+        if(e.fragile&&game.player?.range<=200){c.strokeStyle='#f3c288';c.lineWidth=1.5;for(let i=0;i<e.maxHp;i+=2){const x=p.x-width/2+width*i/e.maxHp,w=width*Math.min(2,e.maxHp-i)/e.maxHp;c.beginPath();c.moveTo(x,y+6);c.lineTo(x+w,y+6);c.stroke();}}
+        c.restore();
+      }
       if(hero)this.healthbar(c,p.x,y+7,(e.mana||0)/(e.maxMana||1),width,'#7eafca',2);
     }
     let name=hero?(HEROES[e.heroId]?.name||e.name):e.name;
@@ -346,6 +355,11 @@ export class Renderer {
     c.fillStyle='rgba(7,17,14,.34)';c.beginPath();c.ellipse(3,9,hero?22:12,hero?10:6,0,0,TAU);c.fill();
     if(e.isPlayer){circle(c,0,4,26,null,'#d8de99',2);circle(c,0,4,29,null,'rgba(212,223,156,.18)',3);}
     const buffs=e.buffs||{};
+    const unholy=hero&&e.inventory?.some((id,i)=>['armlet','berserkers_sabatons'].includes(id)&&e.inventoryMeta?.[i]?.mode==='on'&&(e.inventoryMeta[i].readyAt||0)<=game.time);
+    if(unholy){
+      c.save();c.globalAlpha*=.65;circle(c,0,0,30+Math.sin(t*4)*2,null,'#ed6852',2);
+      for(let i=0;i<3;i++){const a=t*1.8+i*TAU/3;line(c,[{x:Math.cos(a)*26,y:Math.sin(a)*14-8},{x:Math.cos(a)*29,y:Math.sin(a)*14-20}],'#ff9768',2);}c.restore();
+    }
     if(e.statuses?.barrier?.until>game.time)circle(c,0,-8,31,null,'rgba(143,196,237,.7)',2);
     if(buffs.shieldUntil>game.time)circle(c,0,-8,30,null,'rgba(179,213,201,.55)',2);
     if(buffs.tideUntil>game.time){c.save();c.rotate(e.angle||0);line(c,[{x:14,y:-24},{x:37,y:-4}],'#b1e2e4',3);circle(c,24,-13,21,null,'rgba(151,212,217,.25)',2);c.restore();}
@@ -353,7 +367,20 @@ export class Renderer {
     c.save();const angle=e.angle??(e.team?2.3:-.7);c.rotate(angle+Math.PI/2);
     const bob=e.moving?Math.sin(t*14+Number(String(e.id).replace(/\D/g,'')))*2:Math.sin(t*2)*.6;c.translate(0,bob);
     if(hero){
-      if(e.heroId==='chen'){
+      if(e.heroId==='chaos_knight'){
+        poly(c,[[-20,22],[-26,9],[-20,-10],[-9,-21],[9,-19],[22,-7],[22,15],[12,28]],'#382c2e','#bb714f',2);
+        poly(c,[[-18,13],[-18,35],[-11,35],[-7,13],[5,13],[10,35],[17,35],[19,13]],'#35282a','#8b674d',1.5);
+        poly(c,[[10,-17],[13,-36],[23,-43],[32,-35],[30,-18],[21,-7]],'#543932','#c88654',1.5);
+        poly(c,[[14,-37],[8,-45],[21,-39],[24,-48],[29,-39]],'#bd6948','#3d2c2c',1);circle(c,24,-32,2,'#f4a668');
+        poly(c,[[-18,-12],[-24,9],[-13,18],[7,15],[13,-10],[3,-20]],'#a14932','#291e28',2);
+        poly(c,[[-13,-18],[-13,-31],[0,-39],[13,-31],[14,-16],[6,-22],[-6,-22]],'#50363b','#cc8a5a',2);
+        poly(c,[[-10,-30],[-19,-43],[-13,-23],[0,-38],[14,-25],[19,-43],[10,-32]],'#be7951','#322531',1);
+        line(c,[{x:-8,y:-27},{x:-3,y:-25}],'#ffbd66',2);line(c,[{x:3,y:-25},{x:8,y:-27}],'#ffbd66',2);
+        poly(c,[[-20,-16],[-32,-19],[-26,-2],[-14,0]],'#6b3c32','#d29056',1.5);
+        c.save();c.translate(-29,1);c.rotate(e.attackFlash>0?1.1:.2);line(c,[{x:0,y:22},{x:0,y:-38}],'#725347',4);
+        poly(c,[[-2,-38],[-15,-49],[-20,-34],[-11,-18],[0,-25],[9,-19],[15,-34],[9,-47],[2,-38]],'#b8a69c','#482e2f',1.5);
+        line(c,[{x:-18,y:-35},{x:-12,y:-22}],'#efb37b',2);c.restore();
+      }else if(e.heroId==='chen'){
         poly(c,[[-18,23],[-24,12],[-21,-6],[-12,-18],[8,-22],[23,-6],[21,17],[12,27]],'#d4c9a8','#504a35',2);
         poly(c,[[-18,13],[-16,35],[-9,35],[-6,12],[7,12],[10,35],[17,35],[19,13]],'#bfb99a','#665e48',1.5);
         poly(c,[[9,-15],[12,-34],[22,-40],[30,-33],[29,-19],[20,-8]],'#ded7ba','#726a51',1.5);circle(c,22,-30,2,'#403a29');
@@ -425,6 +452,9 @@ export class Renderer {
     c.restore();
   }
   drawNeutral(c,e,t){
+    if(e.isTormentor){
+      c.save();c.rotate(Math.PI/4);poly(c,[[-45,-45],[45,-45],[45,45],[-45,45]],'#5c6973','#b4c6c7',4);poly(c,[[-34,-34],[34,-34],[34,34],[-34,34]],'#223a4b','#72c6d9',2);line(c,[{x:-34,y:-34},{x:34,y:34}],'#bde9ee',2);line(c,[{x:34,y:-34},{x:-34,y:34}],'#bde9ee',2);c.restore();return;
+    }
     const roshan=e.isRoshan||e.neutralId==='roshan'||e.sourceId==='npc_dota_roshan'||e.name==='肉山';
     const ancient=e.ancient||roshan,color=roshan?'#dba58a':ancient?'#d5b2df':'#e3c188';
     const ranged=e.ranged||e.attackType==='ranged'||e.range>250;

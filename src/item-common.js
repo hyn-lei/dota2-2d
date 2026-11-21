@@ -14,7 +14,10 @@ export const active=(g,e,id)=>{const s=e?.statuses?.[id];return s&&s.startedAt<=
 export const hasFlag=(g,e,flag)=>Object.values(e?.statuses||{}).some(s=>s.startedAt<=g.time&&s.until>g.time&&s[flag]);
 export const immune=(g,e)=>Skills.debuffImmune?.(g,e)||hasFlag(g,e,'debuffImmune');
 export const invulnerable=(g,e)=>Skills.isInvulnerable(g,e)||hasFlag(g,e,'invulnerable');
-export const status=(g,e,id,item,fields={})=>Skills.addStatus(g,e,id,{name:item.name,description:item.description||'',icon:item.icon||'relic',duration:value(item,'duration',6),itemId:item.id,...fields});
+export const status=(g,e,id,item,fields={})=>{
+ const old=active(g,e,id);if(fields.itemPotency!==undefined&&old?.itemPotency>fields.itemPotency)return old;
+ return Skills.addStatus(g,e,id,{name:item.name,description:item.description||'',icon:item.icon||'relic',duration:value(item,'duration',6),itemId:item.id,...fields});
+};
 export function dispel(g,e,strong=false){
  if(Skills.applyDispel)return Skills.applyDispel(g,e,strong);
  for(const [id,s]of Object.entries(e.statuses||{}))if(!s.positive&&!s.undispellable&&(strong||!s.stunned))delete e.statuses[id];
@@ -25,7 +28,8 @@ export function stun(g,e,duration,h,pierces=false){
  status(g,e,'stun',{id:'stun',name:'眩晕'},{duration,stunned:true,sourceId:h.id});e.buffs.stunUntil=g.time+duration;Skills.interruptCast(g,e,false);
 }
 export function slow(g,e,item,duration,amount,source,extra={}){
- if(invulnerable(g,e)||immune(g,e))return;
+ if(invulnerable(g,e)||immune(g,e)&&!extra.piercesDebuffImmunity)return;
+ const old=active(g,e,'itemSlow:'+item.id);if(extra.itemPotency!==undefined&&old?.itemPotency>extra.itemPotency)return old;
  return status(g,e,'itemSlow:'+item.id,item,{duration,slowPct:Math.abs(amount),sourceId:source?.id,...extra});
 }
 export function dot(g,e,item,duration,dps,source,type='magical',extra={}){
@@ -49,7 +53,27 @@ export function allies(g,h,radius,heroesOnly=false){return g.entities.filter(e=>
 export function enemies(g,h,point,radius,structures=false){return g.entities.filter(e=>alive(e)&&e.team!==h.team&&(fighter(e)||(structures&&building(e)))&&!invulnerable(g,e)&&distance(e,point)<=radius+(e.radius||0));}
 export function equipped(g,h){
  if(!['hero','illusion'].includes(h.kind))return [];
- return Inventory.itemEntries(h,['inventory','tp']).filter(e=>(e.meta.readyAt||0)<=g.time).map(e=>({...e,item:ITEM_BY_ID[e.id]})).filter(e=>e.item);
+ return Inventory.itemEntries(h,['inventory','tp','neutral','enchantment']).filter(e=>(e.meta.readyAt||0)<=g.time).map(e=>({...e,item:effectiveItem(g,h,ITEM_BY_ID[e.id],e.meta)})).filter(e=>e.item);
+}
+export function itemPotency(h,result={}){
+ const base=result.itemPotency??h.itemPotency??(h.kind==='illusion'?20:100);
+ return base+(h.itemPotencyBonus??(h.neutralEnchantment==='enhancement_evolved'?20:0));
+}
+export function effectiveItem(g,h,item,meta={}){
+ if(!item)return item;
+ const values={...item.values};
+ if(meta.curioBoost)for(const field of item.curioFields||[])values[field]*=1.3;
+ return {...item,values};
+}
+export function attackItem(g,h,item,result={}){
+ const values={...item.values},potency=itemPotency(h,result)/100;
+ for(const field of item.potencyFields||[])values[field]*=potency;
+ return {...item,values};
+}
+export function empowerSpell(g,h,target,item){
+ if(!alive(target))return;
+ if(target.team===h.team){heal(g,target,value(item,'bonus_heal'),h);status(g,target,'caduceusHaste',item,{positive:true,duration:value(item,'haste_duration'),movePercent:value(item,'haste')});}
+ else {g.damage(target,value(item,'bonus_spell_damage'),h,'magical',{itemProc:true});slow(g,target,item,value(item,'slow_duration'),value(item,'slow'),h);}
 }
 export function refresh(g,h){
  if(!['hero','illusion'].includes(h.kind))return;
@@ -67,7 +91,9 @@ export function targetAt(g,h,point,team='enemy',types=['hero','creep','neutral',
   (team==='both'||(team==='ally'?e.team===h.team:e.team!==h.team))&&distance(e,point)<=Math.max(e.radius||24,90)&&distance(e,h)<=(typeof range==='function'?range(e):range)+(e.radius||24)&&g.canSee?.(h,e)!==false);
  return candidates.sort((a,b)=>distance(a,point)-distance(b,point))[0];
 }
-export function forceMove(g,e,to,duration=.5){
+export function forceMove(g,e,to,duration=.5,source){
+ const resistance=source?.team===e.team&&!immune(g,e)?(active(g,e,'itemDebuff:nullifier')?.allyForcedMovementResistance||0):0,factor=(1-resistance/100)*(1-(e.knockbackResistance||0)/100);
+ if(factor!==1){to={x:e.x+(to.x-e.x)*factor,y:e.y+(to.y-e.y)*factor};}
  e.forcedMotion={from:{x:e.x,y:e.y},to:g.navigation.nearestWalkable(to),startedAt:g.time,until:g.time+duration};
  e.destination=null;e.navPath=null;e.recallTimer=0;Skills.interruptCast(g,e,false);
 }

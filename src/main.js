@@ -20,6 +20,9 @@ import {developerModeState,disableDeveloperMode} from './developer-mode.js';
 import {appendDraftHistory,draftRecord} from './bot-draft.js';
 import {loadDraftHistory,storeDraftHistory} from './draft-history.js';
 import {hasExpiredMatchTime} from './match-clock.js';
+import {mountHeroUpgrades} from './hero-upgrades-ui.js';
+import {armletDrain} from './armlet-runtime.js';
+import {mountWorldControls,worldObjectiveAt,objectiveNames} from './world-controls.js';
 
 const $ = (s) => document.querySelector(s);
 const app = $('#app');
@@ -28,7 +31,7 @@ let history={matches:0,wins:0,bestKills:0};
 try{preferences={...preferences,...JSON.parse(localStorage.getItem('af-preferences')||'{}')};history={...history,...JSON.parse(localStorage.getItem('af-history')||'{}')};}catch{}
 if(!HEROES[preferences.hero])preferences.hero='juggernaut';
 let chosen=preferences.hero,view='lobby',game=null,renderer=null,modal=null,shopOpen=false,keys=new Set(),pointer={x:0,y:0},hudAt=0,lastFrame=0,lastStatus='playing',toastTimer,returnFocus;
-let audioContext,shopUI;
+let audioContext,shopUI,heroUpgradesUI,worldControls;
 let bindingEditor=null;
 let checkpointAt=0,checkpointError=false;
 let matchTimeResetting=false;
@@ -141,12 +144,12 @@ function startGame(providedGame=null,resume=false){
     <aside class="objective"><span class="objective-icon">${icon('tower')}</span><div><span class="eyebrow">当前目标</span><strong id="objective-text">跟随兵线，攻破敌方防御塔</strong><small id="tower-count">敌方防御塔 11 / 11 · 兵营 6 / 6</small></div></aside><div id="event-feed" class="event-feed" aria-live="polite"></div>
     <div id="death-overlay" class="death-overlay" hidden><span>你已阵亡</span><strong id="respawn-count">10</strong><small>即将于泉水重生</small></div><div class="recall-progress" id="recall-progress" hidden><span>正在传送回泉水</span><div><i id="recall-fill"></i></div><small>移动、施法或受到伤害会打断回城</small></div>
     <div class="control-hint" id="control-hint"><span><b>左键</b> 属性 / 装备</span><span><b>右键</b> 移动 / 攻击</span><span><b id="skill-control-keys">${getBindings().skills.map(k=>k.toUpperCase()).join(' ')}</b> 技能</span><span><b>滚轮</b> 缩放</span><span><b>空格</b> 回到英雄</span><button aria-label="隐藏操作提示">${icon('close')}</button></div>
-    <div class="map-tools"><span>7.41f <i>标准地图</i></span><button id="map-overview" title="M · 查看全图">全图 M</button><button id="map-center" title="空格 · 返回英雄">跟随英雄</button><button id="camp-bounds" title="Alt · 显示野怪刷新范围">营地范围</button></div>
-    <footer class="game-hud"><div class="minimap-wrap"><canvas id="minimap" width="240" height="240" aria-label="小地图，单击查看区域，右键移动"></canvas><span>DOTA 2 · 7.41f</span></div>
+    <div class="map-tools"><span>7.42 <i>标准地图</i></span><button id="map-overview" title="M · 查看全图">全图 M</button><button id="map-center" title="空格 · 返回英雄">跟随英雄</button><button id="camp-bounds" title="Alt · 显示野怪刷新范围">营地范围</button></div>
+    <footer class="game-hud"><div class="minimap-wrap"><canvas id="minimap" width="240" height="240" aria-label="小地图，单击查看区域，右键移动"></canvas><span>DOTA 2 · 7.42</span></div>
       <section class="hero-hud" aria-label="英雄状态"><div class="hud-hero-title"><strong>${h.name}</strong></div><div class="hud-portrait"><img src="/${h.portrait}" alt="${h.name}头部肖像" draggable="false"/><span id="hero-level">1</span><div class="xp-bar" title="经验值"><i id="xp-fill"></i></div></div><div class="hero-stats"><span title="攻击力">${icon('sword')}<b id="stat-damage">${h.damage}</b></span><span title="护甲">${icon('shield')}<b id="stat-armor">${h.armor}</b></span><span title="移动速度">${icon('boots')}<b id="stat-speed">${h.speed}</b></span></div></section>
       <section class="abilities" aria-label="英雄技能"></section>
       <div class="hud-vitals"><div class="vital-bar health"><i id="hp-fill"></i><span id="hp-label"></span><small id="hp-regen"></small></div><div class="vital-bar mana"><i id="mana-fill"></i><span id="mana-label"></span><small id="mana-regen"></small></div></div>
-      <section class="inventory-section" aria-label="装备与商店"><div id="inventory" class="inventory"></div></section>
+      <section class="inventory-section" aria-label="装备与商店"><div id="inventory" class="inventory"></div><div class="hero-upgrades" aria-label="神杖与魔晶升级"></div></section>
       <section class="hud-economy" aria-label="经济与信使"><div class="hud-courier"><button data-hud-courier="deliver" title="信使运送物品">${icon('bag')}</button><button data-hud-courier="return" title="信使返回泉水">${icon('home')}</button><button id="hud-quickbuy" title="G · 快捷购买">${icon('coin')}</button></div><div id="hud-quickbuy-items" aria-label="快捷购买队列"></div><button id="shop-button" class="shop-button">${icon('coin')}<strong id="gold">600</strong><span>商店</span>${icon('bag')}</button></section>
       <div class="match-player-stats"><span>K / D / A <b id="kda">0 / 0 / 0</b></span><span>正补 <b id="last-hits">0</b></span></div>
     </footer><aside id="shop" class="shop-panel" hidden></aside><div id="toast" role="status"></div><div id="modal-root"></div></main>`;
@@ -156,6 +159,8 @@ function startGame(providedGame=null,resume=false){
   if(game.isNetwork){const ai=game.entities.filter(e=>e.kind==='hero'&&e.team===0&&e.controller==='ai').length;document.querySelector('.match-clock small').textContent=ai?`${5-ai} 真人 + ${ai} 困难 AI`:'五真人 · 噩梦 AI';}
   $('.abilities').addEventListener('click',e=>{const b=e.target.closest('[data-extra]');if(b&&game.canControl(game.selected))castExtra(b.dataset.extra);});
   mountStatusBar($('.hud-vitals'));
+  heroUpgradesUI=mountHeroUpgrades($('.hero-upgrades'),game);
+  worldControls=mountWorldControls($('.map-tools'),game,toast);
   $('.hud-economy').addEventListener('click',async e=>{const command=e.target.closest('[data-hud-courier]');if(command){const result=await game.courierCommand(command.dataset.hudCourier);if(!result.ok)toast(result.reason);}});
   $('#hud-quickbuy').onclick=async()=>{const result=await game.buyQuick();if(!result.ok)toast(result.reason);updateHud();};
   const buyHudItem=async e=>{const button=e.target.closest('[data-hud-buy]');if(!button)return;e.preventDefault();const activeGame=game,result=await activeGame.buy(button.dataset.hudBuy);if(game!==activeGame)return;if(!result.ok)toast(result.reason);else sound();updateHud();};
@@ -196,6 +201,12 @@ function startGame(providedGame=null,resume=false){
     if(e.button===1){dragging={x:e.clientX,y:e.clientY};canvas.setPointerCapture(e.pointerId);return;}
     const target=hitTest(p,e.button===2);
     if(pendingItem){if(e.button===2){cancelItemUse();return;}if(e.button===0){const {index,area,uid}=pendingItem;if(game.itemState(index,area,game.controlledUnit).meta?.uid!==uid){cancelItemUse();toast('物品位置已改变');return;}useItem(index,area,p);return;}}
+    const objective=worldObjectiveAt(game,p,Math.max(45,18/renderer.zoom));
+    if(objective&&e.button===2&&(!target||target.team===game.player.team)){
+      if(objective.objectiveType==='powerRune'||Math.hypot(game.player.x-objective.x,game.player.y-objective.y)>250){restoreOwnHero();controlledAction('moveTo',[objective.x,objective.y]);renderer.mark(objective.x,objective.y);toast(`${objectiveNames[objective.objectiveType]} · 靠近后${objective.objectiveType==='powerRune'?'自动拾取':'右键使用'}`);}
+      else{const result=await game.interactObjective(objective.id);if(!result.ok)toast(result.reason);}
+      return;
+    }
     if(target?.kind==='droppedItem'&&e.button===2){const result=await game.pickupOrApproach(target.id);if(result.approaching)toast('靠近后拾取物品');else if(!result.ok)toast(result.reason);updateHud();return;}
     if(e.button===0){game.selectEntity(target?.id||game.player.id);updateHud();return;}
     if(e.button!==2||game.paused||game.controlledUnit.dead)return;
@@ -261,7 +272,8 @@ function updateHud(){
   if($('#attribute-summary'))$('#attribute-summary').innerHTML=hero?`<b class="strength">力 ${Math.floor(p.strength)}</b><b class="agility">敏 ${Math.floor(p.agility)}</b><b class="intelligence">智 ${Math.floor(p.intelligence)}</b>`:`<b>${p.team===2?'中立':p.team===actor.team?'友方':'敌方'} · ${unitLabels[p.kind]||'单位'}</b>`;
   updateSkills($('.abilities'),game,p);
   updateStatusBar(mountStatusBar($('.hud-vitals')),p,game.time,game);
-  $('#hp-regen').textContent=`+${Number(((p.hpRegen||0)+(p.itemAura?.hpRegen||0)+(flagbearerAura(game,p)?.hpRegen||0)).toFixed(1))}`;$('#mana-regen').textContent=`+${Number(((hero?auraManaRegen(game,p):(p.manaRegen||0))+(p.itemAura?.manaRegen||0)).toFixed(1))}`;
+  const healthRegen=Number(((p.hpRegen||0)+(p.itemAura?.hpRegen||0)+(flagbearerAura(game,p)?.hpRegen||0)-armletDrain(game,p)).toFixed(1));
+  $('#hp-regen').textContent=`${healthRegen>=0?'+':''}${healthRegen}`;$('#mana-regen').textContent=`+${Number(((hero?auraManaRegen(game,p):(p.manaRegen||0))+(p.itemAura?.manaRegen||0)).toFixed(1))}`;
   const queue=(actor.quickbuy||[]).flatMap(id=>purchaseQuote(game,actor,id).missing||[]).map(id=>ITEM_BY_ID[id]).filter(Boolean).slice(0,6),queueHtml=queue.map(item=>`<button data-hud-buy="${item.id}" aria-label="购买${item.name}" title="${item.name} · ${item.cost} 金币 · 左键或右键购买" class="${actor.gold<item.cost?'unaffordable':''}"><img src="/${item.image}" alt="${item.name}" draggable="false"/></button>`).join('');
   if($('#hud-quickbuy-items').innerHTML!==queueHtml)$('#hud-quickbuy-items').innerHTML=queueHtml;
   document.querySelectorAll('[data-inspect-hero]').forEach(button=>{const unit=game.entities.find(e=>e.id===button.dataset.inspectHero);button.setAttribute('aria-pressed',String(unit?.id===p.id));button.classList.toggle('hero-dead',!!unit?.dead);button.dataset.respawn=unit?.dead?Math.ceil(unit.respawnTimer):'';});
@@ -273,7 +285,7 @@ function updateHud(){
   const ancient=game.entities.find(e=>e.team===1&&e.kind==='ancient');$('#objective-text').textContent=ancient&&!game.isProtected(ancient)?'远古遗迹已暴露，发起最后进攻！':'跟随兵线，攻破敌方防御塔';
   $('#death-overlay').hidden=!actor.dead;$('#respawn-count').textContent=Math.ceil(actor.respawnTimer);$('#recall-progress').hidden=!(actor.recallTimer>0);$('#recall-fill').style.transform=`scaleX(${1-actor.recallTimer/(actor.recallDuration||3)})`;
   const feed=game.feed.map(e=>`${e.text}`).join('|');if(previousFeed!==feed){previousFeed=feed;$('#event-feed').innerHTML=game.feed.slice(0,4).map(e=>`<div class="feed-entry ${e.team===0?'radiant':'dire'}">${icon('swords')}<span>${escapeHtml(e.text)}</span></div>`).join('');}
-  if(shopOpen)updateShop();else shopUI?.update();updateInspection();renderer.minimap($('#minimap'),game);
+  if(shopOpen)updateShop();else shopUI?.update();heroUpgradesUI?.update(p);worldControls?.update();updateInspection();renderer.minimap($('#minimap'),game);
 }
 const attributeLabels={strength:'力量',agility:'敏捷',intelligence:'智力',universal:'全才'};
 const unitLabels={ward:'守卫',hero:'英雄',creep:'兵线单位',neutral:'野怪',tower:'防御塔',barracks:'兵营',fountain:'泉水',ancient:'远古遗迹',filler:'基地建筑',courier:'信使',droppedItem:'地面物品',illusion:'幻象',summon:'召唤物'};
@@ -306,7 +318,7 @@ function openModal(type){
   let title='',eyebrow='',body='',footer='';
   if(type==='guide'){
     title='从第一刀，到最后一座遗迹。';eyebrow='FIELD MANUAL';
-    body=`<div class="guide-goal">${icon('flag')}<div><strong>摧毁夜魇的远古遗迹，赢得对局。</strong><p>每路依次推进一塔、二塔、高地三塔。摧毁近战 / 远程兵营会升级对应兵种；摧毁两座基地四塔后才能攻击遗迹。</p></div></div><div class="guide-controls"><div><kbd>左键 / 顶部头像</kbd><span>选择英雄、建筑或野怪，查看属性与装备</span></div><div><kbd>鼠标右键</kbd><span>移动自己的英雄，点击敌人或野怪持续攻击</span></div><div><kbd>↑ ↓ ← →</kbd><span>直接移动英雄</span></div><div><kbd>Q W E R</kbd><span>朝鼠标位置释放已学习技能</span></div><div><kbd>Ctrl + Q W E R / U</kbd><span>技能加点 / 天赋与全属性；一级拥有 1 技能点</span></div><div><kbd>F / Tab / G</kbd><span>打开商店 / 快捷购买队列物品；拖动物品换装</span></div><div><kbd>滚轮 / 中键拖动</kbd><span>缩放 / 平移地图；M 查看全图，空格回到英雄</span></div><div><kbd>Alt / B</kbd><span>营地边界 / 3 秒回城</span></div><div><kbd>P / Esc</kbd><span>暂停，打开菜单</span></div></div><div class="guide-tip"><strong>7.41f 标准节奏</strong><p>每 30 秒一波兵。野怪从 1:00 开始每分钟检查刷新，营地内有单位会阻挡刷新。三维属性随等级与装备增长；全才从三项属性获取攻击力。左右阵营共 22 塔、12 兵营，野区有 28 营地与肉山。</p></div>`;
+    body=`<div class="guide-goal">${icon('flag')}<div><strong>摧毁夜魇的远古遗迹，赢得对局。</strong><p>每路依次推进一塔、二塔、高地三塔。摧毁近战 / 远程兵营会升级对应兵种；摧毁两座基地四塔后才能攻击遗迹。</p></div></div><div class="guide-controls"><div><kbd>左键 / 顶部头像</kbd><span>选择英雄、建筑或野怪，查看属性与装备</span></div><div><kbd>鼠标右键</kbd><span>移动自己的英雄，点击敌人或野怪持续攻击</span></div><div><kbd>↑ ↓ ← →</kbd><span>直接移动英雄</span></div><div><kbd>Q W E R</kbd><span>朝鼠标位置释放已学习技能</span></div><div><kbd>Ctrl + Q W E R / U</kbd><span>技能加点 / 天赋与全属性；一级拥有 1 技能点</span></div><div><kbd>F / Tab / G</kbd><span>打开商店 / 快捷购买队列物品；拖动物品换装</span></div><div><kbd>滚轮 / 中键拖动</kbd><span>缩放 / 平移地图；M 查看全图，空格回到英雄</span></div><div><kbd>Alt / B</kbd><span>营地边界 / 3 秒回城</span></div><div><kbd>P / Esc</kbd><span>暂停，打开菜单</span></div></div><div class="guide-tip"><strong>7.42 标准节奏</strong><p>每 30 秒一波兵。野怪从 1:00 开始每分钟检查刷新，营地内有单位会阻挡刷新。三维属性随等级与装备增长；全才从三项属性获取攻击力。左右阵营共 22 塔、12 兵营，野区有 28 营地与肉山。</p></div>`;
     body=body.replace('营地边界 / 3 秒回城','营地边界 / 使用卷轴传送回泉水').replace('<div><kbd>滚轮 / 中键拖动</kbd>','<div><kbd>1–6 / Alt + 1–6</kbd><span>使用装备 / 对自己使用；双击装备选择目标</span></div><div><kbd>D / F3</kbd><span>神杖或魔晶新增技能 / 信使运送储藏物品</span></div><div><kbd>滚轮 / 中键拖动</kbd>');
     footer='<button class="primary-button modal-primary" data-close>准备好了</button>';
   }else if(type==='hero'){

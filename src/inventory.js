@@ -12,6 +12,7 @@ const validSlot=(area,index)=>area in SLOT_COUNTS&&Number.isInteger(index)&&inde
 const gate=g=>g.paused?{ok:false,reason:'游戏已暂停'}:g.status!=='playing'?{ok:false,reason:'对局已经结束'}:{ok:true};
 
 export function ensureInventory(h){
+ for(const field of ['neutralItem','neutralEnchantment'])if(h[field]&&h[field+'Meta']?.itemId!==h[field])h[field+'Meta']=createMeta(h,h[field]);
  for(const area of storageAreas(h)){
   h[area]||=[];h[area+'Meta']||=[];
   for(let i=0;i<h[area].length;i++){
@@ -28,6 +29,12 @@ export function createMeta(h,id,fields={}){
  return {itemId:id,uid:`${h.id}:item:${h.itemSerial}`,ownerId:h.id,ownerTeam:h.team,purchasedAt:-Infinity,readyAt:0,cooldownRemaining:0,
   charges:id==='ancient_janggo'?8:id==='holy_locket'?(item.charges||0):item?.abilityCharges||item?.charges||0,combineLocked:false,mode:id==='power_treads'?'strength':undefined,...fields};
 }
+export function giveItem(g,h,id,count=1){
+ ensureInventory(h);const item=ITEM_BY_ID[id];if(!item)return {ok:false,reason:'物品不存在'};
+ if(item.stackable){const stack=itemEntries(h,['inventory','backpack']).find(e=>e.id===id&&e.meta.ownerId===h.id&&(!item.stackableMax||e.meta.charges+count<=item.stackableMax));if(stack){stack.meta.charges+=count;refresh(g,h);return {ok:true,area:stack.area,index:stack.index};}}
+ const slot=emptySlot(h,item.backpackAllowed?['inventory','backpack']:['inventory']);if(!slot)return {ok:false,reason:'物品栏已满'};
+ put(h,slot.area,slot.index,id,createMeta(h,id,{charges:count}));refresh(g,h);return {ok:true,...slot};
+}
 export function shopAccess(h){
  const base=!h.dead&&distance(h,BASES[h.team])<=1200;
  const secret=!h.dead&&SECRET_SHOPS.some(s=>distance(s,h)<=600);
@@ -35,7 +42,11 @@ export function shopAccess(h){
 }
 export function itemEntries(h,selectedAreas=storageAreas(h)){
  ensureInventory(h);
- return selectedAreas.flatMap(area=>(h[area]||[]).flatMap((id,index)=>id?[{id,area,index,meta:h[area+'Meta'][index]}]:[]));
+ return selectedAreas.flatMap(area=>{
+  const field=area==='neutral'?'neutralItem':area==='enchantment'?'neutralEnchantment':null;
+  if(field)return h[field]?[{id:h[field],area,index:0,meta:h[field+'Meta']}]:[];
+  return (h[area]||[]).flatMap((id,index)=>id?[{id,area,index,meta:h[area+'Meta'][index]}]:[]);
+ });
 }
 export function activeEquipment(g,h){
  ensureInventory(h);return (h.inventory||[]).filter((id,i)=>id&&(h.inventoryMeta[i]?.readyAt||0)<=g.time+1e-7&&(h.inventoryMeta[i].ownerId===h.id||h.inventoryMeta[i].freeRapier));

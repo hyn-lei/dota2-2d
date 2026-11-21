@@ -57,6 +57,9 @@ function projectile(c,e,pose,zoom){
   }else if(v==='frostAttack'){
     c.save();c.rotate(Math.PI/2);crystal(c,0,0,29);c.restore();
     for(let i=0;i<5;i++){c.globalAlpha=.65*(1-i/5);crystal(c,-18-i*13,Math.sin(i*2.4)*8,7-i*.7,Math.PI/2);}
+  }else if(v==='chaosBolt'){
+    glow(c,0,0,28,'#e8613870');polygon(c,[[-30,0],[-5,-13],[16,-7],[24,0],[16,7],[-5,13]],'#e67240','#ffd797',1.5);
+    stroke(c,[[-14,-6],[3,4],[15,-3]],'#fff1cf',2);circle(c,7,0,6,'#ffc57b');
   }else if(v==='direTower'||v==='direBolt'||v==='ogreIgnite'){
     const flameScale=tower?1:.62;c.save();c.scale(flameScale,flameScale);
     for(let i=4;i>=0;i--)glow(c,-i*7,(noise(i+Math.floor(p*20))-.5)*7,21-i*2,i%2?'#ff552aac':'#ff962faa');
@@ -143,11 +146,15 @@ export function drawCombatEffect(c,e,game,zoom=1){
     for(let i=0;i<=12;i++){const f=i/12,j=i&&i<12?(noise(i+Math.floor(game.time*18))-.5)*24:0;points.push([e.x+dx*f-dy/d*j,e.y+dy*f+dx/d*j-20]);}
     c.globalAlpha*=.3;stroke(c,points,color,10);c.globalAlpha/=.3;stroke(c,points,color,3);stroke(c,points,'#f2f7ea',1);
   }else{
-    const melee=['meleeSlash','bladeSlash','axeSlash','tideSlash','omnislash'].includes(v);
+    const melee=['meleeSlash','bladeSlash','axeSlash','tideSlash','omnislash','chaosSlash'].includes(v);
     c.translate(melee?(e.tx??e.x):e.x,melee?(e.ty??e.y)-25:e.y);
     if(v==='attackImpact'||v==='drowGustImpact'||v==='drowFrostImpact'){
       c.translate(0,-30);glow(c,0,0,r*(.45+.55*p),color+'70');sparks(c,r,p,color,12);
       if(v==='drowFrostImpact')for(let i=0;i<6;i++){const a=i*TAU/6;crystal(c,Math.cos(a)*r*p,Math.sin(a)*r*p,16*(1-p)+5,a);}
+    }else if(['chaosBoltHit','chaosRift','chaosPhantasm'].includes(v)){
+      const reach=r*(.35+.65*p);circle(c,0,0,reach,null,'#ec8d5c',3*k+1);
+      c.save();c.rotate(p*2);for(let i=0;i<4;i++){const a=i*TAU/4;stroke(c,[[Math.cos(a)*reach*.3,Math.sin(a)*reach*.3],[Math.cos(a+.25)*reach,Math.sin(a+.25)*reach]],'#ffb984',2);}c.restore();
+      if(v==='chaosRift'&&Number.isFinite(e.tx))stroke(c,[[0,0],[e.tx-e.x,e.ty-e.y]],'#e4896555',3);
     }else if(v==='frostNova')frostNova(c,r,p,zoom);
     else if(v==='ogreFireblast'){
       glow(c,0,-25,r*1.4,'#ff912957');

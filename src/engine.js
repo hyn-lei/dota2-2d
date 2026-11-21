@@ -22,6 +22,8 @@ import {manaState,spendMana,restoreMana} from './mana-runtime.js';
 import {disableDeveloperMode,tickDeveloperMode} from './developer-mode.js';
 import * as Chen from './chen-runtime.js';
 import * as Creatures from './neutral-runtime.js';
+import * as WorldRuntime from './world-runtime.js';
+import {illusion as createItemIllusions} from './item-common.js';
 import {ownsControlledUnit,isControlledCreature,controlUnit,setCreatureOrder} from './controlled-units.js';
 
 const distance = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
@@ -29,6 +31,10 @@ const clamp = (n, low, high) => Math.max(low, Math.min(high, n));
 const alive = e => !e.dead && e.hp > 0;
 const building = e => ['tower','barracks','ancient','fountain','filler'].includes(e?.kind);
 const fighter = e => ['hero','creep','neutral','summon','illusion'].includes(e?.kind);
+const NEUTRAL_HOME=Object.fromEntries([
+  ...['kobold','kobold_tunneler','kobold_taskmaster','forest_troll_berserker','forest_troll_high_priest','giant_wolf','alpha_wolf','ogre_mauler','ogre_magi','radigull','centaur_outrunner','centaur_khan','wildkin','enraged_wildkin','eimermole','eimermole_foreman'].map(id=>[id,0]),
+  ...['gnoll_assassin','fel_beast','ghost','harpy_scout','harpy_storm','satyr_trickster','satyr_soulstealer','satyr_hellcaller','mud_golem','odobenus_footman','odobenus_frostmage','polar_furbolg_champion','polar_furbolg_ursa_warrior','dark_troll','dark_troll_warlord'].map(id=>[id,1]),
+]);
 export function coopAllyHeroIds(humans,options={}){
   return draftMatch({...options,humanHeroIds:humans.map(h=>h.heroId)}).allies.slice(humans.length).map(h=>h.heroId);
 }
@@ -44,6 +50,7 @@ export class Game {
     this.entities = [];
     this.effects = [];
     this.pendingSpells = [];
+    WorldRuntime.initializeWorld(this);
     this.feed = [];
     this.wave = 0;
     this.nextWave = 0;
@@ -152,6 +159,7 @@ export class Game {
     });
     Progression.initializeProgression(h);
     Inventory.ensureInventory(h);
+    WorldRuntime.initializeNeutralHero(this,h);
     h.tp=['tpscroll'];h.tpMeta=[Inventory.createMeta(h,'tpscroll')];
     this._refreshHero(h);
     if(!isPlayer)Progression.autoLearn(h);
@@ -164,10 +172,12 @@ export class Game {
   _refreshHero(h) {
     const hp=h.hp, mana=h.mana, oldHp=h.maxHp, oldMana=h.maxMana,temporary=manaState(h);
     const bonus={...talentStats(h.heroId,h.talents||[]),allAttributes:(h.attributeBonusLevel||0)*2};
+    if(!h.dead&&h.statuses?.damageRune?.until>this.time){bonus.baseDamagePct=(bonus.baseDamagePct||0)+80;bonus.spellAmp=(bonus.spellAmp||0)+15;}
     const talentArea=bonus.spellAoE||0;delete bonus.spellAoE;
     bonus.strength=(bonus.strength||0)+(h.innateStrength||0);bonus.agility=(bonus.agility||0)+(h.innateAgility||0)+(h.trueshotAgility||0);
     const items=ItemRuntime.statItems(this,h);
     Object.assign(h,calculateHeroStats(h.heroId,h.level,[...items,{stats:bonus}],h));
+    if(!h.dead&&h.statuses?.arcaneRune?.until>this.time){h.cooldownReduction=100-(100-h.cooldownReduction)*.75;h.manaCostReduction=100-(100-h.manaCostReduction)*.7;}
     if(h.creatureHpPct){h.creatureHpBonus=h.maxHp*h.creatureHpPct/100;h.maxHp+=h.creatureHpBonus;}
     h.spellAoE+=talentArea;
     h.maxMana+=temporary.capacity;
@@ -179,19 +189,28 @@ export class Game {
   }
 
   setPaused(value) { this.paused = !!value; }
+  neutralCraftState(hero=this.player){return WorldRuntime.neutralCraftState(this,hero);}
+  craftNeutral(artifactId,enchantmentId){return WorldRuntime.craftNeutral(this,this.player,artifactId,enchantmentId);}
+  useGlyph(){return WorldRuntime.useGlyph(this,this.player);}
+  interactObjective(id){return WorldRuntime.interactObjective(this,this.player,id);}
+  _summonHornWave(h){return WorldRuntime.hornWave(this,h);}
+  _summonNeutralDemons(h,duration){return WorldRuntime.summonDemons(this,h,duration);}
+  _spawnRuneIllusions(h){const units=createItemIllusions(this,h,2,75,35,h.range>300?300:200,{type:'weak',itemPotency:40});for(const unit of units)unit.itemPotency=40;return units;}
 
   skill(index,hero=this.player) { return isControlledCreature(hero)?Creatures.creatureSkill(hero,index):Skills.skillOf(hero,index); }
   combatStats(unit,target=null) {
     const stats=ItemRuntime.combatStats(this,unit,Skills.combatStats(this,unit,target),target);
+    if(unit.statuses?.hasteRune?.until>this.time)stats.speed=550;
     if(unit.kind==='creep'){const aura=flagbearerAura(this,unit,this._flagSources||this.entities);if(aura)stats.magicResistance=1-(1-(stats.magicResistance||0))*(1-aura.magicResistance);}
+    if(unit.kind==='creep'&&unit.pulledAt!=null)stats.speed*=1-.25*clamp((this.time-unit.pulledAt)/10,0,1);
     return Creatures.creatureCombatStats(this,unit,stats);
   }
   extraAbilities(hero=this.player) { return Skills.extraAbilities(hero); }
   castExtra(id,point) { return Skills.castExtraAbility(this,this.player,id,point); }
-  useItem(index,point,area='inventory') { return ItemRuntime.useItem(this,this.player,index,point,area); }
+  useItem(index,point,area='inventory') { const result=ItemRuntime.useItem(this,this.player,index,point,area);if(result?.ok)WorldRuntime.breakRuneInvisibility(this,this.player);return result; }
   itemState(index,area='inventory',unit=this.player) { return ItemRuntime.itemState(this,unit,index,area); }
   blockTargetSpell(caster,target,spell) { return ItemRuntime.blockTargetSpell(this,caster,target,spell); }
-  onSpellCast(hero,spell) { ItemRuntime.onSpellCast(this,hero,spell); }
+  onSpellCast(hero,spell) { WorldRuntime.breakRuneInvisibility(this,hero);ItemRuntime.onSpellCast(this,hero,spell); }
   onSpellTarget(hero,target,spell) { ItemRuntime.onSpellTarget(this,hero,target,spell); }
   onStatusExpired(unit,status) { ItemRuntime.expiredStatus(this,unit,status); }
   canSee(viewer,target) { return viewer.team===target.team||!Skills.hasStatusFlag(this,target,'invisible')||!Skills.hasStatusFlag(this,target,'smoked')&&(Skills.hasStatusFlag(this,target,'revealed')||this.entities.some(e=>alive(e)&&e.team===viewer.team&&((e.trueSight||0)>distance(e,target)||e.kind==='hero'&&ItemRuntime.statItems(this,e).some(i=>i.id==='gem')&&distance(e,target)<=900))); }
@@ -218,6 +237,7 @@ export class Game {
   moveTo(x, y) {
     const p = this.player;
     if (!this._canAct().ok || this._tauntSource(p) || !Number.isFinite(x) || !Number.isFinite(y)) return;
+    if(p.chaosCharge){p.chaosCharge.steerPoint=this._point(x,y);return;}
     if(p.channel?.kind!=='multishot')Skills.interruptCast(this,p,true);
     p.recallTimer = 0;
     p.targetId = null;
@@ -235,7 +255,7 @@ export class Game {
     if(this.player)this.player.movementInput={...this.keyboard};
     if (length && this.player && !this.player.dead) {
       if(this.player.zealot){setCreatureOrder(this.player,'hold');this.player.destination=null;}
-      if(this.player.channel?.kind!=='multishot')Skills.interruptCast(this,this.player,true);
+      if(!this.player.chaosCharge&&this.player.channel?.kind!=='multishot')Skills.interruptCast(this,this.player,true);
       this.player.recallTimer = 0;
       this.player.explicitTarget = null;
       this.player.targetId = null;
@@ -316,11 +336,14 @@ export class Game {
     if (!target || !alive(target) || this.status !== 'playing' || !Number.isFinite(amount) || amount <= 0) return 0;
     if (source && source.team === target.team) return 0;
     if (this.isProtected(target)||target.kind==='droppedItem') return 0;
-    if(target.kind==='courier'){
+    if(target.pipHealth||target.kind==='ward'||target.kind==='courier'){
       if(!options.attack||Skills.isInvulnerable(this,target))return 0;
-      const hits=['hero','illusion'].includes(source?.kind)?(source.range>300?3:6):1;target.hp=Math.max(0,target.hp-hits);if(!target.hp)this._kill(target,source);return hits;
+      if(target.kind==='courier'&&!target.pipHealth){target.pipHealth=true;target.fragile=true;target.maxHp=2;target.hp=Math.min(2,target.hp);}
+      const full=source?.kind==='hero'||source?.isRoshan||['tower','fountain'].includes(source?.kind);
+      const hits=full?(target.fragile&&!isRangedAttack(source)?2:1):.25;
+      const dealt=Math.min(target.hp,hits);target.hp=Math.max(0,target.hp-hits);target.hitsRemaining=target.hp;if(!target.hp)this._kill(target,source);return dealt;
     }
-    amount=ItemRuntime.outgoingDamage(this,source,amount,type,options);
+    amount=ItemRuntime.outgoingDamage(this,source,amount,type,options,target);
     amount=Creatures.creatureOutgoingDamage(this,source,amount,options);
     amount=ItemRuntime.blockAttackDamage(this,target,amount,type,options);
     const stats=this.combatStats(target);
@@ -340,8 +363,11 @@ export class Game {
     value=Skills.incomingDamage(this,target,value,source,type);
     value=Creatures.creatureIncomingDamage(this,target,value,type);
     value=ItemRuntime.incomingDamage(this,target,value,source,type,options);
+    value*=Math.max(0,1+(target.incomingDamagePct||0)/100);
     value=Math.min(target.hp,value);
     target.hp = Math.max(0, target.hp - value);
+    WorldRuntime.runeDamage(this,target,value);
+    if(!options.reflected)WorldRuntime.tormentorDamage(this,target,value);
     Chen.chenDamage(this,target,value,source);
     ItemRuntime.afterDamage(this,target,value,source,type,options);
     if(target.kind==='neutral' && source && source.team!==2) this._aggroCamp(target.campId,source);
@@ -368,8 +394,9 @@ export class Game {
     Skills.onUnitKilled(this,target,source);
     ItemRuntime.onDeath(this,target,source);
     Chen.chenDeath(this,target);
-    Creatures.creatureDeath(this,target);
+    Creatures.creatureDeath(this,target,source);
     source=this._combatOwner(source);
+    WorldRuntime.tormentorDeath(this,target,source);
     if(building(target))this.navigation.updateBuildings(this.entities.filter(building));
     for (const hero of this.entities) if (hero.xMark?.targetId===target.id || hero===target) hero.xMark=null;
     this._effect('burst', target.x, target.y, {radius:target.radius * 2.5, color:TEAM_COLORS[target.team]||'#cdb28b', life:.7});
@@ -387,22 +414,27 @@ export class Game {
       if(source?.team===1-target.team) this.score[1-target.team]++;
       if (source?.kind === 'hero') {
         source.kills++;
-        source.gold += 210 + target.level * 15;
+        source.gold += 100 + target.level * 10 + Math.min(480,Math.max(0,(target.killStreak||0)-2)*60);
+        source.killStreak=(source.killStreak||0)+1;
       }
       for (const h of this.entities) if (h.kind === 'hero' && h.team !== target.team && h.id !== source?.id && target.lastDamagers[h.id] !== undefined && this.time - target.lastDamagers[h.id] < 8) {
         h.assists++;
         h.gold += 65;
       }
       this._feed(`${source?.name || (source?.kind === 'tower' ? '防御塔' : '军团')} 击败了 ${target.name}`, 1 - target.team);
+      target.killStreak=0;
     } else if (target.kind === 'creep' || target.kind==='neutral'||target.kind==='summon'||target.dominatedBy) {
       if (source?.kind === 'hero') {
         source.lastHits++;
-        const gold=Math.floor((target.goldMin||0)+this._random()*((target.goldMax||target.goldMin||0)-(target.goldMin||0)+1));
+        const gold=ItemRuntime.creepBounty(this,source,target);
         source.gold += gold;
         if (source.isPlayer) this._effect('text', target.x, target.y - 60, {text:`+${gold}`, color:'#ead077', life:.8});
       }
       if(target.isRoshan){
-        this.roshanRespawnAt=this.time+480+this._random()*180;
+        this.roshanDeaths=(this.roshanDeaths||0)+1;
+        WorldRuntime.roshanDrops(this,target);
+        this.roshanRespawnAt=this.time+Math.max(300,480-60*this.roshanDeaths)+this._random()*180;
+        for(const h of this.entities)if(h.kind==='hero'&&h.team===source?.team)h.gold+=125;
         if(source?.kind==='hero'){source.aegisUntil=this.time+300;this._feed(`${source.name}击败肉山，获得不朽之守护`,source.team);}
       }
       if(target.unitId==='mud_golem'&&!target.ownerId){
@@ -410,9 +442,12 @@ export class Game {
         for(const dx of [-35,35])this._makeNeutral('mud_golem_split',{x:target.x+dx,y:target.y},camp);
       }
     } else if (target.kind === 'tower') {
-      for (const h of this.entities) if (h.kind === 'hero' && h.team !== target.team) h.gold += 160;
+      for (const h of this.entities) if (h.kind === 'hero' && h.team !== target.team) h.gold += [0,75,100,125,150][target.tier];
+      if(source?.kind==='hero')source.gold+=[0,100,125,150,175][target.tier];
       this._feed(`${target.name}已被摧毁`,1-target.team);
     } else if(target.kind==='barracks') {
+      for(const h of this.entities)if(h.kind==='hero'&&h.team!==target.team)h.gold+=target.barracksType==='melee'?125:100;
+      if(source?.kind==='hero')source.gold+=100;
       this._buildingArmor();
       this._feed(`${target.team?'夜魇':'天辉'} ${['上路','中路','下路'][target.lane]}${target.barracksType==='melee'?'近战':'远程'}兵营已摧毁，该路兵线升级`,1-target.team);
     } else if(target.kind==='filler') {
@@ -422,6 +457,7 @@ export class Game {
       this.status = this.winner === 0 ? 'won' : 'lost';
       this._feed(`${target.team ? '夜魇' : '天辉'}远古遗迹已被摧毁`, this.winner);
     }
+    WorldRuntime.campDeath(this,target,source);
     if (fighter(target)) {
       const nearby = this.entities.filter(h => h.kind === 'hero' && alive(h) && h.team !== target.team && distance(h, target) < 1500);
       const xp = (target.kind === 'hero' ? 100 + target.level * 40 : target.xpBounty||0) / Math.max(1, nearby.length);
@@ -466,14 +502,14 @@ export class Game {
   _spawnWave() {
     this.wave++;
     const time=(this.wave-1)*30,bountyUpgrades=Math.floor(time/450),upgrades=Math.min(30,bountyUpgrades);
-    const meleeCount=3+[900,1800,2700].filter(t=>time>=t).length;
-    const rangedCount=time>=2400?2:1;
+    const meleeCount=3+[900,2700].filter(t=>time>=t).length;
+    const rangedCount=time>=2100?2:1;
     const types=[...Array(meleeCount).fill('melee'),...Array(rangedCount).fill('ranged')];
-    if(time>=300&&time%300===0)types.push(...Array(1+[1800,3600].filter(t=>time>=t).length).fill('siege'));
+    if(time>=300&&time%(time>=1800?150:300)===0)types.push(...Array(time>=3600?2:1).fill('siege'));
     for (let team=0;team<2;team++)for(let lane=0;lane<3;lane++)for(let i=0;i<types.length;i++) {
       const type=types[i],upgrade=this.creepUpgrade(team,lane,type),base=LANE_SPAWNS[team][lane];
       const key=upgrade==='normal'?type:upgrade+type[0].toUpperCase()+type.slice(1);
-      const flagbearer=type==='melee'&&i===0&&time>=120&&this.wave%2===1&&upgrade==='normal';
+      const flagbearer=type==='melee'&&i===0&&time>=120&&(time>=1800||this.wave%2===1)&&upgrade==='normal';
       const stats={...LANE_CREEPS[flagbearer?'flagbearer':key]};
       const maxUpgrades=upgrade==='mega'?30:upgrades;
       if(type!=='siege'){
@@ -510,8 +546,15 @@ export class Game {
       camp.blocked=this.entities.some(e=>alive(e)&&fighter(e)&&e.x>=minX&&e.x<=maxX&&e.y>=minY&&e.y<=maxY);
       camp.nextSpawn=this.nextNeutralSpawn+60;
       if(camp.blocked)continue;
-      const groups=CAMP_GROUPS[camp.type];
-      const group=camp.area==='flooded'?getFloodedCampGroup(camp,this.time):groups[Math.floor(this._random()*groups.length)];
+      const homeTeam=camp.homeTeam??(camp.sourceId?.includes('_good_')?0:1);
+      let group;
+      if(camp.area==='flooded')group=getFloodedCampGroup(camp,this.time);
+      else{
+        const available=CAMP_GROUPS[camp.type].filter(pack=>camp.type==='ancient'||pack.every(({unitId})=>NEUTRAL_HOME[unitId]===homeTeam));
+        const first=camp.type==='ancient'||homeTeam===0?1:4;
+        const groups=available.filter((pack,index)=>camp.minSpawnType==null||(index+first>=camp.minSpawnType&&index+first<=camp.maxSpawnType));
+        group=groups[Math.floor(this._random()*groups.length)];
+      }
       camp.spawnCount++;
       const count=group.reduce((n,u)=>n+u.count,0);let index=0;
       for(const {unitId,count:amount}of group)for(let i=0;i<amount;i++){
@@ -524,10 +567,11 @@ export class Game {
   _makeNeutral(unitId,position,camp) {
     const data=NEUTRAL_UNITS[unitId],growth=Math.min(30,Math.floor(this.time/450)),stats={...data};
     stats.maxHp+=30*growth;stats.damageMin+=3*growth;stats.damageMax+=3*growth;stats.damage+=3*growth;
-    stats.armor+=.5*growth;stats.goldMin+=growth;stats.goldMax+=growth;stats.xpBounty+=5*growth;
+    const bountyMinutes=Math.floor(this.time/60);
+    stats.armor+=.5*growth;stats.goldMin+=Math.ceil(bountyMinutes/2);stats.goldMax+=Math.floor(bountyMinutes/2);stats.xpBounty+=4*growth;
     stats.attackSpeed=stats.baseAttackSpeed+5*growth;stats.attackInterval=stats.baseAttackTime*100/stats.attackSpeed;
     const unit=this._unit('neutral',2,position.x,position.y,{
-      ...stats,unitId,campId:camp.id,home:{...position},campCenter:{x:camp.x,y:camp.y},
+      ...stats,unitId,neutralGrowth:growth,neutralBountyMinutes:bountyMinutes,campId:camp.id,home:{...position},campCenter:{x:camp.x,y:camp.y},
       selectionRadius:stats.radius,radius:stats.ancient?40:24,aggroUntil:0,returning:false,abilityCooldowns:{},buffs:{},
       attackType:stats.abilities?.includes('creep_piercing')?'pierce':'basic',mana:stats.maxMana||0
     });
@@ -551,7 +595,8 @@ export class Game {
   }
 
   _neutralTick(e,dt) {
-    if(e.buffs.stunUntil>this.time)return;
+    if(e.isTormentor)return;
+    if(e.buffs.stunUntil>this.time||e.creatureMotion||e.neutralCast||e.neutralChannel)return;
     if(this._tauntedTick(e,dt))return;
     let target=e.targetId?this.entities.find(t=>t.id===e.targetId&&alive(t)):null;
     if(target&&(this.time>e.aggroUntil||distance(e,e.campCenter)>(e.isRoshan?1000:1600))){e.returning=true;target=null;e.targetId=null;}
@@ -571,6 +616,7 @@ export class Game {
   }
 
   _neutralAbility(e,target) {
+    if(!e.isRoshan)return Creatures.autoCastCreature(this,e,target);
     e.abilityCooldowns||={};
     const rankValue=(v,fallback=0)=>{const levels=String(typeof v==='object'?v?.value:v??fallback).trim().split(/\s+/);return Number(levels[Math.min(e.abilityLevelBonus||0,levels.length-1)])||fallback;};
     const value=(ability,key,fallback=0)=>rankValue(ability.values?.[key],fallback);
@@ -618,6 +664,7 @@ export class Game {
 
   _tick(dt) {
     this.time += dt;
+    WorldRuntime.tickWorld(this,dt);
     ItemRuntime.tickWorld(this,dt);
     tickAttacks(this);
     this._resolveDelayedSpells();
@@ -637,7 +684,8 @@ export class Game {
       if(alive(e))Skills.tickStatuses(this,e,dt);
       this.collisions.update(e);
       if (e.kind === 'hero') {
-        e.gold += 100 / 60 * dt;
+        e.gold += (90+(e.gpm||0)) / 60 * dt;
+        this._addXp(e,50/60*dt);
         e.cooldowns = e.cooldowns.map(c => Math.max(0,c - dt));
         if(!e.isPlayer)Bots.maintainBot(this,e);
         if (e.dead) {
@@ -735,17 +783,19 @@ export class Game {
   }
 
   _attack(e,target,options={}) {
-    if(!target||!alive(target)||!alive(e)||this.isStunned(e)||Skills.hasStatusFlag(this,e,'disarmed')||!this.canSee(e,target)||
-      (e.castPhase||e.channel||e.omnislash||e.neutralCast||e.neutralChannel)&&!options.omni||Skills.isInvulnerable(this,target)||
-      distance(e,target)>(this.combatStats(e,target).range||e.range)+target.radius+8||e.attackCooldown>0&&!options.attackReleased)return false;
-    if((e.heroId==='ogre_magi'||e.heroId==='drow_ranger'||e.heroId==='chen'||isControlledCreature(e))&&!options.attackReleased&&!options.omni){
+    if(!target||!alive(target)||!alive(e)||!options.spinAttack&&(this.isStunned(e)||Skills.hasStatusFlag(this,e,'disarmed'))||!this.canSee(e,target)||
+      (e.castPhase||e.channel||e.omnislash||e.neutralCast||e.neutralChannel||e.creatureMotion)&&!options.omni&&!options.spinAttack||Skills.isInvulnerable(this,target)||
+      distance(e,target)>(options.chaosCharge?150+(e.spellAoE||0):(this.combatStats(e,target).range||e.range))+target.radius+8||e.attackCooldown>0&&!options.attackReleased)return false;
+    if((e.heroId==='ogre_magi'||e.heroId==='drow_ranger'||e.heroId==='chen'||e.heroId==='chaos_knight'||isControlledCreature(e))&&!options.attackReleased&&!options.omni&&!options.spinAttack&&!options.chaosCharge){
       const stats=this.combatStats(e,target),duration=(e.attackPoint||attackProfile(e).attackPoint)*100/stats.attackSpeed;
       e.angle=Math.atan2(target.y-e.y,target.x-e.x);e.attackFlash=duration+.1;e.targetId=target.id;
       e.attackPhase={targetId:target.id,startedAt:this.time,executeAt:this.time+duration,options};e.attackCooldown=stats.attackInterval;return true;
     }
     e.angle=Math.atan2(target.y-e.y,target.x-e.x);e.attackFlash=.24;e.targetId=target.id;
-    const trueStrike=ItemRuntime.trueStrike(this,e,target);
-    const result=ItemRuntime.attackModifiers(this,e,target,Skills.attackModifiers(this,e,target,options));e.attackCooldown=result.interval;
+    WorldRuntime.breakRuneInvisibility(this,e);
+    const modifiers=Skills.attackModifiers(this,e,target,options);
+    const trueStrike=ItemRuntime.trueStrike(this,e,target,modifiers);
+    const result=ItemRuntime.attackModifiers(this,e,target,modifiers);e.attackCooldown=result.interval;
     Creatures.creatureAttackModifiers(this,e,target,result);
     result.trueStrike=trueStrike||result.marksmanship;result.itemAttackProcs=[...(e.itemAttackProcs||[])];
     if(isRangedAttack(e))launchAttack(this,e,target,result);
@@ -756,11 +806,10 @@ export class Game {
   _hitAttack(e,target,result){
     if(!alive(target)||Skills.isInvulnerable(this,target))return;
     const evasion=this.combatStats(target).evasion;
-    if(!result.trueStrike&&evasion&&this._random()*100<evasion){this._effect('text',target.x,target.y-40,{text:'MISS',life:.5,color:'#bfcdb1'});return;}
+    if(!result.trueStrike&&evasion&&this._random()*100<evasion){Skills.onAttackMiss?.(this,e,target);this._effect('text',target.x,target.y-40,{text:'MISS',life:.5,color:'#bfcdb1'});return;}
     result.damage=Skills.attackImpactDamage(this,target,result);
     let dealt=0;
-    if(target.kind==='ward'){target.hitsRemaining--;target.hp=target.hitsRemaining;if(target.hp<=0)this._kill(target,e);}
-    else dealt=this.damage(target,result.damage,e,'physical',{attack:true,ignoreBaseArmor:result.marksmanship,armorIgnorePct:result.cleave?.values.pierces_armor||0});
+    dealt=this.damage(target,result.damage,e,'physical',{attack:true,itemPotency:result.itemPotency,ignoreBaseArmor:result.marksmanship,armorIgnorePct:result.cleave?.values.pierces_armor||0});
     Skills.afterAttack(this,e,target,result,dealt);
     ItemRuntime.afterAttack(this,e,target,result,dealt);
     Creatures.creatureAfterAttack(this,e,target,result,dealt);
@@ -775,8 +824,9 @@ export class Game {
     if(this._attack(e,target,{...phase.options,attackReleased:true}))e.attackCooldown=Math.max(0,e.attackCooldown-elapsed);else e.attackCooldown=0;
   }
   _move(e, point, dt, stop = 0) {
+    if(e.creatureMotion)return;
     if(this.isStunned(e)||this.isRooted(e)||(Skills.isInvulnerable(this,e)&&!Skills.hasStatusFlag(this,e,'canMoveInvulnerable')))return;
-    if(e.flying){const d=distance(e,point),amount=Math.min(this.combatStats(e).speed*dt,Math.max(0,d-stop));if(amount>0){e.angle=Math.atan2(point.y-e.y,point.x-e.x);e.x=clamp(e.x+Math.cos(e.angle)*amount,25,WORLD.width-25);e.y=clamp(e.y+Math.sin(e.angle)*amount,25,WORLD.height-25);e.moving=true;}return;}
+    if(e.flying||Skills.hasStatusFlag(this,e,'flying')||e.neutralItem==='giants_ring'){const d=distance(e,point),amount=Math.min(this.combatStats(e).speed*dt,Math.max(0,d-stop));if(amount>0){e.angle=Math.atan2(point.y-e.y,point.x-e.x);e.x=clamp(e.x+Math.cos(e.angle)*amount,25,WORLD.width-25);e.y=clamp(e.y+Math.sin(e.angle)*amount,25,WORLD.height-25);e.moving=true;}return;}
     const navigator=Skills.movementNavigator(this,e);
     if(this.collisions.separate(e,navigator)){e.navPath=null;e.navRetryAt=0;}
     const originalDistance=distance(e,point);
@@ -839,6 +889,9 @@ export class Game {
     if (this.isStunned(e)) return;
     if (this._tauntedTick(e,dt)) return;
     const target = this._chooseTarget(e,600);
+    const lane=TEAM_LANES[e.team]?.[e.lane]||[],offLane=Math.min(...lane.map(p=>distance(e,p)))>700;
+    const safePull=this.entities.some(t=>t.kind==='tower'&&t.team===e.team&&t.tier===1&&t.lane===(e.team===0?2:0)&&distance(e,t)<1500);
+    if(offLane&&!safePull)e.pulledAt??=this.time;else delete e.pulledAt;
     e.targetId = target?.id || null;
     if (target) {
       if (!this._attack(e,target)) this._move(e,target,dt,e.range+target.radius-3);

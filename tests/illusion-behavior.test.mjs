@@ -188,7 +188,7 @@ for(const type of ['weak','strong'])test(`${type} illusions keep BKB components 
  Object.assign(p,{x:BASES[0].x+600,y:BASES[0].y-1600,inventory:['mithril','ogreaxe'],gold:ITEM_BY_ID.recipe_black_king_bar.cost-10});
  p.inventoryMeta=p.inventory.map(id=>createMeta(p,id));g._refreshHero(p);
  const c=createIllusions(g,p,1,60,33,300,{type})[0],components=c.inventory.filter(Boolean),strength=c.strength,damage=c.damage;
- assert.equal(g.buy('recipe_black_king_bar').ok,false);g.step(6.1);
+ assert.equal(g.buy('recipe_black_king_bar').ok,false);g.step(7);
  assert.equal(g.buy('recipe_black_king_bar').ok,true);assert.equal(g.courierCommand('deliver').ok,true);g.step(30);
  assert.ok(p.inventory.includes('black_king_bar'));assert.deepEqual(c.inventory.filter(Boolean),components);
  assert.equal(c.strength,strength);assert.equal(c.damage,damage);assert.equal(c.inventory.includes('black_king_bar'),false);

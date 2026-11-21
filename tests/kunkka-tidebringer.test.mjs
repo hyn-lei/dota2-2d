@@ -48,7 +48,7 @@ test('break suppresses Tidebringer without consuming its cooldown and expiry res
 test('Tidebringer talents increase damage and pierce armor on both the primary attack and cleave',()=>{
  const {g,p,e,c}=arena('kunkka',[0,4,0,0]);p.level=25;p.talentPoints=3;
  for(const index of [3,5,7])assert.equal(g.learnTalent(index).ok,true);
- e.armor=c.armor=10;ready(p);const attack=p.damage+140+75;g._attack(p,e);
+ e.armor=c.armor=10;ready(p);const attack=p.damage+140+80;g._attack(p,e);
  close(4000-e.hp,attack*physicalDamageMultiplier(7.5));close(4000-c.hp,attack*2.3*physicalDamageMultiplier(7.5));
 });
 

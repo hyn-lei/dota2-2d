@@ -21,7 +21,7 @@ test('upgrades preserve four base ability slots and refresh skill cache when rem
 });
 
 test('only the matching upgrade unlocks an independent extra skill',()=>{
- for(const [hero,id,flag]of [['crystal_maiden','crystal_maiden_crystal_clone','hasShard'],['juggernaut','juggernaut_swift_slash','hasScepter'],['windranger','windrunner_gale_force','hasShard'],['kunkka','kunkka_tidal_wave','hasShard']]){
+ for(const [hero,id,flag]of [['crystal_maiden','crystal_maiden_crystal_clone','hasShard'],['windranger','windrunner_gale_force','hasShard'],['kunkka','kunkka_tidal_wave','hasShard']]){
   const {g,p,e}=arena(hero);assert.deepEqual(Skills.extraAbilities?.(p),[]);
   assert.equal(Skills.castExtraAbility?.(g,p,id,e)?.ok,false);p[flag]=true;
   assert.ok(Skills.extraAbilities(p).some(s=>s.id===id));assert.equal(Skills.extraSkillOf(p,id).level,1);
@@ -72,13 +72,6 @@ test('Juggernaut Shard ward heals an extra 1.5 percent and takes exactly two hit
  const {g,p,e}=arena('juggernaut');p.hasShard=true;g.cast(1,p);g.step(.31);
  const ward=g.entities.find(u=>u.kind==='ward');assert.equal(ward.healPct,3.5);assert.equal(ward.hitsRemaining,2);
  e.attackCooldown=0;g._attack(e,ward);g.step(.2);assert.equal(ward.dead,false);e.attackCooldown=0;g._attack(e,ward);g.step(.2);assert.equal(ward.dead,true);
-});
-
-test('Swift Slash shares Omnislash attack rules with separate duration and cooldown',()=>{
- const {g,p,e}=arena('juggernaut');p.hasScepter=true;const baseCooldown=p.cooldowns[3];
- assert.equal(Skills.castExtraAbility(g,p,'juggernaut_swift_slash',e).ok,true);g.step(.31);
- assert.ok(p.omnislash);assert.ok(Skills.isInvulnerable(g,p));assert.equal(p.cooldowns[3],baseCooldown);assert.ok(p.extraCooldowns.juggernaut_swift_slash>24);
- g.step(1.1);assert.equal(p.omnislash,null);assert.ok(e.hp<100000);
 });
 
 test('Windranger Scepter attack Tailwind lasts 3.5 seconds and survives dispels',()=>{

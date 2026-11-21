@@ -9,8 +9,9 @@ function parse(raw){
 const units=JSON.parse(fs.readFileSync('docs/research/units/parsed-units.json','utf8'));
 const abilities=parse(fs.readFileSync('docs/research/units/npc_abilities.txt','utf8')).DOTAAbilities;
 const unitExtras={},abilityExtras={};
+function resolveUnit(id,seen=new Set()){if(!units[id]||seen.has(id))return {};seen.add(id);return {...resolveUnit(units[id].include_keys_from,seen),...units[id]};}
 for(const [key,data]of Object.entries(NEUTRAL_UNITS)){
-  const raw={...units.npc_dota_units_base,...units[data.sourceId]};
+  const raw={...units.npc_dota_units_base,...resolveUnit(data.sourceId)};
   unitExtras[key]={maxMana:Number(raw.StatusMana)||0,manaRegen:Number(raw.StatusManaRegen)||0,visionDay:Number(raw.VisionDaytimeRange)||0,visionNight:Number(raw.VisionNighttimeRange)||0};
 }
 for(const key of Object.keys(NEUTRAL_ABILITIES)){

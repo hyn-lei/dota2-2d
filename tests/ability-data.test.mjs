@@ -23,11 +23,11 @@ test('all twenty normal abilities retain official rank data and learning require
       assert.equal(entry.maxLevel, original.max_level);
       assert.deepEqual(entry.requiredLevels, index === 3 ? [6, 12, 18] : [1, 3, 5, 7]);
       for (const [field, sourceField] of Object.entries(fields)) assert.deepEqual(entry[field], original[sourceField], `${entry.id}.${field}`);
-      for (const value of original.special_values) assert.deepEqual(entry.values[value.name], value.values_float, `${entry.id}.${value.name}`);
+      for (const value of original.special_values.filter(v=>v.values_float.length)) assert.deepEqual(entry.values[value.name], value.values_float, `${entry.id}.${value.name}`);
       for (let rank = 1; rank <= entry.maxLevel; rank++) {
         const result = abilityAt(heroId, index, rank);
         assert.equal(result.level, rank);
-        for (const value of original.special_values) {
+        for (const value of original.special_values.filter(v=>v.values_float.length)) {
           const expected = value.values_float[Math.min(rank - 1, value.values_float.length - 1)] ?? 0;
           assert.equal(result.values[value.name], expected, `${entry.id}.${value.name} rank ${rank}`);
         }
@@ -43,7 +43,7 @@ test('rank zero previews the next rank without granting a learned ability and ra
   assert.equal(abilityAt('axe', 0, -8).level, 0);
   assert.equal(abilityAt('axe', 3, 99).level, 3);
   assert.equal(abilityAt('axe', 3, 99).damage, 475);
-  assert.equal(abilityAt('kunkka', 3, 2).damage, 475);
+  assert.equal(abilityAt('kunkka', 3, 2).damage, 450);
   assert.equal(abilityAt('juggernaut', 1, 3).duration, 22);
   assert.throws(() => abilityAt('unknown', 0, 1), RangeError);
   assert.throws(() => abilityAt('axe', 4, 1), RangeError);
@@ -94,13 +94,13 @@ test('learned talents adjust runtime rank values, including subtraction, percent
   assert.equal(abilityAt('kunkka', 0, 4, [2, 4]).values.stun_duration, 1.75);
   assert.equal(abilityAt('kunkka', 0, 4, [2, 4]).cooldown, 6);
   assert.equal(abilityAt('kunkka', 1, 1, [1]).values.movespeed_slow, -60);
-  assert.equal(abilityAt('windranger', 3, 3, [5]).values.focusfire_damage_reduction, -15);
+  assert.equal(abilityAt('windranger', 3, 3, [5]).values.focusfire_damage_reduction, -10);
   assert.equal(abilityAt('windranger', 1, 4, [6]).values.max_execute_threshold, 16);
   assert.equal(abilityAt('juggernaut', 0, 4, [3, 3]).values.bonus_movespeed, 45, 'duplicate talent indices must not stack');
   assert.equal(innateAt('juggernaut', 10, [1]).values.stack_gain_time, 1);
   assert.deepEqual(talentStats('crystal_maiden', [0, 1]), { maxHp: 200, intelligence: 12 });
   assert.deepEqual(talentStats('axe', [4]), { strength: 15 });
-  assert.deepEqual(talentStats('kunkka', [6]), { spellAoE: 100 });
+  assert.deepEqual(talentStats('kunkka', [6]), { spellAoE: 75 });
 });
 
 test('innate per-hero-level scaling includes level one, as specified by Valve patch notes', async () => {

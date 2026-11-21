@@ -17,10 +17,11 @@ export function chenTarget(g,h,index,point){
  const self=point?.id===h.id||point?.self;
  const candidates=g.entities.filter(e=>alive(e)&&fighter(e)&&!Skills.isInvulnerable(g,e)&&g.canSee(h,e)&&
   (self?e===h:point&&distance(e,point)<=Math.max(45,e.radius||0))&&
-  (index===0?e.team!==h.team:index===2?e.team===h.team:e.team!==h.team&&['creep','neutral','summon'].includes(e.kind)||e.chenPersuadedBy===h.id));
+  (index===0?e.team!==h.team:index===2?e.team===h.team:e===h||e.team!==h.team&&['creep','neutral','summon'].includes(e.kind)||e.chenPersuadedBy===h.id));
  const target=candidates.sort((a,b)=>distance(a,point||h)-distance(b,point||h))[0];
  if(!target)return {ok:false,reason:index===1?'请选择可劝化的小兵或野怪，或自己的劝化单位':index===2?'请选择友方英雄或单位':'请选择敌方单位'};
  const skill=Skills.castingStats(h,ability(h,index)),own=index===1&&target.chenPersuadedBy===h.id;
+ if(index===1&&target===h)return {ok:true,target};
  if(index===2&&Skills.debuffImmune(g,target))return {ok:false,reason:'不能对减益免疫友军施放神力恩泽'};
  if(!own&&distance(h,target)>skill.range+(target.radius||0))return {ok:false,reason:`目标超过 ${skill.range} 施法距离`};
  if(index===1){
@@ -41,21 +42,34 @@ export function recallTarget(g,h,point){
 }
 
 function applyPersuasion(g,h,unit,skill,{zealot=false}={}){
- if(zealot&&!skill.level)skill={...skill,values:{...skill.values,health_min:0,movement_speed_bonus:0,damage_bonus:0,creep_ability_level:0}};
- const hpRatio=unit.hp/unit.maxHp,base={damage:unit.damage,damageMin:unit.damageMin??unit.damage,damageMax:unit.damageMax??unit.damage,speed:unit.speed,maxHp:unit.maxHp};
+ const base={damage:unit.damage,damageMin:unit.damageMin??unit.damage,damageMax:unit.damageMax??unit.damage,speed:unit.speed,maxHp:unit.maxHp,spellAmp:unit.spellAmp||0};
  Object.assign(unit,{nativeKind:unit.nativeKind||unit.kind,kind:'summon',team:h.team,ownerId:h.id,controller:'manual',manualControl:false,
   chenPersuadedBy:zealot?null:h.id,convertedAt:g.time,originalPersuasionStats:base,campId:null,dominatedBy:null,dominatedItemUid:null,
   targetId:null,explicitTarget:null,destination:null,movementInput:{x:0,y:0},navPath:null,navGoal:null,returning:false,neutralCast:null,neutralChannel:null});
- unit.maxHp=Math.max(base.maxHp,skill.values.health_min);unit.hp=Math.max(1,Math.min(unit.maxHp,unit.maxHp*hpRatio));
- const bonus=skill.values.damage_bonus/100;
- unit.damage=base.damage*(1+bonus);unit.damageMin=base.damageMin*(1+bonus);unit.damageMax=base.damageMax*(1+bonus);unit.speed=base.speed+skill.values.movement_speed_bonus;
  unit.abilityLevelBonus=skill.values.creep_ability_level>0?Math.max(0,skill.values.creep_ability_level-1):0;
  unit.manualControl=!!(h.isPlayer||h.isHuman);
  restoreMana(unit,unit.maxMana||0);
- Skills.addStatus(g,unit,'chenPersuasion',{name:zealot?'狂热者':'神圣劝化',description:`移动速度 +${skill.values.movement_speed_bonus}，攻击伤害 +${skill.values.damage_bonus}%。`,positive:true,undispellable:true,icon:'aura',sourceId:h.id,until:Infinity,duration:Infinity});
+ if(!zealot&&!unit.abilities?.includes('chen_anoint'))unit.abilities=[...(unit.abilities||[]),'chen_anoint'];
+ applyZealotBonuses(g,h,unit);
+}
+
+function applyZealotBonuses(g,h,unit){
+ const a=innate(h).values;
+ unit.originalPersuasionStats||={damage:unit.damage,damageMin:unit.damageMin??unit.damage,damageMax:unit.damageMax??unit.damage,speed:unit.speed,maxHp:unit.maxHp-(unit.creatureHpBonus||0),spellAmp:unit.spellAmp||0};
+ const base=unit.originalPersuasionStats,key=`${h.level}:${h.talents?.join(',')}:${!!unit.zealot}`;
+ if(unit.chenInnateKey===key)return;unit.chenInnateKey=key;
+ const ratio=unit.hp/unit.maxHp,healthBonus=unit.zealot?1+(a.bonus_hp||0)/100:1,extra=unit.zealot?a.damage:0,bonus=1+a.damage_bonus/100;
+ const baseMaxHp=Math.max(base.maxHp*healthBonus,a.health_min);
+ // Neutral auras recover their base from maxHp minus this bonus; both must change together.
+ unit.creatureHpBonus=baseMaxHp*(unit.creatureHpPct||0)/100;
+ unit.maxHp=baseMaxHp+unit.creatureHpBonus;unit.hp=Math.max(1,Math.min(unit.maxHp,unit.maxHp*ratio));
+ unit.damage=base.damage*bonus+extra;unit.damageMin=base.damageMin*bonus+extra;unit.damageMax=base.damageMax*bonus+extra;unit.speed=base.speed+a.movement_speed_bonus;
+ unit.spellAmp=(base.spellAmp||0)+a.damage_bonus;
+ Skills.addStatus(g,unit,'chenPersuasion',{name:unit.zealot?'祝圣狂热者':'狂热者控制单位',description:`移动速度 +${a.movement_speed_bonus}，基础攻击力与技能伤害 +${a.damage_bonus}%，最低生命 ${a.health_min}。`,positive:true,undispellable:true,icon:'aura',sourceId:h.id,until:Infinity,duration:Infinity});
 }
 
 function persuade(g,h,target,skill){
+ if(target===h){h.cooldowns[1]=3;recall(g,h,h,skill);return;}
  if(target.chenPersuadedBy===h.id){
   if(g.time-(target.lastDamageAt??-Infinity)<skill.values.unsummon_time)return;
   g._kill(target,null);h.cooldowns[1]=Math.max(0,h.cooldowns[1]-skill.values.unsummon_cooldown_reduction);return;
@@ -102,7 +116,7 @@ function recall(g,h,target,skill){
 
 export function releaseChen(g,h,phase){
  const skill=phase.skill,target=g.entities.find(e=>e.id===phase.targetId);
- if(phase.extraId==='chen_zealot'){recall(g,h,target,skill);return;}
+ if(phase.extraId==='chen_zealot'){if(h.zealotDead)spawnZealot(g,h,{revive:true});return;}
  if(phase.index<3){const check=chenTarget(g,h,phase.index,target);if(!check.ok||check.target!==target)return;}
  if(phase.index===0)projectile(g,h,target,{kind:'penitence',speed:skill.values.speed,skill});
  else if(phase.index===1)persuade(g,h,target,skill);
@@ -120,21 +134,34 @@ export function castMartyrdom(g,unit,point){
  return {ok:true};
 }
 
-export function spawnZealot(g,h){
+export function spawnZealot(g,h,{revive=false}={}){
  if(h.heroId!=='chen'||h.kind!=='hero'||!alive(h))return;
- for(const old of ownedUnits(g,h))if(old.zealot)g._kill(old,null);
+ if(ownedUnits(g,h).some(e=>e.zealot)||h.zealotDead&&!revive)return;
  const skill=ability(h,1),a=innate(h),upgrades=Math.min(30,Math.floor(g.time/450));
- const damageMin=(ZEALOT.damageMin+upgrades)*(1+(a.values.bonus_hp||0)/100)+a.values.damage;
- const damageMax=(ZEALOT.damageMax+upgrades)*(1+(a.values.bonus_hp||0)/100)+a.values.damage;
- const maxHp=(ZEALOT.maxHp+12*upgrades)*(1+(a.values.bonus_hp||0)/100);
+ const template=h.zealotTemplate||ZEALOT;
+ const damageMin=template.damageMin+upgrades,damageMax=template.damageMax+upgrades,maxHp=template.maxHp+12*upgrades;
  const position=g.navigation.nearestWalkable({x:h.x+70,y:h.y+30});
- const unit=g._unit('summon',h.team,position.x,position.y,{...ZEALOT,damageMin,damageMax,damage:(damageMin+damageMax)/2,maxHp,zealot:true,creatureOrder:'follow',ownerId:h.id,unitId:'chen_zealot',nativeKind:'creep',ranged:false,siege:false,upgrade:'mega',movementInput:{x:0,y:0},abilityCooldowns:{}});
- g.entities.push(unit);applyPersuasion(g,h,unit,skill,{zealot:true});updateZealotGrowth(g,h);g.collisions.place(unit,position,g.navigation);h.zealotRespawnAt=Infinity;h.zealotId=unit.id;glow(g,h,unit);
+ const unit=g._unit('summon',h.team,position.x,position.y,{...template,damageMin,damageMax,damage:(damageMin+damageMax)/2,maxHp,zealot:true,creatureOrder:'follow',ownerId:h.id,unitId:'chen_zealot',nativeKind:template.nativeKind||'creep',movementInput:{x:0,y:0},abilityCooldowns:{},abilities:[...(template.abilities||[]).filter(id=>!['chen_anoint','chen_martyrdom'].includes(id)),'chen_martyrdom']});
+ g.entities.push(unit);applyPersuasion(g,h,unit,skill,{zealot:true});updateZealotGrowth(g,h);g.collisions.place(unit,position,g.navigation);h.zealotRespawnAt=Infinity;h.zealotDead=false;h.zealotId=unit.id;glow(g,h,unit);
+}
+
+export function castAnoint(g,unit){
+ const h=g.entities.find(e=>e.id===unit.ownerId&&e.heroId==='chen');
+ if(!h||!alive(unit)||unit.zealot||!ownsControlledUnit(h,unit))return {ok:false,reason:'请选择陈控制的非英雄单位'};
+ const allowed=g._canAct(unit);if(!allowed.ok)return allowed;
+ for(const old of ownedUnits(g,h))if(old.zealot){old.zealot=false;old.chenPersuadedBy=h.id;old.abilities=(old.abilities||[]).filter(id=>!['chen_martyrdom',ZEALOT_GROWTH_ID].includes(id));delete old.zealotGrowth;delete old.statuses?.zealotGrowth;old.abilities.push('chen_anoint');delete old.chenInnateKey;applyZealotBonuses(g,h,old);}
+ unit.zealot=true;unit.chenPersuadedBy=null;unit.creatureOrder='follow';unit.abilities=[...(unit.abilities||[]).filter(id=>id!=='chen_anoint'),'chen_martyrdom'];delete unit.chenInnateKey;
+ h.zealotId=unit.id;h.zealotDead=false;
+ const base=unit.originalPersuasionStats||unit;
+ h.zealotTemplate={...structuredClone(unit),...base,statuses:{},buffs:{},originalPersuasionStats:undefined,chenInnateKey:undefined,zealotGrowth:undefined,abilities:unit.abilities.filter(id=>id!==ZEALOT_GROWTH_ID)};
+ delete h.zealotTemplate.id;delete h.zealotTemplate.dead;delete h.zealotTemplate.deathTime;
+ applyZealotBonuses(g,h,unit);updateZealotGrowth(g,h);glow(g,h,unit);return {ok:true};
 }
 
 export function updateZealotGrowth(g,h){
  if(h.heroId!=='chen'||h.kind!=='hero')return;
  for(const unit of ownedUnits(g,h))if(unit.zealot){
+  applyZealotBonuses(g,h,unit);
   if(!unit.abilities?.includes(ZEALOT_GROWTH_ID))unit.abilities=[...(unit.abilities||[]),ZEALOT_GROWTH_ID];
   const level=Math.max(h.level||1,unit.zealotGrowth?.level||1);
   const growth=zealotGrowthAt(level);
@@ -151,7 +178,7 @@ export function chenDamage(g,target,amount,source){
 }
 
 export function chenDeath(g,unit){
- if(unit.zealot){const h=g.entities.find(e=>e.id===unit.ownerId&&e.heroId==='chen');if(h)h.zealotRespawnAt=g.time+Math.max(0,innate(h).values.zealot_respawn_time);}
+ if(unit.zealot){const h=g.entities.find(e=>e.id===unit.ownerId&&e.heroId==='chen');if(h){h.zealotDead=true;h.zealotRespawnAt=Infinity;}}
 }
 
 export function chenCombatStats(g,unit,stats,target){
@@ -173,7 +200,10 @@ export function tickChenWorld(g){
  const dt=g._chenTickAt==null?0:Math.max(0,g.time-g._chenTickAt);g._chenTickAt=g.time;
  const heroes=g.entities.filter(h=>h.heroId==='chen'&&h.kind==='hero');
  for(const h of heroes){
-  if(alive(h)&&h.zealotRespawnAt<=g.time+1e-7&&!ownedUnits(g,h).some(e=>e.zealot))spawnZealot(g,h);
+  for(const unit of ownedUnits(g,h))if(unit.kind!=='illusion'){
+   if(!unit.zealot&&!unit.abilities?.includes('chen_anoint'))unit.abilities=[...(unit.abilities||[]),'chen_anoint'];
+   applyZealotBonuses(g,h,unit);
+  }
   updateZealotGrowth(g,h);
   const s=ability(h,2),active=alive(h)&&s.level>0&&!Skills.hasStatusFlag(g,h,'break'),channel=h.channel?.kind==='chenHandOfGod'?h.channel:null;
   for(const unit of g.entities){

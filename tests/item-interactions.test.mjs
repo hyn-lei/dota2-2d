@@ -27,12 +27,12 @@ test('tree planting and eating opens a blocked tile and grants Tango regeneratio
 });
 test('evasion combines multiplicatively while Yasha and Kaya family bonuses remain unique',()=>{
  const base=calculateHeroStats('crystal_maiden'),s=calculateHeroStats('crystal_maiden',1,['talisman_of_evasion','talisman_of_evasion','kaya','yasha_and_kaya','yasha','wind_lace','wind_lace']);
- assert.ok(Math.abs(s.evasion-(1-.85**2)*100)<.001);assert.equal(s.spellAmp,12);assert.ok(Math.abs(s.speed-(base.speed+15)*1.12)<.001);
+ assert.ok(Math.abs(s.evasion-(1-.85**2)*100)<.001);assert.equal(s.spellAmp,10);assert.ok(Math.abs(s.speed-(base.speed+15)*1.10)<.001);
 });
 
 test('Bloodstone uses its active total and Satanic adds the current numeric bonus',()=>{
  const {g,p,e}=arena('crystal_maiden');equip(g,p,['bloodstone']);p.hp=100;p.hpRegen=0;g.useItem(0,p);
- const hp=p.hp;g.damage(e,100,p,'pure');assert.ok(Math.abs(p.hp-hp-60)<.01);
+ const hp=p.hp;g.damage(e,100,p,'pure');assert.ok(Math.abs(p.hp-hp-70)<.01);
  equip(g,p,['satanic']);p.hp=100;p.attackCooldown=0;e.hp=e.maxHp;e.armor=0;e.x=p.x+100;
  g.useItem(0,p);const before=e.hp;g._attack(p,e);assert.ok(Math.abs(p.hp-100-(before-e.hp)*1.70)<.01);
 });

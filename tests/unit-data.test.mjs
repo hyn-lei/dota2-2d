@@ -13,15 +13,15 @@ test('source building values retain tier differences and barracks reinforcement'
   assert.equal(BUILDING_STATS.fountain.invulnerable,true);
 });
 test('neutral attack interval includes base attack speed', () => {
-  assert.equal(NEUTRAL_UNITS.kobold.maxHp,240);
-  assert.equal(NEUTRAL_UNITS.kobold.damageMin,15);
+  assert.equal(NEUTRAL_UNITS.kobold.maxHp,280);
+  assert.equal(NEUTRAL_UNITS.kobold.damageMin,18);
   assert.equal(NEUTRAL_UNITS.kobold.attackInterval,1);
   assert.ok(Math.abs(NEUTRAL_UNITS.centaur_khan.attackInterval-2/1.35)<1e-12);
   assert.equal(NEUTRAL_UNITS.black_dragon.maxHp,2000);
   assert.equal(NEUTRAL_UNITS.black_dragon.magicResistance,.3);
 });
 test('all camp compositions resolve to complete neutral definitions', () => {
-  assert.deepEqual(Object.values(CAMP_GROUPS).map(groups=>groups.length),[6,5,6,5]);
+  assert.deepEqual(Object.values(CAMP_GROUPS).map(groups=>groups.length),[6,6,6,5]);
   for(const group of [...Object.values(CAMP_GROUPS).flat(),...Object.values(FLOODED_CAMP_GROUPS)]) {
     assert.ok(group.reduce((n,u)=>n+u.count,0)>=2);
     for(const entry of group) {
@@ -30,7 +30,7 @@ test('all camp compositions resolve to complete neutral definitions', () => {
     }
   }
   for(const group of CAMP_GROUPS.ancient)for(const {unitId}of group)assert.equal(NEUTRAL_UNITS[unitId].ancient,true);
-  assert.equal(CAMP_GROUPS.small[0].reduce((n,u)=>n+u.count,0),5);
+  assert.equal(CAMP_GROUPS.small[0].reduce((n,u)=>n+u.count,0),4);
   assert.equal(FLOODED_CAMP_GROUPS.ancient.reduce((n,u)=>n+NEUTRAL_UNITS[u.unitId].xpBounty*u.count,0),312);
 });
 test('lane values and runtime limitations are explicit', () => {

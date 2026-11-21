@@ -1,15 +1,15 @@
 {
-  "checkedAt": "2026-11-14T10:51:53.898Z",
+  "checkedAt": "2026-11-21",
   "manifest": [
     {
       "file": "docs/research/heroes/66.json",
       "url": "https://www.dota2.com/datafeed/herodata?language=english&hero_id=66",
-      "sha256": "fdce30cb6cf5b3b689e531d74c8c96f1142419365991a97e29c5278da39fa184"
+      "sha256": "fbb2fe63047b1ef8faa155ef28510f90639a70ff86264828e1fd04cd747cb938"
     },
     {
       "file": "docs/research/abilities/66-schinese.json",
       "url": "https://www.dota2.com/datafeed/herodata?language=schinese&hero_id=66",
-      "sha256": "c43495113442d53fadcae0e31388ebab6004e4bc6f0be2918782b7253074cf08"
+      "sha256": "19f5f7031f1beb776a0f64b43026d01e40ac499202e550691430a15f86769b55"
     },
     {
       "file": "docs/research/chen/patch-list.json",
@@ -18,8 +18,8 @@
     },
     {
       "file": "docs/research/heroes/npc_dota_hero_chen.txt",
-      "url": "https://raw.githubusercontent.com/SteamTracking/GameTracking-Dota2/3f630cc18bfa63f63b3ce259be52209d922558c3/game/dota/pak01_dir/scripts/npc/heroes/npc_dota_hero_chen.txt",
-      "sha256": "8b18c83d0aa2bc6a6ef8d9d6589f75fbb57e52f9e2a98a4e0de0904ef0d67a48"
+      "url": "https://raw.githubusercontent.com/SteamTracking/GameTracking-Dota2/76ab89451c1384c2e106b676258c6e9f72787e11/game/dota/pak01_dir/scripts/npc/heroes/npc_dota_hero_chen.txt",
+      "sha256": "335b1e77c067c5ddde8dceed5d2129136f435e349fc1dfca9375518d517e2537"
     },
     {
       "file": "docs/research/chen/martyrdom-schinese.json",
@@ -28,13 +28,13 @@
     },
     {
       "file": "docs/research/units/npc_units.txt",
-      "url": "https://raw.githubusercontent.com/SteamTracking/GameTracking-Dota2/3f630cc18bfa63f63b3ce259be52209d922558c3/game/dota/pak01_dir/scripts/npc/npc_units.txt",
-      "sha256": "f9a4b9d946913324f4263af2d41a3be5436645fb17e411ac006350caa83e9d37"
+      "url": "https://raw.githubusercontent.com/SteamTracking/GameTracking-Dota2/76ab89451c1384c2e106b676258c6e9f72787e11/game/dota/pak01_dir/scripts/npc/npc_units.txt",
+      "sha256": "1a8e4f01480630cfb9aa1daa2eb1bc348d7793c0ae4ced6869f1e552b63d6596"
     },
     {
       "file": "docs/research/units/npc_abilities.txt",
-      "url": "https://raw.githubusercontent.com/SteamTracking/GameTracking-Dota2/3f630cc18bfa63f63b3ce259be52209d922558c3/game/dota/pak01_dir/scripts/npc/npc_abilities.txt",
-      "sha256": "5d5eaa33e8d78a9b5b842ada41d4d77a670889e0895f2288bdd03af67ffe2f8a"
+      "url": "https://raw.githubusercontent.com/SteamTracking/GameTracking-Dota2/76ab89451c1384c2e106b676258c6e9f72787e11/game/dota/pak01_dir/scripts/npc/npc_abilities.txt",
+      "sha256": "e9f8111f0d11df939ac0246ad58e10b4df9fa4cf7e05d75e004199975ba7f7c4"
     },
     {
       "file": "assets/abilities/chen_penitence.png",
@@ -77,7 +77,7 @@
       "sha256": "3ed9ceaf4062e6702db3c95ec31d3234124b2f17dd2314e0bfc5494360cff06f"
     }
   ],
-  "trackingCommit": "3f630cc18bfa63f63b3ce259be52209d922558c3",
+  "trackingCommit": "76ab89451c1384c2e106b676258c6e9f72787e11",
   "derivedAssets": [
     {
       "file": "assets/chen.png",
@@ -86,5 +86,6 @@
       "sourceSha256": "a4bcecaad0da1212be33d675fa998978b6de86bae22657af2f3fa59aa60ea170",
       "method": "PNG still converted from Valve's official Chen render WebM; 1440 by 1440 pixels."
     }
-  ]
+  ],
+  "patch": "7.42"
 }

@@ -127,7 +127,7 @@ test('Freezing Field channels, produces explosions, and movement cancels the cha
 });
 test('Focus Fire modifies attack speed and damage only against its selected target',()=>{
  const {g,p,e,c}=arena('windranger');const base=g.combatStats(p,e);g.cast(3,e);
- const focus=g.combatStats(p,e);assert.equal(focus.attackSpeed,base.attackSpeed+350);assert.equal(focus.damage,base.damage*.75);
+ const focus=g.combatStats(p,e);assert.equal(focus.attackSpeed,base.attackSpeed+350);assert.equal(focus.damage,base.damage*.82);
  assert.equal(g.combatStats(p,c).attackSpeed,base.attackSpeed);assert.equal(g.combatStats(p,c).damage,base.damage);
 });
 
@@ -135,7 +135,9 @@ test('Frostbite stops creep movement and attacks until expiry; Nova uses its rea
  const {g,p,c}=arena('crystal_maiden');g.cast(1,c);g.step(.3);c.speed=325;const x=c.x;
  g.step(.5);assert.equal(c.x,x);c.x=p.x+45;c.attackCooldown=0;assert.equal(g._attack(c,p),false);
  g.step(1.1);c.attackCooldown=0;assert.equal(g._attack(c,p),true);
- p.cooldowns[0]=0;g.cast(0,c);g.step(.3);assert.ok(Math.abs(g.combatStats(c).speed-260)<.01);
+ p.cooldowns[0]=0;g.cast(0,c);g.step(.3);assert.equal(c.statuses.nova.slowPct,20);
+ // This creep was pulled at 0.05 seconds; 7.42's accumulating pull slow also applies at 2.2 seconds.
+ assert.ok(Math.abs(g.combatStats(c).speed-246.025)<.01);
 });
 
 test('Frostbite roots enemy heroes without silencing them, and Nova slow persists afterward',()=>{

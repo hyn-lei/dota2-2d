@@ -22,7 +22,7 @@ test('Call armor expires and a longer stun takes priority over taunt movement',(
 });
 test('Battle Hunger deals pure rank damage, slows only when facing away and ends on a kill',()=>{
  const {g,p,e,c}=arena('axe');g.cast(1,e);g.step(.3);
- assert.equal(e.hp,3988);e.speed=300;e.angle=0;assert.ok(Math.abs(g.combatStats(e).speed-246)<1e-8);
+ assert.equal(e.hp,3988);e.speed=300;e.angle=0;assert.ok(Math.abs(g.combatStats(e).speed-252)<1e-8);
  e.angle=Math.PI;assert.equal(g.combatStats(e).speed,300);
  g.step(1);assert.equal(e.hp,3976);
  const ally={...c,id:'ally',team:0,hp:1,statuses:{},buffs:{}};g.entities.push(ally);g.damage(ally,100,e,'pure');assert.equal(e.statuses.hunger,undefined);

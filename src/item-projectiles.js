@@ -70,10 +70,17 @@ export function tickItemProjectiles(g,zone,h,item,deliver){
   if(C.alive(h)&&zone.tree)C.forceMove(g,h,zone.tree,value(item,'pull_duration'));
   else resolveHarpoon(g,h,item,target);
   zone.until=g.time;
+ }else if(zone.type==='itemGrenade'&&zone.impactAt<=g.time+1e-7){
+  const duration=value(item,'debuff_duration');
+  for(const enemy of C.enemies(g,h,zone,value(item,'radius'))){g.damage(enemy,value(item,'impact_damage'),h,'magical');C.dot(g,enemy,item,duration,value(item,'damage_over_time'),h);
+   C.slow(g,enemy,item,duration,Math.abs(value(item,item.id==='bloodslinger'?'movespeed_slow_max':'movespeed_slow')),h,item.id==='bloodslinger'?{decayingSlow:true,decayRate:1,minimumSlow:15}:{});
+  }
+  g._effect('burst',zone.x,zone.y,{radius:value(item,'radius'),life:.7,color:'#bd614f'});zone.until=g.time;
  }else if(zone.type==='itemMeteor'&&zone.impactAt<=g.time+1e-7){
   for(const enemy of C.enemies(g,h,zone,value(item,'impact_radius',400),true)){
-   const building=C.building(enemy),interval=value(item,'burn_interval',1),dps=value(item,building?'burn_dps_buildings':'burn_dps_units'),duration=value(item,'burn_duration');
-   g.damage(enemy,value(item,building?'impact_damage_buildings':'impact_damage_units'),h,'magical');C.stun(g,enemy,value(item,'stun_duration'),h);
+   const building=C.building(enemy),interval=value(item,'burn_interval',1),buildingScale=value(item,'building_damage_pct',100)/100,dps=building?value(item,'burn_dps_buildings',value(item,'burn_dps_units')*buildingScale):value(item,'burn_dps_units'),duration=value(item,'burn_duration');
+   const impact=building?value(item,'impact_damage_buildings',value(item,'impact_damage_units')*buildingScale):value(item,'impact_damage_units')+enemy.maxHp*value(item,'impact_damage_units_pct_health')/100;
+   g.damage(enemy,impact,h,'magical');if(!building)C.stun(g,enemy,value(item,'stun_duration'),h);
    C.dot(g,enemy,item,duration,dps,h,'magical',{tickInterval:interval,tickDamage:dps*interval,nextTick:g.time+interval});
    if(!building)C.slow(g,enemy,item,duration,value(item,'burn_slow'),h);
   }

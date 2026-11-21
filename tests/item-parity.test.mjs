@@ -45,12 +45,12 @@ test('Quelling Blade adds 8/4 damage to nonheroes and duplicate blades do not st
   assert.equal(attackModifiers(g,p,c,{damage:100}).damage,100+bonus);assert.equal(attackModifiers(g,p,e,{damage:100}).damage,100);
  }
 });
-test('Bloodthorn passive pierces evasion for 60 damage; active uses hero/basic damage and owner true strike',()=>{
+test('Bloodthorn has no passive Pierce; Soul Rend uses hero/basic damage and owner true strike',()=>{
  const {g,p,e,c}=equipped('bloodthorn');g._random=()=>0;
- assert.equal(trueStrike(g,p,e),true);const hp=e.hp;afterAttack(g,p,e,{damage:0,itemAttackProcs:[...p.itemAttackProcs]},0);assert.equal(hp-e.hp,60);
+ assert.equal(trueStrike(g,p,e),false);const hp=e.hp;afterAttack(g,p,e,{damage:0,itemAttackProcs:[...p.itemAttackProcs]},0);assert.equal(hp-e.hp,0);
  assert.equal(g.useItem(0,e).ok,true);const debuff=e.statuses['itemDebuff:bloodthorn'];assert.ok(debuff);
  c.team=p.team;c.ownerId=p.id;assert.equal(trueStrike(g,c,e),true);delete c.ownerId;assert.equal(trueStrike(g,c,e),false);
- const before=e.hp;afterAttack(g,c,e,{damage:0},0);assert.equal(before-e.hp,25);
+ const before=e.hp;afterAttack(g,c,e,{damage:0},0);assert.equal(before-e.hp,20);
  p.inventory=[];p.inventoryMeta=[];g._refreshHero(p);const previous=e.hp;afterAttack(g,p,e,{damage:0},0);assert.equal(previous-e.hp,50);
 });
 test('Disperser always buffs/dispels its caster, provides 40% resistance and decays both speed effects',()=>{
@@ -98,8 +98,8 @@ test('Chain lightning continues from a dead primary and survives pause/save/rest
 test('Meteor lands .5 seconds after its channel and burns for six full ticks; interruption prevents impact',()=>{
  const {g,p,e}=equipped('meteor_hammer');assert.equal(g.useItem(0,e).ok,true);g.step(2.49);assert.equal(e.hp,4000);assert.ok(g.itemZones.some(z=>z.type==='itemMeteor'));
  const restored=restoreMatch(parseMatch(serializeMatch(g)));restored.setPaused(false);restored.step(.01);const enemy=restored.entities.find(x=>x.id===e.id);
- assert.ok(Math.abs(enemy.hp-(4000-130*1.1))<1e-6);assert.equal(enemy.statuses['itemSlow:meteor_hammer'].slowPct,20);
- restored.step(6);assert.ok(Math.abs(enemy.hp-(4000-430*1.1))<1e-6);assert.equal(enemy.statuses['itemDot:meteor_hammer'],undefined);
+ assert.ok(Math.abs(enemy.hp-(4000-150*1.06))<1e-6);assert.equal(enemy.statuses['itemSlow:meteor_hammer'].slowPct,15);
+ restored.step(6);assert.ok(Math.abs(enemy.hp-(4000-510*1.06))<1e-6);assert.equal(enemy.statuses['itemDot:meteor_hammer'],undefined);
  const canceled=equipped('meteor_hammer');canceled.g.useItem(0,canceled.e);canceled.p.statuses.stun={id:'stun',startedAt:0,until:1,stunned:true};canceled.g.step(3);assert.equal(canceled.e.hp,4000);assert.equal(canceled.g.itemZones?.length||0,0);
 });
 test('Damage block runs before armor and uses only the largest successful block',()=>{
@@ -127,10 +127,10 @@ test('Magic item procs use spell amplification/lifesteal while mana burn and cle
  p.inventory=['diffusal_blade','diffusal_blade','bfury','quelling_blade'];p.inventoryMeta=[];g._refreshHero(p);p.spellAmp=50;p.spellLifesteal=20;p.hp=100;e.mana=100;c.x=p.x+300;c.y=p.y;p.angle=0;
  assert.equal(attackModifiers(g,p,c,{damage:100}).damage,110);afterAttack(g,p,e,{damage:100},0);assert.equal(e.mana,60);assert.equal(e.hp,3855);assert.equal(c.hp,3960);assert.equal(p.hp,100);
 });
-test('Revenant Brooch snapshots one proc roll and uses 80% of attack damage as amplified magic',()=>{
+test('Revenant Brooch snapshots one proc roll and uses 50% of attack damage as amplified magic',()=>{
  const {g,p,e}=equipped('revenants_brooch','ogre_magi');g._random=()=>0;p.spellAmp=50;p.hp=100;
- const result=attackModifiers(g,p,e,{damage:100});assert.equal(result.damage,100);assert.equal(result.broochDamage,80);g._random=()=>.99;
- afterAttack(g,p,e,result,0);assert.equal(e.hp,3880);assert.equal(p.hp,118);
+ const result=attackModifiers(g,p,e,{damage:100});assert.equal(result.damage,100);assert.equal(result.broochDamage,50);g._random=()=>.99;
+ afterAttack(g,p,e,result,0);assert.equal(e.hp,3925);assert.equal(p.hp,100);
 });
 test('Orb of Corrosion uses target attack type and its armor reduction expires after three seconds',()=>{
  const {g,p,e}=equipped('orb_of_corrosion','ogre_magi');afterAttack(g,p,e,{damage:0},0);
@@ -148,11 +148,6 @@ test('Dominator preserves innate regen, awards capture bounty, locks after damag
  assert.equal(g.useItem(0,enemy).ok,false);g.time=3;assert.equal(g.useItem(0,enemy).ok,true);assert.equal(c.dead,true);
  Object.assign(p,BASES[p.team]);assert.equal(sellItem(g,p,'inventory',0).ok,true);assert.equal(enemy.dead,true);
 });
-test('Overlord grants the higher bounty and skill level; captured stomp hits enemies rather than allies',()=>{
- const {g,p,e}=equipped('helm_of_the_overlord');const neutral=g._makeNeutral('centaur_khan',{x:p.x+100,y:p.y},{id:'test',x:p.x,y:p.y});g._random=()=>0;const gold=p.gold,bounty=neutral.goldMin;
- assert.equal(g.useItem(0,neutral).ok,true);assert.equal(p.gold,gold+bounty);assert.equal(neutral.abilityLevelBonus,1);const hp=e.hp,ownHp=p.hp;g._index();g._neutralAbility(neutral,e);
- assert.equal(hp-e.hp,50);assert.equal(p.hp,ownHp);const before=e.gold;g.damage(neutral,99999,e,'pure');assert.equal(e.gold,before+250);
-});
 test('Radiance illusions burn for 35 per second, use the strongest aura once and stop on expiry',()=>{
  const {g,p,e}=equipped('radiance');const clones=illusion(g,p,2,5,28,300);p.inventory=[];p.inventoryMeta=[];g._refreshHero(p);tickWorld(g,1);
  assert.equal(e.hp,3965);assert.equal(e.itemAura.radiance.dps,35);p.inventory=['radiance'];p.inventoryMeta=[];g._refreshHero(p);tickWorld(g,1);assert.equal(e.hp,3905);
@@ -167,7 +162,7 @@ test('Smoke works from backpack, covers controlled units, resists true sight and
 test('Shiva expands at 400 units per second, follows its caster and damages each enemy once',()=>{
  const {g,p,e}=equipped('shivas_guard');e.x=p.x+500;e.radius=0;assert.equal(g.useItem(0,p).ok,true);assert.equal(e.hp,4000);
  g.time=1;tickWorld(g,1);assert.equal(e.hp,4000);p.x+=100;g.time=1.01;tickWorld(g,.01);assert.equal(e.hp,3775);
- g.time=2;tickWorld(g,.99);assert.equal(e.hp,3775);assert.equal(e.statuses['itemSlow:shivas_guard'].slowPct,40);
+ g.time=2;tickWorld(g,.99);assert.equal(e.hp,3775);assert.equal(e.statuses['itemSlow:shivas_guard'].slowPct,30);
 });
 test('Harpoon waits for its projectile, pulls ranged units by 35%, brings melee targets into range and supports trees',()=>{
  for(const hero of ['crystal_maiden','ogre_magi']){

@@ -39,9 +39,9 @@
         "value": "800",
         "affected_by_aoe_increase": "1"
       },
-      "movement_slow": "50",
-      "attack_slow": "50",
-      "duration": "6",
+      "movement_slow": "35",
+      "attack_slow": "70",
+      "duration": "4.5",
       "damage_base": "100",
       "damage_pct_instant": "50",
       "damage_pct_over_time": "100"
@@ -185,9 +185,15 @@
     "ItemCost": "900",
     "ItemShopTags": "damage",
     "ItemQuality": "component",
+    "IsObsolete": "1",
     "AbilityValues": {
-      "bonus_chance": "25",
-      "bonus_chance_damage": "60"
+      "bonus_chance": {
+        "value": "25",
+        "apply_effectiveness": "1"
+      },
+      "bonus_chance_damage": {
+        "value": "60"
+      }
     }
   },
   "item_mithril_hammer": {
@@ -211,10 +217,9 @@
   },
   "item_quarterstaff": {
     "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
-    "ItemCost": "875",
+    "ItemCost": "900",
     "ItemShopTags": "damage;attack_speed",
     "ItemQuality": "component",
-    "IsObsolete": "1",
     "AbilityValues": {
       "bonus_speed": "10",
       "bonus_damage": "10"
@@ -610,6 +615,29 @@
       "bonus_evasion": "15"
     }
   },
+  "item_cheese": {
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_IMMEDIATE | DOTA_ABILITY_BEHAVIOR_NO_TARGET",
+    "Model": "models/props_gameplay/cheese.vmdl",
+    "FightRecapLevel": "2",
+    "AbilityCooldown": "40.0",
+    "ItemCost": "1000",
+    "ItemShopTags": "",
+    "ItemQuality": "consumable",
+    "ItemPurchasable": "0",
+    "ItemStackable": "1",
+    "ItemShareability": "ITEM_FULLY_SHAREABLE",
+    "ItemPermanent": "0",
+    "ItemInitialCharges": "1",
+    "ItemDeclarations": "DECLARE_PURCHASES_TO_TEAMMATES | DECLARE_PURCHASES_TO_SPECTATORS",
+    "ItemContributesToNetWorthWhenDropped": "0",
+    "IsTempestDoubleClonable": "0",
+    "SpeciallyBannedFromNeutralSlot": "1",
+    "ItemAllowCombineFromGround": "0",
+    "AbilityValues": {
+      "health_restore": "2500",
+      "mana_restore": "1500"
+    }
+  },
   "item_magic_stick": {
     "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_IMMEDIATE | DOTA_ABILITY_BEHAVIOR_NO_TARGET",
     "Model": "models/props_gameplay/magic_wand.vmdl",
@@ -738,6 +766,7 @@
     "AbilityCastPoint": "0.2",
     "AbilityHealthCost": "75",
     "AbilityCooldown": "10",
+    "AbilitySharedCooldown": "blood_grenade",
     "ItemCost": "50",
     "ItemShopTags": "consumable;laning",
     "ItemQuality": "consumable",
@@ -745,7 +774,7 @@
     "ItemStackableMax": "2",
     "ItemStockMax": "3",
     "ItemStockInitial": "2",
-    "ItemStockTime": "180",
+    "ItemStockTime": "150",
     "ItemInitialCharges": "1",
     "ItemPermanent": "0",
     "IsTempestDoubleClonable": "0",
@@ -759,6 +788,44 @@
       },
       "movespeed_slow": "-15",
       "bonus_health": "50",
+      "damage_over_time": "15",
+      "impact_damage": "50",
+      "tick_rate": "1",
+      "debuff_duration": "5"
+    }
+  },
+  "item_recipe_bloodslinger": {
+    "Model": "models/props_gameplay/recipe.vmdl",
+    "ItemCost": "420",
+    "ItemShopTags": "",
+    "ItemRecipe": "1",
+    "ItemResult": "item_bloodslinger",
+    "ItemRequirements": {
+      "01": "item_sobi_mask;item_mantle;item_mantle;item_blood_grenade"
+    }
+  },
+  "item_bloodslinger": {
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_POINT | DOTA_ABILITY_BEHAVIOR_AOE | DOTA_ABILITY_BEHAVIOR_IGNORE_BACKSWING | DOTA_ABILITY_BEHAVIOR_DONT_PROC_OTHER_ABILITIES",
+    "AbilityUnitTargetTeam": "DOTA_UNIT_TARGET_TEAM_ENEMY",
+    "AbilityUnitTargetType": "DOTA_UNIT_TARGET_HERO | DOTA_UNIT_TARGET_BASIC",
+    "Model": "models/props_gameplay/neutral_box.vmdl",
+    "AbilityCastRange": "1200",
+    "AbilityCastPoint": "0.2",
+    "AbilityCooldown": "30",
+    "AbilityHealthCost": "75",
+    "AbilitySharedCooldown": "blood_grenade",
+    "ItemCost": "925",
+    "AbilityValues": {
+      "speed": "1400",
+      "radius": {
+        "value": "300",
+        "affected_by_aoe_increase": "1"
+      },
+      "movespeed_slow_min": "-15",
+      "movespeed_slow_max": "-30",
+      "bonus_health": "100",
+      "bonus_mana_regen": "1.25",
+      "bonus_intellect": "8",
       "damage_over_time": "15",
       "impact_damage": "50",
       "tick_rate": "1",
@@ -1071,9 +1138,9 @@
     "SuggestEarlygame": "1",
     "SpeciallyBannedFromNeutralSlot": "1",
     "AbilityValues": {
-      "bonus_movement_speed": "50",
-      "bonus_damage_melee": "18",
-      "bonus_damage_range": "12",
+      "bonus_movement_speed_ranged": "45",
+      "bonus_movement_speed_melee": "55",
+      "bonus_damage": "15",
       "phase_movement_speed": "20",
       "phase_movement_speed_range": "10",
       "phase_duration": "3.0",
@@ -1175,7 +1242,7 @@
     "ItemQuality": "component",
     "SecretShop": "1",
     "AbilityValues": {
-      "bonus_mana_regen": "6"
+      "bonus_mana_regen": "5"
     }
   },
   "item_mystic_staff": {
@@ -1265,7 +1332,7 @@
   },
   "item_phylactery": {
     "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
-    "AbilityCooldown": "9.0",
+    "AbilityCooldown": "8.0",
     "AbilitySharedCooldown": "phylactery",
     "ItemCost": "2600",
     "ItemShopTags": "hard_to_tag",
@@ -1275,12 +1342,15 @@
       "bonus_all_stats": "6",
       "bonus_health_regen": "5.5",
       "bonus_mana_regen": "2.25",
-      "slow": "30",
-      "bonus_spell_damage": "150",
-      "slow_duration": "3",
+      "slow": "40",
+      "bonus_spell_damage": "130",
+      "slow_duration": "2",
       "kill_bonus_window": "0",
       "bonus_per_kill": "0",
-      "max_kill_bonus": "0"
+      "max_kill_bonus": "0",
+      "haste": "0",
+      "haste_duration": "0",
+      "bonus_heal": "0"
     }
   },
   "item_angels_demise": {
@@ -1290,11 +1360,12 @@
     "FightRecapLevel": "1",
     "SpellDispellableType": "SPELL_DISPELLABLE_YES",
     "AbilityCooldown": "9",
+    "ItemPurchasable": "1",
+    "IsObsolete": "1",
     "ItemCost": "5600",
     "ItemShopTags": "hard_to_tag;magic_dmg",
     "ItemQuality": "common",
     "SuggestLategame": "1",
-    "ItemPurchasable": "1",
     "ItemSellable": "1",
     "ItemDisassembleRule": "DOTA_ITEM_DISASSEMBLE_ALWAYS",
     "AbilityValues": {
@@ -1306,6 +1377,51 @@
       "slow": "30",
       "slow_duration": "4",
       "bonus_spell_damage": "250"
+    }
+  },
+  "item_recipe_caduceus": {
+    "Model": "models/props_gameplay/recipe.vmdl",
+    "ItemCost": "600",
+    "ItemShopTags": "",
+    "ItemRecipe": "1",
+    "ItemResult": "item_caduceus",
+    "ItemRequirements": {
+      "01": "item_force_staff;item_phylactery"
+    }
+  },
+  "item_caduceus": {
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_UNIT_TARGET | DOTA_ABILITY_BEHAVIOR_DONT_RESUME_ATTACK",
+    "AbilityUnitTargetTeam": "DOTA_UNIT_TARGET_TEAM_BOTH | DOTA_UNIT_TARGET_TEAM_CUSTOM",
+    "AbilityUnitTargetType": "DOTA_UNIT_TARGET_HERO | DOTA_UNIT_TARGET_BASIC | DOTA_UNIT_TARGET_CUSTOM",
+    "FightRecapLevel": "1",
+    "AbilityCastRange": "550",
+    "AbilityCastPoint": "0.0",
+    "AbilityCooldown": "19.0",
+    "AbilitySharedCooldown": "force",
+    "AbilityManaCost": "150",
+    "ItemCost": "5400",
+    "ItemShopTags": "int;hard_to_tag;magic_dmg;mobility;escape;save",
+    "ItemQuality": "rare",
+    "ItemDeclarations": "DECLARE_PURCHASES_TO_TEAMMATES | DECLARE_PURCHASES_TO_SPECTATORS",
+    "SuggestLategame": "1",
+    "AbilityValues": {
+      "bonus_strength": "8",
+      "bonus_agility": "8",
+      "bonus_intellect": "20",
+      "bonus_health": "175",
+      "bonus_health_regen": "6",
+      "bonus_mana_regen": "3",
+      "bonus_spell_damage": "175",
+      "slow": "40",
+      "slow_duration": "2",
+      "bonus_heal": "200",
+      "haste": "20",
+      "haste_duration": "2",
+      "enemy_proc_cooldown": "8",
+      "ally_proc_cooldown": "8",
+      "push_length": "600",
+      "push_time": "0.5",
+      "enemy_cast_range": "850"
     }
   },
   "item_recipe_hand_of_midas": {
@@ -1359,12 +1475,12 @@
   },
   "item_recipe_witch_blade": {
     "Model": "models/props_gameplay/recipe.vmdl",
-    "ItemCost": "300",
+    "ItemCost": "650",
     "ItemShopTags": "",
     "ItemRecipe": "1",
     "ItemResult": "item_witch_blade",
     "ItemRequirements": {
-      "01": "item_oblivion_staff;item_chainmail;item_orb_of_venom"
+      "01": "item_oblivion_staff;item_chainmail"
     }
   },
   "item_witch_blade": {
@@ -1380,8 +1496,13 @@
       "bonus_mana_regen": "1.5",
       "bonus_armor": "5",
       "int_damage_multiplier": "0.75",
-      "slow": "25",
-      "slow_duration": "4",
+      "slow": {
+        "value": "25",
+        "apply_effectiveness": "1"
+      },
+      "slow_duration": {
+        "value": "4"
+      },
       "projectile_speed": "300"
     }
   },
@@ -1439,7 +1560,7 @@
       "bonus_agility": "5",
       "bonus_strength": "2",
       "bonus_intellect": "2",
-      "bonus_attack_speed": "6",
+      "bonus_attack_speed": "10",
       "bonus_armor": "1.75"
     }
   },
@@ -1462,7 +1583,7 @@
       "bonus_intellect": "5",
       "bonus_strength": "2",
       "bonus_agility": "2",
-      "bonus_max_mana_percentage": "3",
+      "bonus_mana": "60",
       "bonus_mana_regen": "1.0"
     }
   },
@@ -1499,7 +1620,8 @@
       "heal_radius": {
         "value": "1200",
         "affected_by_aoe_increase": "1"
-      }
+      },
+      "add_nostack_debuff": "1"
     }
   },
   "item_vladmir": {
@@ -1512,14 +1634,38 @@
     "SuggestLategame": "1",
     "ItemDisassembleRule": "DOTA_ITEM_DISASSEMBLE_ALWAYS",
     "AbilityValues": {
-      "armor": "1",
+      "armor": "2",
       "mana_regen": "0.75",
-      "armor_aura": "2.0",
+      "armor_aura": "1.0",
       "mana_regen_aura": "1",
       "lifesteal_aura": "20",
       "damage_aura": "18",
-      "lifesteal_self": "0",
-      "damage_self": "0",
+      "aura_radius": {
+        "value": "1200",
+        "affected_by_aoe_increase": "1"
+      },
+      "lifesteal_creeps_tooltip": {
+        "value": "12"
+      }
+    }
+  },
+  "item_ristuls_devotion": {
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
+    "AbilityCastRange": "1200",
+    "ItemCost": "3800",
+    "ItemShopTags": "damage;armor;regen_mana;teamfight",
+    "ItemQuality": "rare",
+    "ItemDeclarations": "DECLARE_PURCHASES_TO_TEAMMATES | DECLARE_PURCHASES_TO_SPECTATORS",
+    "SuggestLategame": "1",
+    "ItemDisassembleRule": "DOTA_ITEM_DISASSEMBLE_ALWAYS",
+    "AbilityValues": {
+      "armor": "8",
+      "mana_regen": "1",
+      "armor_aura": "2",
+      "mana_regen_aura": "1",
+      "lifesteal_aura": "20",
+      "spell_lifesteal_aura": "18",
+      "damage_aura": "18",
       "aura_radius": {
         "value": "1200",
         "affected_by_aoe_increase": "1"
@@ -1547,8 +1693,8 @@
     "ItemShopTags": "armor;boost_armor",
     "ItemQuality": "rare",
     "AbilityValues": {
-      "armor": "1",
-      "bonus_aoe_armor": "2",
+      "armor": "2",
+      "bonus_aoe_armor": "1",
       "bonus_aoe_radius": {
         "value": "1200",
         "affected_by_aoe_increase": "1"
@@ -1650,8 +1796,9 @@
   },
   "item_pipe": {
     "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_IMMEDIATE | DOTA_ABILITY_BEHAVIOR_NO_TARGET",
+    "SpellDispellableType": "SPELL_DISPELLABLE_YES",
     "FightRecapLevel": "2",
-    "AbilityCooldown": "60.0",
+    "AbilityCooldown": "50.0",
     "AbilityManaCost": "150",
     "AbilityCastRange": "1200",
     "ItemCost": "3725",
@@ -1682,7 +1829,7 @@
   },
   "item_recipe_urn_of_shadows": {
     "Model": "models/props_gameplay/recipe.vmdl",
-    "ItemCost": "320",
+    "ItemCost": "370",
     "ItemShopTags": "",
     "ItemRecipe": "1",
     "ItemResult": "item_urn_of_shadows",
@@ -1705,7 +1852,7 @@
     "ItemStackable": "0",
     "ItemPermanent": "1",
     "ShowGiveIndicatorOnTargetCast": "1",
-    "ItemCost": "825",
+    "ItemCost": "875",
     "ItemShopTags": "regen_mana;str;boost_health;teamfight",
     "ItemQuality": "rare",
     "ItemDeclarations": "DECLARE_PURCHASES_TO_TEAMMATES | DECLARE_PURCHASES_TO_SPECTATORS",
@@ -1814,7 +1961,6 @@
       "bonus_attack_speed": "35",
       "bonus_damage": "20",
       "bonus_mana_regen": "2.5",
-      "bonus_health_regen": "0.0",
       "bonus_intellect": "12",
       "silence_damage_percent": "30",
       "silence_duration": "5"
@@ -1822,12 +1968,12 @@
   },
   "item_recipe_bloodthorn": {
     "Model": "models/props_gameplay/recipe.vmdl",
-    "ItemCost": "600",
+    "ItemCost": "1350",
     "ItemShopTags": "",
     "ItemRecipe": "1",
     "ItemResult": "item_bloodthorn",
     "ItemRequirements": {
-      "01": "item_orchid*;item_oblivion_staff;item_javelin"
+      "01": "item_orchid*;item_oblivion_staff"
     }
   },
   "item_bloodthorn": {
@@ -1842,7 +1988,7 @@
     "AbilityCooldown": "15.0",
     "AbilitySharedCooldown": "orchid",
     "AbilityManaCost": "150",
-    "ItemCost": "6400",
+    "ItemCost": "6250",
     "ItemShopTags": "int;attack_speed;damage;regen_mana;damage;hard_to_tag;dps;disable",
     "ItemQuality": "epic",
     "ItemDeclarations": "DECLARE_PURCHASES_TO_TEAMMATES | DECLARE_PURCHASES_IN_SPEECH | DECLARE_PURCHASES_TO_SPECTATORS",
@@ -1851,16 +1997,17 @@
       "bonus_intellect": "25",
       "bonus_attack_speed": "70",
       "bonus_mana_regen": "4",
-      "bonus_health_regen": "0",
       "silence_duration": "5",
       "silence_damage_percent": "60",
       "bonus_damage": "20",
       "duration": "6",
       "spell_amp_debuff": "35",
-      "proc_damage_heroes": "50",
-      "proc_damage_creeps": "25",
-      "passive_proc_damage": "60",
-      "proc_chance": "40"
+      "proc_damage_heroes": {
+        "value": "50"
+      },
+      "proc_damage_creeps": {
+        "value": "20"
+      }
     }
   },
   "item_echo_sabre": {
@@ -1946,7 +2093,7 @@
     "ItemDeclarations": "DECLARE_PURCHASES_TO_TEAMMATES | DECLARE_PURCHASES_IN_SPEECH | DECLARE_PURCHASES_TO_SPECTATORS",
     "SuggestLategame": "1",
     "AbilityValues": {
-      "bonus_movement_speed": "30",
+      "bonus_movement_speed": "25",
       "bonus_mana_regen": "3.0",
       "bonus_intellect": "35",
       "cyclone_duration": "2.5",
@@ -1956,7 +2103,7 @@
   },
   "item_recipe_aether_lens": {
     "Model": "models/props_gameplay/recipe.vmdl",
-    "ItemCost": "775",
+    "ItemCost": "600",
     "ItemShopTags": "",
     "ItemRecipe": "1",
     "ItemResult": "item_aether_lens",
@@ -1966,7 +2113,7 @@
   },
   "item_aether_lens": {
     "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
-    "ItemCost": "2275",
+    "ItemCost": "2100",
     "ItemShopTags": "int;regen_mana;hard_to_tag",
     "ItemQuality": "rare",
     "ItemDeclarations": "DECLARE_PURCHASES_TO_TEAMMATES | DECLARE_PURCHASES_IN_SPEECH | DECLARE_PURCHASES_TO_SPECTATORS",
@@ -1974,7 +2121,7 @@
     "AbilityValues": {
       "bonus_mana": "300",
       "bonus_mana_regen": "2.5",
-      "cast_range_bonus": "225"
+      "cast_range_bonus": "200"
     }
   },
   "item_recipe_force_staff": {
@@ -2385,17 +2532,17 @@
     "AbilityValues": {
       "bonus_hp_regen": "0",
       "bonus_armor": "17",
-      "bonus_aoe": "75",
+      "bonus_aoe": "60",
       "aura_radius": {
         "value": "1200",
         "affected_by_aoe_increase": "1"
       },
       "aura_attack_speed": "-40",
       "blast_damage": "225",
-      "blast_movement_speed": "-40",
+      "blast_movement_speed": "-30",
       "blast_debuff_duration": "4.0",
       "blast_radius": {
-        "value": "825",
+        "value": "840",
         "affected_by_aoe_increase": "1"
       },
       "blast_speed": "400"
@@ -2405,7 +2552,7 @@
     "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_NO_TARGET | DOTA_ABILITY_BEHAVIOR_IMMEDIATE",
     "FightRecapLevel": "2",
     "AbilityCastPoint": "0.0",
-    "AbilityCooldown": "35.0",
+    "AbilityCooldown": "30.0",
     "AbilityManaCost": "0",
     "ItemCost": "4700",
     "ItemShopTags": "int;regen_health;mana_pool;health_pool;tank",
@@ -2421,9 +2568,9 @@
       "bonus_intellect": "15",
       "spell_lifesteal": "20",
       "buff_duration": "5",
-      "spell_lifesteal_while_active": "60",
+      "spell_lifesteal_while_active": "70",
       "hp_cost": "0",
-      "aura_spell_vulnerability": "10",
+      "aura_spell_vulnerability": "8",
       "aura_radius": {
         "value": "1200",
         "affected_by_aoe_increase": "1"
@@ -2454,7 +2601,7 @@
     "ActiveDescriptionLine": "2",
     "SuggestLategame": "1",
     "AbilityValues": {
-      "bonus_all_stats": "16",
+      "bonus_all_stats": "17",
       "bonus_health_regen": "6.5",
       "bonus_mana_regen": "4.25",
       "block_cooldown": "14.0",
@@ -2516,7 +2663,8 @@
     "AbilityCastRange": "600",
     "AbilityCooldown": "24",
     "AbilityManaCost": "75",
-    "ItemCost": "2850",
+    "AbilitySharedCooldown": "meteor",
+    "ItemCost": "2750",
     "ItemShopTags": "farming;magic_dmg;disable",
     "ItemQuality": "epic",
     "ItemDeclarations": "DECLARE_PURCHASES_TO_TEAMMATES | DECLARE_PURCHASES_IN_SPEECH | DECLARE_PURCHASES_TO_SPECTATORS",
@@ -2524,12 +2672,11 @@
     "AbilityValues": {
       "bonus_strength": "6",
       "bonus_agility": "6",
-      "bonus_intellect": "24",
-      "spell_amp": "10",
-      "mana_regen_multiplier": "25",
-      "burn_dps_buildings": "50",
-      "burn_dps_units": "50",
-      "burn_slow": "20",
+      "bonus_intellect": "22",
+      "spell_amp": "6",
+      "mana_regen_multiplier": "20",
+      "burn_dps_units": "60",
+      "burn_slow": "15",
       "burn_duration": "6",
       "stun_duration": "0.75",
       "burn_interval": "1.0",
@@ -2539,9 +2686,65 @@
         "affected_by_aoe_increase": "1"
       },
       "max_duration": "2",
-      "impact_damage_buildings": "90",
-      "impact_damage_units": "130",
+      "building_damage_pct": "75",
+      "impact_damage_units": "150",
       "enemy_particles_visible": "0"
+    }
+  },
+  "item_recipe_starforge": {
+    "Model": "models/props_gameplay/recipe.vmdl",
+    "ItemCost": "450",
+    "ItemShopTags": "",
+    "ItemPurchasable": "1",
+    "ItemSellable": "1",
+    "ItemRecipe": "1",
+    "ItemResult": "item_starforge",
+    "ItemRequirements": {
+      "01": "item_meteor_hammer;item_ultimate_orb"
+    }
+  },
+  "item_starforge": {
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_POINT | DOTA_ABILITY_BEHAVIOR_AOE | DOTA_ABILITY_BEHAVIOR_CHANNELLED",
+    "AbilityUnitDamageType": "DAMAGE_TYPE_MAGICAL",
+    "SpellImmunityType": "SPELL_IMMUNITY_ENEMIES_NO",
+    "FightRecapLevel": "1",
+    "ItemPurchasable": "1",
+    "ItemSellable": "1",
+    "AbilityChannelTime": "2",
+    "AbilityCastRange": "600",
+    "AbilityCooldown": "24",
+    "AbilityManaCost": "175",
+    "AbilitySharedCooldown": "meteor",
+    "ItemCost": "6000",
+    "ItemShopTags": "farming;magic_dmg;disable",
+    "ItemQuality": "epic",
+    "ItemDeclarations": "DECLARE_PURCHASES_TO_TEAMMATES | DECLARE_PURCHASES_IN_SPEECH | DECLARE_PURCHASES_TO_SPECTATORS",
+    "SuggestLategame": "1",
+    "AbilityValues": {
+      "bonus_strength": "24",
+      "bonus_agility": "24",
+      "bonus_intellect": "40",
+      "spell_amp": "6",
+      "mana_regen_multiplier": "20",
+      "burn_dps_units": "60",
+      "burn_slow": "15",
+      "burn_duration": "6",
+      "stun_duration": "0.75",
+      "burn_interval": "1.0",
+      "land_time": ".5",
+      "impact_radius": {
+        "value": "400",
+        "affected_by_aoe_increase": "1"
+      },
+      "max_duration": "2",
+      "impact_damage_units": "150",
+      "impact_damage_units_pct_health": "15.0",
+      "building_damage_pct": "75",
+      "enemy_particles_visible": "0",
+      "passive_debuff_duration": "3.0",
+      "slow_pct": "15",
+      "burn_per_second": "60",
+      "passive_burn_interval": "1.0"
     }
   },
   "item_nullifier": {
@@ -2565,7 +2768,7 @@
       "mute_duration": "4.0",
       "projectile_speed": "1800",
       "slow_pct": "10",
-      "slow_interval_duration": "0.5"
+      "knockback_reduction": "60"
     }
   },
   "item_recipe_aeon_disk": {
@@ -2599,7 +2802,7 @@
   },
   "item_recipe_kaya": {
     "Model": "models/props_gameplay/recipe.vmdl",
-    "ItemCost": "650",
+    "ItemCost": "550",
     "ItemShopTags": "",
     "ItemRecipe": "1",
     "ItemResult": "item_kaya",
@@ -2609,20 +2812,48 @@
   },
   "item_kaya": {
     "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
-    "ItemCost": "2100",
+    "ItemCost": "2000",
     "ItemShopTags": "int;mana;magic_dmg",
     "ItemQuality": "epic",
     "ItemDeclarations": "DECLARE_PURCHASES_TO_TEAMMATES | DECLARE_PURCHASES_TO_SPECTATORS | DECLARE_PURCHASES_IN_SPEECH",
     "SuggestLategame": "1",
     "AbilityValues": {
       "bonus_intellect": "16",
-      "spell_amp": "10",
+      "spell_amp": "6",
       "mana_regen_multiplier": "20"
+    }
+  },
+  "item_refresher_shard": {
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_IMMEDIATE | DOTA_ABILITY_BEHAVIOR_NO_TARGET",
+    "FightRecapLevel": "2",
+    "Model": "models/props_gameplay/refresher_shard.vmdl",
+    "Effect": "particles/generic_gameplay/dropped_refresher_shard.vpcf",
+    "AbilityCooldown": "180.0",
+    "AbilityManaCost": "200",
+    "ItemCost": "1000",
+    "ItemShopTags": "",
+    "ItemQuality": "consumable",
+    "ItemPurchasable": "0",
+    "ItemStackable": "0",
+    "ItemShareability": "ITEM_FULLY_SHAREABLE",
+    "ItemPermanent": "0",
+    "ItemInitialCharges": "1",
+    "ItemHideCharges": "1",
+    "ItemDeclarations": "DECLARE_PURCHASES_TO_TEAMMATES | DECLARE_PURCHASES_TO_SPECTATORS",
+    "ItemContributesToNetWorthWhenDropped": "0",
+    "IsTempestDoubleClonable": "0",
+    "SpeciallyBannedFromNeutralSlot": "1",
+    "CooldownPausedOutOfInventory": "1",
+    "AbilityValues": {
+      "bonus_health_regen": "0",
+      "bonus_mana_regen": "0.0",
+      "bonus_damage": "0",
+      "refresh_items": "0"
     }
   },
   "item_recipe_spirit_vessel": {
     "Model": "models/props_gameplay/recipe.vmdl",
-    "ItemCost": "900",
+    "ItemCost": "850",
     "ItemShopTags": "",
     "ItemRecipe": "1",
     "ItemResult": "item_spirit_vessel",
@@ -2668,7 +2899,7 @@
   },
   "item_recipe_essence_distiller": {
     "Model": "models/props_gameplay/recipe.vmdl",
-    "ItemCost": "200",
+    "ItemCost": "150",
     "ItemShopTags": "",
     "ItemRecipe": "1",
     "ItemResult": "item_essence_distiller",
@@ -2680,7 +2911,7 @@
     "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_POINT | DOTA_ABILITY_BEHAVIOR_UNIT_TARGET | DOTA_ABILITY_BEHAVIOR_AOE | DOTA_ABILITY_BEHAVIOR_DONT_PROC_OTHER_ABILITIES",
     "AbilityUnitTargetTeam": "DOTA_UNIT_TARGET_TEAM_BOTH",
     "AbilityUnitTargetType": "DOTA_UNIT_TARGET_HERO",
-    "AbilityCastRange": "1000",
+    "AbilityCastRange": "850",
     "AbilityCooldown": "10.0",
     "AbilitySharedCooldown": "urn",
     "ItemRequiresCharges": "1",
@@ -2731,17 +2962,17 @@
   },
   "item_recipe_crimson_guard": {
     "Model": "models/props_gameplay/recipe.vmdl",
-    "ItemCost": "1050",
+    "ItemCost": "625",
     "ItemShopTags": "",
     "ItemRecipe": "1",
     "ItemResult": "item_crimson_guard",
     "ItemRequirements": {
-      "01": "item_vanguard;item_helm_of_iron_will"
+      "01": "item_vanguard;item_buckler;item_helm_of_iron_will"
     }
   },
   "item_crimson_guard": {
     "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_IMMEDIATE | DOTA_ABILITY_BEHAVIOR_NO_TARGET",
-    "SpellDispellableType": "SPELL_DISPELLABLE_NO",
+    "SpellDispellableType": "SPELL_DISPELLABLE_YES",
     "AbilityCooldown": "40.0",
     "AbilityCastRange": "1200",
     "AbilityManaCost": "75",
@@ -2753,8 +2984,8 @@
     "SuggestLategame": "1",
     "AbilityValues": {
       "bonus_health": "250",
-      "bonus_health_regen": "12",
-      "bonus_armor": "6",
+      "bonus_health_regen": "9",
+      "bonus_armor": "5",
       "block_damage_melee": "75",
       "block_damage_ranged": "50",
       "block_chance": "60",
@@ -2766,13 +2997,19 @@
       "block_damage_active": "70",
       "block_chance_active": "100",
       "block_penalty_ranged": "25",
-      "max_hp_pct": "2.0"
+      "max_hp_pct": "2.0",
+      "add_nostack_debuff": "1",
+      "aura_radius": {
+        "value": "1200",
+        "affected_by_aoe_increase": "1"
+      },
+      "bonus_aoe_armor": "2"
     }
   },
   "item_recipe_blade_mail": {
     "Model": "models/props_gameplay/recipe.vmdl",
     "FightRecapLevel": "1",
-    "ItemCost": "450",
+    "ItemCost": "400",
     "ItemShopTags": "",
     "ItemRecipe": "1",
     "ItemResult": "item_blade_mail",
@@ -2784,7 +3021,7 @@
     "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_IMMEDIATE | DOTA_ABILITY_BEHAVIOR_NO_TARGET | DOTA_ABILITY_BEHAVIOR_IGNORE_CHANNEL",
     "AbilityCooldown": "25.0",
     "AbilityManaCost": "25",
-    "ItemCost": "2400",
+    "ItemCost": "2350",
     "ItemShopTags": "damage;armor;int;hard_to_tag;tank",
     "ItemQuality": "epic",
     "ItemDeclarations": "DECLARE_PURCHASES_TO_TEAMMATES | DECLARE_PURCHASES_TO_SPECTATORS",
@@ -2920,7 +3157,7 @@
     "ItemRecipe": "1",
     "ItemResult": "item_monkey_king_bar",
     "ItemRequirements": {
-      "01": "item_demon_edge;item_blitz_knuckles;item_javelin"
+      "01": "item_demon_edge;item_blitz_knuckles;item_quarterstaff"
     }
   },
   "item_monkey_king_bar": {
@@ -2931,11 +3168,18 @@
     "ItemDeclarations": "DECLARE_PURCHASES_TO_TEAMMATES | DECLARE_PURCHASES_IN_SPEECH | DECLARE_PURCHASES_TO_SPECTATORS",
     "SuggestLategame": "1",
     "AbilityValues": {
-      "bonus_damage": "50",
+      "bonus_damage": "55",
       "bonus_attack_speed": "50",
-      "bonus_chance": "80",
-      "bonus_chance_damage": "70",
-      "melee_attack_range": "50"
+      "bonus_chance": {
+        "value": "80",
+        "apply_effectiveness": "1"
+      },
+      "bonus_chance_damage": {
+        "value": "70"
+      },
+      "bonus_chance_damage_illu": {
+        "value": "30"
+      }
     }
   },
   "item_radiance": {
@@ -2962,15 +3206,15 @@
   },
   "item_butterfly": {
     "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
-    "ItemCost": "5450",
+    "ItemCost": "5000",
     "ItemShopTags": "agi;damage;evasion;attack_speed;dps;tank",
     "ItemQuality": "epic",
     "ItemDeclarations": "DECLARE_PURCHASES_TO_TEAMMATES | DECLARE_PURCHASES_IN_SPEECH | DECLARE_PURCHASES_TO_SPECTATORS",
     "SuggestLategame": "1",
     "AbilityValues": {
       "bonus_agility": "30",
-      "bonus_evasion": "35",
-      "bonus_attack_speed_pct": "20",
+      "bonus_evasion": "30",
+      "bonus_attack_speed": "30",
       "bonus_damage": "30"
     }
   },
@@ -3021,11 +3265,21 @@
     "AbilityValues": {
       "bonus_damage": "30",
       "bonus_strength": "10",
-      "bash_chance_melee": "25",
-      "bash_chance_ranged": "10",
-      "bash_duration": "1.2",
+      "bash_chance_melee": {
+        "value": "25",
+        "apply_effectiveness": "1"
+      },
+      "bash_chance_ranged": {
+        "value": "10",
+        "apply_effectiveness": "1"
+      },
+      "bash_duration": {
+        "value": "1.2"
+      },
       "bash_cooldown": "2.3",
-      "bonus_chance_damage": "100"
+      "bonus_chance_damage": {
+        "value": "100"
+      }
     }
   },
   "item_recipe_bfury": {
@@ -3086,7 +3340,7 @@
     "AbilityCooldown": "34.0",
     "AbilityCastPoint": "0.0",
     "AbilityManaCost": "125",
-    "ItemCost": "4650",
+    "ItemCost": "4550",
     "ItemShopTags": "agi;str;int;attack_speed;move_speed;hard_to_tag;farming",
     "ItemQuality": "epic",
     "ItemDeclarations": "DECLARE_PURCHASES_TO_TEAMMATES | DECLARE_PURCHASES_IN_SPEECH | DECLARE_PURCHASES_TO_SPECTATORS",
@@ -3096,8 +3350,9 @@
       "bonus_agility": "26",
       "bonus_intellect": "10",
       "bonus_attack_speed": "15",
-      "bonus_movement_speed": "10",
+      "bonus_movement_speed": "6",
       "images_count": "2",
+      "illusion_effectiveness": "35",
       "illusion_duration": "18",
       "images_do_damage_percent_melee": "-67",
       "tooltip_damage_outgoing_melee": "33",
@@ -3151,7 +3406,7 @@
       "bonus_agility": "15",
       "bonus_strength": "10",
       "base_attack_range": "130",
-      "base_attack_range_melee": "0"
+      "base_attack_range_melee": "25"
     }
   },
   "item_recipe_armlet": {
@@ -3165,7 +3420,7 @@
     }
   },
   "item_armlet": {
-    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_NO_TARGET | DOTA_ABILITY_BEHAVIOR_TOGGLE | DOTA_ABILITY_BEHAVIOR_IGNORE_CHANNEL",
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_NO_TARGET | DOTA_ABILITY_BEHAVIOR_TOGGLE | DOTA_ABILITY_BEHAVIOR_IGNORE_CHANNEL | DOTA_ABILITY_BEHAVIOR_IGNORE_INVISIBLE",
     "AbilityCooldown": "0.0",
     "ItemCost": "2500",
     "ItemShopTags": "damage;attack_speed;armor;regen_health;hard_to_tag;dps;tank",
@@ -3200,7 +3455,7 @@
       "bonus_damage": "25",
       "bonus_attack_speed": "35",
       "windwalk_duration": "17.0",
-      "windwalk_movement_speed": "20",
+      "windwalk_movement_speed": "16",
       "windwalk_fade_time": "0.3",
       "windwalk_bonus_damage": "175"
     }
@@ -3232,17 +3487,20 @@
       "bonus_intellect": "0",
       "bonus_mana_regen": "0",
       "windwalk_duration": "17.0",
-      "windwalk_movement_speed": "20",
+      "windwalk_movement_speed": "18",
       "windwalk_fade_time": "0.3",
       "windwalk_bonus_damage": "300",
-      "backstab_duration": "5",
+      "backstab_duration": {
+        "value": "5",
+        "apply_effectiveness": "1"
+      },
       "max_movement_speed": "200",
       "visibility_radius": "1025"
     }
   },
   "item_sange_and_yasha": {
     "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
-    "ItemCost": "4200",
+    "ItemCost": "4000",
     "ItemShopTags": "damage;str;agi;attack_speed;unique;dps",
     "ItemQuality": "artifact",
     "ItemDisassembleRule": "DOTA_ITEM_DISASSEMBLE_ALWAYS",
@@ -3253,15 +3511,15 @@
       "bonus_agility": "16",
       "status_resistance": "16",
       "bonus_attack_speed": "20",
-      "movement_speed_percent_bonus_melee": "12",
-      "movement_speed_percent_bonus": "12",
-      "hp_regen_amp": "16",
+      "movement_speed_percent_bonus_melee": "10",
+      "movement_speed_percent_bonus": "10",
+      "hp_regen_amp": "20",
       "slow_resistance": "30"
     }
   },
   "item_kaya_and_sange": {
     "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
-    "ItemCost": "4200",
+    "ItemCost": "4000",
     "ItemShopTags": "damage;str;agi;unique;magic_dmg",
     "ItemQuality": "artifact",
     "ItemDisassembleRule": "DOTA_ITEM_DISASSEMBLE_ALWAYS",
@@ -3271,15 +3529,15 @@
       "bonus_strength": "16",
       "bonus_intellect": "16",
       "slow_resistance": "25",
-      "mana_regen_multiplier": "30",
-      "spell_amp": "12",
-      "hp_regen_amp": "16",
+      "mana_regen_multiplier": "25",
+      "spell_amp": "10",
+      "hp_regen_amp": "20",
       "manacost_reduction": "25"
     }
   },
   "item_yasha_and_kaya": {
     "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
-    "ItemCost": "4200",
+    "ItemCost": "4000",
     "ItemShopTags": "damage;str;agi;attack_speed;unique;dps;magic_dmg",
     "ItemQuality": "artifact",
     "ItemDisassembleRule": "DOTA_ITEM_DISASSEMBLE_ALWAYS",
@@ -3289,10 +3547,10 @@
       "bonus_agility": "16",
       "bonus_intellect": "16",
       "bonus_attack_speed": "20",
-      "mana_regen_multiplier": "30",
-      "movement_speed_percent_bonus_melee": "12",
-      "movement_speed_percent_bonus": "12",
-      "spell_amp": "12",
+      "mana_regen_multiplier": "25",
+      "movement_speed_percent_bonus_melee": "10",
+      "movement_speed_percent_bonus": "10",
+      "spell_amp": "10",
       "cast_speed_pct": "25"
     }
   },
@@ -3350,8 +3608,13 @@
       "static_seconary_radius": "900",
       "static_radius": "900",
       "static_cooldown": "1.0",
-      "chain_chance": "25",
-      "chain_damage": "180",
+      "chain_chance": {
+        "value": "25",
+        "apply_effectiveness": "1"
+      },
+      "chain_damage": {
+        "value": "180"
+      },
       "chain_strikes": "12",
       "chain_radius": "650",
       "chain_delay": "0.25",
@@ -3362,6 +3625,7 @@
   },
   "item_skadi": {
     "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
+    "AbilityUnitTargetFlags": "DOTA_UNIT_TARGET_FLAG_MAGIC_IMMUNE_ENEMIES",
     "ItemCost": "5900",
     "ItemShopTags": "agi;str;int;hard_to_tag;mana_pool;health_pool;unique;tank",
     "ItemQuality": "artifact",
@@ -3371,17 +3635,34 @@
       "bonus_all_stats": "35",
       "bonus_health": "0",
       "bonus_mana": "0",
-      "cold_slow_melee": "-25",
-      "cold_attack_slow_melee": "-25",
-      "cold_slow_ranged": "-50",
-      "cold_attack_slow_ranged": "-25",
-      "cold_duration": "3.0",
-      "restoration_reduction": "50"
+      "cold_slow_melee": {
+        "value": "-20",
+        "apply_effectiveness": "1"
+      },
+      "cold_attack_slow_melee": {
+        "value": "-25",
+        "apply_effectiveness": "1"
+      },
+      "cold_slow_ranged": {
+        "value": "-40",
+        "apply_effectiveness": "1"
+      },
+      "cold_attack_slow_ranged": {
+        "value": "-25",
+        "apply_effectiveness": "1"
+      },
+      "cold_duration": {
+        "value": "3.0"
+      },
+      "restoration_reduction": {
+        "value": "50",
+        "apply_effectiveness": "1"
+      }
     }
   },
   "item_recipe_sange": {
     "Model": "models/props_gameplay/recipe.vmdl",
-    "ItemCost": "650",
+    "ItemCost": "550",
     "ItemShopTags": "",
     "ItemRecipe": "1",
     "ItemResult": "item_sange",
@@ -3391,14 +3672,14 @@
   },
   "item_sange": {
     "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
-    "ItemCost": "2100",
+    "ItemCost": "2000",
     "ItemShopTags": "damage;str;unique",
     "ItemQuality": "artifact",
     "SuggestLategame": "1",
     "AbilityValues": {
       "bonus_strength": "16",
       "slow_resistance": "25",
-      "hp_regen_amp": "12"
+      "hp_regen_amp": "16"
     }
   },
   "item_recipe_helm_of_the_dominator": {
@@ -3418,8 +3699,6 @@
     "AbilityCastRange": "700",
     "AbilityCastPoint": "0.0",
     "AbilityCooldown": "45.0",
-    "MaxUpgradeLevel": "2",
-    "ItemBaseLevel": "1",
     "AbilityManaCost": "50",
     "ItemCost": "2550",
     "ItemShopTags": "damage;armor;unique;hard_to_tag",
@@ -3446,6 +3725,8 @@
   "item_recipe_helm_of_the_overlord": {
     "ItemCost": "300",
     "ItemShopTags": "",
+    "ItemPurchasable": "0",
+    "IsObsolete": "1",
     "ItemRecipe": "1",
     "ItemResult": "item_helm_of_the_overlord",
     "ItemRequirements": {
@@ -3464,6 +3745,8 @@
     "ItemCost": "5650",
     "ItemShopTags": "damage;armor;unique;hard_to_tag",
     "ItemQuality": "artifact",
+    "ItemPurchasable": "0",
+    "IsObsolete": "1",
     "SuggestLategame": "1",
     "AbilityValues": {
       "bonus_stats": "21",
@@ -3484,6 +3767,16 @@
       "bounty_pct": "100"
     }
   },
+  "item_recipe_maelstrom": {
+    "Model": "models/props_gameplay/recipe.vmdl",
+    "ItemCost": "900",
+    "ItemShopTags": "farming",
+    "ItemRecipe": "1",
+    "ItemResult": "item_maelstrom",
+    "ItemRequirements": {
+      "01": "item_mithril_hammer;item_gloves"
+    }
+  },
   "item_maelstrom": {
     "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
     "ItemCost": "2950",
@@ -3494,8 +3787,13 @@
     "AbilityValues": {
       "bonus_damage": "25",
       "bonus_attack_speed": "25",
-      "chain_chance": "25",
-      "chain_damage": "110",
+      "chain_chance": {
+        "value": "25",
+        "apply_effectiveness": "1"
+      },
+      "chain_damage": {
+        "value": "110"
+      },
       "chain_strikes": "4",
       "chain_radius": "650",
       "chain_delay": "0.25",
@@ -3520,7 +3818,7 @@
     "FightRecapLevel": "1",
     "SpellDispellableType": "SPELL_DISPELLABLE_YES",
     "AbilitySharedCooldown": "atos",
-    "AbilityCooldown": "18",
+    "AbilityCooldown": "17",
     "AbilityCastRange": "1100",
     "AbilityCastPoint": "0.0",
     "AbilityManaCost": "150",
@@ -3532,10 +3830,10 @@
     "AbilityValues": {
       "bonus_hp": "450",
       "bonus_mana": "200",
-      "bonus_intellect": "12",
-      "bonus_aoe": "75",
+      "bonus_intellect": "20",
+      "bonus_aoe": "60",
       "radius": {
-        "value": "325",
+        "value": "340",
         "affected_by_aoe_increase": "1"
       },
       "radius_tooltip": {
@@ -3556,15 +3854,20 @@
     "SpellImmunityType": "SPELL_IMMUNITY_ENEMIES_YES",
     "AbilityValues": {
       "bonus_damage": "55",
-      "corruption_armor": "-6",
-      "corruption_duration": "7.0",
+      "corruption_armor": {
+        "value": "-6",
+        "apply_effectiveness": "1"
+      },
+      "corruption_duration": {
+        "value": "7.0"
+      },
       "bonus_damage_per_kill": "2",
       "bonus_damage_per_assist": "1",
       "max_damage": "30"
     }
   },
   "item_recipe_yasha": {
-    "ItemCost": "650",
+    "ItemCost": "550",
     "ItemShopTags": "",
     "ItemRecipe": "1",
     "ItemResult": "item_yasha",
@@ -3574,14 +3877,14 @@
   },
   "item_yasha": {
     "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
-    "ItemCost": "2100",
+    "ItemCost": "2000",
     "ItemShopTags": "agi;attack_speed;move_speed",
     "ItemQuality": "artifact",
     "SuggestLategame": "1",
     "AbilityValues": {
       "bonus_agility": "16",
       "bonus_attack_speed": "15",
-      "movement_speed_percent_bonus": "10"
+      "movement_speed_percent_bonus": "6"
     }
   },
   "item_mask_of_madness": {
@@ -3590,14 +3893,15 @@
     "SpellDispellableType": "SPELL_DISPELLABLE_YES",
     "AbilityCooldown": "16.0",
     "AbilityManaCost": "25",
-    "ItemCost": "1900",
+    "ItemCost": "1800",
     "ItemShopTags": "unique;hard_to_tag;farming;dps",
     "ItemQuality": "artifact",
     "ItemDisassembleRule": "DOTA_ITEM_DISASSEMBLE_ALWAYS",
     "ItemDeclarations": "DECLARE_PURCHASES_TO_TEAMMATES | DECLARE_PURCHASES_TO_SPECTATORS",
     "SuggestLategame": "1",
     "AbilityValues": {
-      "bonus_damage": "20",
+      "bonus_damage": "15",
+      "bonus_attack_speed": "10",
       "lifesteal_percent": "22",
       "berserk_bonus_attack_speed": "100",
       "berserk_bonus_movement_speed_melee": "12",
@@ -3640,9 +3944,10 @@
     "AbilityValues": {
       "bonus_agility": "15",
       "bonus_intellect": "10",
-      "feedback_mana_burn": "40",
-      "feedback_mana_burn_illusion_melee": "0",
-      "feedback_mana_burn_illusion_ranged": "0",
+      "feedback_mana_burn": {
+        "value": "40",
+        "apply_effectiveness": "1"
+      },
       "purge_rate": "5",
       "purge_root_duration": "3.0",
       "purge_slow_duration": "4.0",
@@ -3681,9 +3986,10 @@
     "AbilityValues": {
       "bonus_agility": "40",
       "bonus_intellect": "10",
-      "feedback_mana_burn": "40",
-      "feedback_mana_burn_illusion_melee": "0",
-      "feedback_mana_burn_illusion_ranged": "0",
+      "feedback_mana_burn": {
+        "value": "40",
+        "apply_effectiveness": "1"
+      },
       "purge_rate": "5",
       "purge_root_duration": "3.0",
       "damage_per_burn": "1.0",
@@ -3711,7 +4017,7 @@
     "SpellDispellableType": "SPELL_DISPELLABLE_YES",
     "AbilityCastRange": "800",
     "AbilityCastPoint": "0.0",
-    "AbilityCooldown": "22.0",
+    "AbilityCooldown": "20.0",
     "AbilitySharedCooldown": "ethereal",
     "AbilityManaCost": "100",
     "ItemCost": "5200",
@@ -3720,9 +4026,9 @@
     "ItemDeclarations": "DECLARE_PURCHASES_TO_TEAMMATES | DECLARE_PURCHASES_TO_SPECTATORS",
     "SuggestLategame": "1",
     "AbilityValues": {
-      "bonus_agility": "24",
-      "bonus_strength": "24",
-      "bonus_intellect": "24",
+      "bonus_agility": "25",
+      "bonus_strength": "25",
+      "bonus_intellect": "25",
       "blast_movement_slow": "-80",
       "duration": "4.0",
       "blast_stat_multiplier": "1.0",
@@ -3772,7 +4078,7 @@
   },
   "item_arcane_boots": {
     "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_IMMEDIATE | DOTA_ABILITY_BEHAVIOR_NO_TARGET",
-    "AbilityCooldown": "55.0",
+    "AbilityCooldown": "50.0",
     "AbilityManaCost": "0",
     "ItemCost": "1500",
     "ItemShopTags": "move_speed;boost_mana;mana_pool;mana;regen_mana",
@@ -3782,9 +4088,9 @@
     "SuggestEarlygame": "1",
     "SpeciallyBannedFromNeutralSlot": "1",
     "AbilityValues": {
-      "bonus_movement": "45",
+      "bonus_movement": "50",
       "mana_regen": "0.25",
-      "bonus_mana": "125",
+      "bonus_mana": "150",
       "aura_mana_regen": "1",
       "aura_radius": {
         "value": "1200",
@@ -3814,15 +4120,15 @@
     "ItemDeclarations": "DECLARE_PURCHASES_TO_TEAMMATES | DECLARE_PURCHASES_TO_SPECTATORS",
     "SuggestLategame": "1",
     "AbilityValues": {
-      "bonus_cooldown": "25",
       "bonus_health": "450",
       "bonus_mana": "450",
-      "bonus_health_regen": "0",
+      "bonus_cooldown": "20",
       "bonus_mana_regen": "6"
     }
   },
   "item_orb_of_venom": {
     "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE | DOTA_ABILITY_BEHAVIOR_DONT_PROC_OTHER_ABILITIES",
+    "AbilityUnitTargetType": "DOTA_UNIT_TARGET_HERO",
     "SpellDispellableType": "SPELL_DISPELLABLE_YES",
     "ItemCost": "350",
     "ItemShopTags": "hard_to_tag",
@@ -3833,7 +4139,9 @@
     "AbilityValues": {
       "damage": "12",
       "tick_interval": "1.0",
-      "poison_duration": "3.0"
+      "poison_duration": {
+        "value": "3.0"
+      }
     }
   },
   "item_blight_stone": {
@@ -3846,38 +4154,70 @@
     "SuggestEarlygame": "1",
     "SpellImmunityType": "SPELL_IMMUNITY_ENEMIES_YES",
     "AbilityValues": {
-      "corruption_armor": "-2",
-      "corruption_duration": "3.0"
+      "corruption_armor": {
+        "value": "-2",
+        "apply_effectiveness": "1"
+      },
+      "corruption_duration": {
+        "value": "3.0"
+      }
     }
   },
   "item_orb_of_corrosion": {
     "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
     "SpellDispellableType": "SPELL_DISPELLABLE_YES",
-    "ItemCost": "1050",
+    "AbilityUnitTargetFlags": "DOTA_UNIT_TARGET_FLAG_MAGIC_IMMUNE_ENEMIES",
+    "ItemCost": "880",
     "ItemShopTags": "hard_to_tag",
     "ItemQuality": "rare",
     "SuggestEarlygame": "1",
     "AbilityValues": {
-      "corruption_armor": "-2",
-      "slow_melee": "-8",
-      "slow_ranged": "-16",
-      "heal_reduction": "18",
-      "duration": "3.0",
+      "corruption_armor": {
+        "value": "-2",
+        "apply_effectiveness": "1"
+      },
+      "slow_melee": {
+        "value": "-8",
+        "apply_effectiveness": "1"
+      },
+      "slow_ranged": {
+        "value": "-16",
+        "apply_effectiveness": "1"
+      },
+      "heal_reduction": {
+        "value": "18",
+        "apply_effectiveness": "1"
+      },
+      "duration": {
+        "value": "3.0"
+      },
       "bonus_agility": "7"
     }
   },
   "item_orb_of_frost": {
     "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
+    "AbilityUnitTargetFlags": "DOTA_UNIT_TARGET_FLAG_MAGIC_IMMUNE_ENEMIES",
     "ItemCost": "300",
     "ItemShopTags": "hard_to_tag",
     "ItemQuality": "rare",
     "SuggestPregame": "1",
     "SuggestEarlygame": "1",
     "AbilityValues": {
-      "slow_melee": "-6",
-      "slow_ranged": "-13",
-      "duration": "3",
-      "heal_reduction": "15"
+      "slow_melee": {
+        "value": "-6",
+        "apply_effectiveness": "1"
+      },
+      "slow_ranged": {
+        "value": "-13",
+        "apply_effectiveness": "1"
+      },
+      "duration": {
+        "value": "3"
+      },
+      "heal_reduction": {
+        "value": "15",
+        "apply_effectiveness": "1"
+      }
     }
   },
   "item_recipe_falcon_blade": {
@@ -3914,11 +4254,16 @@
     "SuggestLategame": "1",
     "AbilityValues": {
       "bonus_magical_armor": "18",
-      "spell_amp_debuff": "40",
+      "spell_amp_debuff": {
+        "value": "40",
+        "apply_effectiveness": "1"
+      },
       "bonus_health_regen": "5.5",
       "bonus_mana_regen": "2.5",
       "bonus_damage": "12",
-      "duration": "3",
+      "duration": {
+        "value": "3"
+      },
       "dps": "35"
     }
   },
@@ -3989,7 +4334,7 @@
   },
   "item_recipe_solar_crest": {
     "Model": "models/props_gameplay/recipe.vmdl",
-    "ItemCost": "500",
+    "ItemCost": "600",
     "ItemShopTags": "",
     "ItemRecipe": "1",
     "ItemResult": "item_solar_crest",
@@ -4022,13 +4367,14 @@
       "target_movement_speed": "15",
       "target_attack_speed": "60",
       "target_armor": "5",
+      "self_efficacy": "50",
       "duration": "7",
       "absorb_amount": "350"
     }
   },
   "item_recipe_pavise": {
     "Model": "models/props_gameplay/recipe.vmdl",
-    "ItemCost": "675",
+    "ItemCost": "575",
     "ItemShopTags": "",
     "ItemRecipe": "1",
     "ItemResult": "item_pavise",
@@ -4047,7 +4393,7 @@
     "AbilityCooldown": "16.0",
     "AbilityManaCost": "60",
     "AbilitySharedCooldown": "pavise",
-    "ItemCost": "1350",
+    "ItemCost": "1250",
     "ItemShopTags": "armor;regen_mana;hard_to_tag;teamfight;save;tank",
     "ItemQuality": "rare",
     "ItemDeclarations": "DECLARE_PURCHASES_TO_TEAMMATES | DECLARE_PURCHASES_TO_SPECTATORS",
@@ -4075,8 +4421,8 @@
     "ItemInitialCharges": "1",
     "ItemDisplayCharges": "1",
     "ItemStockInitial": "2",
-    "ItemStockMax": "3",
-    "ItemStockTime": "420.0",
+    "ItemStockMax": "4",
+    "ItemStockTime": "330.0",
     "ItemDeclarations": "DECLARE_PURCHASES_TO_TEAMMATES | DECLARE_PURCHASES_TO_SPECTATORS",
     "ItemSupport": "1",
     "ItemAlertable": "1",
@@ -4091,8 +4437,8 @@
         "affected_by_aoe_increase": "1"
       },
       "visibility_radius": "1025",
-      "bonus_movement_speed": "15",
-      "duration": "45.0",
+      "bonus_movement_speed": "25",
+      "duration": "50.0",
       "second_cast_cooldown": "2.0",
       "secondary_application_radius": "300"
     }
@@ -4123,37 +4469,12 @@
       "bonus_health": "175",
       "bonus_intellect": "10",
       "spell_lifesteal": "18",
-      "spell_amp": "10",
+      "spell_amp": "8",
       "debuff_radius": {
         "value": "900",
         "affected_by_aoe_increase": "1"
       },
       "resist_debuff_duration": "16.0"
-    }
-  },
-  "item_recipe_revenants_brooch": {
-    "Model": "models/props_gameplay/recipe.vmdl",
-    "ItemCost": "650",
-    "ItemShopTags": "",
-    "ItemRecipe": "1",
-    "ItemResult": "item_revenants_brooch",
-    "ItemRequirements": {
-      "01": "item_lesser_crit;item_voodoo_mask"
-    }
-  },
-  "item_revenants_brooch": {
-    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
-    "SpellImmunityType": "SPELL_IMMUNITY_ENEMIES_NO",
-    "ItemCost": "3300",
-    "ItemShopTags": "int;hard_to_tag;crit;dps",
-    "ItemQuality": "rare",
-    "ItemDeclarations": "DECLARE_PURCHASES_TO_TEAMMATES | DECLARE_PURCHASES_IN_SPEECH | DECLARE_PURCHASES_TO_SPECTATORS",
-    "SuggestLategame": "1",
-    "AbilityValues": {
-      "bonus_damage": "35",
-      "spell_lifesteal": "15",
-      "crit_chance": "30",
-      "crit_multiplier": "80"
     }
   },
   "item_recipe_devastator": {
@@ -4181,16 +4502,28 @@
       "bonus_armor": "7",
       "bonus_mana_regen": "1.5",
       "projectile_speed": "300",
-      "int_damage_multiplier": "0.75",
-      "slow": "25",
-      "slow_duration": "4",
-      "active_mres_reduction": "20",
-      "passive_cooldown": "4"
+      "int_damage_multiplier": "0.85",
+      "slow": {
+        "value": "25",
+        "apply_effectiveness": "1"
+      },
+      "slow_duration": {
+        "value": "4"
+      },
+      "active_mres_reduction": {
+        "value": "15",
+        "apply_effectiveness": "1"
+      },
+      "reduction_duration": {
+        "value": "4"
+      },
+      "passive_cooldown": "4",
+      "building_effectiveness_pct": "40"
     }
   },
   "item_recipe_guardian_greaves": {
     "Model": "models/props_gameplay/recipe.vmdl",
-    "ItemCost": "1175",
+    "ItemCost": "1075",
     "ItemShopTags": "",
     "ItemRecipe": "1",
     "ItemResult": "item_guardian_greaves",
@@ -4203,7 +4536,7 @@
     "FightRecapLevel": "1",
     "AbilityCooldown": "45",
     "AbilityManaCost": "0",
-    "ItemCost": "4450",
+    "ItemCost": "4350",
     "ItemShopTags": "int;armor;regen_health;hard_to_tag;teamfight;save;tank;regen_mana",
     "ItemQuality": "rare",
     "ItemDeclarations": "DECLARE_PURCHASES_TO_TEAMMATES | DECLARE_PURCHASES_IN_SPEECH | DECLARE_PURCHASES_TO_SPECTATORS",
@@ -4211,7 +4544,7 @@
     "SuggestLategame": "1",
     "SpeciallyBannedFromNeutralSlot": "1",
     "AbilityValues": {
-      "bonus_movement": "50",
+      "bonus_movement": "55",
       "bonus_armor": "5",
       "bonus_mana": "150",
       "mana_regen": "1.0",
@@ -4221,15 +4554,14 @@
         "value": "1200",
         "affected_by_aoe_increase": "1"
       },
-      "aura_health_regen_bonus": "14.5",
-      "aura_bonus_threshold": "25",
       "replenish_health": "325",
       "replenish_mana": "200",
       "replenish_radius": {
         "value": "1200",
         "affected_by_aoe_increase": "1"
       },
-      "max_health_pct_heal_amount": "0"
+      "max_health_pct_heal_amount": "0",
+      "add_nostack_debuff": "1"
     }
   },
   "item_recipe_rod_of_atos": {
@@ -4258,7 +4590,7 @@
     "ItemDeclarations": "DECLARE_PURCHASES_TO_TEAMMATES | DECLARE_PURCHASES_IN_SPEECH | DECLARE_PURCHASES_TO_SPECTATORS",
     "SuggestLategame": "1",
     "AbilityValues": {
-      "bonus_intellect": "12",
+      "bonus_intellect": "15",
       "bonus_hp": "275",
       "duration": "2.0"
     }
@@ -4269,7 +4601,7 @@
     "ItemRecipe": "1",
     "ItemResult": "item_abyssal_blade",
     "ItemRequirements": {
-      "01": "item_basher;item_sange"
+      "01": "item_basher;item_dragon_lance"
     }
   },
   "item_abyssal_blade": {
@@ -4280,10 +4612,10 @@
     "FightRecapLevel": "1",
     "SpellDispellableType": "SPELL_DISPELLABLE_YES_STRONG",
     "AbilityCooldown": "35",
-    "AbilityCastRange": "150",
+    "AbilityCastRange": "175",
     "AbilityCastPoint": "0.0",
     "AbilityManaCost": "75",
-    "ItemCost": "6250",
+    "ItemCost": "6150",
     "ItemShopTags": "damage;str;hard_to_tag;disable",
     "ItemQuality": "epic",
     "ItemDeclarations": "DECLARE_PURCHASES_TO_TEAMMATES | DECLARE_PURCHASES_IN_SPEECH | DECLARE_PURCHASES_TO_SPECTATORS",
@@ -4291,23 +4623,33 @@
     "AbilityValues": {
       "bonus_damage": "35",
       "bonus_strength": "30",
-      "slow_resistance": "30",
-      "hp_regen_amp": "16",
-      "bash_chance_melee": "25",
-      "bash_chance_ranged": "10",
-      "bash_duration": "1.2",
+      "bonus_agility": "15",
+      "base_attack_range_melee": "25",
+      "bash_chance_melee": {
+        "value": "25",
+        "apply_effectiveness": "1"
+      },
+      "bash_chance_ranged": {
+        "value": "10",
+        "apply_effectiveness": "1"
+      },
+      "bash_duration": {
+        "value": "1.2"
+      },
       "bash_cooldown": "2.3",
-      "bonus_chance_damage": "120",
+      "bonus_chance_damage": {
+        "value": "120"
+      },
       "stun_duration": "1.6"
     }
   },
   "item_recipe_heavens_halberd": {
-    "ItemCost": "350",
+    "ItemCost": "425",
     "ItemShopTags": "",
     "ItemRecipe": "1",
     "ItemResult": "item_heavens_halberd",
     "ItemRequirements": {
-      "01": "item_talisman_of_evasion;item_splintmail;item_ring_of_health"
+      "01": "item_ogre_axe;item_helm_of_iron_will"
     }
   },
   "item_heavens_halberd": {
@@ -4317,20 +4659,58 @@
     "SpellDispellableType": "SPELL_DISPELLABLE_YES_STRONG",
     "FightRecapLevel": "1",
     "AbilityCooldown": "15",
-    "AbilityCastRange": "750",
+    "AbilityCastRange": "500",
     "AbilityCastPoint": "0.0",
-    "AbilityManaCost": "25",
-    "ItemCost": "3300",
+    "AbilitySharedCooldown": "halberd",
+    "AbilityManaCost": "50",
+    "ItemCost": "2400",
     "ItemShopTags": "regen_health;save;teamfight;tank",
     "ItemQuality": "artifact",
     "ItemDeclarations": "DECLARE_PURCHASES_TO_TEAMMATES | DECLARE_PURCHASES_IN_SPEECH | DECLARE_PURCHASES_TO_SPECTATORS",
     "SuggestLategame": "1",
     "AbilityValues": {
-      "bonus_armor": "9",
-      "bonus_health_regen": "6.5",
+      "bonus_strength": "12",
+      "bonus_armor": "4.5",
+      "bonus_health_regen": "4.5",
+      "disarm_range": "3.0",
+      "disarm_melee": "3.0"
+    }
+  },
+  "item_recipe_skypiercer": {
+    "ItemCost": "300",
+    "ItemShopTags": "",
+    "ItemRecipe": "1",
+    "ItemResult": "item_skypiercer",
+    "ItemRequirements": {
+      "01": "item_heavens_halberd;item_sange;item_talisman_of_evasion"
+    }
+  },
+  "item_skypiercer": {
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_UNIT_TARGET",
+    "AbilityUnitTargetTeam": "DOTA_UNIT_TARGET_TEAM_ENEMY",
+    "AbilityUnitTargetType": "DOTA_UNIT_TARGET_HERO | DOTA_UNIT_TARGET_BASIC",
+    "SpellDispellableType": "SPELL_DISPELLABLE_YES_STRONG",
+    "FightRecapLevel": "1",
+    "AbilityCooldown": "15",
+    "AbilityCastRange": "500",
+    "AbilityCastPoint": "0.0",
+    "AbilitySharedCooldown": "halberd",
+    "AbilityManaCost": "50",
+    "ItemCost": "6000",
+    "ItemShopTags": "regen_health;save;teamfight;tank",
+    "ItemQuality": "artifact",
+    "ItemDeclarations": "DECLARE_PURCHASES_TO_TEAMMATES | DECLARE_PURCHASES_IN_SPEECH | DECLARE_PURCHASES_TO_SPECTATORS",
+    "SuggestLategame": "1",
+    "AbilityValues": {
+      "bonus_strength": "35",
+      "bonus_armor": "5",
+      "bonus_health_regen": "5",
+      "slow_resistance": "25",
+      "hp_regen_amp": "20",
       "bonus_evasion": "25",
-      "disarm_range": "3.5",
-      "disarm_melee": "3.5"
+      "disarm_duration": "3.0",
+      "close_radius": "500",
+      "buff_cooldown_acceleration_pct": "125"
     }
   },
   "item_tranquil_boots": {
@@ -4354,7 +4734,8 @@
       "break_time": "13",
       "break_count": "1",
       "break_threshold": "20",
-      "broken_movement_speed": "40"
+      "broken_movement_speed": "40",
+      "broken_health_regen": "2"
     }
   },
   "item_shadow_amulet": {
@@ -4405,14 +4786,332 @@
       "barrier_block": "375"
     }
   },
+  "item_mind_breaker": {
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
+    "ItemCost": "0",
+    "ItemIsNeutralActiveDrop": "1",
+    "ItemPurchasable": "0",
+    "AbilityCooldown": "14.0",
+    "ItemSellable": "0",
+    "Model": "models/props_gameplay/neutral_box.vmdl",
+    "AbilityValues": {
+      "magic_damage": "0",
+      "attack_speed": "0",
+      "duration": {
+        "value": "2",
+        "apply_effectiveness": "1",
+        "apply_curio_bonus": "1"
+      }
+    }
+  },
+  "item_imp_claw": {
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
+    "AbilityCooldown": "7.0",
+    "ItemCost": "0",
+    "ItemIsNeutralActiveDrop": "1",
+    "ItemPurchasable": "0",
+    "ItemSellable": "0",
+    "Model": "models/props_gameplay/neutral_box.vmdl",
+    "AbilityValues": {
+      "crit_multiplier": {
+        "value": "130",
+        "apply_curio_bonus": "1"
+      },
+      "bonus_damage": "0"
+    }
+  },
+  "item_flicker": {
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_IMMEDIATE | DOTA_ABILITY_BEHAVIOR_NO_TARGET | DOTA_ABILITY_BEHAVIOR_ROOT_DISABLES",
+    "AbilityCooldown": "8",
+    "ItemCost": "0",
+    "ItemIsNeutralActiveDrop": "1",
+    "ItemPurchasable": "0",
+    "ItemSellable": "0",
+    "Model": "models/props_gameplay/neutral_box.vmdl",
+    "AbilityValues": {
+      "max_range": {
+        "value": "600",
+        "apply_curio_bonus": "1"
+      },
+      "min_range": {
+        "value": "200",
+        "apply_curio_bonus": "1"
+      },
+      "bonus_movement_speed": "0"
+    }
+  },
+  "item_demonicon": {
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_IMMEDIATE | DOTA_ABILITY_BEHAVIOR_NO_TARGET",
+    "AbilityCooldown": "75",
+    "ItemCost": "0",
+    "ItemIsNeutralActiveDrop": "1",
+    "ItemPurchasable": "0",
+    "ItemSellable": "0",
+    "Model": "models/props_gameplay/neutral_box.vmdl",
+    "AbilityValues": {
+      "bonus_strength": "0",
+      "bonus_intellect": "0",
+      "summon_duration": {
+        "value": "65",
+        "apply_curio_bonus": "1"
+      }
+    }
+  },
+  "item_fallen_sky": {
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_POINT | DOTA_ABILITY_BEHAVIOR_DIRECTIONAL | DOTA_ABILITY_BEHAVIOR_ROOT_DISABLES",
+    "AbilityCastRange": "1200",
+    "AbilityCooldown": "18",
+    "ItemCost": "0",
+    "ItemIsNeutralActiveDrop": "1",
+    "ItemPurchasable": "0",
+    "ItemSellable": "0",
+    "Model": "models/props_gameplay/neutral_box.vmdl",
+    "AbilityValues": {
+      "bonus_strength": "0",
+      "bonus_intellect": "0",
+      "bonus_health_regen": "0",
+      "bonus_mana_regen": "0",
+      "burn_dps_buildings": {
+        "value": "60",
+        "apply_curio_bonus": "1"
+      },
+      "burn_dps_units": {
+        "value": "60",
+        "apply_curio_bonus": "1"
+      },
+      "burn_duration": "6",
+      "stun_duration": "1.6",
+      "burn_interval": "1.0",
+      "land_time": "1",
+      "impact_radius": {
+        "value": "315",
+        "affected_by_aoe_increase": "1"
+      },
+      "max_duration": "2.5",
+      "impact_damage_buildings": {
+        "value": "110",
+        "apply_curio_bonus": "1"
+      },
+      "impact_damage_units": {
+        "value": "150",
+        "apply_curio_bonus": "1"
+      },
+      "blink_damage_cooldown": "3.0"
+    }
+  },
+  "item_minotaur_horn": {
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_IMMEDIATE | DOTA_ABILITY_BEHAVIOR_NO_TARGET",
+    "AbilityCooldown": "40.0",
+    "ItemCost": "0",
+    "ItemIsNeutralActiveDrop": "1",
+    "ItemPurchasable": "0",
+    "ItemSellable": "0",
+    "Model": "models/props_gameplay/neutral_box.vmdl",
+    "AbilityValues": {
+      "duration": {
+        "value": "3",
+        "apply_curio_bonus": "1"
+      },
+      "magic_resist": "60",
+      "model_scale": "40"
+    }
+  },
+  "item_chipped_vest": {
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
+    "ItemCost": "0",
+    "ItemIsNeutralActiveDrop": "1",
+    "ItemPurchasable": "0",
+    "ItemSellable": "0",
+    "Model": "models/props_gameplay/neutral_box.vmdl",
+    "AbilityValues": {
+      "hp_regen": "0",
+      "damage_return_hero": "40",
+      "damage_return_creep": "20"
+    }
+  },
+  "item_possessed_mask": {
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
+    "ItemCost": "0",
+    "ItemIsNeutralActiveDrop": "1",
+    "ItemPurchasable": "0",
+    "ItemSellable": "0",
+    "Model": "models/props_gameplay/neutral_box.vmdl",
+    "AbilityValues": {
+      "primary_attribute": "0",
+      "lifesteal": "7"
+    }
+  },
+  "item_psychic_headband": {
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_UNIT_TARGET",
+    "AbilityUnitTargetTeam": "DOTA_UNIT_TARGET_TEAM_BOTH",
+    "AbilityUnitTargetType": "DOTA_UNIT_TARGET_HERO | DOTA_UNIT_TARGET_BASIC",
+    "AbilityCastRange": "650",
+    "ItemCost": "0",
+    "ItemIsNeutralActiveDrop": "1",
+    "ItemPurchasable": "0",
+    "ItemSellable": "0",
+    "AbilityCooldown": "14",
+    "Model": "models/props_gameplay/neutral_box.vmdl",
+    "AbilityValues": {
+      "intelligence_pct": "0",
+      "cast_range": "0",
+      "push_length": {
+        "value": "400",
+        "apply_curio_bonus": "1"
+      },
+      "push_duration": "0.3"
+    }
+  },
+  "item_ceremonial_robe": {
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
+    "ItemCost": "0",
+    "ItemIsNeutralActiveDrop": "1",
+    "ItemPurchasable": "0",
+    "ItemSellable": "0",
+    "Model": "models/props_gameplay/neutral_box.vmdl",
+    "AbilityValues": {
+      "bonus_mana": "0",
+      "aura_radius": {
+        "value": "850",
+        "affected_by_aoe_increase": "1"
+      },
+      "status_resistance": {
+        "value": "10",
+        "apply_curio_bonus": "1"
+      },
+      "magic_resistance": {
+        "value": "10",
+        "apply_curio_bonus": "1"
+      }
+    }
+  },
+  "item_giants_ring": {
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
+    "AbilityUnitTargetTeam": "DOTA_UNIT_TARGET_TEAM_ENEMY",
+    "AbilityUnitTargetType": "DOTA_UNIT_TARGET_HERO | DOTA_UNIT_TARGET_BASIC",
+    "ItemCost": "0",
+    "ItemIsNeutralActiveDrop": "1",
+    "ItemPurchasable": "0",
+    "ItemSellable": "0",
+    "Model": "models/props_gameplay/neutral_box.vmdl",
+    "AbilityValues": {
+      "bonus_strength": "0",
+      "movement_speed": "0",
+      "model_scale": "60",
+      "pct_str_damage_per_second": {
+        "value": "100",
+        "apply_curio_bonus": "1"
+      },
+      "damage_radius": {
+        "value": "100",
+        "affected_by_aoe_increase": "1"
+      }
+    }
+  },
+  "item_stormcrafter": {
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
+    "ItemCost": "0",
+    "ItemIsNeutralActiveDrop": "1",
+    "ItemPurchasable": "0",
+    "ItemSellable": "0",
+    "AbilityCooldown": "6",
+    "Model": "models/props_gameplay/neutral_box.vmdl",
+    "AbilityValues": {
+      "range": {
+        "value": "700",
+        "affected_by_aoe_increase": "1"
+      },
+      "damage": {
+        "value": "90",
+        "apply_curio_bonus": "1"
+      },
+      "slow": "40",
+      "slow_duration": "0.4",
+      "bonus_mana_regen": "0",
+      "max_targets": "2",
+      "passive_movement_bonus": "0"
+    }
+  },
+  "item_heavy_blade": {
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_POINT | DOTA_ABILITY_BEHAVIOR_AOE",
+    "AbilityUnitTargetTeam": "DOTA_UNIT_TARGET_TEAM_BOTH",
+    "SpellImmunityType": "SPELL_IMMUNITY_ENEMIES_NO",
+    "AbilityUnitTargetType": "DOTA_UNIT_TARGET_HERO | DOTA_UNIT_TARGET_BASIC",
+    "AbilitySound": "Brewmaster_Storm.DispelMagic",
+    "AbilityCastRange": "700",
+    "AbilityCooldown": "24",
+    "AbilityCastPoint": "0",
+    "AbilityManaCost": "50",
+    "ItemCost": "0",
+    "ItemIsNeutralActiveDrop": "1",
+    "ItemPurchasable": "0",
+    "ItemSellable": "0",
+    "Model": "models/props_gameplay/neutral_box.vmdl",
+    "AbilityValues": {
+      "radius": {
+        "value": "300",
+        "affected_by_aoe_increase": "1"
+      },
+      "damage": {
+        "value": "4",
+        "apply_curio_bonus": "1"
+      },
+      "attack_speed": "0"
+    }
+  },
+  "item_pogo_stick": {
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_NO_TARGET | DOTA_ABILITY_BEHAVIOR_ROOT_DISABLES",
+    "ItemCost": "0",
+    "ItemIsNeutralActiveDrop": "1",
+    "ItemPurchasable": "0",
+    "ItemSellable": "0",
+    "AbilityCooldown": "15",
+    "Model": "models/props_gameplay/neutral_box.vmdl",
+    "AbilityValues": {
+      "leap_distance": {
+        "value": "350",
+        "apply_curio_bonus": "1"
+      },
+      "leap_speed": "1300.0",
+      "leap_acceleration": "20000.0",
+      "bonus_mana": "0"
+    }
+  },
+  "item_seeds_of_serenity": {
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_POINT | DOTA_ABILITY_BEHAVIOR_AOE",
+    "ItemCost": "0",
+    "ItemIsNeutralActiveDrop": "1",
+    "ItemPurchasable": "0",
+    "ItemSellable": "0",
+    "AbilityCooldown": "28",
+    "AbilityCastRange": "350",
+    "Model": "models/props_gameplay/neutral_box.vmdl",
+    "AbilityValues": {
+      "bonus_health": "0",
+      "bonus_health_regen": "0",
+      "aura_health_regen": {
+        "value": "3",
+        "apply_curio_bonus": "1"
+      },
+      "aura_health_regen_pct": {
+        "value": "25",
+        "apply_curio_bonus": "1"
+      },
+      "radius": {
+        "value": "400",
+        "affected_by_aoe_increase": "1"
+      },
+      "duration": "8"
+    }
+  },
   "item_recipe_harpoon": {
     "Model": "models/props_gameplay/recipe.vmdl",
-    "ItemCost": "1000",
+    "ItemCost": "0",
     "ItemShopTags": "",
     "ItemRecipe": "1",
     "ItemResult": "item_harpoon",
     "ItemRequirements": {
-      "01": "item_echo_sabre;item_diadem"
+      "01": "item_echo_sabre;item_dragon_lance"
     }
   },
   "item_harpoon": {
@@ -4430,10 +5129,10 @@
     "SuggestLategame": "1",
     "AbilityValues": {
       "bonus_damage": "25",
-      "bonus_strength": "25",
-      "bonus_agility": "10",
-      "bonus_intellect": "10",
-      "bonus_mana_regen": "2.0",
+      "bonus_strength": "30",
+      "bonus_agility": "15",
+      "base_attack_range_melee": "25",
+      "bonus_mana_regen": "2.5",
       "passive_cooldown": "5",
       "movement_slow": "100",
       "slow_duration": "1.0",
@@ -4444,6 +5143,541 @@
       "cast_range_enemy": "700",
       "push_length": "600",
       "projectile_speed": "2000"
+    }
+  },
+  "item_defiant_shell": {
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
+    "ItemIsNeutralActiveDrop": "1",
+    "ItemPurchasable": "0",
+    "ItemCost": "0",
+    "Model": "models/props_gameplay/neutral_box.vmdl",
+    "ItemSellable": "0",
+    "AbilityCooldown": "4",
+    "AbilityValues": {
+      "counter_damage": {
+        "value": "80",
+        "apply_curio_bonus": "true"
+      }
+    }
+  },
+  "item_revenants_brooch": {
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
+    "AbilityUnitDamageType": "DAMAGE_TYPE_MAGICAL",
+    "ItemCost": "0",
+    "ItemIsNeutralActiveDrop": "1",
+    "ItemPurchasable": "0",
+    "ItemSellable": "0",
+    "Model": "models/props_gameplay/neutral_box.vmdl",
+    "AbilityValues": {
+      "crit_chance": {
+        "value": "15"
+      },
+      "crit_multiplier": {
+        "value": "50",
+        "apply_curio_bonus": "1"
+      }
+    }
+  },
+  "item_safety_bubble": {
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
+    "ItemCost": "0",
+    "ItemIsNeutralActiveDrop": "1",
+    "ItemPurchasable": "0",
+    "ItemSellable": "0",
+    "Model": "models/props_gameplay/neutral_box.vmdl",
+    "AbilityValues": {
+      "shield": {
+        "value": "125",
+        "apply_curio_bonus": "1"
+      },
+      "restore_time": "8",
+      "bonus_hp_regen": "0"
+    }
+  },
+  "item_dandelion_amulet": {
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
+    "AbilityCooldown": "10",
+    "ItemCost": "0",
+    "ItemIsNeutralActiveDrop": "1",
+    "ItemPurchasable": "0",
+    "ItemSellable": "0",
+    "Model": "models/props_gameplay/neutral_box.vmdl",
+    "AbilityValues": {
+      "move_speed": "0",
+      "mana": "0",
+      "magic_block": {
+        "value": "300",
+        "apply_curio_bonus": "1"
+      },
+      "min_damage": "75"
+    }
+  },
+  "item_rattlecage": {
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
+    "ItemCost": "0",
+    "ItemIsNeutralActiveDrop": "1",
+    "ItemPurchasable": "0",
+    "ItemSellable": "0",
+    "Model": "models/props_gameplay/neutral_box.vmdl",
+    "AbilityValues": {
+      "radius": {
+        "value": "600",
+        "affected_by_aoe_increase": "1"
+      },
+      "slow_duration": "0.2",
+      "damage_reset_interval": "7",
+      "damage_threshold": "220",
+      "slow": "100",
+      "projectile_speed": "1000",
+      "projectile_damage": {
+        "value": "110",
+        "apply_curio_bonus": "1"
+      },
+      "target_count": "2",
+      "bonus_armor": "0"
+    }
+  },
+  "item_roshans_banner": {
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_POINT | DOTA_ABILITY_BEHAVIOR_AOE ",
+    "Model": "models/props_gameplay/neutral_box.vmdl",
+    "AbilityCastRange": "1200",
+    "AbilityCastPoint": "0.0",
+    "AbilityCooldown": "1.0",
+    "ItemCost": "0",
+    "ItemSellable": "0",
+    "ItemPurchasable": "0",
+    "ItemQuality": "consumable",
+    "ItemDroppable": "1",
+    "ItemKillable": "1",
+    "ItemContributesToNetWorthWhenDropped": "0",
+    "AllowedInBackpack": "1",
+    "IsTempestDoubleClonable": "0",
+    "ItemShareability": "ITEM_FULLY_SHAREABLE",
+    "SpeciallyBannedFromNeutralSlot": "1",
+    "ItemCanBeUsedWithoutInventory": "1",
+    "AbilityValues": {
+      "duration": "120",
+      "radius": "600 900 1200",
+      "health": "6 8 10",
+      "health_tooltip": "6 8 10",
+      "hp_bonus": "75",
+      "damage_bonus": "50",
+      "model_scale": "25",
+      "buff_linger_duration": "0.1",
+      "max_level": "3"
+    }
+  },
+  "item_horn_of_battle_greater": {
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_NO_TARGET | DOTA_ABILITY_BEHAVIOR_IMMEDIATE",
+    "FightRecapLevel": "1",
+    "AbilityCastPoint": "0.0",
+    "AbilityManaCost": "0",
+    "AbilityCooldown": "30",
+    "ItemCost": "0",
+    "ItemQuality": "consumable",
+    "ItemPurchasable": "0",
+    "ItemContributesToNetWorthWhenDropped": "0",
+    "ItemSellable": "0",
+    "ItemStackable": "0",
+    "ItemPermanent": "0",
+    "ItemInitialCharges": "1",
+    "ItemDisplayCharges": "0",
+    "ItemShareability": "ITEM_FULLY_SHAREABLE",
+    "ItemDeclarations": "DECLARE_PURCHASES_TO_TEAMMATES | DECLARE_PURCHASES_TO_SPECTATORS",
+    "AllowedInBackpack": "1",
+    "IsTempestDoubleClonable": "0",
+    "ItemCanBeUsedWithoutInventory": "1",
+    "SpeciallyBannedFromNeutralSlot": "1",
+    "AbilityValues": {
+      "mega_waves": "1"
+    }
+  },
+  "item_enhancement_quickened": {
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
+    "ItemCost": "0",
+    "ItemIsNeutralPassiveDrop": "1",
+    "ItemPurchasable": "0",
+    "ItemSellable": "0",
+    "Model": "models/props_gameplay/neutral_box.vmdl",
+    "MaxLevel": "3",
+    "AbilityValues": {
+      "movement_speed": "14 22 30",
+      "max_mana": "0 130 200",
+      "evasion": "0 0 15"
+    }
+  },
+  "item_enhancement_audacious": {
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
+    "ItemCost": "0",
+    "ItemIsNeutralPassiveDrop": "1",
+    "ItemPurchasable": "0",
+    "ItemSellable": "0",
+    "Model": "models/props_gameplay/neutral_box.vmdl",
+    "MaxLevel": "1",
+    "AbilityValues": {
+      "attack_speed": "100",
+      "magic_damage": "80",
+      "incoming_damage": "10"
+    }
+  },
+  "item_enhancement_mystical": {
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
+    "ItemCost": "0",
+    "ItemIsNeutralPassiveDrop": "1",
+    "ItemPurchasable": "0",
+    "ItemSellable": "0",
+    "Model": "models/props_gameplay/neutral_box.vmdl",
+    "MaxLevel": "3",
+    "AbilityValues": {
+      "mana_regen": "0.8 2 3.2",
+      "magic_res": "0 12 15",
+      "manacost_reduction": "0 0 15"
+    }
+  },
+  "item_enhancement_alert": {
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
+    "ItemCost": "0",
+    "ItemIsNeutralPassiveDrop": "1",
+    "ItemPurchasable": "0",
+    "ItemSellable": "0",
+    "Model": "models/props_gameplay/neutral_box.vmdl",
+    "MaxLevel": "3",
+    "AbilityValues": {
+      "bonus_attack_speed": "8 18 28",
+      "bonus_night_vision": "0 150 200",
+      "bonus_attack_range": "0 0 80",
+      "bonus_attack_range_melee": "0 0 40"
+    }
+  },
+  "item_enhancement_brawny": {
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
+    "ItemCost": "0",
+    "ItemIsNeutralPassiveDrop": "1",
+    "ItemPurchasable": "0",
+    "ItemSellable": "0",
+    "Model": "models/props_gameplay/neutral_box.vmdl",
+    "MaxLevel": "3",
+    "AbilityValues": {
+      "health_bonus": "110 170 230",
+      "health_regen": "0 4 8",
+      "lifesteal": "0 0 16"
+    }
+  },
+  "item_enhancement_tough": {
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
+    "ItemCost": "0",
+    "ItemIsNeutralPassiveDrop": "1",
+    "ItemPurchasable": "0",
+    "ItemSellable": "0",
+    "Model": "models/props_gameplay/neutral_box.vmdl",
+    "MaxLevel": "3",
+    "AbilityValues": {
+      "bonus_damage": "6 11 16",
+      "armor": "0 5 7",
+      "knockback_resist": "0 0 40"
+    }
+  },
+  "item_enhancement_feverish": {
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
+    "ItemCost": "0",
+    "ItemIsNeutralPassiveDrop": "1",
+    "ItemPurchasable": "0",
+    "ItemSellable": "0",
+    "Model": "models/props_gameplay/neutral_box.vmdl",
+    "MaxLevel": "2",
+    "AbilityValues": {
+      "cooldown_reduction": "15",
+      "max_mana": "20"
+    }
+  },
+  "item_enhancement_fleetfooted": {
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
+    "ItemCost": "0",
+    "ItemIsNeutralPassiveDrop": "1",
+    "ItemPurchasable": "0",
+    "ItemSellable": "0",
+    "Model": "models/props_gameplay/neutral_box.vmdl",
+    "MaxLevel": "1",
+    "AbilityValues": {
+      "movespeed": "115"
+    }
+  },
+  "item_enhancement_crude": {
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
+    "ItemCost": "0",
+    "ItemIsNeutralPassiveDrop": "1",
+    "ItemPurchasable": "0",
+    "ItemSellable": "0",
+    "Model": "models/props_gameplay/neutral_box.vmdl",
+    "MaxLevel": "2",
+    "AbilityValues": {
+      "health_restoration": "10 15",
+      "bat_reduce": "7 12",
+      "intelligence_pct": "-9"
+    }
+  },
+  "item_enhancement_timeless": {
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
+    "ItemCost": "0",
+    "ItemIsNeutralPassiveDrop": "1",
+    "ItemPurchasable": "0",
+    "ItemSellable": "0",
+    "MaxLevel": "2",
+    "Model": "models/props_gameplay/neutral_box.vmdl",
+    "AbilityValues": {
+      "debuff_amp": "15",
+      "spell_amp": "10"
+    }
+  },
+  "item_enhancement_greedy": {
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
+    "ItemCost": "0",
+    "ItemIsNeutralPassiveDrop": "1",
+    "DisplayOverheadAlertOnReceived": "0",
+    "ItemPurchasable": "0",
+    "ItemSellable": "0",
+    "ItemInitialCharges": "750",
+    "ItemPermanent": "0",
+    "Model": "models/props_gameplay/neutral_box.vmdl",
+    "MaxLevel": "1",
+    "AbilityValues": {
+      "bonus_gpm": "80",
+      "bonus_mana": "200",
+      "bonus_damage": "-70"
+    }
+  },
+  "item_enhancement_vampiric": {
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
+    "ItemCost": "0",
+    "ItemIsNeutralPassiveDrop": "1",
+    "ItemPurchasable": "0",
+    "ItemSellable": "0",
+    "MaxLevel": "1",
+    "Model": "models/props_gameplay/neutral_box.vmdl",
+    "AbilityValues": {
+      "attack_lifesteal": "30",
+      "spell_lifesteal": "20",
+      "bonus_night_vision": "300"
+    }
+  },
+  "item_enhancement_keen_eyed": {
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
+    "ItemCost": "0",
+    "ItemIsNeutralPassiveDrop": "1",
+    "ItemPurchasable": "0",
+    "ItemSellable": "0",
+    "MaxLevel": "2",
+    "Model": "models/props_gameplay/neutral_box.vmdl",
+    "AbilityValues": {
+      "cast_range_bonus": "100 120",
+      "bonus_mana_regen": "1 2",
+      "mana_reduction_pct": "10 14"
+    }
+  },
+  "item_enhancement_evolved": {
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
+    "ItemCost": "0",
+    "ItemIsNeutralPassiveDrop": "1",
+    "ItemPurchasable": "0",
+    "ItemSellable": "0",
+    "Model": "models/props_gameplay/neutral_box.vmdl",
+    "AbilityValues": {
+      "bonus_potency": "20",
+      "primary_stat": "20",
+      "primary_stat_universal": "12"
+    }
+  },
+  "item_enhancement_titanic": {
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
+    "ItemCost": "0",
+    "ItemIsNeutralPassiveDrop": "1",
+    "ItemPurchasable": "0",
+    "ItemSellable": "0",
+    "MaxLevel": "2",
+    "Model": "models/props_gameplay/neutral_box.vmdl",
+    "AbilityValues": {
+      "base_attack_damage": "10 15",
+      "status_resistance": "11 13",
+      "attack_speed": "-9"
+    }
+  },
+  "item_mana_draught": {
+    "Model": "models/props_gameplay/neutral_box.vmdl",
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_IMMEDIATE | DOTA_ABILITY_BEHAVIOR_NO_TARGET | DOTA_ABILITY_BEHAVIOR_OPTIONAL_UNIT_TARGET | DOTA_ABILITY_BEHAVIOR_DONT_RESUME_ATTACK",
+    "AbilityUnitTargetTeam": "DOTA_UNIT_TARGET_TEAM_FRIENDLY",
+    "AbilityUnitTargetType": "DOTA_UNIT_TARGET_HERO",
+    "ItemCost": "0",
+    "ItemIsNeutralActiveDrop": "1",
+    "ItemPurchasable": "0",
+    "ItemSellable": "0",
+    "AbilityCooldown": "60",
+    "AbilityCastRange": "650",
+    "AbilityValues": {
+      "mana_restore": "90",
+      "mana_restore_pct": {
+        "value": "3",
+        "apply_curio_bonus": "1"
+      },
+      "heal_duration": "6",
+      "water_acceleration": "30"
+    }
+  },
+  "item_crippling_crossbow": {
+    "Model": "models/props_gameplay/neutral_box.vmdl",
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_UNIT_TARGET",
+    "AbilityUnitDamageType": "DAMAGE_TYPE_MAGICAL",
+    "AbilityUnitTargetTeam": "DOTA_UNIT_TARGET_TEAM_ENEMY",
+    "AbilityUnitTargetType": "DOTA_UNIT_TARGET_HERO | DOTA_UNIT_TARGET_BASIC",
+    "ItemCost": "0",
+    "ItemIsNeutralActiveDrop": "1",
+    "ItemPurchasable": "0",
+    "ItemSellable": "0",
+    "AbilityCooldown": "30",
+    "AbilityManaCost": "50",
+    "AbilityCastRange": "700",
+    "AbilityValues": {
+      "slow_pct": "65",
+      "heal_reduce": {
+        "value": "40",
+        "apply_curio_bonus": "1"
+      },
+      "duration": "4",
+      "damage": "25",
+      "projectile_speed": "1400"
+    }
+  },
+  "item_gunpowder_gauntlets": {
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
+    "AbilityCooldown": "10",
+    "ItemCost": "0",
+    "ItemIsNeutralActiveDrop": "1",
+    "ItemPurchasable": "0",
+    "ItemSellable": "0",
+    "Model": "models/props_gameplay/neutral_box.vmdl",
+    "AbilityValues": {
+      "bonus_damage": {
+        "value": "40",
+        "apply_curio_bonus": "1"
+      },
+      "splash_radius": {
+        "value": "250",
+        "affected_by_aoe_increase": "1"
+      },
+      "splash_pct": "60"
+    }
+  },
+  "item_serrated_shiv": {
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
+    "AbilityCooldown": "1.5",
+    "ItemCost": "0",
+    "ItemIsNeutralActiveDrop": "1",
+    "ItemPurchasable": "0",
+    "ItemSellable": "0",
+    "Model": "models/props_gameplay/neutral_box.vmdl",
+    "AbilityValues": {
+      "proc_chance": {
+        "value": "30",
+        "apply_effectiveness": "1"
+      },
+      "hp_dmg": {
+        "value": "10",
+        "apply_curio_bonus": "1"
+      },
+      "hp_dmg_rosh": {
+        "value": "200",
+        "apply_curio_bonus": "1"
+      }
+    }
+  },
+  "item_polliwog_charm": {
+    "Model": "models/props_gameplay/neutral_box.vmdl",
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_UNIT_TARGET | DOTA_ABILITY_BEHAVIOR_IMMEDIATE",
+    "AbilityUnitTargetTeam": "DOTA_UNIT_TARGET_TEAM_FRIENDLY",
+    "AbilityUnitTargetType": "DOTA_UNIT_TARGET_HERO | DOTA_UNIT_TARGET_BASIC",
+    "ItemCost": "0",
+    "ItemIsNeutralActiveDrop": "1",
+    "ItemPurchasable": "0",
+    "ItemSellable": "0",
+    "AbilityCooldown": "35",
+    "AbilityCastRange": "1000",
+    "AbilityValues": {
+      "regen_boost": "8",
+      "water_movespeed": "10",
+      "duration": "14"
+    }
+  },
+  "item_kobold_cup": {
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_IMMEDIATE | DOTA_ABILITY_BEHAVIOR_NO_TARGET",
+    "AbilityCooldown": "40",
+    "AbilityManaCost": "40",
+    "ItemCost": "0",
+    "ItemIsNeutralActiveDrop": "1",
+    "ItemPurchasable": "0",
+    "ItemSellable": "0",
+    "Model": "models/props_gameplay/neutral_box.vmdl",
+    "AbilityValues": {
+      "movespeed_pct": "10",
+      "buff_radius": "1000",
+      "buff_duration": "8"
+    }
+  },
+  "item_dormant_curio": {
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
+    "ItemCost": "0",
+    "ItemIsNeutralActiveDrop": "1",
+    "ItemPurchasable": "0",
+    "ItemSellable": "0",
+    "Model": "models/props_gameplay/neutral_box.vmdl",
+    "AbilityValues": {
+      "item_potency": "30"
+    }
+  },
+  "item_jidi_pollen_bag": {
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_IMMEDIATE | DOTA_ABILITY_BEHAVIOR_NO_TARGET",
+    "AbilityCooldown": "25",
+    "ItemCost": "0",
+    "ItemIsNeutralActiveDrop": "1",
+    "ItemPurchasable": "0",
+    "ItemSellable": "0",
+    "Model": "models/props_gameplay/neutral_box.vmdl",
+    "AbilityValues": {
+      "health_regen_loss": "65",
+      "hp_damage": {
+        "value": "9",
+        "apply_curio_bonus": "1"
+      },
+      "debuff_radius": "900",
+      "debuff_duration": "9",
+      "damage_interval": "1"
+    }
+  },
+  "item_dezun_bloodrite": {
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
+    "ItemCost": "0",
+    "ItemIsNeutralActiveDrop": "1",
+    "ItemPurchasable": "0",
+    "ItemSellable": "0",
+    "Model": "models/props_gameplay/neutral_box.vmdl",
+    "AbilityValues": {
+      "health_pct": "25",
+      "aoe_pct": {
+        "value": "20",
+        "apply_curio_bonus": "1"
+      }
+    }
+  },
+  "item_divine_regalia": {
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
+    "ItemCost": "0",
+    "ItemIsNeutralActiveDrop": "1",
+    "ItemPurchasable": "0",
+    "ItemSellable": "0",
+    "Model": "models/props_gameplay/neutral_box.vmdl",
+    "AbilityValues": {
+      "outgoing_damage": {
+        "value": "25",
+        "apply_curio_bonus": "1"
+      }
     }
   },
   "item_recipe_specialists_array": {
@@ -4513,9 +5747,395 @@
       "proc_dmg_pct_primary_tooltip": "100",
       "base_proc_dmg": "20",
       "base_attack_range": "150",
-      "poison_duration": "3",
+      "poison_duration": {
+        "value": "3"
+      },
       "poison_base_damage": "0",
       "poison_damage_per_second": "2.5"
+    }
+  },
+  "item_weighted_dice": {
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
+    "ItemCost": "0",
+    "ItemIsNeutralActiveDrop": "1",
+    "ItemPurchasable": "0",
+    "ItemSellable": "0",
+    "Model": "models/props_gameplay/neutral_box.vmdl",
+    "AbilityValues": {
+      "roll_count": "2",
+      "bonus_max_damage": "8"
+    }
+  },
+  "item_ash_legion_shield": {
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_IMMEDIATE | DOTA_ABILITY_BEHAVIOR_NO_TARGET",
+    "AbilityCooldown": "40.0",
+    "ItemCost": "0",
+    "ItemIsNeutralActiveDrop": "1",
+    "ItemPurchasable": "0",
+    "ItemSellable": "0",
+    "Model": "models/props_gameplay/neutral_box.vmdl",
+    "AbilityValues": {
+      "slow": "20",
+      "block_amount": "180",
+      "block_radius": "800",
+      "duration": "6"
+    }
+  },
+  "item_riftshadow_prism": {
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_IMMEDIATE | DOTA_ABILITY_BEHAVIOR_NO_TARGET",
+    "AbilityCooldown": "27.0",
+    "ItemCost": "0",
+    "ItemIsNeutralActiveDrop": "1",
+    "ItemPurchasable": "0",
+    "ItemSellable": "0",
+    "Model": "models/props_gameplay/neutral_box.vmdl",
+    "AbilityValues": {
+      "outgoing_damage": {
+        "value": "60",
+        "apply_curio_bonus": "1"
+      },
+      "incoming_damage": "200",
+      "duration": "20",
+      "health_cost": "4",
+      "illusion_effectiveness": "100"
+    }
+  },
+  "item_metamorphic_mandible": {
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_NO_TARGET",
+    "AbilityCooldown": "30",
+    "SpellDispellableType": "SPELL_DISPELLABLE_YES",
+    "ItemCost": "0",
+    "ItemIsNeutralActiveDrop": "1",
+    "ItemPurchasable": "0",
+    "ItemSellable": "0",
+    "Model": "models/props_gameplay/neutral_box.vmdl",
+    "AbilityValues": {
+      "duration": {
+        "value": "5",
+        "apply_curio_bonus": "1"
+      },
+      "bonus_magic_resistance": "40",
+      "bonus_movespeed": "15",
+      "size_decrease": "20",
+      "armor_decrease": "30"
+    }
+  },
+  "item_idol_of_screeauk": {
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_NO_TARGET",
+    "AbilityCooldown": "30",
+    "SpellDispellableType": "SPELL_DISPELLABLE_YES",
+    "ItemCost": "0",
+    "ItemIsNeutralActiveDrop": "1",
+    "ItemPurchasable": "0",
+    "ItemSellable": "0",
+    "Model": "models/props_gameplay/neutral_box.vmdl",
+    "AbilityValues": {
+      "duration": {
+        "value": "6.5",
+        "apply_curio_bonus": "1"
+      },
+      "slow_resist": "60",
+      "evasion": "40"
+    }
+  },
+  "item_spellslinger": {
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
+    "ItemCost": "0",
+    "ItemIsNeutralActiveDrop": "1",
+    "ItemPurchasable": "0",
+    "ItemSellable": "0",
+    "Model": "models/props_gameplay/neutral_box.vmdl",
+    "AbilityValues": {
+      "mana_pct": {
+        "value": "20",
+        "apply_curio_bonus": "1"
+      },
+      "duration": "8",
+      "restore_tickrate": "2"
+    }
+  },
+  "item_prophets_pendulum": {
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
+    "ItemCost": "0",
+    "ItemIsNeutralActiveDrop": "1",
+    "ItemPurchasable": "0",
+    "ItemSellable": "0",
+    "Model": "models/props_gameplay/neutral_box.vmdl",
+    "AbilityValues": {
+      "delay_pct": {
+        "value": "30",
+        "apply_curio_bonus": "1"
+      },
+      "delay_time": "8",
+      "damage_interval": "1"
+    }
+  },
+  "item_stonefeather_satchel": {
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_IMMEDIATE | DOTA_ABILITY_BEHAVIOR_NO_TARGET",
+    "AbilityCooldown": "6",
+    "ItemCost": "0",
+    "ItemIsNeutralActiveDrop": "1",
+    "ItemPurchasable": "0",
+    "ItemSellable": "0",
+    "Model": "models/props_gameplay/neutral_box.vmdl",
+    "AbilityValues": {
+      "knockback_resistance": {
+        "value": "30",
+        "apply_curio_bonus": "1"
+      },
+      "feather_movespeed": "15",
+      "rocks_armor": "5"
+    }
+  },
+  "item_enchanters_bauble": {
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
+    "ItemCost": "0",
+    "ItemIsNeutralActiveDrop": "1",
+    "ItemPurchasable": "0",
+    "ItemSellable": "0",
+    "Model": "models/props_gameplay/neutral_box.vmdl",
+    "AbilityValues": {
+      "enchantment_bonus_base": "10",
+      "enchantment_bonus_growth": {
+        "value": "35",
+        "apply_curio_bonus": "1"
+      },
+      "current_bonus": {
+        "value": "0",
+        "dynamic_value": "true"
+      }
+    }
+  },
+  "item_harmonizer": {
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
+    "ItemCost": "0",
+    "ItemIsNeutralActiveDrop": "1",
+    "ItemPurchasable": "0",
+    "ItemSellable": "0",
+    "Model": "models/props_gameplay/neutral_box.vmdl",
+    "AbilityValues": {
+      "manacost_reduction": {
+        "value": "7",
+        "apply_curio_bonus": "1"
+      },
+      "spell_lifesteal": {
+        "value": "9",
+        "apply_curio_bonus": "1"
+      }
+    }
+  },
+  "item_helm_of_the_hivemind": {
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
+    "ItemCost": "0",
+    "ItemIsNeutralActiveDrop": "1",
+    "ItemPurchasable": "0",
+    "ItemSellable": "0",
+    "Model": "models/props_gameplay/neutral_box.vmdl",
+    "AbilityValues": {
+      "bonus_cast_range": {
+        "value": "80",
+        "apply_curio_bonus": "1"
+      },
+      "cast_range": {
+        "value": "120",
+        "apply_curio_bonus": "1"
+      },
+      "hp_loss_pct": "8"
+    }
+  },
+  "item_brick": {
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_UNIT_TARGET",
+    "AbilityUnitDamageType": "DAMAGE_TYPE_PHYSICAL",
+    "AbilityUnitTargetTeam": "DOTA_UNIT_TARGET_TEAM_ENEMY",
+    "AbilityUnitTargetType": "DOTA_UNIT_TARGET_HERO | DOTA_UNIT_TARGET_BASIC",
+    "ItemCost": "0",
+    "ItemIsNeutralActiveDrop": "1",
+    "ItemPurchasable": "0",
+    "ItemSellable": "0",
+    "Model": "models/props_gameplay/neutral_box.vmdl",
+    "AbilityCooldown": "30",
+    "AbilityCastRange": "600",
+    "AbilityValues": {
+      "barrier_damage": {
+        "value": "200",
+        "apply_curio_bonus": "1"
+      },
+      "damage": {
+        "value": "150",
+        "apply_curio_bonus": "1"
+      },
+      "projectile_speed": "1400"
+    }
+  },
+  "item_balmhook": {
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
+    "ItemCost": "0",
+    "ItemIsNeutralActiveDrop": "1",
+    "ItemPurchasable": "0",
+    "ItemSellable": "0",
+    "Model": "models/props_gameplay/neutral_box.vmdl",
+    "AbilityValues": {
+      "bonus_health_regen": {
+        "value": "12",
+        "apply_curio_bonus": "1"
+      },
+      "buff_duration": "12"
+    }
+  },
+  "item_conjurers_catalyst": {
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE | DOTA_ABILITY_BEHAVIOR_DONT_PROC_OTHER_ABILITIES",
+    "ItemCost": "0",
+    "ItemIsNeutralActiveDrop": "1",
+    "ItemPurchasable": "0",
+    "ItemSellable": "0",
+    "Model": "models/props_gameplay/neutral_box.vmdl",
+    "AbilityValues": {
+      "duration": "6",
+      "damage_threshold": "150",
+      "damage_aoe": {
+        "value": "300",
+        "affected_by_aoe_increase": "1"
+      },
+      "damage": {
+        "value": "80",
+        "apply_curio_bonus": "1"
+      },
+      "damage_creep": {
+        "value": "20",
+        "apply_curio_bonus": "1"
+      },
+      "cooldown": "0.1"
+    }
+  },
+  "item_enhancement_vital": {
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
+    "ItemCost": "0",
+    "ItemIsNeutralPassiveDrop": "1",
+    "ItemPurchasable": "0",
+    "ItemSellable": "0",
+    "Model": "models/props_gameplay/neutral_box.vmdl",
+    "MaxLevel": "2",
+    "AbilityValues": {
+      "health_regen": "2.25 3",
+      "mana_regen": "0 0.8"
+    }
+  },
+  "item_enhancement_hulking": {
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
+    "ItemCost": "0",
+    "ItemIsNeutralPassiveDrop": "1",
+    "ItemPurchasable": "0",
+    "ItemSellable": "0",
+    "Model": "models/props_gameplay/neutral_box.vmdl",
+    "MaxLevel": "1",
+    "AbilityValues": {
+      "max_health": "5",
+      "max_health_regen": "1.5",
+      "attack_speed": "-30"
+    }
+  },
+  "item_enhancement_manic": {
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
+    "ItemCost": "0",
+    "ItemIsNeutralPassiveDrop": "1",
+    "ItemPurchasable": "0",
+    "ItemSellable": "0",
+    "Model": "models/props_gameplay/neutral_box.vmdl",
+    "MaxLevel": "1",
+    "AbilityValues": {
+      "bat_reduce": "18",
+      "cast_speed": "20",
+      "vision_reduce": "20"
+    }
+  },
+  "item_foragers_kit": {
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
+    "ItemCost": "0",
+    "ItemIsNeutralActiveDrop": "1",
+    "ItemPurchasable": "0",
+    "ItemSellable": "0",
+    "Model": "models/props_gameplay/neutral_box.vmdl",
+    "MaxLevel": "1",
+    "AbilityCooldown": "50",
+    "AbilityChannelTime": "0.75",
+    "HasSubAbility": "1",
+    "SubAbilityNames": "item_foragers_health;item_foragers_stats;item_foragers_mana",
+    "AbilityValues": {
+      "gold_amount": "30",
+      "radius": "1200",
+      "tree_radius": "250",
+      "tree_creation_interval": "5.0",
+      "max_trees": "3",
+      "old_destroy_radius": "2500"
+    }
+  },
+  "item_foragers_health": {
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_UNIT_TARGET | DOTA_ABILITY_BEHAVIOR_IMMEDIATE | DOTA_ABILITY_BEHAVIOR_DONT_RESUME_ATTACK | DOTA_ABILITY_BEHAVIOR_SUPPRESS_ASSOCIATED_CONSUMABLE",
+    "AbilityUnitTargetTeam": "DOTA_UNIT_TARGET_TEAM_FRIENDLY",
+    "AbilityUnitTargetType": "DOTA_UNIT_TARGET_HERO",
+    "Model": "models/props_gameplay/salve.vmdl",
+    "AbilityCastRange": "250",
+    "AbilityCastPoint": "0.0",
+    "SpellDispellableType": "SPELL_DISPELLABLE_YES",
+    "ItemCost": "0",
+    "ItemIsNeutralActiveDrop": "0",
+    "ItemPurchasable": "0",
+    "ItemSellable": "0",
+    "ItemStackable": "1",
+    "ItemStackableMax": "5",
+    "ItemPermanent": "0",
+    "ItemInitialCharges": "1",
+    "AutoPickup": "1",
+    "IsTempestDoubleClonable": "0",
+    "AbilityValues": {
+      "buff_duration": "10",
+      "health_regen_pct": "1",
+      "break_on_hero_damage": "1",
+      "bonus_damage": "2"
+    }
+  },
+  "item_foragers_stats": {
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_IMMEDIATE | DOTA_ABILITY_BEHAVIOR_NO_TARGET | DOTA_ABILITY_BEHAVIOR_OPTIONAL_UNIT_TARGET | DOTA_ABILITY_BEHAVIOR_DONT_RESUME_ATTACK | DOTA_ABILITY_BEHAVIOR_SUPPRESS_ASSOCIATED_CONSUMABLE",
+    "AbilityUnitTargetTeam": "DOTA_UNIT_TARGET_TEAM_FRIENDLY",
+    "AbilityUnitTargetType": "DOTA_UNIT_TARGET_HERO",
+    "Model": "models/props_gameplay/mango.vmdl",
+    "AutoPickup": "1",
+    "ItemCost": "0",
+    "ItemIsNeutralActiveDrop": "0",
+    "ItemPurchasable": "0",
+    "ItemSellable": "0",
+    "ItemPermanent": "0",
+    "ItemStackable": "1",
+    "ItemStackableMax": "5",
+    "ItemInitialCharges": "1",
+    "IsTempestDoubleClonable": "0",
+    "AbilityValues": {
+      "bonus_stat": "1",
+      "bonus_stat_uni": ".4",
+      "bonus_move_speed": "3"
+    }
+  },
+  "item_foragers_mana": {
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_IMMEDIATE | DOTA_ABILITY_BEHAVIOR_NO_TARGET | DOTA_ABILITY_BEHAVIOR_OPTIONAL_UNIT_TARGET | DOTA_ABILITY_BEHAVIOR_DONT_RESUME_ATTACK | DOTA_ABILITY_BEHAVIOR_SUPPRESS_ASSOCIATED_CONSUMABLE",
+    "AbilityUnitTargetTeam": "DOTA_UNIT_TARGET_TEAM_FRIENDLY",
+    "AbilityUnitTargetType": "DOTA_UNIT_TARGET_HERO",
+    "Model": "models/props_gameplay/mango.vmdl",
+    "AutoPickup": "1",
+    "AbilityCastRange": "400",
+    "AbilityCastPoint": "0.0",
+    "ItemCost": "0",
+    "ItemIsNeutralActiveDrop": "0",
+    "ItemPurchasable": "0",
+    "ItemSellable": "0",
+    "ItemStackable": "1",
+    "ItemStackableMax": "5",
+    "ItemPermanent": "0",
+    "ItemInitialCharges": "1",
+    "IsTempestDoubleClonable": "0",
+    "AbilityValues": {
+      "bonus_int": "2",
+      "replenish_amount": "50",
+      "mana_pct": "5"
     }
   },
   "item_chasm_stone": {
@@ -4526,6 +6146,113 @@
     "AbilityValues": {
       "bonus_health": "0",
       "aoe_bonus": "40"
+    }
+  },
+  "item_partisans_brand": {
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
+    "ItemCost": "0",
+    "ItemIsNeutralActiveDrop": "1",
+    "ItemPurchasable": "0",
+    "ItemSellable": "0",
+    "Model": "models/props_gameplay/neutral_box.vmdl",
+    "AbilityValues": {
+      "bonus_damage_pct": {
+        "value": "7",
+        "apply_curio_bonus": "1"
+      }
+    }
+  },
+  "item_enhancement_nimble": {
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
+    "ItemCost": "0",
+    "ItemIsNeutralPassiveDrop": "1",
+    "ItemPurchasable": "0",
+    "ItemSellable": "0",
+    "Model": "models/props_gameplay/neutral_box.vmdl",
+    "MaxLevel": "2",
+    "AbilityValues": {
+      "movespeed_pct": "6 8",
+      "bonus_damage": "12 18",
+      "hp_regen_reduce": "2 3"
+    }
+  },
+  "item_red_ledger": {
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_NO_TARGET | DOTA_ABILITY_BEHAVIOR_IMMEDIATE | DOTA_ABILITY_BEHAVIOR_DONT_PROC_OTHER_ABILITIES",
+    "Model": "models/props_gameplay/neutral_box.vmdl",
+    "ItemCost": "0",
+    "ItemIsNeutralActiveDrop": "1",
+    "ItemPurchasable": "0",
+    "ItemSellable": "0",
+    "AbilityCooldown": "120",
+    "AbilityValues": {
+      "base_gold": {
+        "value": "50",
+        "apply_curio_bonus": "1"
+      },
+      "gold_per_level_difference": {
+        "value": "12",
+        "apply_curio_bonus": "1"
+      },
+      "assist_gold_pct": "75",
+      "min_hit_list_size": "2"
+    }
+  },
+  "item_vile_phial": {
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
+    "AbilityUnitDamageType": "DAMAGE_TYPE_MAGICAL",
+    "SpellImmunityType": "SPELL_IMMUNITY_ENEMIES_NO",
+    "SpellDispellableType": "SPELL_DISPELLABLE_YES",
+    "Model": "models/props_gameplay/neutral_box.vmdl",
+    "ItemCost": "0",
+    "ItemIsNeutralActiveDrop": "1",
+    "ItemPurchasable": "0",
+    "ItemSellable": "0",
+    "AbilityValues": {
+      "required_hits": "4",
+      "counter_duration": "10",
+      "poison_duration": "5",
+      "damage_per_second": {
+        "value": "40",
+        "apply_curio_bonus": "1"
+      },
+      "heal_reduce": {
+        "value": "35",
+        "apply_curio_bonus": "1",
+        "apply_effectiveness": "1"
+      }
+    }
+  },
+  "item_recipe_berserkers_sabatons": {
+    "Model": "models/props_gameplay/recipe.vmdl",
+    "ItemCost": "2000",
+    "ItemRecipe": "1",
+    "ItemResult": "item_berserkers_sabatons",
+    "ItemRequirements": {
+      "01": "item_phase_boots*;item_armlet"
+    }
+  },
+  "item_berserkers_sabatons": {
+    "AbilityBehavior": "DOTA_ABILITY_BEHAVIOR_NO_TARGET | DOTA_ABILITY_BEHAVIOR_TOGGLE | DOTA_ABILITY_BEHAVIOR_IGNORE_CHANNEL | DOTA_ABILITY_BEHAVIOR_IGNORE_INVISIBLE",
+    "SpellDispellableType": "SPELL_DISPELLABLE_NO",
+    "AbilityCooldown": "0.0",
+    "AbilityManaCost": "0",
+    "ItemCost": "5950",
+    "AbilityValues": {
+      "bonus_movement_speed_ranged": "45",
+      "bonus_movement_speed_melee": "55",
+      "bonus_damage": "40",
+      "bonus_attack_speed": "30",
+      "bonus_armor": "10",
+      "bonus_health_regen": "5",
+      "phase_movement_speed": "20",
+      "phase_movement_speed_range": "10",
+      "unholy_bonus_damage": "40",
+      "unholy_bonus_strength": "30",
+      "unholy_bonus_armor": "5",
+      "unholy_bonus_slow_resistance": "40",
+      "unholy_health_drain_per_second": "45",
+      "unholy_health_drain_pct_per_second": "0",
+      "toggle_cooldown": "0.036"
     }
   }
 }

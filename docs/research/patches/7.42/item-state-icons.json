@@ -1,0 +1,27 @@
+{
+  "version": "7.42",
+  "checkedAt": "2026-11-21",
+  "language": "schinese",
+  "icons": [
+    {
+      "file": "assets/items/power_treads_str.png",
+      "url": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/power_treads_str.png",
+      "sha256": "36e9e002532dfa8fdb01dadeb638bd4120a42a8ec659206fb67bb9fc31312cf8"
+    },
+    {
+      "file": "assets/items/power_treads_agi.png",
+      "url": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/power_treads_agi.png",
+      "sha256": "422c7f700bc1799d7f5395e3f5e5ca10c8a9883be5bab64a73f96666e97503cc"
+    },
+    {
+      "file": "assets/items/power_treads_int.png",
+      "url": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/power_treads_int.png",
+      "sha256": "8883eb993563b1b5b05ce835c5661ba9a5fbd6f2c089d1aa2726faa6554c43da"
+    },
+    {
+      "file": "assets/items/armlet_active.png",
+      "url": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/armlet_active.png",
+      "sha256": "e7b84ba6c085e699ebe20d78eb8f07e9588997edf5a6a9a3aacf9304054b527a"
+    }
+  ]
+}

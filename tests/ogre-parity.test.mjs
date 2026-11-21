@@ -32,9 +32,9 @@ test('debuff immunity suppresses Fireblast stun without discarding its remaining
   const {g,p,e}=setup();Skills.addStatus(g,e,'immunity',{duration:.8,positive:true,debuffImmune:true});g.cast(0,e);g.step(.5);
   assert.equal(e.hp,3750);assert.equal(g.isStunned(e),false);g.step(.4);assert.equal(g.isStunned(e),true);
 });
-test('7.32 Ignite first tick is delayed 0.1 seconds and its total remains five ticks',()=>{
-  const {g,p,e}=setup();g.entities=[p,e];g.cast(1,e);g.step(.5);assert.equal(e.hp,4000);g.step(.1);assert.equal(e.hp,3980);
-  g.step(5);assert.equal(e.hp,3900);
+test('7.42 Ignite first tick is delayed 0.1 seconds and its total remains seven ticks',()=>{
+  const {g,p,e}=setup();g.entities=[p,e];g.cast(1,e);g.step(.5);assert.equal(e.hp,4000);g.step(.1);assert.equal(e.hp,3990);
+  g.step(7);assert.equal(e.hp,3930);
 });
 test('Ignite still deals reduced magical damage during debuff immunity',()=>{
   const {g,p,e}=setup();Skills.addStatus(g,e,'immunity',{duration:2,positive:true,debuffImmune:true,magicResistancePct:50});g.cast(1,e);g.step(.8);

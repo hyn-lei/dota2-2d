@@ -22,10 +22,10 @@ test('Growth is a visible permanent passive alongside Martyrdom and leaves the o
 });
 test('real Chen XP upgrades stack the requested bonuses once per new level and affect attacks and incoming magic damage',()=>{
  const {g,p,z}=fixture(),base=g.combatStats(z);
- levelTo(g,p,2);let s=g.combatStats(z);close(s.damage-base.damage,2);close(s.armor-base.armor,1);close(s.magicResistance-base.magicResistance,.02);close(s.attackSpeed-base.attackSpeed,10);
- levelTo(g,p,3);s=g.combatStats(z);close(s.damage-base.damage,5);close(s.armor-base.armor,2.5);close(s.magicResistance-base.magicResistance,.05);close(s.attackSpeed-base.attackSpeed,25);close(s.attackInterval,.8);
+ levelTo(g,p,2);let s=g.combatStats(z);close(s.damage-z.damage,2);close(s.damage-base.damage,2+2+ZEALOT.damage*.02);close(s.armor-base.armor,1);close(s.magicResistance-base.magicResistance,.02);close(s.attackSpeed-base.attackSpeed,10);
+ levelTo(g,p,3);s=g.combatStats(z);close(s.damage-z.damage,5);close(s.damage-base.damage,5+4+ZEALOT.damage*.04);close(s.armor-base.armor,2.5);close(s.magicResistance-base.magicResistance,.05);close(s.attackSpeed-base.attackSpeed,25);close(s.attackInterval,.8);
  const enemy=g._unit('creep',1,z.x+100,z.y,{maxHp:10000,armor:0,magicResistance:0,speed:0,range:0,attackCooldown:Infinity,abilities:[]});g.entities.push(enemy);g._index();
- assert.equal(g._attack(z,enemy,{attackReleased:true}),true);close(10000-enemy.hp,base.damage+5);
+ assert.equal(g._attack(z,enemy,{attackReleased:true}),true);close(10000-enemy.hp,base.damage+5+4+ZEALOT.damage*.04);
  const hp=z.hp;g.damage(z,100,enemy,'magical');close(hp-z.hp,95);
  for(let i=0;i<4;i++)g._refreshHero(p);assert.deepEqual(g.combatStats(z),s,'recalculating stats does not stack the same upgrade again');
 });
@@ -40,7 +40,8 @@ test('Growth caps the bonuses at +400 attack speed, +50 armor and +60% magic res
 });
 test('multiple level-ups in one XP grant and leveling while the Zealot is dead preserve capped growth on its replacement',()=>{
  const {g,p,z}=fixture();g._kill(z,null);g._addXp(p,1e8);assert.equal(p.level,30);
- g._respawn(p);const next=ownedUnits(g,p).find(e=>e.zealot);assert.notEqual(next.id,z.id);assert.deepEqual(next.zealotGrowth,{level:30,stacks:29,damage:464,armor:50,magicResistancePct:60,attackSpeed:400});
+ g._respawn(p);assert.equal(ownedUnits(g,p).some(e=>e.zealot),false);assert.ok(g.castExtra('chen_zealot',p).ok);g.step(.31);
+ const next=ownedUnits(g,p).find(e=>e.zealot);assert.notEqual(next.id,z.id);assert.deepEqual(next.zealotGrowth,{level:30,stacks:29,damage:464,armor:50,magicResistancePct:60,attackSpeed:400});
  assert.deepEqual(ZEALOT.abilities,['chen_martyrdom']);assert.equal(unitSkillIds(next).filter(id=>id==='chen_zealot_growth').length,1);
 });
 test('capped growth survives saves and repairs an older uncapped record without accumulating it again',()=>{

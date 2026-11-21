@@ -1,5 +1,9 @@
 # Dota 2 map data provenance and coordinate contract
 
+Current entity update, **2026-11-21**: Valve's installed **7.42**, Steam build **26825343**, Client/Server **6989**, SourceRevision **11264029**, has now supplied all **52 building entities**, **28 neutral spawners and original PHYS spawn hulls**, **6 lane spawners and their path-corner chains**, **2,394 trees**, and map objectives. The source is `game/dota/maps/dota.vpk`; `scripts/extract-client-map.py` retains selected original binary resources, hashes and decoded gameplay fields in `maps/7.42/`. `generate-map-742.mjs` overlays these actual coordinates while preserving existing building/camp IDs. The Twin Gates are now at Source `(-2828.644775,8462.505859)` and `(2802.046143,-8448.815430)`, and the Dire fountain at `(7152,6592)`.
+
+The navigation/elevation samples, river outline and terrain image remain the separately documented **7.41** export. Compiled world rendering meshes do not provide the runtime navigation grid, so this update does not certify all 7.42 cliff traversal or vision changes. Existing viewport texture cropping and the terrain asset are retained. The historical source discussion below explains that remaining raster and navigation boundary.
+
 Verified on **2026-10-24**. Gameplay target: **7.41f**. Geometry snapshot: **7.41**.
 
 The implementation uses actual exported entity coordinates, lane paths, neutral spawn triggers, tree positions and traversal samples. It does not invent a symmetric layout. The available map export is not sufficient to certify that every collision cell is identical to the current 7.41f game binary.

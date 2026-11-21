@@ -1,4 +1,5 @@
 import { ITEM_RECORDS, ITEM_RECORDS_META } from './item-records.js';
+export {NEUTRAL_ARTIFACT_POOLS,NEUTRAL_ENCHANTMENTS,NEUTRAL_CRAFT_RULES,NEUTRAL_HERO_ADJECTIVES} from './item-neutral-data.js';
 
 function freezeDeep(value) {
   if (value && typeof value === 'object' && !Object.isFrozen(value)) {

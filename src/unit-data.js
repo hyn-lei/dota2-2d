@@ -3,6 +3,113 @@
 // Values are base definitions; runtime upgrades and building class modifiers are separate.
 import { UNIT_EXTRAS, ABILITY_EXTRAS } from './unit-extras.js';
 
+export const WORLD_UNITS = {
+  "tormentor": {
+    "sourceId": "npc_dota_miniboss",
+    "name": "痛苦魔方",
+    "nameEn": "Tormentor",
+    "maxHp": 1,
+    "hpRegen": 20,
+    "damageMin": 1,
+    "damageMax": 1,
+    "damage": 1,
+    "armor": 20,
+    "magicResistance": 0.55,
+    "range": 600,
+    "speed": 0,
+    "baseAttackTime": 1.7,
+    "baseAttackSpeed": 100,
+    "attackInterval": 1.7,
+    "xpBounty": 0,
+    "goldMin": 0,
+    "goldMax": 0,
+    "bounty": 0,
+    "level": 30,
+    "attackPoint": 0.75,
+    "projectileSpeed": 900,
+    "radius": 110,
+    "radiusKind": "selectionRing",
+    "hullName": "DOTA_HULL_SIZE_HERO",
+    "ancient": true,
+    "attackType": "none",
+    "abilities": [
+      "miniboss_unyielding_shield",
+      "miniboss_reflect",
+      "miniboss_radiance",
+      "miniboss_alleviation",
+      "miniboss_inherent_buffs"
+    ]
+  },
+  "demonMelee": {
+    "sourceId": "npc_dota_necronomicon_warrior_3",
+    "name": "大恶魔战士",
+    "nameEn": "Greater Demon Warrior",
+    "maxHp": 800,
+    "hpRegen": 5,
+    "damageMin": 70,
+    "damageMax": 85,
+    "damage": 77.5,
+    "armor": 4,
+    "magicResistance": 0.4,
+    "range": 100,
+    "speed": 380,
+    "baseAttackTime": 0.75,
+    "baseAttackSpeed": 109,
+    "attackInterval": 0.6880733944954128,
+    "xpBounty": 150,
+    "goldMin": 150,
+    "goldMax": 150,
+    "bounty": 150,
+    "level": 5,
+    "attackPoint": 0.56,
+    "projectileSpeed": 0,
+    "radius": 40,
+    "radiusKind": "selectionRing",
+    "hullName": "DOTA_HULL_SIZE_REGULAR",
+    "ancient": false,
+    "attackType": "melee",
+    "abilities": [
+      "necronomicon_warrior_mana_burn",
+      "necronomicon_warrior_last_will",
+      "creep_irresolute"
+    ]
+  },
+  "demonRanged": {
+    "sourceId": "npc_dota_necronomicon_archer_3",
+    "name": "大恶魔射手",
+    "nameEn": "Greater Demon Archer",
+    "maxHp": 650,
+    "hpRegen": 5,
+    "damageMin": 70,
+    "damageMax": 80,
+    "damage": 75,
+    "armor": 4,
+    "magicResistance": 0.4,
+    "range": 550,
+    "speed": 425,
+    "baseAttackTime": 1,
+    "baseAttackSpeed": 109,
+    "attackInterval": 0.9174311926605505,
+    "xpBounty": 150,
+    "goldMin": 150,
+    "goldMax": 150,
+    "bounty": 150,
+    "level": 5,
+    "attackPoint": 0.7,
+    "projectileSpeed": 900,
+    "radius": 50,
+    "radiusKind": "selectionRing",
+    "hullName": "DOTA_HULL_SIZE_SMALL",
+    "ancient": false,
+    "attackType": "ranged",
+    "abilities": [
+      "necronomicon_archer_purge",
+      "necronomicon_archer_aoe",
+      "creep_piercing"
+    ]
+  }
+};
+
 export const BUILDING_STATS = {
   "tower1": {
     "sourceId": "npc_dota_goodguys_tower1_mid",
@@ -24,6 +131,9 @@ export const BUILDING_STATS = {
     "goldMin": 0,
     "goldMax": 0,
     "bounty": 0,
+    "level": 1,
+    "attackPoint": 0.6,
+    "projectileSpeed": 750,
     "radius": 130,
     "radiusKind": "selectionRing",
     "hullName": "DOTA_HULL_SIZE_TOWER",
@@ -53,6 +163,9 @@ export const BUILDING_STATS = {
     "goldMin": 0,
     "goldMax": 0,
     "bounty": 0,
+    "level": 2,
+    "attackPoint": 0.6,
+    "projectileSpeed": 750,
     "radius": 130,
     "radiusKind": "selectionRing",
     "hullName": "DOTA_HULL_SIZE_TOWER",
@@ -83,6 +196,9 @@ export const BUILDING_STATS = {
     "goldMin": 0,
     "goldMax": 0,
     "bounty": 0,
+    "level": 3,
+    "attackPoint": 0.6,
+    "projectileSpeed": 750,
     "radius": 130,
     "radiusKind": "selectionRing",
     "hullName": "DOTA_HULL_SIZE_TOWER",
@@ -113,6 +229,9 @@ export const BUILDING_STATS = {
     "goldMin": 0,
     "goldMax": 0,
     "bounty": 0,
+    "level": 4,
+    "attackPoint": 0.6,
+    "projectileSpeed": 750,
     "radius": 130,
     "radiusKind": "selectionRing",
     "hullName": "DOTA_HULL_SIZE_TOWER",
@@ -144,6 +263,9 @@ export const BUILDING_STATS = {
     "goldMin": 0,
     "goldMax": 0,
     "bounty": 0,
+    "level": 1,
+    "attackPoint": 0,
+    "projectileSpeed": 0,
     "radius": 220,
     "radiusKind": "selectionRing",
     "hullName": "DOTA_HULL_SIZE_BARRACKS",
@@ -174,6 +296,9 @@ export const BUILDING_STATS = {
     "goldMin": 0,
     "goldMax": 0,
     "bounty": 0,
+    "level": 1,
+    "attackPoint": 0,
+    "projectileSpeed": 0,
     "radius": 220,
     "radiusKind": "selectionRing",
     "hullName": "DOTA_HULL_SIZE_BARRACKS",
@@ -204,6 +329,9 @@ export const BUILDING_STATS = {
     "goldMin": 0,
     "goldMax": 0,
     "bounty": 0,
+    "level": 1,
+    "attackPoint": 0,
+    "projectileSpeed": 0,
     "radius": 350,
     "radiusKind": "selectionRing",
     "hullName": "DOTA_HULL_SIZE_BUILDING",
@@ -234,6 +362,9 @@ export const BUILDING_STATS = {
     "goldMin": 0,
     "goldMax": 0,
     "bounty": 0,
+    "level": 1,
+    "attackPoint": 0,
+    "projectileSpeed": 1400,
     "radius": 220,
     "radiusKind": "selectionRing",
     "hullName": "DOTA_HULL_SIZE_TOWER",
@@ -242,7 +373,8 @@ export const BUILDING_STATS = {
     "abilities": [
       "creep_siege"
     ],
-    "invulnerable": true
+    "invulnerable": true,
+    "trueSight": 1800
   },
   "filler": {
     "sourceId": "npc_dota_goodguys_fillers",
@@ -264,6 +396,9 @@ export const BUILDING_STATS = {
     "goldMin": 68,
     "goldMax": 68,
     "bounty": 68,
+    "level": 1,
+    "attackPoint": 0,
+    "projectileSpeed": 0,
     "radius": 100,
     "radiusKind": "selectionRing",
     "hullName": "DOTA_HULL_SIZE_FILLER",
@@ -281,11 +416,11 @@ export const NEUTRAL_UNITS = {
     "sourceId": "npc_dota_neutral_kobold",
     "name": "狗头人",
     "nameEn": "Kobold",
-    "maxHp": 240,
+    "maxHp": 280,
     "hpRegen": 0.5,
-    "damageMin": 15,
-    "damageMax": 16,
-    "damage": 15.5,
+    "damageMin": 18,
+    "damageMax": 19,
+    "damage": 18.5,
     "armor": 0,
     "magicResistance": 0,
     "range": 100,
@@ -293,10 +428,13 @@ export const NEUTRAL_UNITS = {
     "baseAttackTime": 2,
     "baseAttackSpeed": 200,
     "attackInterval": 1,
-    "xpBounty": 14,
-    "goldMin": 3,
-    "goldMax": 5,
-    "bounty": 4,
+    "xpBounty": 18,
+    "goldMin": 6,
+    "goldMax": 8,
+    "bounty": 7,
+    "level": 1,
+    "attackPoint": 0.38,
+    "projectileSpeed": 0,
     "radius": 40,
     "radiusKind": "selectionRing",
     "hullName": "DOTA_HULL_SIZE_HERO",
@@ -324,9 +462,12 @@ export const NEUTRAL_UNITS = {
     "baseAttackSpeed": 200,
     "attackInterval": 1,
     "xpBounty": 17,
-    "goldMin": 12,
-    "goldMax": 14,
-    "bounty": 13,
+    "goldMin": 11,
+    "goldMax": 13,
+    "bounty": 12,
+    "level": 1,
+    "attackPoint": 0.38,
+    "projectileSpeed": 0,
     "radius": 40,
     "radiusKind": "selectionRing",
     "hullName": "DOTA_HULL_SIZE_HERO",
@@ -357,6 +498,9 @@ export const NEUTRAL_UNITS = {
     "goldMin": 19,
     "goldMax": 21,
     "bounty": 20,
+    "level": 2,
+    "attackPoint": 0.38,
+    "projectileSpeed": 0,
     "radius": 50,
     "radiusKind": "selectionRing",
     "hullName": "DOTA_HULL_SIZE_HERO",
@@ -387,6 +531,9 @@ export const NEUTRAL_UNITS = {
     "goldMin": 16,
     "goldMax": 18,
     "bounty": 17,
+    "level": 2,
+    "attackPoint": 0.3,
+    "projectileSpeed": 0,
     "radius": 60,
     "radiusKind": "selectionRing",
     "hullName": "DOTA_HULL_SIZE_HERO",
@@ -414,9 +561,12 @@ export const NEUTRAL_UNITS = {
     "baseAttackSpeed": 135,
     "attackInterval": 1.4814814814814814,
     "xpBounty": 90,
-    "goldMin": 54,
-    "goldMax": 60,
-    "bounty": 57,
+    "goldMin": 49,
+    "goldMax": 54,
+    "bounty": 51.5,
+    "level": 5,
+    "attackPoint": 0.3,
+    "projectileSpeed": 0,
     "radius": 80,
     "radiusKind": "selectionRing",
     "hullName": "DOTA_HULL_SIZE_HERO",
@@ -447,6 +597,9 @@ export const NEUTRAL_UNITS = {
     "goldMin": 16,
     "goldMax": 18,
     "bounty": 17,
+    "level": 2,
+    "attackPoint": 0.4,
+    "projectileSpeed": 0,
     "radius": 35,
     "radiusKind": "selectionRing",
     "hullName": "DOTA_HULL_SIZE_HERO",
@@ -477,6 +630,9 @@ export const NEUTRAL_UNITS = {
     "goldMin": 30,
     "goldMax": 38,
     "bounty": 34,
+    "level": 4,
+    "attackPoint": 0.3,
+    "projectileSpeed": 0,
     "radius": 50,
     "radiusKind": "selectionRing",
     "hullName": "DOTA_HULL_SIZE_HERO",
@@ -508,6 +664,9 @@ export const NEUTRAL_UNITS = {
     "goldMin": 62,
     "goldMax": 66,
     "bounty": 64,
+    "level": 5,
+    "attackPoint": 0.3,
+    "projectileSpeed": 0,
     "radius": 70,
     "radiusKind": "selectionRing",
     "hullName": "DOTA_HULL_SIZE_HERO",
@@ -536,9 +695,12 @@ export const NEUTRAL_UNITS = {
     "baseAttackSpeed": 150,
     "attackInterval": 1.3333333333333333,
     "xpBounty": 76,
-    "goldMin": 48,
-    "goldMax": 50,
-    "bounty": 49,
+    "goldMin": 43,
+    "goldMax": 45,
+    "bounty": 44,
+    "level": 5,
+    "attackPoint": 0.3,
+    "projectileSpeed": 0,
     "radius": 60,
     "radiusKind": "selectionRing",
     "hullName": "DOTA_HULL_SIZE_HERO",
@@ -569,13 +731,16 @@ export const NEUTRAL_UNITS = {
     "goldMin": 19,
     "goldMax": 21,
     "bounty": 20,
+    "level": 4,
+    "attackPoint": 0.3,
+    "projectileSpeed": 0,
     "radius": 60,
     "radiusKind": "selectionRing",
     "hullName": "DOTA_HULL_SIZE_HERO",
     "ancient": false,
     "attackType": "melee",
     "abilities": [
-      "mud_golem_hurl_boulder",
+      "mud_golem_hurl_big_boulder",
       "mud_golem_rock_destroy",
       "neutral_upgrade"
     ]
@@ -600,6 +765,9 @@ export const NEUTRAL_UNITS = {
     "goldMin": 6,
     "goldMax": 10,
     "bounty": 8,
+    "level": 4,
+    "attackPoint": 0.3,
+    "projectileSpeed": 0,
     "radius": 60,
     "radiusKind": "selectionRing",
     "hullName": "DOTA_HULL_SIZE_HERO",
@@ -630,6 +798,9 @@ export const NEUTRAL_UNITS = {
     "goldMin": 22,
     "goldMax": 26,
     "bounty": 24,
+    "level": 2,
+    "attackPoint": 0.3,
+    "projectileSpeed": 0,
     "radius": 60,
     "radiusKind": "selectionRing",
     "hullName": "DOTA_HULL_SIZE_HERO",
@@ -660,6 +831,9 @@ export const NEUTRAL_UNITS = {
     "goldMin": 28,
     "goldMax": 32,
     "bounty": 30,
+    "level": 3,
+    "attackPoint": 0.3,
+    "projectileSpeed": 0,
     "radius": 60,
     "radiusKind": "selectionRing",
     "hullName": "DOTA_HULL_SIZE_HERO",
@@ -690,6 +864,9 @@ export const NEUTRAL_UNITS = {
     "goldMin": 18,
     "goldMax": 22,
     "bounty": 20,
+    "level": 3,
+    "attackPoint": 0.33,
+    "projectileSpeed": 0,
     "radius": 45,
     "radiusKind": "selectionRing",
     "hullName": "DOTA_HULL_SIZE_HERO",
@@ -720,6 +897,9 @@ export const NEUTRAL_UNITS = {
     "goldMin": 32,
     "goldMax": 34,
     "bounty": 33,
+    "level": 5,
+    "attackPoint": 0.33,
+    "projectileSpeed": 0,
     "radius": 70,
     "radiusKind": "selectionRing",
     "hullName": "DOTA_HULL_SIZE_HERO",
@@ -751,6 +931,9 @@ export const NEUTRAL_UNITS = {
     "goldMin": 16,
     "goldMax": 18,
     "bounty": 17,
+    "level": 1,
+    "attackPoint": 0.3,
+    "projectileSpeed": 0,
     "radius": 50,
     "radiusKind": "selectionRing",
     "hullName": "DOTA_HULL_SIZE_HERO",
@@ -778,9 +961,12 @@ export const NEUTRAL_UNITS = {
     "baseAttackSpeed": 150,
     "attackInterval": 1.3333333333333333,
     "xpBounty": 90,
-    "goldMin": 58,
-    "goldMax": 64,
-    "bounty": 61,
+    "goldMin": 52,
+    "goldMax": 58,
+    "bounty": 55,
+    "level": 5,
+    "attackPoint": 0.3,
+    "projectileSpeed": 0,
     "radius": 50,
     "radiusKind": "selectionRing",
     "hullName": "DOTA_HULL_SIZE_HERO",
@@ -808,10 +994,13 @@ export const NEUTRAL_UNITS = {
     "baseAttackTime": 2,
     "baseAttackSpeed": 125,
     "attackInterval": 1.6,
-    "xpBounty": 46,
-    "goldMin": 18,
-    "goldMax": 22,
-    "bounty": 20,
+    "xpBounty": 40,
+    "goldMin": 16,
+    "goldMax": 18,
+    "bounty": 17,
+    "level": 4,
+    "attackPoint": 0.3,
+    "projectileSpeed": 0,
     "radius": 50,
     "radiusKind": "selectionRing",
     "hullName": "DOTA_HULL_SIZE_HERO",
@@ -843,6 +1032,9 @@ export const NEUTRAL_UNITS = {
     "goldMin": 60,
     "goldMax": 66,
     "bounty": 63,
+    "level": 6,
+    "attackPoint": 0.3,
+    "projectileSpeed": 0,
     "radius": 60,
     "radiusKind": "selectionRing",
     "hullName": "DOTA_HULL_SIZE_HERO",
@@ -870,10 +1062,13 @@ export const NEUTRAL_UNITS = {
     "baseAttackTime": 2,
     "baseAttackSpeed": 125,
     "attackInterval": 1.6,
-    "xpBounty": 24,
-    "goldMin": 12,
-    "goldMax": 14,
-    "bounty": 13,
+    "xpBounty": 30,
+    "goldMin": 15,
+    "goldMax": 17,
+    "bounty": 16,
+    "level": 2,
+    "attackPoint": 0.3,
+    "projectileSpeed": 1500,
     "radius": 50,
     "radiusKind": "selectionRing",
     "hullName": "DOTA_HULL_SIZE_HERO",
@@ -904,6 +1099,9 @@ export const NEUTRAL_UNITS = {
     "goldMin": 36,
     "goldMax": 49,
     "bounty": 42.5,
+    "level": 5,
+    "attackPoint": 0.3,
+    "projectileSpeed": 0,
     "radius": 50,
     "radiusKind": "selectionRing",
     "hullName": "DOTA_HULL_SIZE_HERO",
@@ -931,6 +1129,9 @@ export const NEUTRAL_UNITS = {
     "goldMin": 108,
     "goldMax": 121,
     "bounty": 114.5,
+    "level": 6,
+    "attackPoint": 0.3,
+    "projectileSpeed": 0,
     "radius": 60,
     "radiusKind": "selectionRing",
     "hullName": "DOTA_HULL_SIZE_HERO",
@@ -958,6 +1159,9 @@ export const NEUTRAL_UNITS = {
     "goldMin": 37,
     "goldMax": 43,
     "bounty": 40,
+    "level": 3,
+    "attackPoint": 0.3,
+    "projectileSpeed": 0,
     "radius": 70,
     "radiusKind": "selectionRing",
     "hullName": "DOTA_HULL_SIZE_HERO",
@@ -988,6 +1192,9 @@ export const NEUTRAL_UNITS = {
     "goldMin": 76,
     "goldMax": 80,
     "bounty": 78,
+    "level": 6,
+    "attackPoint": 0.3,
+    "projectileSpeed": 0,
     "radius": 80,
     "radiusKind": "selectionRing",
     "hullName": "DOTA_HULL_SIZE_HERO",
@@ -1016,9 +1223,12 @@ export const NEUTRAL_UNITS = {
     "baseAttackSpeed": 150,
     "attackInterval": 1.3333333333333333,
     "xpBounty": 95,
-    "goldMin": 37,
-    "goldMax": 43,
-    "bounty": 40,
+    "goldMin": 33,
+    "goldMax": 39,
+    "bounty": 36,
+    "level": 5,
+    "attackPoint": 0.3,
+    "projectileSpeed": 0,
     "radius": 60,
     "radiusKind": "selectionRing",
     "hullName": "DOTA_HULL_SIZE_HERO",
@@ -1046,9 +1256,12 @@ export const NEUTRAL_UNITS = {
     "baseAttackSpeed": 150,
     "attackInterval": 1.3333333333333333,
     "xpBounty": 124,
-    "goldMin": 76,
-    "goldMax": 80,
-    "bounty": 78,
+    "goldMin": 68,
+    "goldMax": 72,
+    "bounty": 70,
+    "level": 6,
+    "attackPoint": 0.3,
+    "projectileSpeed": 0,
     "radius": 60,
     "radiusKind": "selectionRing",
     "hullName": "DOTA_HULL_SIZE_HERO",
@@ -1079,6 +1292,9 @@ export const NEUTRAL_UNITS = {
     "goldMin": 76,
     "goldMax": 80,
     "bounty": 78,
+    "level": 6,
+    "attackPoint": 0.7,
+    "projectileSpeed": 1500,
     "radius": 90,
     "radiusKind": "selectionRing",
     "hullName": "DOTA_HULL_SIZE_HERO",
@@ -1109,6 +1325,9 @@ export const NEUTRAL_UNITS = {
     "goldMin": 37,
     "goldMax": 43,
     "bounty": 40,
+    "level": 5,
+    "attackPoint": 0.3,
+    "projectileSpeed": 0,
     "radius": 60,
     "radiusKind": "selectionRing",
     "hullName": "DOTA_HULL_SIZE_HERO",
@@ -1136,9 +1355,12 @@ export const NEUTRAL_UNITS = {
     "baseAttackSpeed": 120,
     "attackInterval": 1.6666666666666667,
     "xpBounty": 124,
-    "goldMin": 76,
-    "goldMax": 80,
-    "bounty": 78,
+    "goldMin": 68,
+    "goldMax": 72,
+    "bounty": 70,
+    "level": 6,
+    "attackPoint": 0.3,
+    "projectileSpeed": 1500,
     "radius": 90,
     "radiusKind": "selectionRing",
     "hullName": "DOTA_HULL_SIZE_HERO",
@@ -1167,9 +1389,12 @@ export const NEUTRAL_UNITS = {
     "baseAttackSpeed": 100,
     "attackInterval": 1.8,
     "xpBounty": 95,
-    "goldMin": 42,
-    "goldMax": 49,
-    "bounty": 45.5,
+    "goldMin": 38,
+    "goldMax": 44,
+    "bounty": 41,
+    "level": 5,
+    "attackPoint": 0.5,
+    "projectileSpeed": 1500,
     "radius": 70,
     "radiusKind": "selectionRing",
     "hullName": "DOTA_HULL_SIZE_HERO",
@@ -1200,6 +1425,9 @@ export const NEUTRAL_UNITS = {
     "goldMin": 16,
     "goldMax": 18,
     "bounty": 17,
+    "level": 2,
+    "attackPoint": 0.4,
+    "projectileSpeed": 1500,
     "radius": 40,
     "radiusKind": "selectionRing",
     "hullName": "DOTA_HULL_SIZE_HERO",
@@ -1231,6 +1459,9 @@ export const NEUTRAL_UNITS = {
     "goldMin": 23,
     "goldMax": 25,
     "bounty": 24,
+    "level": 3,
+    "attackPoint": 0.3,
+    "projectileSpeed": 1200,
     "radius": 45,
     "radiusKind": "selectionRing",
     "hullName": "DOTA_HULL_SIZE_HERO",
@@ -1244,8 +1475,8 @@ export const NEUTRAL_UNITS = {
   },
   "dark_troll": {
     "sourceId": "npc_dota_neutral_dark_troll",
-    "name": "丘陵巨魔",
-    "nameEn": "Hill Troll",
+    "name": "黑暗巨魔捕手",
+    "nameEn": "Dark Troll Trapper",
     "maxHp": 500,
     "hpRegen": 0.5,
     "damageMin": 24,
@@ -1262,6 +1493,9 @@ export const NEUTRAL_UNITS = {
     "goldMin": 17,
     "goldMax": 19,
     "bounty": 18,
+    "level": 3,
+    "attackPoint": 0.3,
+    "projectileSpeed": 1200,
     "radius": 60,
     "radiusKind": "selectionRing",
     "hullName": "DOTA_HULL_SIZE_HERO",
@@ -1293,6 +1527,9 @@ export const NEUTRAL_UNITS = {
     "goldMin": 40,
     "goldMax": 46,
     "bounty": 43,
+    "level": 6,
+    "attackPoint": 0.3,
+    "projectileSpeed": 1200,
     "radius": 60,
     "radiusKind": "selectionRing",
     "hullName": "DOTA_HULL_SIZE_HERO",
@@ -1314,22 +1551,24 @@ export const NEUTRAL_UNITS = {
     "damage": 32.5,
     "armor": 1,
     "magicResistance": 0,
-    "range": 500,
+    "range": 450,
     "speed": 270,
     "baseAttackTime": 2,
     "baseAttackSpeed": 125,
     "attackInterval": 1.6,
     "xpBounty": 28,
-    "goldMin": 18,
-    "goldMax": 20,
-    "bounty": 19,
+    "goldMin": 16,
+    "goldMax": 18,
+    "bounty": 17,
+    "level": 2,
+    "attackPoint": 0.3,
+    "projectileSpeed": 1500,
     "radius": 50,
     "radiusKind": "selectionRing",
     "hullName": "DOTA_HULL_SIZE_HERO",
     "ancient": false,
     "attackType": "ranged",
     "abilities": [
-      "berserker_troll_break",
       "creep_piercing",
       "neutral_upgrade"
     ]
@@ -1345,15 +1584,18 @@ export const NEUTRAL_UNITS = {
     "damage": 31,
     "armor": 0,
     "magicResistance": 0,
-    "range": 600,
+    "range": 500,
     "speed": 290,
     "baseAttackTime": 2,
     "baseAttackSpeed": 125,
     "attackInterval": 1.6,
     "xpBounty": 28,
-    "goldMin": 18,
-    "goldMax": 20,
-    "bounty": 19,
+    "goldMin": 16,
+    "goldMax": 18,
+    "bounty": 17,
+    "level": 2,
+    "attackPoint": 0.3,
+    "projectileSpeed": 1500,
     "radius": 50,
     "radiusKind": "selectionRing",
     "hullName": "DOTA_HULL_SIZE_HERO",
@@ -1386,6 +1628,9 @@ export const NEUTRAL_UNITS = {
     "goldMin": 14,
     "goldMax": 16,
     "bounty": 15,
+    "level": 2,
+    "attackPoint": 0.3,
+    "projectileSpeed": 1200,
     "radius": 50,
     "radiusKind": "selectionRing",
     "hullName": "DOTA_HULL_SIZE_HERO",
@@ -1417,6 +1662,9 @@ export const NEUTRAL_UNITS = {
     "goldMin": 25,
     "goldMax": 27,
     "bounty": 26,
+    "level": 3,
+    "attackPoint": 0.3,
+    "projectileSpeed": 1200,
     "radius": 50,
     "radiusKind": "selectionRing",
     "hullName": "DOTA_HULL_SIZE_HERO",
@@ -1448,6 +1696,9 @@ export const NEUTRAL_UNITS = {
     "goldMin": 37,
     "goldMax": 43,
     "bounty": 40,
+    "level": 3,
+    "attackPoint": 0.5,
+    "projectileSpeed": 900,
     "radius": 70,
     "radiusKind": "selectionRing",
     "hullName": "DOTA_HULL_SIZE_HERO",
@@ -1478,6 +1729,9 @@ export const NEUTRAL_UNITS = {
     "goldMin": 76,
     "goldMax": 80,
     "bounty": 78,
+    "level": 6,
+    "attackPoint": 0.5,
+    "projectileSpeed": 1500,
     "radius": 70,
     "radiusKind": "selectionRing",
     "hullName": "DOTA_HULL_SIZE_HERO",
@@ -1510,6 +1764,9 @@ export const NEUTRAL_UNITS = {
     "goldMin": 17,
     "goldMax": 19,
     "bounty": 18,
+    "level": 2,
+    "attackPoint": 0.4,
+    "projectileSpeed": 1500,
     "radius": 40,
     "radiusKind": "selectionRing",
     "hullName": "DOTA_HULL_SIZE_HERO",
@@ -1540,6 +1797,9 @@ export const NEUTRAL_UNITS = {
     "goldMin": 25,
     "goldMax": 29,
     "bounty": 27,
+    "level": 4,
+    "attackPoint": 0.3,
+    "projectileSpeed": 0,
     "radius": 60,
     "radiusKind": "selectionRing",
     "hullName": "DOTA_HULL_SIZE_HERO",
@@ -1571,6 +1831,9 @@ export const NEUTRAL_UNITS = {
     "goldMin": 37,
     "goldMax": 41,
     "bounty": 39,
+    "level": 4,
+    "attackPoint": 0.3,
+    "projectileSpeed": 0,
     "radius": 50,
     "radiusKind": "selectionRing",
     "hullName": "DOTA_HULL_SIZE_HERO",
@@ -1602,6 +1865,9 @@ export const NEUTRAL_UNITS = {
     "goldMin": 53,
     "goldMax": 56,
     "bounty": 54.5,
+    "level": 5,
+    "attackPoint": 0.3,
+    "projectileSpeed": 0,
     "radius": 60,
     "radiusKind": "selectionRing",
     "hullName": "DOTA_HULL_SIZE_HERO",
@@ -1633,6 +1899,9 @@ export const NEUTRAL_UNITS = {
     "goldMin": 25,
     "goldMax": 29,
     "bounty": 27,
+    "level": 4,
+    "attackPoint": 0.3,
+    "projectileSpeed": 1200,
     "radius": 60,
     "radiusKind": "selectionRing",
     "hullName": "DOTA_HULL_SIZE_HERO",
@@ -1664,6 +1933,9 @@ export const NEUTRAL_UNITS = {
     "goldMin": 37,
     "goldMax": 41,
     "bounty": 39,
+    "level": 4,
+    "attackPoint": 0.3,
+    "projectileSpeed": 1200,
     "radius": 50,
     "radiusKind": "selectionRing",
     "hullName": "DOTA_HULL_SIZE_HERO",
@@ -1695,6 +1967,9 @@ export const NEUTRAL_UNITS = {
     "goldMin": 53,
     "goldMax": 56,
     "bounty": 54.5,
+    "level": 5,
+    "attackPoint": 0.7,
+    "projectileSpeed": 1500,
     "radius": 60,
     "radiusKind": "selectionRing",
     "hullName": "DOTA_HULL_SIZE_HERO",
@@ -1705,6 +1980,237 @@ export const NEUTRAL_UNITS = {
       "frogmen_riverborn_aura",
       "neutral_upgrade"
     ]
+  },
+  "radigull": {
+    "sourceId": "npc_dota_neutral_radigull",
+    "name": "狂海鸥",
+    "nameEn": "Radigull",
+    "maxHp": 800,
+    "hpRegen": 0.5,
+    "damageMin": 30,
+    "damageMax": 32,
+    "damage": 31,
+    "armor": 0,
+    "magicResistance": 0.3,
+    "range": 400,
+    "speed": 310,
+    "baseAttackTime": 2,
+    "baseAttackSpeed": 150,
+    "attackInterval": 1.3333333333333333,
+    "xpBounty": 62,
+    "goldMin": 34,
+    "goldMax": 36,
+    "bounty": 35,
+    "level": 4,
+    "attackPoint": 0.3,
+    "projectileSpeed": 900,
+    "radius": 60,
+    "radiusKind": "selectionRing",
+    "hullName": "DOTA_HULL_SIZE_HERO",
+    "ancient": false,
+    "attackType": "ranged",
+    "abilities": [
+      "radigull_eggstremism",
+      "neutral_upgrade"
+    ]
+  },
+  "odobenus_frostmage": {
+    "sourceId": "npc_dota_neutral_odobenus_frostmage",
+    "name": "海象冰霜法师",
+    "nameEn": "Odobenus Frostmage",
+    "maxHp": 600,
+    "hpRegen": 0.5,
+    "damageMin": 26,
+    "damageMax": 30,
+    "damage": 28,
+    "armor": 3,
+    "magicResistance": 0,
+    "range": 100,
+    "speed": 350,
+    "baseAttackTime": 2,
+    "baseAttackSpeed": 150,
+    "attackInterval": 1.3333333333333333,
+    "xpBounty": 60,
+    "goldMin": 32,
+    "goldMax": 34,
+    "bounty": 33,
+    "level": 5,
+    "attackPoint": 0.3,
+    "projectileSpeed": 0,
+    "radius": 80,
+    "radiusKind": "selectionRing",
+    "hullName": "DOTA_HULL_SIZE_HERO",
+    "ancient": false,
+    "attackType": "melee",
+    "abilities": [
+      "warpine_raider_seed_shot",
+      "neutral_upgrade"
+    ]
+  },
+  "odobenus_footman": {
+    "sourceId": "npc_dota_neutral_odobenus_footman",
+    "name": "海象步兵",
+    "nameEn": "Odobenus Footman",
+    "maxHp": 500,
+    "hpRegen": 0.5,
+    "damageMin": 16,
+    "damageMax": 18,
+    "damage": 17,
+    "armor": 1,
+    "magicResistance": 0,
+    "range": 100,
+    "speed": 350,
+    "baseAttackTime": 2,
+    "baseAttackSpeed": 125,
+    "attackInterval": 1.6,
+    "xpBounty": 40,
+    "goldMin": 18,
+    "goldMax": 22,
+    "bounty": 20,
+    "level": 3,
+    "attackPoint": 0.3,
+    "projectileSpeed": 0,
+    "radius": 70,
+    "radiusKind": "selectionRing",
+    "hullName": "DOTA_HULL_SIZE_HERO",
+    "ancient": false,
+    "attackType": "melee",
+    "abilities": [
+      "odobenus_blight",
+      "neutral_upgrade"
+    ]
+  },
+  "eimermole": {
+    "sourceId": "npc_dota_neutral_eimermole",
+    "name": "矿工鼠",
+    "nameEn": "Eimermole",
+    "maxHp": 700,
+    "hpRegen": 0.5,
+    "damageMin": 39,
+    "damageMax": 44,
+    "damage": 41.5,
+    "armor": 3,
+    "magicResistance": 0,
+    "range": 100,
+    "speed": 320,
+    "baseAttackTime": 2,
+    "baseAttackSpeed": 135,
+    "attackInterval": 1.4814814814814814,
+    "xpBounty": 66,
+    "goldMin": 30,
+    "goldMax": 38,
+    "bounty": 34,
+    "level": 4,
+    "attackPoint": 0.3,
+    "projectileSpeed": 0,
+    "radius": 70,
+    "radiusKind": "selectionRing",
+    "hullName": "DOTA_HULL_SIZE_HERO",
+    "ancient": false,
+    "attackType": "melee",
+    "abilities": [
+      "eimermole_miners_aura",
+      "neutral_upgrade"
+    ]
+  },
+  "eimermole_foreman": {
+    "sourceId": "npc_dota_neutral_eimermole_foreman",
+    "name": "矿工鼠工头",
+    "nameEn": "Eimermole Foreman",
+    "maxHp": 950,
+    "hpRegen": 1,
+    "damageMin": 49,
+    "damageMax": 55,
+    "damage": 52,
+    "armor": 4,
+    "magicResistance": 0,
+    "range": 100,
+    "speed": 320,
+    "baseAttackTime": 2,
+    "baseAttackSpeed": 135,
+    "attackInterval": 1.4814814814814814,
+    "xpBounty": 90,
+    "goldMin": 62,
+    "goldMax": 66,
+    "bounty": 64,
+    "level": 5,
+    "attackPoint": 0.3,
+    "projectileSpeed": 0,
+    "radius": 80,
+    "radiusKind": "selectionRing",
+    "hullName": "DOTA_HULL_SIZE_HERO",
+    "ancient": false,
+    "attackType": "melee",
+    "abilities": [
+      "eimermole_miners_slam",
+      "neutral_upgrade"
+    ]
+  },
+  "ogre_seal": {
+    "sourceId": "npc_dota_neutral_ogre_seal",
+    "name": "远古食人魔海豹",
+    "nameEn": "Ancient Ogre Seal",
+    "maxHp": 1700,
+    "hpRegen": 0.5,
+    "damageMin": 60,
+    "damageMax": 65,
+    "damage": 62.5,
+    "armor": 3,
+    "magicResistance": 0.3,
+    "range": 150,
+    "speed": 270,
+    "baseAttackTime": 2,
+    "baseAttackSpeed": 120,
+    "attackInterval": 1.6666666666666667,
+    "xpBounty": 124,
+    "goldMin": 68,
+    "goldMax": 72,
+    "bounty": 70,
+    "level": 6,
+    "attackPoint": 0.5714,
+    "projectileSpeed": 0,
+    "radius": 80,
+    "radiusKind": "selectionRing",
+    "hullName": "DOTA_HULL_SIZE_HERO",
+    "ancient": true,
+    "attackType": "melee",
+    "abilities": [
+      "ogre_seal_flop",
+      "neutral_upgrade"
+    ]
+  },
+  "ogre_seal_pup": {
+    "sourceId": "npc_dota_neutral_ogre_seal_pup",
+    "name": "远古食人魔海豹幼崽",
+    "nameEn": "Ancient Ogre Seal Pup",
+    "maxHp": 800,
+    "hpRegen": 0.5,
+    "damageMin": 32,
+    "damageMax": 34,
+    "damage": 33,
+    "armor": 3,
+    "magicResistance": 0.5,
+    "range": 128,
+    "speed": 270,
+    "baseAttackTime": 1.8,
+    "baseAttackSpeed": 100,
+    "attackInterval": 1.8,
+    "xpBounty": 95,
+    "goldMin": 38,
+    "goldMax": 44,
+    "bounty": 41,
+    "level": 5,
+    "attackPoint": 0.5714,
+    "projectileSpeed": 0,
+    "radius": 40,
+    "radiusKind": "selectionRing",
+    "hullName": "DOTA_HULL_SIZE_HERO",
+    "ancient": true,
+    "attackType": "melee",
+    "abilities": [
+      "ogre_seal_pup_disapproval_aura",
+      "neutral_upgrade"
+    ]
   }
 };
 
@@ -1713,7 +2219,7 @@ export const CAMP_GROUPS = {
     [
       {
         "unitId": "kobold",
-        "count": 3
+        "count": 2
       },
       {
         "unitId": "kobold_tunneler",
@@ -1810,12 +2316,18 @@ export const CAMP_GROUPS = {
     ],
     [
       {
-        "unitId": "centaur_outrunner",
+        "unitId": "radigull",
+        "count": 2
+      }
+    ],
+    [
+      {
+        "unitId": "odobenus_frostmage",
         "count": 1
       },
       {
-        "unitId": "centaur_khan",
-        "count": 1
+        "unitId": "odobenus_footman",
+        "count": 2
       }
     ]
   ],
@@ -1852,12 +2364,8 @@ export const CAMP_GROUPS = {
     ],
     [
       {
-        "unitId": "satyr_trickster",
-        "count": 1
-      },
-      {
         "unitId": "satyr_soulstealer",
-        "count": 1
+        "count": 2
       },
       {
         "unitId": "satyr_hellcaller",
@@ -1876,8 +2384,12 @@ export const CAMP_GROUPS = {
     ],
     [
       {
-        "unitId": "warpine_raider",
-        "count": 2
+        "unitId": "eimermole_foreman",
+        "count": 1
+      },
+      {
+        "unitId": "eimermole",
+        "count": 1
       }
     ]
   ],
@@ -1904,16 +2416,6 @@ export const CAMP_GROUPS = {
     ],
     [
       {
-        "unitId": "small_thunder_lizard",
-        "count": 2
-      },
-      {
-        "unitId": "big_thunder_lizard",
-        "count": 1
-      }
-    ],
-    [
-      {
         "unitId": "frostbitten_golem",
         "count": 2
       },
@@ -1930,6 +2432,16 @@ export const CAMP_GROUPS = {
       {
         "unitId": "prowler_shaman",
         "count": 1
+      }
+    ],
+    [
+      {
+        "unitId": "ogre_seal",
+        "count": 1
+      },
+      {
+        "unitId": "ogre_seal_pup",
+        "count": 2
       }
     ]
   ]
@@ -1995,6 +2507,9 @@ export const LANE_CREEPS = {
     "goldMin": 34,
     "goldMax": 39,
     "bounty": 36.5,
+    "level": 3,
+    "attackPoint": 0.467,
+    "projectileSpeed": 0,
     "radius": 45,
     "radiusKind": "selectionRing",
     "hullName": "DOTA_HULL_SIZE_REGULAR",
@@ -2024,6 +2539,9 @@ export const LANE_CREEPS = {
     "goldMin": 43,
     "goldMax": 52,
     "bounty": 47.5,
+    "level": 5,
+    "attackPoint": 0.5,
+    "projectileSpeed": 900,
     "radius": 45,
     "radiusKind": "selectionRing",
     "hullName": "DOTA_HULL_SIZE_SMALL",
@@ -2053,6 +2571,9 @@ export const LANE_CREEPS = {
     "goldMin": 59,
     "goldMax": 72,
     "bounty": 65.5,
+    "level": 4,
+    "attackPoint": 0.7,
+    "projectileSpeed": 1100,
     "radius": 80,
     "radiusKind": "selectionRing",
     "hullName": "DOTA_HULL_SIZE_SIEGE",
@@ -2082,6 +2603,9 @@ export const LANE_CREEPS = {
     "goldMin": 20,
     "goldMax": 26,
     "bounty": 23,
+    "level": 1,
+    "attackPoint": 0.467,
+    "projectileSpeed": 0,
     "radius": 45,
     "radiusKind": "selectionRing",
     "hullName": "DOTA_HULL_SIZE_REGULAR",
@@ -2111,6 +2635,9 @@ export const LANE_CREEPS = {
     "goldMin": 19,
     "goldMax": 25,
     "bounty": 22,
+    "level": 5,
+    "attackPoint": 0.5,
+    "projectileSpeed": 900,
     "radius": 45,
     "radiusKind": "selectionRing",
     "hullName": "DOTA_HULL_SIZE_SMALL",
@@ -2140,6 +2667,9 @@ export const LANE_CREEPS = {
     "goldMin": 20,
     "goldMax": 26,
     "bounty": 23,
+    "level": 1,
+    "attackPoint": 0.467,
+    "projectileSpeed": 0,
     "radius": 45,
     "radiusKind": "selectionRing",
     "hullName": "DOTA_HULL_SIZE_REGULAR",
@@ -2170,6 +2700,9 @@ export const LANE_CREEPS = {
     "goldMin": 19,
     "goldMax": 25,
     "bounty": 22,
+    "level": 5,
+    "attackPoint": 0.5,
+    "projectileSpeed": 900,
     "radius": 45,
     "radiusKind": "selectionRing",
     "hullName": "DOTA_HULL_SIZE_SMALL",
@@ -2200,6 +2733,9 @@ export const LANE_CREEPS = {
     "goldMin": 34,
     "goldMax": 39,
     "bounty": 36.5,
+    "level": 3,
+    "attackPoint": 0.467,
+    "projectileSpeed": 0,
     "radius": 45,
     "radiusKind": "selectionRing",
     "hullName": "DOTA_HULL_SIZE_REGULAR",
@@ -2230,6 +2766,9 @@ export const LANE_CREEPS = {
     "goldMin": 59,
     "goldMax": 72,
     "bounty": 65.5,
+    "level": 4,
+    "attackPoint": 0.7,
+    "projectileSpeed": 1100,
     "radius": 80,
     "radiusKind": "selectionRing",
     "hullName": "DOTA_HULL_SIZE_SIEGE",
@@ -2259,6 +2798,9 @@ export const LANE_CREEPS = {
     "goldMin": 59,
     "goldMax": 72,
     "bounty": 65.5,
+    "level": 4,
+    "attackPoint": 0.7,
+    "projectileSpeed": 1100,
     "radius": 80,
     "radiusKind": "selectionRing",
     "hullName": "DOTA_HULL_SIZE_SIEGE",
@@ -2283,20 +2825,20 @@ export const RULES = {
     "attackSpeed": 5,
     "maxHp": 30,
     "armor": 0.5,
-    "goldBounty": 1,
-    "xpBounty": 5
+    "goldBountyPerMinute": 0.5,
+    "xpBounty": 4
   },
   "laneUpgradeInterval": 450,
   "meleeGoldPerUpgrade": 1,
   "flagbearerGoldPerUpgrade": 1,
   "floodedEvolutionInterval": 300,
   "floodedUnitsPerCamp": 3,
-  "siegeExtraCountAt": [
-    1800,
-    3600
-  ],
+  "siegeIntervalAfterThirtyMinutes": 150,
+  "siegeDoubleCountAt": 3600,
   "tower4ArmorPerStandingBarracks": 4,
   "roshanRespawnMin": 480,
+  "roshanRespawnReductionPerDeath": 60,
+  "roshanRespawnFloor": 300,
   "roshanRespawnMax": 660,
   "roshanInitialPit": "top"
 };
@@ -2321,6 +2863,9 @@ export const ROSHAN = {
   "goldMin": 200,
   "goldMax": 290,
   "bounty": 245,
+  "level": 30,
+  "attackPoint": 0.6,
+  "projectileSpeed": 1000,
   "radius": 110,
   "radiusKind": "selectionRing",
   "hullName": "DOTA_HULL_SIZE_HERO",
@@ -2338,12 +2883,257 @@ export const ROSHAN = {
 };
 
 export const NEUTRAL_ABILITIES = {
-  "kobold_tunneler_prospecting": {
+  "miniboss_unyielding_shield": {
+    "textureName": "miniboss_unyielding_shield",
     "behavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
     "passive": true,
     "manaCost": "0",
     "cooldown": "0",
     "castRange": "0",
+    "castPoint": "0",
+    "damage": "0",
+    "damageType": "DAMAGE_TYPE_MAGICAL",
+    "targetTeam": "DOTA_UNIT_TARGET_TEAM_ENEMY",
+    "targetType": "",
+    "targetFlags": "",
+    "values": {
+      "damage_absorb": "4000",
+      "absorb_bonus_per_interval": "50",
+      "regen_per_second": "20",
+      "regen_bonus_per_interval": "5",
+      "status_resistance": "25"
+    },
+    "special": {}
+  },
+  "miniboss_reflect": {
+    "textureName": "miniboss_reflect",
+    "behavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
+    "passive": true,
+    "manaCost": "0",
+    "cooldown": "0",
+    "castRange": "0",
+    "castPoint": "0",
+    "damage": "0",
+    "damageType": "DAMAGE_TYPE_MAGICAL",
+    "targetTeam": "DOTA_UNIT_TARGET_TEAM_ENEMY",
+    "targetType": "",
+    "targetFlags": "",
+    "values": {
+      "passive_reflection_pct": "15",
+      "passive_reflection_bonus_per_interval": "1.5",
+      "passive_reflection_bonus_per_kill": "5",
+      "passive_reflection_max_from_kills": "30",
+      "passive_reflection_base": "0",
+      "passive_reflection_base_per_interval": "0",
+      "radius": "1200",
+      "speed": "700",
+      "wave_interval": "1.0",
+      "preview_duration": "0.8"
+    },
+    "special": {}
+  },
+  "miniboss_radiance": {
+    "textureName": "miniboss_radiance",
+    "behavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
+    "passive": true,
+    "manaCost": "0",
+    "cooldown": "0",
+    "castRange": "0",
+    "castPoint": "0",
+    "damage": "0",
+    "damageType": "DAMAGE_TYPE_MAGICAL",
+    "targetTeam": "DOTA_UNIT_TARGET_TEAM_ENEMY",
+    "targetType": "",
+    "targetFlags": "",
+    "values": {
+      "aura_radius": "1000",
+      "aura_damage": "20",
+      "aura_damage_per_upgrade": "2",
+      "aura_interval": "0.2",
+      "attack_timer_duration": "10"
+    },
+    "special": {}
+  },
+  "miniboss_alleviation": {
+    "textureName": "miniboss_alleviation",
+    "behavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
+    "passive": true,
+    "manaCost": "0",
+    "cooldown": "0",
+    "castRange": "0",
+    "castPoint": "0",
+    "damage": "0",
+    "damageType": "DAMAGE_TYPE_MAGICAL",
+    "targetTeam": "DOTA_UNIT_TARGET_TEAM_ENEMY",
+    "targetType": "",
+    "targetFlags": "",
+    "values": {
+      "aura_duration": "15",
+      "hp_restoration_pct": "2.25",
+      "radius": "900"
+    },
+    "special": {}
+  },
+  "miniboss_inherent_buffs": {
+    "textureName": "miniboss_inherent_buffs",
+    "behavior": "DOTA_ABILITY_BEHAVIOR_HIDDEN | DOTA_ABILITY_BEHAVIOR_PASSIVE",
+    "passive": true,
+    "manaCost": "0",
+    "cooldown": "0",
+    "castRange": "0",
+    "castPoint": "0",
+    "damage": "0",
+    "damageType": "DAMAGE_TYPE_MAGICAL",
+    "targetTeam": "DOTA_UNIT_TARGET_TEAM_ENEMY",
+    "targetType": "",
+    "targetFlags": "",
+    "values": {},
+    "special": {}
+  },
+  "necronomicon_warrior_mana_burn": {
+    "textureName": "necronomicon_warrior_mana_burn",
+    "behavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
+    "passive": true,
+    "manaCost": "0",
+    "cooldown": "0",
+    "castRange": "0",
+    "castPoint": "0",
+    "damage": "0",
+    "damageType": "DAMAGE_TYPE_PHYSICAL",
+    "targetTeam": "DOTA_UNIT_TARGET_TEAM_ENEMY",
+    "targetType": "",
+    "targetFlags": "",
+    "values": {
+      "burn_amount": {
+        "value": "30 40 50"
+      },
+      "burn_damage_conversion": {
+        "value": "50"
+      }
+    },
+    "special": {}
+  },
+  "necronomicon_warrior_last_will": {
+    "textureName": "necronomicon_warrior_last_will",
+    "behavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
+    "passive": true,
+    "manaCost": "0",
+    "cooldown": "0",
+    "castRange": "0",
+    "castPoint": "0",
+    "damage": "0",
+    "damageType": "DAMAGE_TYPE_MAGICAL",
+    "targetTeam": "DOTA_UNIT_TARGET_TEAM_ENEMY",
+    "targetType": "",
+    "targetFlags": "",
+    "values": {
+      "explosion": {
+        "value": "600 700 800"
+      }
+    },
+    "special": {}
+  },
+  "creep_irresolute": {
+    "textureName": "creep_irresolute",
+    "behavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
+    "passive": true,
+    "manaCost": "0",
+    "cooldown": "0",
+    "castRange": "0",
+    "castPoint": "0",
+    "damage": "0",
+    "damageType": "DAMAGE_TYPE_MAGICAL",
+    "targetTeam": "DOTA_UNIT_TARGET_TEAM_ENEMY",
+    "targetType": "",
+    "targetFlags": "",
+    "values": {
+      "hero_damage_penalty": "-25"
+    },
+    "special": {}
+  },
+  "necronomicon_archer_purge": {
+    "textureName": "necronomicon_archer_purge",
+    "behavior": "DOTA_ABILITY_BEHAVIOR_UNIT_TARGET",
+    "passive": false,
+    "manaCost": "0",
+    "cooldown": "15",
+    "castRange": "600",
+    "castPoint": "0.3",
+    "damage": "0",
+    "damageType": "DAMAGE_TYPE_MAGICAL",
+    "targetTeam": "DOTA_UNIT_TARGET_TEAM_ENEMY",
+    "targetType": "DOTA_UNIT_TARGET_HERO | DOTA_UNIT_TARGET_BASIC",
+    "targetFlags": "",
+    "values": {
+      "purge_rate": {
+        "value": "5"
+      },
+      "duration": {
+        "value": "4"
+      }
+    },
+    "special": {}
+  },
+  "necronomicon_archer_aoe": {
+    "textureName": "necronomicon_archer_aoe",
+    "behavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
+    "passive": true,
+    "manaCost": "0",
+    "cooldown": "0",
+    "castRange": "0",
+    "castPoint": "0",
+    "damage": "0",
+    "damageType": "DAMAGE_TYPE_MAGICAL",
+    "targetTeam": "DOTA_UNIT_TARGET_TEAM_ENEMY",
+    "targetType": "",
+    "targetFlags": "",
+    "values": {
+      "radius": {
+        "value": "1200",
+        "affected_by_aoe_increase": "1"
+      },
+      "ms_bonus": {
+        "value": "5 7 9"
+      },
+      "as_bonus": {
+        "value": "10 15 20"
+      }
+    },
+    "special": {}
+  },
+  "creep_piercing": {
+    "textureName": "creep_piercing",
+    "behavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
+    "passive": true,
+    "manaCost": "0",
+    "cooldown": "0",
+    "castRange": "0",
+    "castPoint": "0",
+    "damage": "0",
+    "damageType": "DAMAGE_TYPE_MAGICAL",
+    "targetTeam": "DOTA_UNIT_TARGET_TEAM_ENEMY",
+    "targetType": "",
+    "targetFlags": "",
+    "values": {
+      "creep_damage_bonus": "50",
+      "hero_damage_penalty": "-50",
+      "heavy_damage_penalty": "-50"
+    },
+    "special": {}
+  },
+  "kobold_tunneler_prospecting": {
+    "textureName": "kobold_tunneler_prospecting",
+    "behavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
+    "passive": true,
+    "manaCost": "0",
+    "cooldown": "0",
+    "castRange": "0",
+    "castPoint": "0",
+    "damage": "0",
+    "damageType": "DAMAGE_TYPE_MAGICAL",
+    "targetTeam": "DOTA_UNIT_TARGET_TEAM_ENEMY",
+    "targetType": "",
+    "targetFlags": "",
     "values": {
       "gpm_aura": {
         "value": "20 25 30 40"
@@ -2356,11 +3146,18 @@ export const NEUTRAL_ABILITIES = {
     "special": {}
   },
   "neutral_upgrade": {
+    "textureName": "neutral_upgrade",
     "behavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
     "passive": true,
     "manaCost": "0",
     "cooldown": "0",
     "castRange": "0",
+    "castPoint": "0",
+    "damage": "0",
+    "damageType": "DAMAGE_TYPE_MAGICAL",
+    "targetTeam": "DOTA_UNIT_TARGET_TEAM_ENEMY",
+    "targetType": "",
+    "targetFlags": "",
     "values": {
       "max_level": "30",
       "increase_time": "450",
@@ -2368,30 +3165,51 @@ export const NEUTRAL_ABILITIES = {
       "increase_aspd": "5",
       "increase_health": "30",
       "increase_armor": "0.5",
-      "increase_gold": "1",
-      "increase_xp": "5"
+      "increase_gold": "0",
+      "increase_xp": "4",
+      "increase_gold_per_minute": "1",
+      "gold_interval": "60"
     },
     "special": {}
   },
   "kobold_disarm": {
-    "behavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
-    "passive": true,
+    "textureName": "kobold_disarm",
+    "behavior": "DOTA_ABILITY_BEHAVIOR_POINT",
+    "passive": false,
     "manaCost": "0",
     "cooldown": "9.0",
-    "castRange": "0",
+    "castRange": "500",
+    "castPoint": "1.0",
+    "damage": "0",
+    "damageType": "DAMAGE_TYPE_MAGICAL",
+    "targetTeam": "DOTA_UNIT_TARGET_TEAM_ENEMY",
+    "targetType": "DOTA_UNIT_TARGET_HERO | DOTA_UNIT_TARGET_BASIC",
+    "targetFlags": "",
     "values": {
-      "duration": {
+      "radius": "75",
+      "speed": "2000",
+      "base_damage": "50 60 70 80",
+      "break_duration": {
         "value": "3.0 3.5 4.0 5.0"
-      }
+      },
+      "neutral_chance_to_cast": "60",
+      "neutral_cast_attempt_cooldown": "8"
     },
     "special": {}
   },
   "kobold_taskmaster_speed_aura": {
+    "textureName": "kobold_taskmaster_speed_aura",
     "behavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
     "passive": true,
     "manaCost": "0",
     "cooldown": "0",
     "castRange": "0",
+    "castPoint": "0",
+    "damage": "0",
+    "damageType": "DAMAGE_TYPE_MAGICAL",
+    "targetTeam": "DOTA_UNIT_TARGET_TEAM_ENEMY",
+    "targetType": "",
+    "targetFlags": "",
     "values": {
       "bonus_movement_speed": {
         "value": "12 13 14 16"
@@ -2404,11 +3222,18 @@ export const NEUTRAL_ABILITIES = {
     "special": {}
   },
   "mudgolem_cloak_aura": {
+    "textureName": "mudgolem_cloak_aura",
     "behavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
     "passive": true,
     "manaCost": "0",
     "cooldown": "0",
     "castRange": "0",
+    "castPoint": "0",
+    "damage": "0",
+    "damageType": "DAMAGE_TYPE_MAGICAL",
+    "targetTeam": "DOTA_UNIT_TARGET_TEAM_ENEMY",
+    "targetType": "",
+    "targetFlags": "",
     "values": {
       "bonus_magical_armor": {
         "value": "10 12 14 16"
@@ -2424,27 +3249,43 @@ export const NEUTRAL_ABILITIES = {
     "special": {}
   },
   "centaur_khan_war_stomp": {
+    "textureName": "centaur_khan_war_stomp",
     "behavior": "DOTA_ABILITY_BEHAVIOR_NO_TARGET",
     "passive": false,
     "manaCost": "50",
     "cooldown": "12.0",
     "castRange": "0",
+    "castPoint": "0.4",
+    "damage": "25 50 75 150",
+    "damageType": "DAMAGE_TYPE_MAGICAL",
+    "targetTeam": "DOTA_UNIT_TARGET_TEAM_ENEMY",
+    "targetType": "",
+    "targetFlags": "",
     "values": {
       "radius": {
         "value": "250",
         "affected_by_aoe_increase": "1"
       },
       "non_hero_stun_duration": "3.0",
-      "hero_stun_duration": "1.6"
+      "hero_stun_duration": "1.6",
+      "neutral_chance_to_cast": "100",
+      "neutral_cast_attempt_cooldown": "8"
     },
     "special": {}
   },
   "fel_beast_haunt": {
+    "textureName": "fel_beast_haunt",
     "behavior": "DOTA_ABILITY_BEHAVIOR_UNIT_TARGET",
     "passive": false,
     "manaCost": "75",
     "cooldown": "15 13 11 7",
     "castRange": "600",
+    "castPoint": "0",
+    "damage": "0",
+    "damageType": "DAMAGE_TYPE_MAGICAL",
+    "targetTeam": "DOTA_UNIT_TARGET_TEAM_ENEMY",
+    "targetType": "DOTA_UNIT_TARGET_HERO | DOTA_UNIT_TARGET_BASIC",
+    "targetFlags": "",
     "values": {
       "projectile_speed": "500 600 700 800",
       "duration": "3"
@@ -2452,11 +3293,18 @@ export const NEUTRAL_ABILITIES = {
     "special": {}
   },
   "centaur_khan_endurance_aura": {
+    "textureName": "centaur_khan_endurance_aura",
     "behavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
     "passive": true,
     "manaCost": "0",
     "cooldown": "0",
     "castRange": "0",
+    "castPoint": "0",
+    "damage": "0",
+    "damageType": "DAMAGE_TYPE_MAGICAL",
+    "targetTeam": "DOTA_UNIT_TARGET_TEAM_ENEMY",
+    "targetType": "",
+    "targetFlags": "",
     "values": {
       "bonus_attack_speed": {
         "value": "15 18 21 27"
@@ -2469,11 +3317,18 @@ export const NEUTRAL_ABILITIES = {
     "special": {}
   },
   "furbolg_enrage_attack_speed": {
+    "textureName": "furbolg_enrage_attack_speed",
     "behavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
     "passive": true,
     "manaCost": "0",
     "cooldown": "0",
     "castRange": "0",
+    "castPoint": "0",
+    "damage": "0",
+    "damageType": "DAMAGE_TYPE_MAGICAL",
+    "targetTeam": "DOTA_UNIT_TARGET_TEAM_ENEMY",
+    "targetType": "",
+    "targetFlags": "",
     "values": {
       "bonus_aspd": {
         "value": "120"
@@ -2489,11 +3344,18 @@ export const NEUTRAL_ABILITIES = {
     "special": {}
   },
   "polar_furbolg_ursa_warrior_thunder_clap": {
+    "textureName": "polar_furbolg_ursa_warrior_thunder_clap",
     "behavior": "DOTA_ABILITY_BEHAVIOR_NO_TARGET",
     "passive": false,
     "manaCost": "50",
     "cooldown": "12.0 11.0 10.0 9.0",
     "castRange": "0",
+    "castPoint": "0.4",
+    "damage": "150 200 250 350",
+    "damageType": "DAMAGE_TYPE_MAGICAL",
+    "targetTeam": "DOTA_UNIT_TARGET_TEAM_ENEMY",
+    "targetType": "",
+    "targetFlags": "",
     "values": {
       "radius": {
         "value": "300",
@@ -2501,16 +3363,25 @@ export const NEUTRAL_ABILITIES = {
       },
       "movespeed_slow": "-25",
       "attackspeed_slow": "-25",
-      "duration": "3.0"
+      "duration": "3.0",
+      "neutral_chance_to_cast": "100",
+      "neutral_cast_attempt_cooldown": "8"
     },
     "special": {}
   },
   "furbolg_enrage_damage": {
+    "textureName": "furbolg_enrage_damage",
     "behavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
     "passive": true,
     "manaCost": "0",
     "cooldown": "0",
     "castRange": "0",
+    "castPoint": "0",
+    "damage": "0",
+    "damageType": "DAMAGE_TYPE_MAGICAL",
+    "targetTeam": "DOTA_UNIT_TARGET_TEAM_ENEMY",
+    "targetType": "",
+    "targetFlags": "",
     "values": {
       "bonus_dmg_pct": {
         "value": "60"
@@ -2526,41 +3397,70 @@ export const NEUTRAL_ABILITIES = {
     "special": {}
   },
   "warpine_raider_seed_shot": {
+    "textureName": "odobenus_frostmage_snowball_shot",
     "behavior": "DOTA_ABILITY_BEHAVIOR_UNIT_TARGET | DOTA_ABILITY_BEHAVIOR_IGNORE_BACKSWING ",
     "passive": false,
     "manaCost": "100",
     "cooldown": "15",
     "castRange": "575",
+    "castPoint": "0.2",
+    "damage": "0",
+    "damageType": "DAMAGE_TYPE_MAGICAL",
+    "targetTeam": "DOTA_UNIT_TARGET_TEAM_ENEMY",
+    "targetType": "DOTA_UNIT_TARGET_HERO | DOTA_UNIT_TARGET_CREEP",
+    "targetFlags": "",
     "values": {
-      "damage": "80 95 110 125",
+      "damage": "70 80 90 100",
       "bounces": "4 6 8 12",
       "bounce_range": "500",
       "duration": "1",
       "slow": "100",
-      "bounce_delay": "0.3"
+      "bounce_delay": "0.3",
+      "neutral_chance_to_cast": "60",
+      "neutral_cast_attempt_cooldown": "8"
     },
     "special": {}
   },
-  "mud_golem_hurl_boulder": {
-    "behavior": "DOTA_ABILITY_BEHAVIOR_UNIT_TARGET",
+  "mud_golem_hurl_big_boulder": {
+    "textureName": "mud_golem_hurl_boulder",
+    "behavior": "DOTA_ABILITY_BEHAVIOR_POINT | DOTA_ABILITY_BEHAVIOR_AOE",
     "passive": false,
     "manaCost": "0",
-    "cooldown": "30",
+    "cooldown": "15",
     "castRange": "800",
+    "castPoint": "1.0",
+    "damage": "0",
+    "damageType": "DAMAGE_TYPE_PHYSICAL",
+    "targetTeam": "DOTA_UNIT_TARGET_TEAM_ENEMY",
+    "targetType": "DOTA_UNIT_TARGET_HERO | DOTA_UNIT_TARGET_BASIC",
+    "targetFlags": "",
     "values": {
-      "damage": "75",
-      "damage_creeps": "150",
-      "duration": "0.5",
-      "speed": "800"
+      "base_damage": "75 85 95 105",
+      "impact_radius": "175",
+      "stun_duration": "2",
+      "min_travel_time": "0.8",
+      "max_travel_time": "1.2",
+      "duration": {
+        "value": "1.0"
+      },
+      "neutral_chance_to_cast": "60",
+      "neutral_cast_attempt_cooldown": "8"
     },
     "special": {}
   },
   "mud_golem_rock_destroy": {
+    "textureName": "mud_golem_rock_destroy",
     "behavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
     "passive": true,
     "manaCost": "0",
     "cooldown": "0",
     "castRange": "0",
+    "castPoint": "0",
+    "damage": "0",
+    "damageType": "DAMAGE_TYPE_MAGICAL",
+    "targetTeam": "DOTA_UNIT_TARGET_TEAM_ENEMY",
+    "targetType": "",
+    "targetFlags": "",
     "values": {
       "radius": "250",
       "duration": "2",
@@ -2572,12 +3472,40 @@ export const NEUTRAL_ABILITIES = {
     },
     "special": {}
   },
+  "mud_golem_hurl_boulder": {
+    "textureName": "mud_golem_hurl_boulder",
+    "behavior": "DOTA_ABILITY_BEHAVIOR_UNIT_TARGET",
+    "passive": false,
+    "manaCost": "0",
+    "cooldown": "30",
+    "castRange": "800",
+    "castPoint": "0.3",
+    "damage": "0",
+    "damageType": "DAMAGE_TYPE_MAGICAL",
+    "targetTeam": "DOTA_UNIT_TARGET_TEAM_ENEMY",
+    "targetType": "DOTA_UNIT_TARGET_HERO | DOTA_UNIT_TARGET_CREEP",
+    "targetFlags": "",
+    "values": {
+      "damage": "75",
+      "damage_creeps": "150",
+      "duration": "0.5",
+      "speed": "800"
+    },
+    "special": {}
+  },
   "ogre_bruiser_ogre_smash": {
+    "textureName": "ogre_bruiser_ogre_smash",
     "behavior": "DOTA_ABILITY_BEHAVIOR_POINT | DOTA_ABILITY_BEHAVIOR_CAN_SELF_CAST | DOTA_ABILITY_BEHAVIOR_DONT_RESUME_MOVEMENT",
     "passive": false,
     "manaCost": "0",
     "cooldown": "12.0",
     "castRange": "0",
+    "castPoint": "2.8",
+    "damage": "0",
+    "damageType": "DAMAGE_TYPE_MAGICAL",
+    "targetTeam": "DOTA_UNIT_TARGET_TEAM_ENEMY",
+    "targetType": "DOTA_UNIT_TARGET_HERO | DOTA_UNIT_TARGET_BASIC",
+    "targetFlags": "",
     "values": {
       "radius": {
         "value": "200 210 220 230",
@@ -2585,32 +3513,51 @@ export const NEUTRAL_ABILITIES = {
       },
       "damage": "200 250 300 400",
       "damage_pct": "8",
-      "hero_stun_duration": "2.4"
+      "hero_stun_duration": "2.4",
+      "player_cast_point": "1.4",
+      "neutral_chance_to_cast": "25",
+      "neutral_cast_attempt_cooldown": "8"
     },
     "special": {}
   },
   "giant_wolf_intimidate": {
+    "textureName": "giant_wolf_intimidate",
     "behavior": "DOTA_ABILITY_BEHAVIOR_NO_TARGET",
     "passive": false,
     "manaCost": "50",
     "cooldown": "16.0",
     "castRange": "0",
+    "castPoint": "0.2",
+    "damage": "0",
+    "damageType": "DAMAGE_TYPE_MAGICAL",
+    "targetTeam": "DOTA_UNIT_TARGET_TEAM_ENEMY",
+    "targetType": "",
+    "targetFlags": "",
     "values": {
       "radius": {
         "value": "300 350 400 500",
         "affected_by_aoe_increase": "1"
       },
       "damage_reduction": "60",
-      "duration": "4.0"
+      "duration": "4.0",
+      "neutral_chance_to_cast": "60",
+      "neutral_cast_attempt_cooldown": "8"
     },
     "special": {}
   },
   "alpha_wolf_critical_strike": {
+    "textureName": "alpha_wolf_critical_strike",
     "behavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
     "passive": true,
     "manaCost": "0",
     "cooldown": "0",
     "castRange": "0",
+    "castPoint": "0",
+    "damage": "0",
+    "damageType": "DAMAGE_TYPE_MAGICAL",
+    "targetTeam": "DOTA_UNIT_TARGET_TEAM_ENEMY",
+    "targetType": "",
+    "targetFlags": "",
     "values": {
       "crit_chance": {
         "value": "20"
@@ -2622,11 +3569,18 @@ export const NEUTRAL_ABILITIES = {
     "special": {}
   },
   "alpha_wolf_command_aura": {
+    "textureName": "alpha_wolf_command_aura",
     "behavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
     "passive": true,
     "manaCost": "0",
     "cooldown": "0",
     "castRange": "0",
+    "castPoint": "0",
+    "damage": "0",
+    "damageType": "DAMAGE_TYPE_MAGICAL",
+    "targetTeam": "DOTA_UNIT_TARGET_TEAM_ENEMY",
+    "targetType": "",
+    "targetFlags": "",
     "values": {
       "bonus_damage_pct": "20",
       "radius": {
@@ -2637,37 +3591,62 @@ export const NEUTRAL_ABILITIES = {
     "special": {}
   },
   "enraged_wildkin_tornado": {
+    "textureName": "enraged_wildkin_tornado",
     "behavior": "DOTA_ABILITY_BEHAVIOR_POINT | DOTA_ABILITY_BEHAVIOR_CHANNELLED |DOTA_ABILITY_BEHAVIOR_UNIT_TARGET",
     "passive": false,
     "manaCost": "100",
     "cooldown": "40.0 36.0 32.0 26.0",
     "castRange": "500",
+    "castPoint": "0.4",
+    "damage": "0",
+    "damageType": "DAMAGE_TYPE_MAGICAL",
+    "targetTeam": "DOTA_UNIT_TARGET_TEAM_ENEMY",
+    "targetType": "DOTA_UNIT_TARGET_HERO | DOTA_UNIT_TARGET_BASIC",
+    "targetFlags": "",
     "values": {
       "duration": "15.0",
       "linger_duration": "5.0",
-      "tornado_base_movespeed": "125 140 155 185"
+      "tornado_base_movespeed": "125 140 155 185",
+      "neutral_chance_to_cast": "33",
+      "neutral_cast_attempt_cooldown": "8"
     },
     "special": {}
   },
   "enraged_wildkin_hurricane": {
+    "textureName": "enraged_wildkin_hurricane",
     "behavior": "DOTA_ABILITY_BEHAVIOR_UNIT_TARGET | DOTA_ABILITY_BEHAVIOR_VECTOR_TARGETING | DOTA_ABILITY_BEHAVIOR_DONT_RESUME_MOVEMENT | DOTA_ABILITY_BEHAVIOR_ROOT_DISABLES",
     "passive": false,
     "manaCost": "100",
     "cooldown": "30.0 28.0 26.0 22.0",
     "castRange": "400 500 600 750",
+    "castPoint": "0",
+    "damage": "0",
+    "damageType": "DAMAGE_TYPE_MAGICAL",
+    "targetTeam": "DOTA_UNIT_TARGET_TEAM_BOTH",
+    "targetType": "DOTA_UNIT_TARGET_HERO | DOTA_UNIT_TARGET_CREEP",
+    "targetFlags": "",
     "values": {
       "distance": {
         "value": "400"
-      }
+      },
+      "neutral_chance_to_cast": "60",
+      "neutral_cast_attempt_cooldown": "8"
     },
     "special": {}
   },
   "enraged_wildkin_toughness_aura": {
+    "textureName": "enraged_wildkin_toughness_aura",
     "behavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
     "passive": true,
     "manaCost": "0",
     "cooldown": "0",
     "castRange": "0",
+    "castPoint": "0",
+    "damage": "0",
+    "damageType": "DAMAGE_TYPE_MAGICAL",
+    "targetTeam": "DOTA_UNIT_TARGET_TEAM_ENEMY",
+    "targetType": "",
+    "targetFlags": "",
     "values": {
       "bonus_armor": {
         "value": "3"
@@ -2680,11 +3659,18 @@ export const NEUTRAL_ABILITIES = {
     "special": {}
   },
   "satyr_soulstealer_mana_burn": {
+    "textureName": "satyr_soulstealer_mana_burn",
     "behavior": "DOTA_ABILITY_BEHAVIOR_UNIT_TARGET",
     "passive": false,
     "manaCost": "50",
     "cooldown": "18.0",
     "castRange": "600",
+    "castPoint": "0.3",
+    "damage": "0",
+    "damageType": "DAMAGE_TYPE_MAGICAL",
+    "targetTeam": "DOTA_UNIT_TARGET_TEAM_ENEMY",
+    "targetType": "DOTA_UNIT_TARGET_HERO | DOTA_UNIT_TARGET_BASIC",
+    "targetFlags": "",
     "values": {
       "burn_amount": "20 25 30 35",
       "int_multiplier": "1 1.5 2 2.5"
@@ -2692,11 +3678,18 @@ export const NEUTRAL_ABILITIES = {
     "special": {}
   },
   "forest_troll_high_priest_mana_aura": {
+    "textureName": "forest_troll_high_priest_mana_aura",
     "behavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
     "passive": true,
     "manaCost": "0",
     "cooldown": "0",
     "castRange": "0",
+    "castPoint": "0",
+    "damage": "0",
+    "damageType": "DAMAGE_TYPE_MAGICAL",
+    "targetTeam": "DOTA_UNIT_TARGET_TEAM_ENEMY",
+    "targetType": "",
+    "targetFlags": "",
     "values": {
       "mana_regen": {
         "value": "1.75"
@@ -2712,11 +3705,18 @@ export const NEUTRAL_ABILITIES = {
     "special": {}
   },
   "satyr_hellcaller_shockwave": {
+    "textureName": "satyr_hellcaller_shockwave",
     "behavior": "DOTA_ABILITY_BEHAVIOR_UNIT_TARGET | DOTA_ABILITY_BEHAVIOR_POINT",
     "passive": false,
     "manaCost": "100",
     "cooldown": "8.0",
     "castRange": "700",
+    "castPoint": "0.5",
+    "damage": "110 150 190 230",
+    "damageType": "DAMAGE_TYPE_MAGICAL",
+    "targetTeam": "DOTA_UNIT_TARGET_TEAM_ENEMY",
+    "targetType": "DOTA_UNIT_TARGET_HERO | DOTA_UNIT_TARGET_CREEP",
+    "targetFlags": "",
     "values": {
       "speed": "900",
       "radius_start": {
@@ -2727,16 +3727,25 @@ export const NEUTRAL_ABILITIES = {
         "value": "200",
         "affected_by_aoe_increase": "1"
       },
-      "distance": "1380"
+      "distance": "1100",
+      "neutral_chance_to_cast": "60",
+      "neutral_cast_attempt_cooldown": "8"
     },
     "special": {}
   },
   "satyr_hellcaller_unholy_aura": {
+    "textureName": "satyr_hellcaller_unholy_aura",
     "behavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
     "passive": true,
     "manaCost": "0",
     "cooldown": "0",
     "castRange": "0",
+    "castPoint": "0",
+    "damage": "0",
+    "damageType": "DAMAGE_TYPE_MAGICAL",
+    "targetTeam": "DOTA_UNIT_TARGET_TEAM_ENEMY",
+    "targetType": "",
+    "targetFlags": "",
     "values": {
       "health_regen": {
         "value": "3.0 5.0 7.0 11.0"
@@ -2749,30 +3758,47 @@ export const NEUTRAL_ABILITIES = {
     "special": {}
   },
   "satyr_trickster_purge": {
+    "textureName": "satyr_trickster_purge",
     "behavior": "DOTA_ABILITY_BEHAVIOR_UNIT_TARGET",
     "passive": false,
     "manaCost": "120 115 110 100",
-    "cooldown": "3.0",
-    "castRange": "350 400 450 550",
+    "cooldown": "8.0",
+    "castRange": "400 450 500 600",
+    "castPoint": "0.2",
+    "damage": "0",
+    "damageType": "DAMAGE_TYPE_MAGICAL",
+    "targetTeam": "DOTA_UNIT_TARGET_TEAM_BOTH",
+    "targetType": "DOTA_UNIT_TARGET_HERO | DOTA_UNIT_TARGET_BASIC",
+    "targetFlags": "",
     "values": {
       "purge_rate": {
         "value": "5"
       },
       "duration": {
-        "value": "5"
+        "value": "4"
       },
+      "base_slow": "80",
       "summon_damage": {
         "value": "400"
-      }
+      },
+      "neutral_chance_to_cast": "40",
+      "neutral_cast_attempt_cooldown": "8"
     },
     "special": {}
   },
   "spawnlord_aura": {
+    "textureName": "spawnlord_aura",
     "behavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
     "passive": true,
     "manaCost": "0",
     "cooldown": "0",
     "castRange": "0",
+    "castPoint": "0",
+    "damage": "0",
+    "damageType": "DAMAGE_TYPE_MAGICAL",
+    "targetTeam": "DOTA_UNIT_TARGET_TEAM_ENEMY",
+    "targetType": "",
+    "targetFlags": "",
     "values": {
       "lifesteal": {
         "value": "9 10 11 12"
@@ -2788,11 +3814,18 @@ export const NEUTRAL_ABILITIES = {
     "special": {}
   },
   "spawnlord_master_stomp": {
+    "textureName": "spawnlord_master_stomp",
     "behavior": "DOTA_ABILITY_BEHAVIOR_NO_TARGET",
     "passive": false,
     "manaCost": "100",
     "cooldown": "12.0",
     "castRange": "0",
+    "castPoint": "0.4",
+    "damage": "0",
+    "damageType": "DAMAGE_TYPE_PHYSICAL",
+    "targetTeam": "DOTA_UNIT_TARGET_TEAM_ENEMY",
+    "targetType": "",
+    "targetFlags": "",
     "values": {
       "radius": {
         "value": "300",
@@ -2806,16 +3839,25 @@ export const NEUTRAL_ABILITIES = {
       },
       "armor_reduction_pct": {
         "value": "50"
-      }
+      },
+      "neutral_chance_to_cast": "60",
+      "neutral_cast_attempt_cooldown": "8"
     },
     "special": {}
   },
   "spawnlord_master_freeze": {
+    "textureName": "spawnlord_master_freeze",
     "behavior": "DOTA_ABILITY_BEHAVIOR_UNIT_TARGET | DOTA_ABILITY_BEHAVIOR_AUTOCAST | DOTA_ABILITY_BEHAVIOR_ATTACK",
     "passive": false,
     "manaCost": "0",
     "cooldown": "15",
     "castRange": "150",
+    "castPoint": "0",
+    "damage": "0",
+    "damageType": "DAMAGE_TYPE_PHYSICAL",
+    "targetTeam": "DOTA_UNIT_TARGET_TEAM_ENEMY",
+    "targetType": "DOTA_UNIT_TARGET_HERO | DOTA_UNIT_TARGET_BASIC",
+    "targetFlags": "DOTA_UNIT_TARGET_FLAG_MAGIC_IMMUNE_ENEMIES",
     "values": {
       "duration": {
         "value": "1.2 1.3 1.4 1.5"
@@ -2833,11 +3875,18 @@ export const NEUTRAL_ABILITIES = {
     "special": {}
   },
   "ancient_rock_golem_weakening_aura": {
+    "textureName": "ancient_rock_golem_weakening_aura",
     "behavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
     "passive": true,
     "manaCost": "0",
     "cooldown": "0",
     "castRange": "0",
+    "castPoint": "0",
+    "damage": "0",
+    "damageType": "DAMAGE_TYPE_MAGICAL",
+    "targetTeam": "DOTA_UNIT_TARGET_TEAM_ENEMY",
+    "targetType": "",
+    "targetFlags": "",
     "values": {
       "armor_reduction": "3 4 5 6",
       "radius": {
@@ -2848,11 +3897,18 @@ export const NEUTRAL_ABILITIES = {
     "special": {}
   },
   "granite_golem_hp_aura": {
+    "textureName": "granite_golem_hp_aura",
     "behavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
     "passive": true,
     "manaCost": "0",
     "cooldown": "0",
     "castRange": "0",
+    "castPoint": "0",
+    "damage": "0",
+    "damageType": "DAMAGE_TYPE_MAGICAL",
+    "targetTeam": "DOTA_UNIT_TARGET_TEAM_ENEMY",
+    "targetType": "",
+    "targetFlags": "",
     "values": {
       "bonus_hp": {
         "value": "16 17 18 19"
@@ -2865,24 +3921,41 @@ export const NEUTRAL_ABILITIES = {
     "special": {}
   },
   "ice_shaman_incendiary_bomb": {
+    "textureName": "ice_shaman_incendiary_bomb",
     "behavior": "DOTA_ABILITY_BEHAVIOR_UNIT_TARGET",
     "passive": false,
     "manaCost": "100 95 90 80",
     "cooldown": "30",
     "castRange": "700 725 750 800",
+    "castPoint": "0.35",
+    "damage": "0",
+    "damageType": "DAMAGE_TYPE_MAGICAL",
+    "targetTeam": "DOTA_UNIT_TARGET_TEAM_ENEMY",
+    "targetType": "DOTA_UNIT_TARGET_HERO | DOTA_UNIT_TARGET_BASIC | DOTA_UNIT_TARGET_BUILDING",
+    "targetFlags": "",
     "values": {
       "duration": "8",
       "burn_damage": "50",
-      "building_damage_pct": "25"
+      "building_damage_pct": "25",
+      "health_threshold_pct": "90",
+      "neutral_chance_to_cast": "60",
+      "neutral_cast_attempt_cooldown": "8"
     },
     "special": {}
   },
   "frostbitten_golem_time_warp_aura": {
+    "textureName": "frostbitten_golem_time_warp_aura",
     "behavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
     "passive": true,
     "manaCost": "0",
     "cooldown": "0",
     "castRange": "0",
+    "castPoint": "0",
+    "damage": "0",
+    "damageType": "DAMAGE_TYPE_MAGICAL",
+    "targetTeam": "DOTA_UNIT_TARGET_TEAM_ENEMY",
+    "targetType": "",
+    "targetFlags": "",
     "values": {
       "bonus_cdr": "8 9 10 11",
       "radius": {
@@ -2893,29 +3966,50 @@ export const NEUTRAL_ABILITIES = {
     "special": {}
   },
   "big_thunder_lizard_slam": {
+    "textureName": "big_thunder_lizard_slam",
     "behavior": "DOTA_ABILITY_BEHAVIOR_NO_TARGET",
     "passive": false,
-    "manaCost": "150",
-    "cooldown": "6.0",
+    "manaCost": "50",
+    "cooldown": "15.0",
     "castRange": "0",
+    "castPoint": "0.3",
+    "damage": "175",
+    "damageType": "DAMAGE_TYPE_MAGICAL",
+    "targetTeam": "DOTA_UNIT_TARGET_TEAM_ENEMY",
+    "targetType": "",
+    "targetFlags": "",
     "values": {
       "radius": {
-        "value": "350",
+        "value": "550",
         "affected_by_aoe_increase": "1"
       },
-      "movespeed_slow": "-60",
-      "attack_slow_tooltip": "-60",
+      "base_radius": {
+        "value": "550",
+        "affected_by_aoe_increase": "1"
+      },
+      "radius_increment_per_pulse": "-100",
+      "pulse_count": "3",
+      "pulse_interval": "0.3",
+      "movespeed_slow": "-50",
+      "attack_slow_tooltip": "-50",
       "non_hero_duration": "4.0",
-      "hero_duration": "2.0 2.25 2.5 3.0"
+      "hero_duration": "3.0"
     },
     "special": {}
   },
   "big_thunder_lizard_frenzy": {
+    "textureName": "big_thunder_lizard_frenzy",
     "behavior": "DOTA_ABILITY_BEHAVIOR_UNIT_TARGET",
     "passive": false,
     "manaCost": "75",
     "cooldown": "8.0",
     "castRange": "900",
+    "castPoint": "0.0",
+    "damage": "0",
+    "damageType": "DAMAGE_TYPE_MAGICAL",
+    "targetTeam": "DOTA_UNIT_TARGET_TEAM_FRIENDLY",
+    "targetType": "DOTA_UNIT_TARGET_HERO | DOTA_UNIT_TARGET_BASIC",
+    "targetFlags": "",
     "values": {
       "attackspeed_bonus": {
         "value": "75"
@@ -2927,11 +4021,18 @@ export const NEUTRAL_ABILITIES = {
     "special": {}
   },
   "big_thunder_lizard_wardrums_aura": {
+    "textureName": "big_thunder_lizard_wardrums_aura",
     "behavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
     "passive": true,
     "manaCost": "0",
     "cooldown": "0",
     "castRange": "0",
+    "castPoint": "0",
+    "damage": "0",
+    "damageType": "DAMAGE_TYPE_MAGICAL",
+    "targetTeam": "DOTA_UNIT_TARGET_TEAM_ENEMY",
+    "targetType": "",
+    "targetFlags": "",
     "values": {
       "speed_bonus": {
         "value": "25"
@@ -2947,11 +4048,18 @@ export const NEUTRAL_ABILITIES = {
     "special": {}
   },
   "gnoll_assassin_envenomed_weapon": {
+    "textureName": "gnoll_assassin_envenomed_weapon",
     "behavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
     "passive": true,
     "manaCost": "0",
     "cooldown": "0",
     "castRange": "0",
+    "castPoint": "0",
+    "damage": "0",
+    "damageType": "DAMAGE_TYPE_MAGICAL",
+    "targetTeam": "DOTA_UNIT_TARGET_TEAM_ENEMY",
+    "targetType": "",
+    "targetFlags": "",
     "values": {
       "damage_per_second": {
         "value": "0 20 40 80"
@@ -2968,25 +4076,19 @@ export const NEUTRAL_ABILITIES = {
     },
     "special": {}
   },
-  "creep_piercing": {
-    "behavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
-    "passive": true,
-    "manaCost": "0",
-    "cooldown": "0",
-    "castRange": "0",
-    "values": {
-      "creep_damage_bonus": "50",
-      "hero_damage_penalty": "-50",
-      "heavy_damage_penalty": "-50"
-    },
-    "special": {}
-  },
   "ghost_frost_attack": {
+    "textureName": "ghost_frost_attack",
     "behavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
     "passive": true,
     "manaCost": "0",
     "cooldown": "0",
     "castRange": "0",
+    "castPoint": "0",
+    "damage": "0",
+    "damageType": "DAMAGE_TYPE_MAGICAL",
+    "targetTeam": "DOTA_UNIT_TARGET_TEAM_ENEMY",
+    "targetType": "",
+    "targetFlags": "",
     "values": {
       "movespeed_slow": {
         "value": "-25 -28 -31 -37"
@@ -3000,38 +4102,41 @@ export const NEUTRAL_ABILITIES = {
     },
     "special": {}
   },
-  "berserker_troll_break": {
-    "behavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
-    "passive": true,
-    "manaCost": "0",
-    "cooldown": "10 9 8 6",
-    "castRange": "0",
-    "values": {
-      "duration": {
-        "value": "3"
-      }
-    },
-    "special": {}
-  },
   "forest_troll_high_priest_heal": {
+    "textureName": "forest_troll_high_priest_heal",
     "behavior": "DOTA_ABILITY_BEHAVIOR_UNIT_TARGET | DOTA_ABILITY_BEHAVIOR_DONT_RESUME_ATTACK | DOTA_ABILITY_BEHAVIOR_AUTOCAST",
     "passive": false,
     "manaCost": "60",
     "cooldown": "10 9 8 6",
     "castRange": "350 375 400 450",
+    "castPoint": "0.5",
+    "damage": "0",
+    "damageType": "DAMAGE_TYPE_MAGICAL",
+    "targetTeam": "DOTA_UNIT_TARGET_TEAM_FRIENDLY",
+    "targetType": "DOTA_UNIT_TARGET_HERO | DOTA_UNIT_TARGET_BASIC",
+    "targetFlags": "",
     "values": {
       "health": {
         "value": "100"
-      }
+      },
+      "neutral_chance_to_cast": "100",
+      "neutral_cast_attempt_cooldown": "8"
     },
     "special": {}
   },
   "forest_troll_high_priest_heal_amp_aura": {
+    "textureName": "forest_troll_high_priest_heal_amp_aura",
     "behavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
     "passive": true,
     "manaCost": "0",
     "cooldown": "0",
     "castRange": "0",
+    "castPoint": "0",
+    "damage": "0",
+    "damageType": "DAMAGE_TYPE_MAGICAL",
+    "targetTeam": "DOTA_UNIT_TARGET_TEAM_ENEMY",
+    "targetType": "",
+    "targetFlags": "",
     "values": {
       "heal_amp": {
         "value": "15"
@@ -3044,11 +4149,18 @@ export const NEUTRAL_ABILITIES = {
     "special": {}
   },
   "harpy_scout_take_off": {
+    "textureName": "harpy_scout_take_off",
     "behavior": "DOTA_ABILITY_BEHAVIOR_NO_TARGET | DOTA_ABILITY_BEHAVIOR_TOGGLE | DOTA_ABILITY_BEHAVIOR_IGNORE_CHANNEL",
     "passive": false,
     "manaCost": "20",
     "cooldown": "10",
     "castRange": "0",
+    "castPoint": "1.5",
+    "damage": "0",
+    "damageType": "DAMAGE_TYPE_MAGICAL",
+    "targetTeam": "DOTA_UNIT_TARGET_TEAM_ENEMY",
+    "targetType": "",
+    "targetFlags": "",
     "values": {
       "move_speed_penalty": {
         "value": "50 40 30 10"
@@ -3060,11 +4172,18 @@ export const NEUTRAL_ABILITIES = {
     "special": {}
   },
   "harpy_storm_chain_lightning": {
+    "textureName": "harpy_storm_chain_lightning",
     "behavior": "DOTA_ABILITY_BEHAVIOR_UNIT_TARGET",
     "passive": false,
     "manaCost": "60",
     "cooldown": "4.0",
     "castRange": "900",
+    "castPoint": "0.3",
+    "damage": "0",
+    "damageType": "DAMAGE_TYPE_MAGICAL",
+    "targetTeam": "DOTA_UNIT_TARGET_TEAM_ENEMY",
+    "targetType": "DOTA_UNIT_TARGET_HERO | DOTA_UNIT_TARGET_BASIC",
+    "targetFlags": "",
     "values": {
       "initial_damage": {
         "value": "120 170 220 270"
@@ -3080,16 +4199,25 @@ export const NEUTRAL_ABILITIES = {
       },
       "max_targets": {
         "value": "4"
-      }
+      },
+      "neutral_chance_to_cast": "60",
+      "neutral_cast_attempt_cooldown": "8"
     },
     "special": {}
   },
   "black_drake_magic_amplification_aura": {
+    "textureName": "black_drake_magic_amplification_aura",
     "behavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
     "passive": true,
     "manaCost": "0",
     "cooldown": "0",
     "castRange": "0",
+    "castPoint": "0",
+    "damage": "0",
+    "damageType": "DAMAGE_TYPE_MAGICAL",
+    "targetTeam": "DOTA_UNIT_TARGET_TEAM_ENEMY",
+    "targetType": "",
+    "targetFlags": "",
     "values": {
       "spell_amp": "5 6 7 9",
       "radius": {
@@ -3100,28 +4228,53 @@ export const NEUTRAL_ABILITIES = {
     "special": {}
   },
   "black_dragon_fireball": {
+    "textureName": "black_dragon_fireball",
     "behavior": "DOTA_ABILITY_BEHAVIOR_POINT | DOTA_ABILITY_BEHAVIOR_AOE",
     "passive": false,
     "manaCost": "200",
     "cooldown": "15",
     "castRange": "1000",
+    "castPoint": "0.6",
+    "damage": "0",
+    "damageType": "DAMAGE_TYPE_MAGICAL",
+    "targetTeam": "DOTA_UNIT_TARGET_TEAM_ENEMY",
+    "targetType": "DOTA_UNIT_TARGET_HERO | DOTA_UNIT_TARGET_BASIC",
+    "targetFlags": "",
     "values": {
       "radius": {
-        "value": "300",
+        "value": "150",
         "affected_by_aoe_increase": "1"
       },
-      "damage": "85",
-      "duration": "8.0 9 10 12",
-      "burn_interval": "0.5"
+      "damage": "65 75 85 85",
+      "duration": "5.0 6 7 9",
+      "burn_interval": "0.5",
+      "dive_length": "800",
+      "dive_width": {
+        "value": "400",
+        "affected_by_aoe_increase": "1"
+      },
+      "dive_duration": "1.9",
+      "fireball_spacing": "225",
+      "fireball_forward_offset": "150",
+      "player_cast_point": "0.3",
+      "neutral_chance_to_cast": "60",
+      "neutral_cast_attempt_cooldown": "8"
     },
     "special": {}
   },
   "black_dragon_splash_attack": {
+    "textureName": "black_dragon_splash_attack",
     "behavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
     "passive": true,
     "manaCost": "0",
     "cooldown": "0",
     "castRange": "0",
+    "castPoint": "0",
+    "damage": "0",
+    "damageType": "DAMAGE_TYPE_MAGICAL",
+    "targetTeam": "DOTA_UNIT_TARGET_TEAM_ENEMY",
+    "targetType": "",
+    "targetFlags": "",
     "values": {
       "range": {
         "value": "250",
@@ -3132,11 +4285,18 @@ export const NEUTRAL_ABILITIES = {
     "special": {}
   },
   "black_dragon_dragonhide_aura": {
+    "textureName": "black_dragon_dragonhide_aura",
     "behavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
     "passive": true,
     "manaCost": "0",
     "cooldown": "0",
     "castRange": "0",
+    "castPoint": "0",
+    "damage": "0",
+    "damageType": "DAMAGE_TYPE_MAGICAL",
+    "targetTeam": "DOTA_UNIT_TARGET_TEAM_ENEMY",
+    "targetType": "",
+    "targetFlags": "",
     "values": {
       "bonus_armor": {
         "value": "3"
@@ -3149,11 +4309,18 @@ export const NEUTRAL_ABILITIES = {
     "special": {}
   },
   "frogmen_riverborn_aura": {
+    "textureName": "frogmen_riverborn_aura",
     "behavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
     "passive": true,
     "manaCost": "0",
     "cooldown": "0",
     "castRange": "0",
+    "castPoint": "0",
+    "damage": "0",
+    "damageType": "DAMAGE_TYPE_MAGICAL",
+    "targetTeam": "DOTA_UNIT_TARGET_TEAM_ENEMY",
+    "targetType": "",
+    "targetFlags": "",
     "values": {
       "bonus_movement_speed": {
         "value": "10 12 14 16"
@@ -3169,27 +4336,43 @@ export const NEUTRAL_ABILITIES = {
     "special": {}
   },
   "frogmen_arm_of_the_deep": {
+    "textureName": "frogmen_arm_of_the_deep",
     "behavior": "DOTA_ABILITY_BEHAVIOR_POINT | DOTA_ABILITY_BEHAVIOR_IGNORE_BACKSWING",
     "passive": false,
     "manaCost": "40",
     "cooldown": "16",
     "castRange": "275",
+    "castPoint": "0.3",
+    "damage": "0",
+    "damageType": "DAMAGE_TYPE_MAGICAL",
+    "targetTeam": "DOTA_UNIT_TARGET_TEAM_ENEMY",
+    "targetType": "DOTA_UNIT_TARGET_HERO | DOTA_UNIT_TARGET_BASIC",
+    "targetFlags": "",
     "values": {
       "projectile_width": "100",
       "damage": "80 100 120 140",
       "duration": "0.8",
       "range": "275",
       "speed": "725",
-      "neutral_shared_cooldown": "5.0"
+      "neutral_shared_cooldown": "5.0",
+      "neutral_chance_to_cast": "100",
+      "neutral_cast_attempt_cooldown": "8"
     },
     "special": {}
   },
   "frogmen_tendrils_of_the_deep": {
+    "textureName": "frogmen_tendrils_of_the_deep",
     "behavior": "DOTA_ABILITY_BEHAVIOR_POINT | DOTA_ABILITY_BEHAVIOR_IGNORE_BACKSWING",
     "passive": false,
     "manaCost": "50",
     "cooldown": "18",
     "castRange": "300",
+    "castPoint": "0.3",
+    "damage": "0",
+    "damageType": "DAMAGE_TYPE_MAGICAL",
+    "targetTeam": "DOTA_UNIT_TARGET_TEAM_ENEMY",
+    "targetType": "DOTA_UNIT_TARGET_HERO | DOTA_UNIT_TARGET_BASIC",
+    "targetFlags": "",
     "values": {
       "projectile_width": "100",
       "damage": "120 140 160 180",
@@ -3197,16 +4380,25 @@ export const NEUTRAL_ABILITIES = {
       "range": "300",
       "speed": "725",
       "yaw_offset": "17",
-      "neutral_shared_cooldown": "5.0"
+      "neutral_shared_cooldown": "5.0",
+      "neutral_chance_to_cast": "100",
+      "neutral_cast_attempt_cooldown": "8"
     },
     "special": {}
   },
   "frogmen_congregation_of_the_deep": {
+    "textureName": "frogmen_congregation_of_the_deep",
     "behavior": "DOTA_ABILITY_BEHAVIOR_NO_TARGET",
     "passive": false,
     "manaCost": "70",
     "cooldown": "20",
     "castRange": "0",
+    "castPoint": "0.3",
+    "damage": "0",
+    "damageType": "DAMAGE_TYPE_MAGICAL",
+    "targetTeam": "DOTA_UNIT_TARGET_TEAM_ENEMY",
+    "targetType": "DOTA_UNIT_TARGET_HERO | DOTA_UNIT_TARGET_BASIC",
+    "targetFlags": "",
     "values": {
       "projectile_width": "100",
       "damage": "250 275 300 325",
@@ -3217,47 +4409,74 @@ export const NEUTRAL_ABILITIES = {
       },
       "speed": "725",
       "projectile_count": "6",
-      "neutral_shared_cooldown": "5.0"
+      "neutral_shared_cooldown": "5.0",
+      "neutral_chance_to_cast": "100",
+      "neutral_cast_attempt_cooldown": "8"
     },
     "special": {}
   },
   "frogmen_water_bubble_small": {
+    "textureName": "frogmen_water_bubble_small",
     "behavior": "DOTA_ABILITY_BEHAVIOR_UNIT_TARGET",
     "passive": false,
     "manaCost": "90",
     "cooldown": "16",
     "castRange": "550",
+    "castPoint": "0.3",
+    "damage": "0",
+    "damageType": "DAMAGE_TYPE_MAGICAL",
+    "targetTeam": "DOTA_UNIT_TARGET_TEAM_FRIENDLY",
+    "targetType": "DOTA_UNIT_TARGET_HERO | DOTA_UNIT_TARGET_BASIC",
+    "targetFlags": "DOTA_UNIT_TARGET_FLAG_NOT_MAGIC_IMMUNE_ALLIES",
     "values": {
       "duration": "10",
       "damage_absorb": {
         "value": "100 120 140 160",
         "DamageTypeTooltip": "DAMAGE_TYPE_MAGICAL"
-      }
+      },
+      "neutral_chance_to_cast": "100",
+      "neutral_cast_attempt_cooldown": "8"
     },
     "special": {}
   },
   "frogmen_water_bubble_medium": {
+    "textureName": "frogmen_water_bubble_medium",
     "behavior": "DOTA_ABILITY_BEHAVIOR_UNIT_TARGET",
     "passive": false,
     "manaCost": "100",
     "cooldown": "16",
     "castRange": "550",
+    "castPoint": "0.3",
+    "damage": "0",
+    "damageType": "DAMAGE_TYPE_MAGICAL",
+    "targetTeam": "DOTA_UNIT_TARGET_TEAM_FRIENDLY",
+    "targetType": "DOTA_UNIT_TARGET_HERO | DOTA_UNIT_TARGET_BASIC",
+    "targetFlags": "DOTA_UNIT_TARGET_FLAG_NOT_MAGIC_IMMUNE_ALLIES",
     "values": {
       "duration": "10",
       "heal_pct": "50",
       "damage_absorb": {
         "value": "150 180 210 240",
         "DamageTypeTooltip": "DAMAGE_TYPE_MAGICAL"
-      }
+      },
+      "neutral_chance_to_cast": "100",
+      "neutral_cast_attempt_cooldown": "8"
     },
     "special": {}
   },
   "frogmen_water_bubble_large": {
+    "textureName": "frogmen_water_bubble_large",
     "behavior": "DOTA_ABILITY_BEHAVIOR_UNIT_TARGET",
     "passive": false,
     "manaCost": "110",
     "cooldown": "16",
     "castRange": "550",
+    "castPoint": "0.3",
+    "damage": "0",
+    "damageType": "DAMAGE_TYPE_MAGICAL",
+    "targetTeam": "DOTA_UNIT_TARGET_TEAM_FRIENDLY",
+    "targetType": "DOTA_UNIT_TARGET_HERO | DOTA_UNIT_TARGET_BASIC",
+    "targetFlags": "DOTA_UNIT_TARGET_FLAG_NOT_MAGIC_IMMUNE_ALLIES",
     "values": {
       "duration": "10",
       "radius": {
@@ -3268,16 +4487,181 @@ export const NEUTRAL_ABILITIES = {
       "damage_absorb": {
         "value": "210 240 270 300",
         "DamageTypeTooltip": "DAMAGE_TYPE_MAGICAL"
-      }
+      },
+      "neutral_chance_to_cast": "100",
+      "neutral_cast_attempt_cooldown": "8"
     },
     "special": {}
   },
-  "creep_siege": {
+  "radigull_eggstremism": {
+    "textureName": "radigull_eggstremism",
+    "behavior": "DOTA_ABILITY_BEHAVIOR_POINT | DOTA_ABILITY_BEHAVIOR_UNIT_TARGET",
+    "passive": false,
+    "manaCost": "75",
+    "cooldown": "15",
+    "castRange": "400",
+    "castPoint": "0.4",
+    "damage": "0",
+    "damageType": "DAMAGE_TYPE_MAGICAL",
+    "targetTeam": "DOTA_UNIT_TARGET_TEAM_ENEMY",
+    "targetType": "DOTA_UNIT_TARGET_HERO | DOTA_UNIT_TARGET_BASIC",
+    "targetFlags": "",
+    "values": {
+      "egg_count": "2",
+      "egg_distance": "250",
+      "egg_spread_angle": "40",
+      "fuse_duration": "2.0",
+      "damage": "125 150 175 200",
+      "radius": {
+        "value": "150",
+        "affected_by_aoe_increase": "1"
+      },
+      "slow": "0",
+      "slow_duration": "2",
+      "health_threshold_pct": "90",
+      "neutral_chance_to_cast": "60",
+      "neutral_cast_attempt_cooldown": "8",
+      "tooltip_egg_health": "1",
+      "egg_reveal_delay": "0.3"
+    },
+    "special": {}
+  },
+  "odobenus_blight": {
+    "textureName": "odobenus_footman_odobenus_blight",
     "behavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
     "passive": true,
     "manaCost": "0",
     "cooldown": "0",
     "castRange": "0",
+    "castPoint": "0",
+    "damage": "0",
+    "damageType": "DAMAGE_TYPE_MAGICAL",
+    "targetTeam": "DOTA_UNIT_TARGET_TEAM_ENEMY",
+    "targetType": "",
+    "targetFlags": "",
+    "values": {
+      "armor_reduction": "2 3 4 5",
+      "armor_reduction_duration": "4.0"
+    },
+    "special": {}
+  },
+  "eimermole_miners_aura": {
+    "textureName": "eimermole_miners_aura",
+    "behavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
+    "passive": true,
+    "manaCost": "0",
+    "cooldown": "0",
+    "castRange": "0",
+    "castPoint": "0",
+    "damage": "0",
+    "damageType": "DAMAGE_TYPE_MAGICAL",
+    "targetTeam": "DOTA_UNIT_TARGET_TEAM_ENEMY",
+    "targetType": "",
+    "targetFlags": "",
+    "values": {
+      "restoration_reduction": "20",
+      "radius": {
+        "value": "1000",
+        "affected_by_aoe_increase": "1"
+      }
+    },
+    "special": {}
+  },
+  "eimermole_miners_slam": {
+    "textureName": "eimermole_miners_slam",
+    "behavior": "DOTA_ABILITY_BEHAVIOR_POINT | DOTA_ABILITY_BEHAVIOR_CAN_SELF_CAST | DOTA_ABILITY_BEHAVIOR_DONT_RESUME_MOVEMENT",
+    "passive": false,
+    "manaCost": "50",
+    "cooldown": "12.0",
+    "castRange": "0",
+    "castPoint": "1.0",
+    "damage": "0",
+    "damageType": "DAMAGE_TYPE_MAGICAL",
+    "targetTeam": "DOTA_UNIT_TARGET_TEAM_ENEMY",
+    "targetType": "DOTA_UNIT_TARGET_HERO | DOTA_UNIT_TARGET_BASIC",
+    "targetFlags": "",
+    "values": {
+      "radius": {
+        "value": "300",
+        "affected_by_aoe_increase": "1"
+      },
+      "damage": "50 65 80 95",
+      "slow_pct": "100",
+      "slow_duration": "0.2",
+      "pulse_count": "3",
+      "pulse_interval": "0.3",
+      "neutral_chance_to_cast": "100",
+      "neutral_cast_attempt_cooldown": "8"
+    },
+    "special": {}
+  },
+  "ogre_seal_flop": {
+    "textureName": "ogre_seal_flop",
+    "behavior": "DOTA_ABILITY_BEHAVIOR_NO_TARGET | DOTA_ABILITY_BEHAVIOR_ROOT_DISABLES",
+    "passive": false,
+    "manaCost": "25",
+    "cooldown": "25",
+    "castRange": "0",
+    "castPoint": "0.6",
+    "damage": "0",
+    "damageType": "DAMAGE_TYPE_MAGICAL",
+    "targetTeam": "DOTA_UNIT_TARGET_TEAM_ENEMY",
+    "targetType": "",
+    "targetFlags": "",
+    "values": {
+      "movement_turn_rate": "75",
+      "leap_distance": "400",
+      "leap_speed": "800.0",
+      "leap_acceleration": "1250.0",
+      "radius": {
+        "value": "275",
+        "affected_by_aoe_increase": "1"
+      },
+      "flop_damage": "250",
+      "slow_duration": "1.5",
+      "slow": "-100",
+      "max_bounces": "2",
+      "player_cast_point": "0.3",
+      "neutral_chance_to_cast": "60",
+      "neutral_cast_attempt_cooldown": "8"
+    },
+    "special": {}
+  },
+  "ogre_seal_pup_disapproval_aura": {
+    "textureName": "ogre_seal_pup_disapproval_aura",
+    "behavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
+    "passive": true,
+    "manaCost": "0",
+    "cooldown": "0",
+    "castRange": "0",
+    "castPoint": "0",
+    "damage": "0",
+    "damageType": "DAMAGE_TYPE_MAGICAL",
+    "targetTeam": "DOTA_UNIT_TARGET_TEAM_ENEMY",
+    "targetType": "",
+    "targetFlags": "",
+    "values": {
+      "movespeed_slow": "15 17 19 21",
+      "radius": {
+        "value": "1200",
+        "affected_by_aoe_increase": "1"
+      }
+    },
+    "special": {}
+  },
+  "creep_siege": {
+    "textureName": "creep_siege",
+    "behavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
+    "passive": true,
+    "manaCost": "0",
+    "cooldown": "0",
+    "castRange": "0",
+    "castPoint": "0",
+    "damage": "0",
+    "damageType": "DAMAGE_TYPE_MAGICAL",
+    "targetTeam": "DOTA_UNIT_TARGET_TEAM_ENEMY",
+    "targetType": "",
+    "targetFlags": "",
     "values": {
       "bonus_building_damage": "150",
       "incoming_hero_damage_penalty": "-50",
@@ -3287,11 +4671,18 @@ export const NEUTRAL_ABILITIES = {
     "special": {}
   },
   "backdoor_protection": {
+    "textureName": "backdoor_protection",
     "behavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
     "passive": true,
     "manaCost": "0",
     "cooldown": "0",
     "castRange": "0",
+    "castPoint": "0",
+    "damage": "0",
+    "damageType": "DAMAGE_TYPE_MAGICAL",
+    "targetTeam": "DOTA_UNIT_TARGET_TEAM_ENEMY",
+    "targetType": "",
+    "targetFlags": "",
     "values": {
       "radius": {
         "value": "900"
@@ -3306,11 +4697,18 @@ export const NEUTRAL_ABILITIES = {
     "special": {}
   },
   "backdoor_protection_in_base": {
+    "textureName": "backdoor_protection_in_base",
     "behavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
     "passive": true,
     "manaCost": "0",
     "cooldown": "0",
     "castRange": "0",
+    "castPoint": "0",
+    "damage": "0",
+    "damageType": "DAMAGE_TYPE_MAGICAL",
+    "targetTeam": "DOTA_UNIT_TARGET_TEAM_ENEMY",
+    "targetType": "",
+    "targetFlags": "",
     "values": {
       "activation_time": {
         "value": "15"
@@ -3324,23 +4722,19 @@ export const NEUTRAL_ABILITIES = {
     },
     "special": {}
   },
-  "creep_irresolute": {
-    "behavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
-    "passive": true,
-    "manaCost": "0",
-    "cooldown": "0",
-    "castRange": "0",
-    "values": {
-      "hero_damage_penalty": "-25"
-    },
-    "special": {}
-  },
   "flagbearer_creep_aura_effect": {
+    "textureName": "flagbearer_creep_aura_effect",
     "behavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
     "passive": true,
     "manaCost": "0",
     "cooldown": "0",
     "castRange": "0",
+    "castPoint": "0",
+    "damage": "0",
+    "damageType": "DAMAGE_TYPE_MAGICAL",
+    "targetTeam": "DOTA_UNIT_TARGET_TEAM_ENEMY",
+    "targetType": "",
+    "targetFlags": "",
     "values": {
       "bonus_health_regen": "3",
       "radius": "700",
@@ -3355,11 +4749,18 @@ export const NEUTRAL_ABILITIES = {
     "special": {}
   },
   "roshan_revengeroar": {
+    "textureName": "roshan_revengeroar",
     "behavior": "DOTA_ABILITY_BEHAVIOR_NO_TARGET | DOTA_ABILITY_BEHAVIOR_IGNORE_PSEUDO_QUEUE | DOTA_ABILITY_BEHAVIOR_IGNORE_SILENCE | DOTA_ABILITY_BEHAVIOR_IMMEDIATE",
     "passive": false,
     "manaCost": "0",
     "cooldown": "60.0",
     "castRange": "0",
+    "castPoint": "0",
+    "damage": "0",
+    "damageType": "DAMAGE_TYPE_MAGICAL",
+    "targetTeam": "DOTA_UNIT_TARGET_TEAM_ENEMY",
+    "targetType": "",
+    "targetFlags": "",
     "values": {
       "radius": "600",
       "damage": "50",
@@ -3372,11 +4773,18 @@ export const NEUTRAL_ABILITIES = {
     "special": {}
   },
   "roshan_slam": {
+    "textureName": "roshan_slam",
     "behavior": "DOTA_ABILITY_BEHAVIOR_NO_TARGET",
     "passive": false,
     "manaCost": "0",
     "cooldown": "10.0",
     "castRange": "0",
+    "castPoint": "0.47 0.47 0.47 0.47",
+    "damage": "0",
+    "damageType": "DAMAGE_TYPE_MAGICAL",
+    "targetTeam": "DOTA_UNIT_TARGET_TEAM_ENEMY",
+    "targetType": "",
+    "targetFlags": "",
     "values": {
       "radius": {
         "value": "350"
@@ -3400,11 +4808,18 @@ export const NEUTRAL_ABILITIES = {
     "special": {}
   },
   "roshan_inherent_buffs": {
+    "textureName": "roshan_inherent_buffs",
     "behavior": "DOTA_ABILITY_BEHAVIOR_HIDDEN | DOTA_ABILITY_BEHAVIOR_PASSIVE",
     "passive": true,
     "manaCost": "0",
     "cooldown": "0",
     "castRange": "0",
+    "castPoint": "0",
+    "damage": "0",
+    "damageType": "DAMAGE_TYPE_MAGICAL",
+    "targetTeam": "DOTA_UNIT_TARGET_TEAM_ENEMY",
+    "targetType": "",
+    "targetFlags": "",
     "values": {
       "move_pits_bonus_speed_per_interrupt": "70",
       "move_pits_max_bonus_speed": "300",
@@ -3413,11 +4828,18 @@ export const NEUTRAL_ABILITIES = {
     "special": {}
   },
   "roshan_devotion": {
+    "textureName": "roshan_devotion",
     "behavior": "DOTA_ABILITY_BEHAVIOR_HIDDEN | DOTA_ABILITY_BEHAVIOR_PASSIVE",
     "passive": true,
     "manaCost": "0",
     "cooldown": "0",
     "castRange": "0",
+    "castPoint": "0",
+    "damage": "0",
+    "damageType": "DAMAGE_TYPE_MAGICAL",
+    "targetTeam": "DOTA_UNIT_TARGET_TEAM_ENEMY",
+    "targetType": "",
+    "targetFlags": "",
     "values": {
       "radius": {
         "value": "5"
@@ -3427,11 +4849,18 @@ export const NEUTRAL_ABILITIES = {
     "special": {}
   },
   "roshan_bash": {
+    "textureName": "roshan_bash",
     "behavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
     "passive": true,
     "manaCost": "0",
     "cooldown": "0",
     "castRange": "0",
+    "castPoint": "0",
+    "damage": "0",
+    "damageType": "DAMAGE_TYPE_MAGICAL",
+    "targetTeam": "DOTA_UNIT_TARGET_TEAM_ENEMY",
+    "targetType": "",
+    "targetFlags": "",
     "values": {
       "bash_chance": {
         "value": "15"
@@ -3446,22 +4875,36 @@ export const NEUTRAL_ABILITIES = {
     "special": {}
   },
   "roshan_spell_block": {
+    "textureName": "roshan_spell_block",
     "behavior": "DOTA_ABILITY_BEHAVIOR_PASSIVE",
     "passive": true,
     "manaCost": "0",
     "cooldown": "15.0",
     "castRange": "0",
+    "castPoint": "0",
+    "damage": "0",
+    "damageType": "DAMAGE_TYPE_MAGICAL",
+    "targetTeam": "DOTA_UNIT_TARGET_TEAM_ENEMY",
+    "targetType": "",
+    "targetFlags": "",
     "values": {
       "status_resistance": "25"
     },
     "special": {}
   },
   "roshan_grab_and_throw": {
+    "textureName": "roshan_grab_and_throw",
     "behavior": "DOTA_ABILITY_BEHAVIOR_CHANNELLED  | DOTA_ABILITY_BEHAVIOR_UNIT_TARGET | DOTA_ABILITY_BEHAVIOR_AOE",
     "passive": false,
     "manaCost": "0",
     "cooldown": "1",
     "castRange": "400",
+    "castPoint": "0.25",
+    "damage": "0",
+    "damageType": "DAMAGE_TYPE_PURE",
+    "targetTeam": "DOTA_UNIT_TARGET_TEAM_ENEMY",
+    "targetType": "DOTA_UNIT_TARGET_HERO",
+    "targetFlags": "DOTA_UNIT_TARGET_FLAG_MAGIC_IMMUNE_ENEMIES",
     "values": {
       "interval": "0.75",
       "ministun": "0.2",
@@ -3484,7 +4927,6 @@ export const NEUTRAL_ABILITIES = {
     "special": {}
   }
 };
-
 // Flooded camp upgrades are per individual unit, not an instant whole-camp tier swap.
 // 7.41: rim camps next to safe-lane T2 stop at hard; bounty-rune camps reach ancient.
 export const FLOODED_EVOLUTION_LIMITS = {
@@ -3523,4 +4965,4 @@ export function floodedTier(camp, elapsedSeconds) {
 LANE_CREEPS.flagbearer.sourceXpBounty = LANE_CREEPS.flagbearer.xpBounty;
 LANE_CREEPS.flagbearer.xpBounty = 60;
 for(const [key,extra]of Object.entries(UNIT_EXTRAS))Object.assign(NEUTRAL_UNITS[key],extra);
-for(const [key,extra]of Object.entries(ABILITY_EXTRAS))Object.assign(NEUTRAL_ABILITIES[key],extra);
+for(const [key,extra]of Object.entries(ABILITY_EXTRAS))NEUTRAL_ABILITIES[key]&&Object.assign(NEUTRAL_ABILITIES[key],extra);

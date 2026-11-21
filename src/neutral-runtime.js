@@ -2,7 +2,7 @@ import {NEUTRAL_ABILITIES} from './unit-data.js';
 import {UNIT_SKILL_UI} from './unit-skill-data.js';
 import {CREATURE_RULES,CREATURE_SUMMONS,MARTYRDOM} from './chen-data.js';
 import * as Skills from './hero-runtime.js';
-import {castMartyrdom} from './chen-runtime.js';
+import {castMartyrdom,castAnoint} from './chen-runtime.js';
 import {heal,alive,fighter,building,distance} from './item-common.js';
 import {spendMana,restoreMana} from './mana-runtime.js';
 
@@ -12,18 +12,21 @@ const rank=(unit,raw,fallback=0)=>{
 };
 export const creatureRank=rank;
 const definition=id=>NEUTRAL_ABILITIES[id]||UNIT_SKILL_UI[id]?.definition;
-export const creatureActiveIds=unit=>(unit.abilities||[]).filter(id=>id==='chen_martyrdom'||definition(id)&&!definition(id).passive&&!definition(id).behavior?.includes('HIDDEN'));
+export const creatureActiveIds=unit=>(unit.abilities||[]).filter(id=>id==='chen_martyrdom'||id==='chen_anoint'||definition(id)&&!definition(id).passive&&!definition(id).behavior?.includes('HIDDEN'));
 export function creatureSkill(unit,index){
  const id=creatureActiveIds(unit)[index];
  if(id==='chen_martyrdom')return {...MARTYRDOM,kind:'active',level:1};
+ if(id==='chen_anoint')return {id,name:'祝圣',kind:'active',level:1,mana:0,cooldown:0,range:0,castPoint:0,values:{}};
  const data=definition(id),ui=UNIT_SKILL_UI[id];
  if(!data)return {id:'none',name:'无可用技能',kind:'passive',level:0,values:{},mana:0,cooldown:0,range:0};
  return {id,name:ui?.name||id,description:ui?.description||'',kind:'active',level:1+(unit.abilityLevelBonus||0),icon:'aura',
   values:Object.fromEntries(Object.entries(data.values||{}).map(([k,v])=>[k,rank(unit,v)])),mana:rank(unit,data.manaCost),cooldown:rank(unit,data.cooldown),range:rank(unit,data.castRange),castPoint:rank(unit,data.castPoint),damage:rank(unit,data.damage),
-  damageType:data.damageType?.replace('DAMAGE_TYPE_','').toLowerCase()||'magical',behavior:data.behavior||'DOTA_ABILITY_BEHAVIOR_UNIT_TARGET',...CREATURE_RULES[id]};
+  damageType:data.damageType?.replace('DAMAGE_TYPE_','').toLowerCase()||'magical',behavior:data.behavior||'DOTA_ABILITY_BEHAVIOR_UNIT_TARGET',targetTeam:data.targetTeam,targetType:data.targetType,targetFlags:data.targetFlags,...CREATURE_RULES[id],
+  ...(unit.ownerId&&data.values?.player_cast_point?{castPoint:rank(unit,data.values.player_cast_point)}:{}),
+  ...(unit.ownerId&&id==='ogre_bruiser_ogre_smash'?{castPoint:1.4}:{})};
 }
-const noTargets=new Set(['centaur_khan_war_stomp','polar_furbolg_ursa_warrior_thunder_clap','giant_wolf_intimidate','spawnlord_master_stomp','big_thunder_lizard_slam','dark_troll_warlord_raise_dead','harpy_scout_take_off','frogmen_congregation_of_the_deep']);
-const points=new Set(['ogre_bruiser_ogre_smash','enraged_wildkin_tornado','satyr_hellcaller_shockwave','black_dragon_fireball','frogmen_arm_of_the_deep','frogmen_tendrils_of_the_deep']);
+const noTargets=new Set(['centaur_khan_war_stomp','polar_furbolg_ursa_warrior_thunder_clap','giant_wolf_intimidate','spawnlord_master_stomp','big_thunder_lizard_slam','dark_troll_warlord_raise_dead','harpy_scout_take_off','frogmen_congregation_of_the_deep','ogre_seal_flop']);
+const points=new Set(['ogre_bruiser_ogre_smash','enraged_wildkin_tornado','satyr_hellcaller_shockwave','black_dragon_fireball','frogmen_arm_of_the_deep','frogmen_tendrils_of_the_deep','kobold_disarm','mud_golem_hurl_big_boulder','eimermole_miners_slam','radigull_eggstremism']);
 const friendly=new Set(['ogre_magi_frost_armor','forest_troll_high_priest_heal','big_thunder_lizard_frenzy','frogmen_water_bubble_small','frogmen_water_bubble_medium','frogmen_water_bubble_large']);
 function targetFor(g,unit,skill,point){
  if(noTargets.has(skill.id)||points.has(skill.id))return null;
@@ -38,12 +41,14 @@ export function castCreature(g,unit,index,point){
  const skill=creatureSkill(unit,index),fail=reason=>({ok:false,reason});
  if(!skill.level)return fail('此单位没有对应的主动技能');
  if(skill.id==='chen_martyrdom')return castMartyrdom(g,unit,point);
+ if(skill.id==='chen_anoint')return castAnoint(g,unit);
  if(g.isStunned(unit)||g._tauntSource(unit)||Skills.hasStatusFlag(g,unit,'silenced'))return fail('当前控制状态下无法施法');
  if(unit.neutralCast)return fail('正在施法');
  if(skill.id==='harpy_scout_take_off'&&unit.creatureFlying){delete unit.creatureFlying;delete unit.statuses.creatureFlight;unit.flying=false;return {ok:true};}
  if((unit.abilityCooldowns?.[skill.id]||0)>g.time+1e-7)return fail('技能尚未冷却');
  if((unit.mana||0)<skill.mana)return fail('魔法不足');
  if(skill.id==='enraged_wildkin_hurricane'&&g.isRooted(unit))return fail('缠绕期间无法使用飓风');
+ if(skill.behavior.includes('ROOT_DISABLES')&&g.isRooted(unit))return fail('缠绕期间无法使用');
  const aim=point&&Number.isFinite(point.x)&&Number.isFinite(point.y)?point:{x:unit.x+Math.cos(unit.angle||0)*100,y:unit.y+Math.sin(unit.angle||0)*100};
  const target=targetFor(g,unit,skill,aim);
  if(!noTargets.has(skill.id)&&!points.has(skill.id)&&!target)return fail('请选择有效的技能目标');
@@ -107,12 +112,14 @@ function releaseCreature(g,unit){
   case 'dark_troll_warlord_ensnare':missile(g,unit,target,skill,'ensnare',v.net_speed);break;
   case 'warpine_raider_seed_shot':case 'harpy_storm_chain_lightning':{
    const seed=skill.id==='warpine_raider_seed_shot';
-   g.pendingSpells.push({type:'creatureChain',sourceId:unit.id,targetId:target.id,team:unit.team,skill,landAt:g.time,damage:seed?v.damage:v.initial_damage,remaining:seed?v.bounces:v.max_targets,hits:[]});break;
+    g.pendingSpells.push({type:'creatureChain',sourceId:unit.id,targetId:target.id,team:unit.team,skill,landAt:g.time,damage:seed?v.damage:v.initial_damage,remaining:seed?v.bounces:v.max_targets,hits:[],snowball:seed&&unit.unitId==='odobenus_frostmage'});break;
   }
   case 'satyr_soulstealer_mana_burn':hit(target,spendMana(target,v.burn_amount+v.int_multiplier*(target.intelligence||0)));effect(g,unit,target);break;
+  case 'necronomicon_archer_mana_burn':hit(target,spendMana(target,v.burn_amount));effect(g,unit,target);break;
+  case 'necronomicon_archer_purge':for(const [id,status]of Object.entries(target.statuses||{}))if(status.positive&&!status.undispellable)delete target.statuses[id];debuff(g,target,unit,skill,{slowPct:100,decayingSlow:true,decayRate:v.purge_rate});break;
   case 'satyr_trickster_purge':
    if(target.team===unit.team)Skills.applyDispel(g,target,false);
-   else{for(const [id,s]of Object.entries(target.statuses||{}))if(s.positive&&!s.undispellable)delete target.statuses[id];debuff(g,target,unit,skill,{slowPct:100,decayingSlow:true,decayRate:v.purge_rate});if(target.ownerId)hit(target,v.summon_damage);}
+   else{for(const [id,s]of Object.entries(target.statuses||{}))if(s.positive&&!s.undispellable)delete target.statuses[id];debuff(g,target,unit,skill,{slowPct:80,decayingSlow:true,decayRate:v.purge_rate});if(target.ownerId)hit(target,v.summon_damage);}
    effect(g,unit,target);break;
   case 'ogre_magi_frost_armor':Skills.addStatus(g,target,skill.id,{name:skill.name,positive:true,sourceId:unit.id,icon:'snow',duration:v.duration,armor:v.armor_bonus,creatureFrostArmor:true,slowPctOnAttack:Math.abs(v.movespeed_slow),attackSlowOnAttack:Math.abs(v.attackspeed_slow),slowDuration:v.slow_duration});effect(g,unit,target);break;
   case 'big_thunder_lizard_frenzy':Skills.addStatus(g,target,skill.id,{name:skill.name,positive:true,sourceId:unit.id,icon:'aura',duration:v.duration,attackSpeed:v.attackspeed_bonus});effect(g,unit,target);break;
@@ -123,7 +130,24 @@ function releaseCreature(g,unit){
   case 'satyr_hellcaller_shockwave':case 'frogmen_arm_of_the_deep':line(g,unit,skill,point);break;
   case 'frogmen_tendrils_of_the_deep':for(const angle of [-1,0,1])line(g,unit,skill,point,angle*v.yaw_offset*Math.PI/180);break;
   case 'frogmen_congregation_of_the_deep':for(let i=0;i<v.projectile_count;i++)line(g,unit,skill,{x:unit.x+100,y:unit.y},i*Math.PI*2/v.projectile_count);break;
-  case 'black_dragon_fireball':g.pendingSpells.push({type:'creatureFireball',sourceId:unit.id,team:unit.team,skill,x:point.x,y:point.y,nextTick:g.time+v.burn_interval,landAt:Infinity,until:g.time+v.duration});effect(g,unit,point,v.radius);break;
+  case 'black_dragon_fireball':{
+   const angle=Math.atan2(point.y-unit.y,point.x-unit.x);unit.creatureMotion={kind:'swoop',origin:{x:unit.x,y:unit.y},angle,start:g.time,duration:v.dive_duration,skill,nextFire:g.time};unit.neutralChannel={until:g.time+v.dive_duration};break;
+  }
+  case 'kobold_disarm':line(g,unit,{...skill,damage:v.base_damage,values:{...v,distance:500,projectile_width:v.radius}},point);break;
+  case 'mud_golem_hurl_big_boulder':{
+   const d=distance(unit,point),duration=v.min_travel_time+(v.max_travel_time-v.min_travel_time)*Math.min(1,d/skill.range);
+   g.pendingSpells.push({type:'creatureBigBoulder',sourceId:unit.id,team:unit.team,skill,x:point.x,y:point.y,landAt:g.time+duration});effect(g,unit,point,v.impact_radius);break;
+  }
+  case 'radigull_eggstremism':{
+   const angle=Math.atan2(point.y-unit.y,point.x-unit.x);
+   for(const side of [-1,1]){const egg=g._unit('summon',unit.team,point.x+Math.cos(angle+Math.PI/2)*90*side,point.y+Math.sin(angle+Math.PI/2)*90*side,{name:'狂海鸥爆裂蛋',sourceId:'npc_dota_radigull_egg',radigullEgg:true,pipHealth:true,maxHp:1,range:0,damage:0,speed:0,attackCooldown:Infinity,radius:16,abilities:[],expiresAt:g.time+v.fuse_duration,eggSourceId:unit.id});g.entities.push(egg);g.pendingSpells.push({type:'creatureEgg',sourceId:unit.id,eggId:egg.id,team:unit.team,skill,landAt:egg.expiresAt});}break;
+  }
+  case 'eimermole_miners_slam':{
+   const angle=Math.atan2(point.y-unit.y,point.x-unit.x);g.pendingSpells.push({type:'creatureSlam',sourceId:unit.id,team:unit.team,skill,x:unit.x+Math.cos(angle)*150,y:unit.y+Math.sin(angle)*150,landAt:g.time,pulses:0});break;
+  }
+  case 'ogre_seal_flop':{
+   const angle=Math.atan2(point.y-unit.y,point.x-unit.x);unit.creatureMotion={kind:'flop',origin:{x:unit.x,y:unit.y},angle,start:g.time,duration:v.leap_distance/v.leap_speed*v.max_bounces,skill,landed:0};unit.neutralChannel={until:g.time+unit.creatureMotion.duration};break;
+  }
   case 'enraged_wildkin_hurricane':{
    const dir=point.direction||{x:Math.cos(unit.angle||0),y:Math.sin(unit.angle||0)},length=Math.hypot(dir.x,dir.y)||1;
    target.forcedMotion={kind:'push',dx:dir.x/length,dy:dir.y/length,distance:v.distance,traveled:0,startedAt:g.time,until:g.time+.4};Skills.interruptCast(g,target,false);break;
@@ -149,9 +173,10 @@ export function autoCastCreature(g,unit,target){
  for(const [index,id]of creatureActiveIds(unit).entries()){
   if(manual&&!['forest_troll_high_priest_heal','ogre_magi_frost_armor','spawnlord_master_freeze'].includes(id)||unit.creatureAutocast?.[id]===false)continue;
   const s=creatureSkill(unit,index);if((unit.abilityCooldowns?.[id]||0)>g.time||(unit.mana||0)<s.mana)continue;
+  if(!unit.ownerId){unit.neutralCastAttempts||={};if((unit.neutralCastAttempts[id]||0)>g.time)continue;unit.neutralCastAttempts[id]=g.time+(s.values.neutral_cast_attempt_cooldown||1);if(g._random()*100>(s.values.neutral_chance_to_cast||100))continue;}
   let aim=target;
   if(friendly.has(id))aim=g.entities.filter(e=>alive(e)&&fighter(e)&&e.team===unit.team&&distance(e,unit)<=s.range&&(id==='forest_troll_high_priest_heal'?e.hp<e.maxHp-40:!e.statuses?.[id])).sort((a,b)=>a.hp/a.maxHp-b.hp/b.maxHp)[0];
-  if(noTargets.has(id)&&id!=='dark_troll_warlord_raise_dead'&&(!target||distance(unit,target)>(s.values.radius||300)))continue;
+  if(noTargets.has(id)&&id!=='dark_troll_warlord_raise_dead'&&(!target||distance(unit,target)>(id==='ogre_seal_flop'?800:(s.values.radius||300))))continue;
   if(id==='chen_martyrdom'&&unit.hp/unit.maxHp>.35)continue;
   if(aim&&castCreature(g,unit,index,aim).ok)return true;
  }
@@ -165,22 +190,24 @@ const auraFields={
  spawnlord_aura:{creatureRegen:'hp_regen',creatureLifesteal:'lifesteal'},ancient_rock_golem_weakening_aura:{armor:'armor_reduction'},granite_golem_hp_aura:{creatureHpPct:'bonus_hp'},
  frostbitten_golem_time_warp_aura:{creatureCdr:'bonus_cdr'},big_thunder_lizard_wardrums_aura:{flatSpeed:'speed_bonus',creatureAccuracy:'accuracy'},forest_troll_high_priest_heal_amp_aura:{creatureHealAmp:'heal_amp'},
  black_drake_magic_amplification_aura:{creatureSpellAmp:'spell_amp'},black_dragon_dragonhide_aura:{armor:'bonus_armor'},frogmen_riverborn_aura:{movePercent:'bonus_movement_speed',creatureDamagePct:'bonus_outgoing_damage'},kobold_tunneler_prospecting:{creatureGpm:'gpm_aura'},
+ eimermole_miners_aura:{healReduction:'restoration_reduction'},ogre_seal_pup_disapproval_aura:{slowPct:'movespeed_slow'},
 };
 function tickAuras(g){
- const sources=g.entities.filter(e=>alive(e)&&e.ownerId&&e.abilities?.some(id=>auraFields[id])&&!Skills.hasStatusFlag(g,e,'break'));
+ const sources=g.entities.filter(e=>alive(e)&&(e.ownerId||['eimermole','ogre_seal_pup'].includes(e.unitId))&&e.abilities?.some(id=>auraFields[id])&&!Skills.hasStatusFlag(g,e,'break'));
  if(!sources.length&&!g._hadCreatureAuras)return;g._hadCreatureAuras=!!sources.length;
  for(const unit of g.entities){
   if(!alive(unit)||!fighter(unit))continue;
   const buffs=new Map();
   for(const source of sources)for(const id of source.abilities||[]){
    const fields=auraFields[id],a=definition(id);if(!fields||!a)continue;
-   const enemy=id==='ancient_rock_golem_weakening_aura';if(enemy?unit.team===source.team:unit.team!==source.team)continue;
+   const enemy=['ancient_rock_golem_weakening_aura','eimermole_miners_aura','ogre_seal_pup_disapproval_aura'].includes(id);if(enemy?unit.team===source.team:unit.team!==source.team)continue;
+   if(enemy&&Skills.debuffImmune(g,unit))continue;
    if(id==='kobold_tunneler_prospecting'&&unit.kind!=='hero')continue;
    if(distance(source,unit)>rank(source,a.values.radius))continue;
-   const data={sourceId:source.id};for(const [field,key]of Object.entries(fields))data[field]=rank(source,a.values[id==='mudgolem_cloak_aura'&&unit.kind!=='hero'?'bonus_magical_armor_creeps':key])*(enemy?-1:1);
+   const data={sourceId:source.id};for(const [field,key]of Object.entries(fields))data[field]=rank(source,a.values[id==='mudgolem_cloak_aura'&&unit.kind!=='hero'?'bonus_magical_armor_creeps':key])*(enemy&&field==='armor'?-1:1);
    const previous=buffs.get(id);if(!previous||Object.entries(data).some(([key,n])=>key!=='sourceId'&&Math.abs(n)>Math.abs(previous[key]||0)))buffs.set(id,data);
   }
-  for(const [id,data]of buffs)Skills.addStatus(g,unit,'creatureAura:'+id,{name:UNIT_SKILL_UI[id]?.name||id,icon:'aura',positive:id!=='ancient_rock_golem_weakening_aura',duration:.1,creatureAura:true,...data});
+  for(const [id,data]of buffs)Skills.addStatus(g,unit,'creatureAura:'+id,{name:UNIT_SKILL_UI[id]?.name||id,icon:'aura',positive:!['ancient_rock_golem_weakening_aura','eimermole_miners_aura','ogre_seal_pup_disapproval_aura'].includes(id),duration:.1,creatureAura:true,...data});
   for(const [id,status]of Object.entries(unit.statuses||{}))if(status.creatureAura&&!buffs.has(id.slice('creatureAura:'.length)))delete unit.statuses[id];
   const hpPct=Math.max(0,...[...buffs.values()].map(s=>s.creatureHpPct||0)),base=unit.maxHp-(unit.creatureHpBonus||0),bonus=base*hpPct/100;
   unit.creatureHpPct=hpPct;
@@ -215,18 +242,20 @@ export function creatureAfterAttack(g,unit,target,result,dealt){
  const statuses=liveStatuses(g,unit),lifesteal=statuses.reduce((n,s)=>n+(s.creatureLifesteal||0),0);
  if(dealt>0&&lifesteal)heal(g,unit,dealt*lifesteal/100,unit);
  for(const s of liveStatuses(g,target))if(s.creatureFrostArmor)debuff(g,unit,target,{id:'creatureFrostSlow',name:'寒冰盔甲减速',description:'寒冰盔甲降低攻击者移动与攻击速度。',values:{}},{slowPct:s.slowPctOnAttack,attackSlow:s.attackSlowOnAttack},s.slowDuration);
- if(!unit.ownerId||Skills.hasStatusFlag(g,unit,'break'))return;
+ if(Skills.hasStatusFlag(g,unit,'break'))return;
  for(const id of unit.abilities||[]){
   const a=definition(id);if(!a)continue;const v=Object.fromEntries(Object.entries(a.values||{}).map(([k,n])=>[k,rank(unit,n)])),skill={id,name:UNIT_SKILL_UI[id]?.name||id,description:UNIT_SKILL_UI[id]?.description||'',values:v};
   if(id==='ghost_frost_attack')debuff(g,target,unit,skill,{slowPct:Math.abs(v.movespeed_slow),attackSlow:Math.abs(v.attackspeed_slow)});
   if(id==='gnoll_assassin_envenomed_weapon')debuff(g,target,unit,skill,{healReduction:v.regen_reduction,tickDamage:v.damage_per_second,tickInterval:1,nextTick:g.time+1,damageType:'magical'},target.kind==='hero'?v.hero_duration:v.non_hero_duration);
   if(id==='berserker_troll_break'&&(unit.abilityCooldowns?.[id]||0)<=g.time){debuff(g,target,unit,skill,{break:true});unit.abilityCooldowns[id]=g.time+rank(unit,a.cooldown);}
-  if(id==='kobold_disarm'&&(unit.abilityCooldowns?.[id]||0)<=g.time){unit.koboldHits=(unit.koboldHits||0)+1;if(unit.koboldHits>=3){unit.koboldHits=0;debuff(g,target,unit,skill,{disarmed:true});unit.abilityCooldowns[id]=g.time+rank(unit,a.cooldown);}}
+  if(id==='odobenus_blight')debuff(g,target,unit,skill,{armor:-v.armor_reduction},v.armor_reduction_duration);
+  if(id==='necronomicon_warrior_mana_burn'){const burned=spendMana(target,v.burn_amount);g.damage(target,burned*v.burn_damage_conversion/100,unit,'physical',{attackDamage:true});}
   if(id==='black_dragon_splash_attack')for(const other of enemies(g,unit,target,v.range))if(other!==target)g.damage(other,result.damage*v.damage_percent/100,unit,'physical',{attackDamage:true});
  }
 }
-export function creatureDeath(g,unit){
+export function creatureDeath(g,unit,killer){
  if(!unit.ownerId)return;
+ if(unit.abilities?.includes('necronomicon_warrior_last_will')&&alive(killer)&&!Skills.hasStatusFlag(g,unit,'break'))g.damage(killer,rank(unit,definition('necronomicon_warrior_last_will').values.explosion),unit,'magical');
  for(const id of ['furbolg_enrage_attack_speed','furbolg_enrage_damage'])if(unit.abilities?.includes(id)){
   const a=definition(id),v=Object.fromEntries(Object.entries(a.values).map(([k,n])=>[k,rank(unit,n)]));
   for(const ally of g.entities)if(alive(ally)&&ally.team===unit.team&&fighter(ally)&&distance(ally,unit)<=v.radius)Skills.addStatus(g,ally,id,{name:UNIT_SKILL_UI[id]?.name,positive:true,icon:'aura',duration:v.duration,attackSpeed:v.bonus_aspd||0,creatureDamagePct:v.bonus_dmg_pct||0});
@@ -241,6 +270,27 @@ export function tickCreatureWorld(g){
  if(g.time>=(g._nextCreatureAuraAt||0)){tickAuras(g);g._nextCreatureAuraAt=g.time+.05;}
  for(const unit of g.entities){
   if(!alive(unit))continue;
+  if(unit.kind==='neutral'&&!unit.isRoshan&&!unit.isTormentor&&unit.neutralGrowth!=null){
+   const growth=Math.min(30,Math.floor((g.time+1e-7)/450)),delta=growth-unit.neutralGrowth,minutes=Math.floor((g.time+1e-7)/60),old=unit.neutralBountyMinutes||0;
+   if(delta>0){unit.maxHp+=30*delta;unit.hp+=30*delta;unit.damage+=3*delta;unit.damageMin+=3*delta;unit.damageMax+=3*delta;unit.armor+=.5*delta;unit.xpBounty+=4*delta;unit.attackSpeed+=5*delta;unit.attackInterval=unit.baseAttackTime*100/unit.attackSpeed;unit.neutralGrowth=growth;}
+   if(minutes>old){unit.goldMin+=Math.ceil(minutes/2)-Math.ceil(old/2);unit.goldMax+=Math.floor(minutes/2)-Math.floor(old/2);unit.neutralBountyMinutes=minutes;}
+  }
+  if(unit.abilities?.includes('necronomicon_warrior_sight'))unit.trueSight=rank(unit,definition('necronomicon_warrior_sight').values.radius);
+  if(unit.creatureMotion){
+   const motion=unit.creatureMotion,v=motion.skill.values;
+   if(g.isStunned(unit)||g.isRooted(unit)||Skills.hasStatusFlag(g,unit,'hexed')){unit.creatureMotion=null;unit.neutralChannel=null;unit.flying=false;continue;}
+   const progress=Math.min(1,(g.time-motion.start)/motion.duration),cos=Math.cos(motion.angle),sin=Math.sin(motion.angle);
+   if(motion.kind==='swoop'){
+    const along=Math.sin(progress*Math.PI)*v.dive_length,across=Math.sin(progress*Math.PI*2)*v.dive_width/2;
+    unit.flying=true;unit.x=motion.origin.x+cos*along-sin*across;unit.y=motion.origin.y+sin*along+cos*across;
+    if(g.time>=motion.nextFire){motion.nextFire=g.time+.15;g.pendingSpells.push({type:'creatureFireball',sourceId:unit.id,team:unit.team,skill:motion.skill,x:unit.x,y:unit.y,nextTick:g.time+v.burn_interval,landAt:Infinity,until:g.time+v.duration});effect(g,unit,unit,v.radius);}
+   }else{
+    const traveled=progress*v.leap_distance*v.max_bounces;unit.x=motion.origin.x+cos*traveled;unit.y=motion.origin.y+sin*traveled;
+    while(motion.landed<Math.floor(progress*v.max_bounces+1e-7)){motion.landed++;const landing={x:motion.origin.x+cos*v.leap_distance*motion.landed,y:motion.origin.y+sin*v.leap_distance*motion.landed};for(const enemy of enemies(g,unit,landing,250)){g.damage(enemy,v.flop_damage,unit,'magical');debuff(g,enemy,unit,motion.skill,{slowPct:Math.abs(v.slow)},v.slow_duration);}effect(g,unit,landing,250);}
+   }
+   unit.moving=true;unit.navPath=null;
+   if(progress>=1){unit.creatureMotion=null;unit.neutralChannel=null;unit.flying=false;}
+  }
   for(const s of Object.values(unit.statuses||{}))if(s.creatureBubble&&s.until<=g.time+1e-7)burstBubble(g,unit,s);
   const regen=liveStatuses(g,unit).reduce((n,s)=>n+(s.creatureManaRegen||0),0);if(regen)restoreMana(unit,regen*dt);
   const gpm=liveStatuses(g,unit).reduce((n,s)=>n+(s.creatureGpm||0),0);if(gpm)unit.gold+=gpm/60*dt;
@@ -265,19 +315,26 @@ export function tickCreatureWorld(g){
     else{g.damage(target,target.kind==='hero'?v.damage:v.damage_creeps,source,'magical');Skills.applyStun(g,target,v.duration,source);}effect(g,source,target);complete.add(spell);
    }else{spell.x+=(target.x-spell.x)/d*travel;spell.y+=(target.y-spell.y)/d*travel;g._effect('projectile',spell.x,spell.y,{tx:target.x,ty:target.y,tracked:true,color:'#c1d4bc',radius:18,life:.06});}
   }else if(spell.type==='creatureChain'&&spell.landAt<=g.time+1e-7){
-   if(!alive(target)){complete.add(spell);continue;}g.damage(target,spell.damage,source,'magical');effect(g,source,target);
-   const seed=s.id==='warpine_raider_seed_shot';if(seed)debuff(g,target,source,s,{slowPct:v.slow});spell.hits.push(target.id);spell.remaining--;
-   const next=enemies(g,source,target,seed?v.bounce_range:v.jump_range).filter(e=>!spell.hits.includes(e.id)).sort((a,b)=>distance(a,target)-distance(b,target))[0];
+   if(!alive(target)){complete.add(spell);continue;}if(spell.snowball&&target.team===source.team)heal(g,target,spell.damage,source);else{g.damage(target,spell.damage,source,'magical');if(s.id==='warpine_raider_seed_shot')debuff(g,target,source,s,{slowPct:v.slow});}effect(g,source,target);
+   const seed=s.id==='warpine_raider_seed_shot';spell.hits.push(target.id);spell.remaining--;
+   const candidates=spell.snowball?g.entities.filter(e=>alive(e)&&fighter(e)&&e!==target&&distance(e,target)<=v.bounce_range&&!Skills.isInvulnerable(g,e)):enemies(g,source,target,seed?v.bounce_range:v.jump_range);
+   const next=candidates.filter(e=>!spell.hits.includes(e.id)).sort((a,b)=>distance(a,target)-distance(b,target))[0]||(spell.snowball?candidates.sort((a,b)=>distance(a,target)-distance(b,target))[0]:null);
    if(!next||spell.remaining<=0)complete.add(spell);else{spell.targetId=next.id;spell.landAt=g.time+(seed?v.bounce_delay:v.jump_delay);if(!seed)spell.damage*=1-v.damage_percent_loss/100;}
   }else if(spell.type==='creatureLine'){
    const speed=v.speed||900,travel=Math.min(speed*Math.max(0,g.time-spell.lastTick),(v.distance||v.range)-spell.traveled);spell.lastTick=g.time;
    const start={x:spell.x,y:spell.y};spell.x+=spell.dir.x*travel;spell.y+=spell.dir.y*travel;spell.traveled+=travel;
    for(const enemy of g.entities)if(alive(enemy)&&fighter(enemy)&&enemy.team!==source.team&&!spell.hits.includes(enemy.id)){
     const dx=enemy.x-start.x,dy=enemy.y-start.y,along=Math.max(0,Math.min(travel,dx*spell.dir.x+dy*spell.dir.y)),width=v.projectile_width||v.radius_end;
-    if(Math.hypot(dx-spell.dir.x*along,dy-spell.dir.y*along)<=width+(enemy.radius||0)){spell.hits.push(enemy.id);g.damage(enemy,s.damage||v.damage,source,'magical');if(v.duration)Skills.applyStun(g,enemy,v.duration,source);}
+    if(Math.hypot(dx-spell.dir.x*along,dy-spell.dir.y*along)<=width+(enemy.radius||0)){spell.hits.push(enemy.id);g.damage(enemy,s.damage||v.damage,source,'magical');if(s.id==='kobold_disarm')debuff(g,enemy,source,s,{break:true},Math.min(4.5,v.break_duration));else if(v.duration)Skills.applyStun(g,enemy,v.duration,source);}
    }g._effect('beam',start.x,start.y,{tx:spell.x,ty:spell.y,color:'#b2d5bd',life:.1});if(spell.traveled>=(v.distance||v.range)-1e-7)complete.add(spell);
+  }else if(spell.type==='creatureEgg'&&spell.landAt<=g.time+1e-7){
+   const egg=g.entities.find(e=>e.id===spell.eggId);if(alive(egg)){for(const enemy of enemies(g,source,egg,v.radius)){g.damage(enemy,v.damage,source,'magical');debuff(g,enemy,source,s,{silenced:true},2);}g._kill(egg,null);effect(g,source,egg,v.radius);}complete.add(spell);
+  }else if(spell.type==='creatureBigBoulder'&&spell.landAt<=g.time+1e-7){
+   for(const enemy of enemies(g,source,spell,v.impact_radius)){g.damage(enemy,v.base_damage,source,'physical');Skills.applyStun(g,enemy,v.stun_duration,source);}effect(g,source,spell,v.impact_radius);complete.add(spell);
+  }else if(spell.type==='creatureSlam'&&spell.landAt<=g.time+1e-7){
+   for(const enemy of enemies(g,source,spell,v.radius)){g.damage(enemy,v.damage,source,'magical');debuff(g,enemy,source,s,{slowPct:v.slow_pct},v.slow_duration);}effect(g,source,spell,v.radius);spell.pulses++;spell.landAt+=v.pulse_interval;if(spell.pulses>=v.pulse_count)complete.add(spell);
   }else if(spell.type==='creatureFireball'){
-   while(spell.nextTick<=Math.min(g.time,spell.until)+1e-7){for(const enemy of enemies(g,source,spell,v.radius))g.damage(enemy,v.damage*v.burn_interval,source,'magical');spell.nextTick+=v.burn_interval;effect(g,source,spell,v.radius);}
+   while(spell.nextTick<=Math.min(g.time,spell.until)+1e-7){for(const enemy of enemies(g,source,spell,v.radius)){enemy.creatureFireTicks||={};if(g.time>=(enemy.creatureFireTicks[source.id]||0)){g.damage(enemy,v.damage*v.burn_interval,source,'magical');enemy.creatureFireTicks[source.id]=g.time+v.burn_interval;}}spell.nextTick+=v.burn_interval;effect(g,source,spell,v.radius);}
    if(spell.until<=g.time)complete.add(spell);
   }
  }if(complete.size)g.pendingSpells=g.pendingSpells.filter(s=>!complete.has(s));

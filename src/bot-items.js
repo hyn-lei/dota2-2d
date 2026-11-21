@@ -4,6 +4,7 @@ import * as Courier from './courier.js';
 
 // Milestones survive assembly and sale: slot count is never a purchase limit.
 export const BOT_BUILDS=Object.freeze({
+  chaos_knight:['boots','bracer','magic_wand','power_treads','armlet','echo_sabre','manta','black_king_bar','aghanims_shard','ultimate_scepter','heart','assault','satanic','ultimate_scepter_2'],
   chen:['boots','magic_wand','arcane_boots','mekansm','holy_locket','guardian_greaves','aghanims_shard','pipe','ultimate_scepter','force_staff','support_counter','ultimate_scepter_2','refresher'],
   drow_ranger:['boots','wraith_band','magic_wand','power_treads','dragon_lance','manta','black_king_bar','aghanims_shard','ultimate_scepter','hurricane_pike','carry_counter','satanic','ultimate_scepter_2','moon_shard'],
   juggernaut:['boots','wraith_band','magic_wand','phase_boots','bfury','manta','black_king_bar','aghanims_shard','carry_counter','satanic','ultimate_scepter','ultimate_scepter_2','moon_shard'],

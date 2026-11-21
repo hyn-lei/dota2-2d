@@ -173,7 +173,8 @@
     "TeamName": "DOTA_TEAM_BADGUYS",
     "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
     "VisionDaytimeRange": "750",
-    "VisionNighttimeRange": "750"
+    "VisionNighttimeRange": "750",
+    "show_occluded_outline": "1"
   },
   "npc_dota_creep_badguys_ranged_upgraded": {
     "BaseClass": "npc_dota_creep_lane",
@@ -224,7 +225,8 @@
     "TeamName": "DOTA_TEAM_BADGUYS",
     "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
     "VisionDaytimeRange": "750",
-    "VisionNighttimeRange": "750"
+    "VisionNighttimeRange": "750",
+    "show_occluded_outline": "1"
   },
   "npc_dota_creep_badguys_ranged_upgraded_mega": {
     "BaseClass": "npc_dota_creep_lane",
@@ -275,7 +277,8 @@
     "TeamName": "DOTA_TEAM_BADGUYS",
     "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
     "VisionDaytimeRange": "750",
-    "VisionNighttimeRange": "750"
+    "VisionNighttimeRange": "750",
+    "show_occluded_outline": "1"
   },
   "npc_dota_creep_goodguys_ranged": {
     "BaseClass": "npc_dota_creep_lane",
@@ -326,7 +329,8 @@
     "TeamName": "DOTA_TEAM_GOODGUYS",
     "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
     "VisionDaytimeRange": "750",
-    "VisionNighttimeRange": "750"
+    "VisionNighttimeRange": "750",
+    "show_occluded_outline": "1"
   },
   "npc_dota_creep_goodguys_ranged_upgraded": {
     "BaseClass": "npc_dota_creep_lane",
@@ -377,7 +381,8 @@
     "TeamName": "DOTA_TEAM_GOODGUYS",
     "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
     "VisionDaytimeRange": "750",
-    "VisionNighttimeRange": "750"
+    "VisionNighttimeRange": "750",
+    "show_occluded_outline": "1"
   },
   "npc_dota_creep_goodguys_ranged_upgraded_mega": {
     "BaseClass": "npc_dota_creep_lane",
@@ -428,7 +433,8 @@
     "TeamName": "DOTA_TEAM_GOODGUYS",
     "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
     "VisionDaytimeRange": "750",
-    "VisionNighttimeRange": "750"
+    "VisionNighttimeRange": "750",
+    "show_occluded_outline": "1"
   },
   "npc_dota_creep_badguys_melee": {
     "BaseClass": "npc_dota_creep_lane",
@@ -479,7 +485,8 @@
     "TeamName": "DOTA_TEAM_BADGUYS",
     "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
     "VisionDaytimeRange": "750",
-    "VisionNighttimeRange": "750"
+    "VisionNighttimeRange": "750",
+    "show_occluded_outline": "1"
   },
   "npc_dota_creep_badguys_flagbearer": {
     "BaseClass": "npc_dota_creep_lane",
@@ -530,7 +537,8 @@
     "TeamName": "DOTA_TEAM_BADGUYS",
     "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
     "VisionDaytimeRange": "750",
-    "VisionNighttimeRange": "750"
+    "VisionNighttimeRange": "750",
+    "show_occluded_outline": "1"
   },
   "npc_dota_creep_badguys_melee_upgraded": {
     "BaseClass": "npc_dota_creep_lane",
@@ -581,7 +589,8 @@
     "TeamName": "DOTA_TEAM_BADGUYS",
     "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
     "VisionDaytimeRange": "750",
-    "VisionNighttimeRange": "750"
+    "VisionNighttimeRange": "750",
+    "show_occluded_outline": "1"
   },
   "npc_dota_creep_badguys_flagbearer_upgraded": {
     "BaseClass": "npc_dota_creep_lane",
@@ -632,7 +641,8 @@
     "TeamName": "DOTA_TEAM_BADGUYS",
     "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
     "VisionDaytimeRange": "750",
-    "VisionNighttimeRange": "750"
+    "VisionNighttimeRange": "750",
+    "show_occluded_outline": "1"
   },
   "npc_dota_creep_badguys_melee_upgraded_mega": {
     "BaseClass": "npc_dota_creep_lane",
@@ -683,7 +693,8 @@
     "TeamName": "DOTA_TEAM_BADGUYS",
     "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
     "VisionDaytimeRange": "750",
-    "VisionNighttimeRange": "750"
+    "VisionNighttimeRange": "750",
+    "show_occluded_outline": "1"
   },
   "npc_dota_creep_badguys_flagbearer_upgraded_mega": {
     "BaseClass": "npc_dota_creep_lane",
@@ -734,7 +745,8 @@
     "TeamName": "DOTA_TEAM_BADGUYS",
     "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
     "VisionDaytimeRange": "750",
-    "VisionNighttimeRange": "750"
+    "VisionNighttimeRange": "750",
+    "show_occluded_outline": "1"
   },
   "npc_dota_creep_goodguys_melee": {
     "BaseClass": "npc_dota_creep_lane",
@@ -785,7 +797,8 @@
     "TeamName": "DOTA_TEAM_GOODGUYS",
     "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
     "VisionDaytimeRange": "750",
-    "VisionNighttimeRange": "750"
+    "VisionNighttimeRange": "750",
+    "show_occluded_outline": "1"
   },
   "npc_dota_creep_goodguys_flagbearer": {
     "BaseClass": "npc_dota_creep_lane",
@@ -836,7 +849,8 @@
     "TeamName": "DOTA_TEAM_GOODGUYS",
     "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
     "VisionDaytimeRange": "750",
-    "VisionNighttimeRange": "750"
+    "VisionNighttimeRange": "750",
+    "show_occluded_outline": "1"
   },
   "npc_dota_creep_goodguys_melee_upgraded": {
     "BaseClass": "npc_dota_creep_lane",
@@ -887,7 +901,8 @@
     "TeamName": "DOTA_TEAM_GOODGUYS",
     "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
     "VisionDaytimeRange": "750",
-    "VisionNighttimeRange": "750"
+    "VisionNighttimeRange": "750",
+    "show_occluded_outline": "1"
   },
   "npc_dota_creep_goodguys_flagbearer_upgraded": {
     "BaseClass": "npc_dota_creep_lane",
@@ -938,7 +953,8 @@
     "TeamName": "DOTA_TEAM_GOODGUYS",
     "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
     "VisionDaytimeRange": "750",
-    "VisionNighttimeRange": "750"
+    "VisionNighttimeRange": "750",
+    "show_occluded_outline": "1"
   },
   "npc_dota_creep_goodguys_melee_upgraded_mega": {
     "BaseClass": "npc_dota_creep_lane",
@@ -989,7 +1005,8 @@
     "TeamName": "DOTA_TEAM_GOODGUYS",
     "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
     "VisionDaytimeRange": "750",
-    "VisionNighttimeRange": "750"
+    "VisionNighttimeRange": "750",
+    "show_occluded_outline": "1"
   },
   "npc_dota_creep_goodguys_flagbearer_upgraded_mega": {
     "BaseClass": "npc_dota_creep_lane",
@@ -1040,7 +1057,8 @@
     "TeamName": "DOTA_TEAM_GOODGUYS",
     "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
     "VisionDaytimeRange": "750",
-    "VisionNighttimeRange": "750"
+    "VisionNighttimeRange": "750",
+    "show_occluded_outline": "1"
   },
   "npc_dota_goodguys_tower1_top": {
     "BaseClass": "npc_dota_tower",
@@ -2236,7 +2254,8 @@
     "AttackRangeActivityModifiers": {
       "attack_normal_range": "0",
       "attack_long_range": "500"
-    }
+    },
+    "show_occluded_outline": "1"
   },
   "npc_dota_lotus_pool": {
     "BaseClass": "npc_dota_lotus_pool",
@@ -3282,7 +3301,8 @@
     "TeamName": "DOTA_TEAM_GOODGUYS",
     "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_SIEGE",
     "VisionDaytimeRange": "750",
-    "VisionNighttimeRange": "750"
+    "VisionNighttimeRange": "750",
+    "show_occluded_outline": "1"
   },
   "npc_dota_goodguys_siege_upgraded": {
     "BaseClass": "npc_dota_creep_siege",
@@ -3336,7 +3356,8 @@
     "TeamName": "DOTA_TEAM_GOODGUYS",
     "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_SIEGE",
     "VisionDaytimeRange": "750",
-    "VisionNighttimeRange": "750"
+    "VisionNighttimeRange": "750",
+    "show_occluded_outline": "1"
   },
   "npc_dota_goodguys_siege_upgraded_mega": {
     "BaseClass": "npc_dota_creep_siege",
@@ -3390,7 +3411,8 @@
     "TeamName": "DOTA_TEAM_GOODGUYS",
     "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_SIEGE",
     "VisionDaytimeRange": "750",
-    "VisionNighttimeRange": "750"
+    "VisionNighttimeRange": "750",
+    "show_occluded_outline": "1"
   },
   "npc_dota_badguys_siege": {
     "BaseClass": "npc_dota_creep_siege",
@@ -3444,7 +3466,8 @@
     "TeamName": "DOTA_TEAM_BADGUYS",
     "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_SIEGE",
     "VisionDaytimeRange": "750",
-    "VisionNighttimeRange": "750"
+    "VisionNighttimeRange": "750",
+    "show_occluded_outline": "1"
   },
   "npc_dota_badguys_siege_upgraded": {
     "BaseClass": "npc_dota_creep_siege",
@@ -3498,7 +3521,8 @@
     "TeamName": "DOTA_TEAM_BADGUYS",
     "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_SIEGE",
     "VisionDaytimeRange": "750",
-    "VisionNighttimeRange": "750"
+    "VisionNighttimeRange": "750",
+    "show_occluded_outline": "1"
   },
   "npc_dota_badguys_siege_upgraded_mega": {
     "BaseClass": "npc_dota_creep_siege",
@@ -3552,7 +3576,8 @@
     "TeamName": "DOTA_TEAM_BADGUYS",
     "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_SIEGE",
     "VisionDaytimeRange": "750",
-    "VisionNighttimeRange": "750"
+    "VisionNighttimeRange": "750",
+    "show_occluded_outline": "1"
   },
   "dota_fountain": {
     "BaseClass": "ent_dota_fountain",
@@ -3646,7 +3671,7 @@
     "MovementSpeed": "325",
     "MovementTurnRate": "0.5",
     "FollowRange": "250",
-    "StatusHealth": "1",
+    "StatusHealth": "4",
     "StatusHealthRegen": "0",
     "StatusMana": "0",
     "StatusManaRegen": "0",
@@ -3654,7 +3679,8 @@
     "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_WARD",
     "VisionDaytimeRange": "600",
     "VisionNighttimeRange": "600",
-    "AttackDesire": "1.5"
+    "AttackDesire": "1.5",
+    "show_occluded_outline": "1"
   },
   "npc_dota_healing_campfire": {
     "BaseClass": "npc_dota_base_additive",
@@ -3745,7 +3771,7 @@
     "BoundsHullName": "DOTA_HULL_SIZE_SMALL",
     "MovementCapabilities": "DOTA_UNIT_CAP_MOVE_NONE",
     "MovementSpeed": "0",
-    "StatusHealth": "16",
+    "StatusHealth": "32",
     "StatusHealthRegen": "0",
     "StatusMana": "0",
     "StatusManaRegen": "0",
@@ -3753,7 +3779,8 @@
     "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_WARD",
     "VisionDaytimeRange": "500",
     "VisionNighttimeRange": "500",
-    "AttackDesire": "1.5"
+    "AttackDesire": "1.5",
+    "show_occluded_outline": "1"
   },
   "npc_dota_tusk_frozen_sigil1": {
     "BaseClass": "npc_dota_tusk_frozen_sigil",
@@ -3804,7 +3831,8 @@
     "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_WARD",
     "VisionDaytimeRange": "650",
     "VisionNighttimeRange": "650",
-    "AttackDesire": "1.5"
+    "AttackDesire": "1.5",
+    "show_occluded_outline": "1"
   },
   "npc_dota_tusk_frozen_sigil2": {
     "BaseClass": "npc_dota_tusk_frozen_sigil",
@@ -3855,7 +3883,8 @@
     "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_WARD",
     "VisionDaytimeRange": "400",
     "VisionNighttimeRange": "400",
-    "AttackDesire": "1.5"
+    "AttackDesire": "1.5",
+    "show_occluded_outline": "1"
   },
   "npc_dota_tusk_frozen_sigil3": {
     "BaseClass": "npc_dota_tusk_frozen_sigil",
@@ -3906,7 +3935,8 @@
     "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_WARD",
     "VisionDaytimeRange": "400",
     "VisionNighttimeRange": "400",
-    "AttackDesire": "1.5"
+    "AttackDesire": "1.5",
+    "show_occluded_outline": "1"
   },
   "npc_dota_tusk_frozen_sigil4": {
     "BaseClass": "npc_dota_tusk_frozen_sigil",
@@ -3957,7 +3987,8 @@
     "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_WARD",
     "VisionDaytimeRange": "400",
     "VisionNighttimeRange": "400",
-    "AttackDesire": "1.5"
+    "AttackDesire": "1.5",
+    "show_occluded_outline": "1"
   },
   "npc_dota_elder_titan_ancestral_spirit": {
     "Model": "models/heroes/elder_titan/ancestral_spirit.vmdl",
@@ -3996,7 +4027,8 @@
     },
     "party_hat_effects": {
       "party_hat_effect_0": "particles/econ/events/anniversary_10th/anniversary_10th_hat_ambient_npc_dota_hero_elder_titan.vpcf"
-    }
+    },
+    "show_occluded_outline": "1"
   },
   "npc_dota_neutral_kobold": {
     "Model": "models/creeps/neutral_creeps/n_creep_kobold/kobold_c/n_creep_kobold_c.vmdl",
@@ -4011,8 +4043,8 @@
     "Ability4": "",
     "ArmorPhysical": "0",
     "AttackCapabilities": "DOTA_UNIT_CAP_MELEE_ATTACK",
-    "AttackDamageMin": "15",
-    "AttackDamageMax": "16",
+    "AttackDamageMin": "18",
+    "AttackDamageMax": "19",
     "AttackRate": "2",
     "BaseAttackSpeed": "200",
     "AttackAnimationPoint": "0.38",
@@ -4022,20 +4054,21 @@
     "ProjectileSpeed": "0",
     "RingRadius": "40",
     "HealthBarOffset": "130",
-    "BountyXP": "14",
-    "BountyGoldMin": "3",
-    "BountyGoldMax": "5",
+    "BountyXP": "18",
+    "BountyGoldMin": "6",
+    "BountyGoldMax": "8",
     "MovementCapabilities": "DOTA_UNIT_CAP_MOVE_GROUND",
     "MovementSpeed": "290",
     "MovementTurnRate": "0.9",
-    "StatusHealth": "240",
+    "StatusHealth": "280",
     "StatusHealthRegen": "0.5",
     "StatusMana": "0",
     "StatusManaRegen": "1.0",
     "VisionDaytimeRange": "1400",
     "VisionNighttimeRange": "800",
     "TeamName": "DOTA_TEAM_NEUTRALS",
-    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT"
+    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
+    "show_occluded_outline": "1"
   },
   "npc_dota_neutral_kobold_tunneler": {
     "Model": "models/creeps/neutral_creeps/n_creep_kobold/kobold_b/n_creep_kobold_b.vmdl",
@@ -4062,8 +4095,8 @@
     "RingRadius": "40",
     "HealthBarOffset": "150",
     "BountyXP": "17",
-    "BountyGoldMin": "12",
-    "BountyGoldMax": "14",
+    "BountyGoldMin": "11",
+    "BountyGoldMax": "13",
     "MovementCapabilities": "DOTA_UNIT_CAP_MOVE_GROUND",
     "MovementSpeed": "270",
     "MovementTurnRate": "0.9",
@@ -4074,7 +4107,8 @@
     "VisionDaytimeRange": "800",
     "VisionNighttimeRange": "800",
     "TeamName": "DOTA_TEAM_NEUTRALS",
-    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT"
+    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
+    "show_occluded_outline": "1"
   },
   "npc_dota_neutral_kobold_taskmaster": {
     "Model": "models/creeps/neutral_creeps/n_creep_kobold/kobold_a/n_creep_kobold_a.vmdl",
@@ -4113,7 +4147,8 @@
     "VisionDaytimeRange": "800",
     "VisionNighttimeRange": "800",
     "TeamName": "DOTA_TEAM_NEUTRALS",
-    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT"
+    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
+    "show_occluded_outline": "1"
   },
   "npc_dota_neutral_centaur_outrunner": {
     "Model": "models/creeps/neutral_creeps/n_creep_centaur_med/n_creep_centaur_med.vmdl",
@@ -4152,7 +4187,8 @@
     "VisionDaytimeRange": "800",
     "VisionNighttimeRange": "800",
     "TeamName": "DOTA_TEAM_NEUTRALS",
-    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT"
+    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
+    "show_occluded_outline": "1"
   },
   "npc_dota_neutral_centaur_khan": {
     "Model": "models/creeps/neutral_creeps/n_creep_centaur_lrg/n_creep_centaur_lrg.vmdl",
@@ -4179,8 +4215,8 @@
     "RingRadius": "80",
     "HealthBarOffset": "220",
     "BountyXP": "90",
-    "BountyGoldMin": "54",
-    "BountyGoldMax": "60",
+    "BountyGoldMin": "49",
+    "BountyGoldMax": "54",
     "MovementCapabilities": "DOTA_UNIT_CAP_MOVE_GROUND",
     "MovementSpeed": "320",
     "MovementTurnRate": "0.9",
@@ -4191,7 +4227,8 @@
     "VisionDaytimeRange": "800",
     "VisionNighttimeRange": "800",
     "TeamName": "DOTA_TEAM_NEUTRALS",
-    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT"
+    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
+    "show_occluded_outline": "1"
   },
   "npc_dota_neutral_fel_beast": {
     "Model": "models/creeps/neutral_creeps/n_creep_ghost_b/n_creep_ghost_b.vmdl",
@@ -4230,7 +4267,8 @@
     "VisionDaytimeRange": "800",
     "VisionNighttimeRange": "800",
     "TeamName": "DOTA_TEAM_NEUTRALS",
-    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT"
+    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
+    "show_occluded_outline": "1"
   },
   "npc_dota_neutral_polar_furbolg_champion": {
     "Model": "models/creeps/neutral_creeps/n_creep_beast/n_creep_beast.vmdl",
@@ -4269,7 +4307,8 @@
     "VisionDaytimeRange": "800",
     "VisionNighttimeRange": "800",
     "TeamName": "DOTA_TEAM_NEUTRALS",
-    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT"
+    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
+    "show_occluded_outline": "1"
   },
   "npc_dota_neutral_polar_furbolg_ursa_warrior": {
     "Model": "models/creeps/neutral_creeps/n_creep_furbolg/n_creep_furbolg_disrupter.vmdl",
@@ -4308,7 +4347,8 @@
     "VisionDaytimeRange": "800",
     "VisionNighttimeRange": "800",
     "TeamName": "DOTA_TEAM_NEUTRALS",
-    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT"
+    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
+    "show_occluded_outline": "1"
   },
   "npc_dota_neutral_warpine_raider": {
     "Model": "models/creeps/pine_cone/pine_cone.vmdl",
@@ -4336,8 +4376,8 @@
     "RingRadius": "60",
     "HealthBarOffset": "190",
     "BountyXP": "76",
-    "BountyGoldMin": "48",
-    "BountyGoldMax": "50",
+    "BountyGoldMin": "43",
+    "BountyGoldMax": "45",
     "MovementCapabilities": "DOTA_UNIT_CAP_MOVE_GROUND",
     "MovementSpeed": "310",
     "StatusHealth": "850",
@@ -4347,7 +4387,8 @@
     "VisionDaytimeRange": "800",
     "VisionNighttimeRange": "800",
     "TeamName": "DOTA_TEAM_NEUTRALS",
-    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT"
+    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
+    "show_occluded_outline": "1"
   },
   "npc_dota_neutral_mud_golem": {
     "Model": "models/creeps/neutral_creeps/n_creep_golem_b/n_creep_golem_b.vmdl",
@@ -4356,7 +4397,7 @@
     "Level": "4",
     "ModelScale": "1.1",
     "IsNeutralUnitType": "1",
-    "Ability1": "mud_golem_hurl_boulder",
+    "Ability1": "mud_golem_hurl_big_boulder",
     "Ability2": "mud_golem_rock_destroy",
     "Ability3": "neutral_upgrade",
     "Ability4": "",
@@ -4386,7 +4427,75 @@
     "VisionDaytimeRange": "800",
     "VisionNighttimeRange": "800",
     "TeamName": "DOTA_TEAM_NEUTRALS",
-    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT"
+    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
+    "show_occluded_outline": "1"
+  },
+  "npc_dota_neutral_radigull": {
+    "Model": "models/creeps/ice_biome/diregull/diregull.vmdl",
+    "BaseClass": "npc_dota_creep_neutral",
+    "SoundSet": "n_creep_Ranged",
+    "Level": "4",
+    "ModelScale": "0.6",
+    "IsNeutralUnitType": "1",
+    "Ability1": "radigull_eggstremism",
+    "Ability2": "neutral_upgrade",
+    "Ability3": "",
+    "Ability4": "",
+    "ArmorPhysical": "0",
+    "MagicalResistance": "30",
+    "AttackCapabilities": "DOTA_UNIT_CAP_RANGED_ATTACK",
+    "AttackDamageMin": "30",
+    "AttackDamageMax": "32",
+    "AttackRate": "2",
+    "BaseAttackSpeed": "150",
+    "AttackAnimationPoint": "0.3",
+    "AttackAcquisitionRange": "500",
+    "AttackRange": "400",
+    "ProjectileModel": "particles/neutral_fx/ghost_base_attack.vpcf",
+    "ProjectileSpeed": "900",
+    "RingRadius": "60",
+    "HealthBarOffset": "190",
+    "BountyXP": "62",
+    "BountyGoldMin": "34",
+    "BountyGoldMax": "36",
+    "MovementCapabilities": "DOTA_UNIT_CAP_MOVE_GROUND",
+    "MovementSpeed": "310",
+    "StatusHealth": "800",
+    "StatusHealthRegen": "0.5",
+    "StatusMana": "400",
+    "StatusManaRegen": "1",
+    "VisionDaytimeRange": "800",
+    "VisionNighttimeRange": "800",
+    "TeamName": "DOTA_TEAM_NEUTRALS",
+    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
+    "show_occluded_outline": "1"
+  },
+  "npc_dota_radigull_egg": {
+    "BaseClass": "npc_dota_base_additive",
+    "Model": "models/props_winter/egg.vmdl",
+    "SoundSet": "0",
+    "Level": "1",
+    "ModelScale": "1",
+    "Ability1": "",
+    "Ability2": "",
+    "Ability3": "",
+    "Ability4": "",
+    "ArmorPhysical": "0",
+    "MagicalResistance": "0",
+    "AttackCapabilities": "DOTA_UNIT_CAP_NO_ATTACK",
+    "RingRadius": "40",
+    "HealthBarOffset": "100",
+    "BountyXP": "0",
+    "BountyGoldMin": "0",
+    "BountyGoldMax": "0",
+    "MovementCapabilities": "DOTA_UNIT_CAP_MOVE_NONE",
+    "StatusHealth": "4",
+    "StatusHealthRegen": "0",
+    "VisionDaytimeRange": "0",
+    "VisionNighttimeRange": "0",
+    "TeamName": "DOTA_TEAM_NEUTRALS",
+    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_WARD",
+    "show_occluded_outline": "1"
   },
   "npc_dota_neutral_mud_golem_split": {
     "Model": "models/creeps/neutral_creeps/n_creep_golem_b/n_creep_golem_b.vmdl",
@@ -4425,7 +4534,8 @@
     "VisionDaytimeRange": "800",
     "VisionNighttimeRange": "800",
     "TeamName": "DOTA_TEAM_NEUTRALS",
-    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT"
+    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
+    "show_occluded_outline": "1"
   },
   "npc_dota_neutral_mud_golem_split_doom": {
     "Model": "models/heroes/doom/doom.vmdl",
@@ -4464,7 +4574,8 @@
     "VisionDaytimeRange": "800",
     "VisionNighttimeRange": "800",
     "TeamName": "DOTA_TEAM_NEUTRALS",
-    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT"
+    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
+    "show_occluded_outline": "1"
   },
   "npc_dota_neutral_ogre_mauler": {
     "Model": "models/creeps/neutral_creeps/n_creep_ogre_med/n_creep_ogre_med.vmdl",
@@ -4503,7 +4614,8 @@
     "VisionDaytimeRange": "800",
     "VisionNighttimeRange": "800",
     "TeamName": "DOTA_TEAM_NEUTRALS",
-    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT"
+    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
+    "show_occluded_outline": "1"
   },
   "npc_dota_neutral_ogre_magi": {
     "Model": "models/creeps/neutral_creeps/n_creep_ogre_lrg/n_creep_ogre_lrg.vmdl",
@@ -4542,7 +4654,8 @@
     "VisionDaytimeRange": "800",
     "VisionNighttimeRange": "800",
     "TeamName": "DOTA_TEAM_NEUTRALS",
-    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT"
+    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
+    "show_occluded_outline": "1"
   },
   "npc_dota_neutral_giant_wolf": {
     "Model": "models/creeps/neutral_creeps/n_creep_worg_small/n_creep_worg_small.vmdl",
@@ -4581,7 +4694,8 @@
     "VisionDaytimeRange": "800",
     "VisionNighttimeRange": "800",
     "TeamName": "DOTA_TEAM_NEUTRALS",
-    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT"
+    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
+    "show_occluded_outline": "1"
   },
   "npc_dota_neutral_alpha_wolf": {
     "Model": "models/creeps/neutral_creeps/n_creep_worg_large/n_creep_worg_large.vmdl",
@@ -4620,7 +4734,8 @@
     "VisionDaytimeRange": "800",
     "VisionNighttimeRange": "800",
     "TeamName": "DOTA_TEAM_NEUTRALS",
-    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT"
+    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
+    "show_occluded_outline": "1"
   },
   "npc_dota_neutral_wildkin": {
     "Model": "models/creeps/neutral_creeps/n_creep_vulture_b/n_creep_vulture_b.vmdl",
@@ -4659,7 +4774,8 @@
     "VisionDaytimeRange": "800",
     "VisionNighttimeRange": "800",
     "TeamName": "DOTA_TEAM_NEUTRALS",
-    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT"
+    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
+    "show_occluded_outline": "1"
   },
   "npc_dota_neutral_enraged_wildkin": {
     "Model": "models/creeps/neutral_creeps/n_creep_vulture_a/n_creep_vulture_a.vmdl",
@@ -4686,8 +4802,8 @@
     "RingRadius": "50",
     "HealthBarOffset": "220",
     "BountyXP": "90",
-    "BountyGoldMin": "58",
-    "BountyGoldMax": "64",
+    "BountyGoldMin": "52",
+    "BountyGoldMax": "58",
     "MovementCapabilities": "DOTA_UNIT_CAP_MOVE_GROUND",
     "MovementSpeed": "320",
     "MovementTurnRate": "0.9",
@@ -4698,7 +4814,8 @@
     "VisionDaytimeRange": "800",
     "VisionNighttimeRange": "800",
     "TeamName": "DOTA_TEAM_NEUTRALS",
-    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT"
+    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
+    "show_occluded_outline": "1"
   },
   "npc_dota_neutral_satyr_soulstealer": {
     "Model": "models/creeps/neutral_creeps/n_creep_satyr_c/n_creep_satyr_c.vmdl",
@@ -4724,20 +4841,21 @@
     "ProjectileSpeed": "0",
     "RingRadius": "50",
     "HealthBarOffset": "190",
-    "BountyXP": "46",
-    "BountyGoldMin": "18",
-    "BountyGoldMax": "22",
+    "BountyXP": "40",
+    "BountyGoldMin": "16",
+    "BountyGoldMax": "18",
     "MovementCapabilities": "DOTA_UNIT_CAP_MOVE_GROUND",
     "MovementSpeed": "270",
     "MovementTurnRate": "0.9",
     "StatusHealth": "600",
     "StatusHealthRegen": "0.5",
-    "StatusMana": "600",
+    "StatusMana": "300",
     "StatusManaRegen": "1",
     "VisionDaytimeRange": "800",
     "VisionNighttimeRange": "800",
     "TeamName": "DOTA_TEAM_NEUTRALS",
-    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT"
+    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
+    "show_occluded_outline": "1"
   },
   "npc_dota_neutral_satyr_hellcaller": {
     "Model": "models/creeps/neutral_creeps/n_creep_satyr_a/n_creep_satyr_a.vmdl",
@@ -4776,7 +4894,8 @@
     "VisionDaytimeRange": "800",
     "VisionNighttimeRange": "800",
     "TeamName": "DOTA_TEAM_NEUTRALS",
-    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT"
+    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
+    "show_occluded_outline": "1"
   },
   "npc_dota_neutral_jungle_stalker": {
     "Model": "models/creeps/neutral_creeps/n_creep_gargoyle/n_creep_gargoyle.vmdl",
@@ -4815,7 +4934,8 @@
     "VisionDaytimeRange": "800",
     "VisionNighttimeRange": "800",
     "TeamName": "DOTA_TEAM_NEUTRALS",
-    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT"
+    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
+    "show_occluded_outline": "1"
   },
   "npc_dota_neutral_elder_jungle_stalker": {
     "Model": "models/creeps/neutral_creeps/n_creep_gargoyle/n_creep_gargoyle.vmdl",
@@ -4854,7 +4974,8 @@
     "VisionDaytimeRange": "800",
     "VisionNighttimeRange": "800",
     "TeamName": "DOTA_TEAM_NEUTRALS",
-    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT"
+    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
+    "show_occluded_outline": "1"
   },
   "npc_dota_neutral_prowler_acolyte": {
     "Model": "models/creeps/neutral_creeps/n_creep_satyr_spawn_a/n_creep_satyr_spawn_b.vmdl",
@@ -4894,7 +5015,8 @@
     "VisionDaytimeRange": "800",
     "VisionNighttimeRange": "800",
     "TeamName": "DOTA_TEAM_NEUTRALS",
-    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT"
+    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
+    "show_occluded_outline": "1"
   },
   "npc_dota_neutral_prowler_shaman": {
     "Model": "models/creeps/neutral_creeps/n_creep_satyr_spawn_a/n_creep_satyr_spawn_a.vmdl",
@@ -4934,7 +5056,169 @@
     "VisionDaytimeRange": "800",
     "VisionNighttimeRange": "800",
     "TeamName": "DOTA_TEAM_NEUTRALS",
-    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT"
+    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
+    "show_occluded_outline": "1"
+  },
+  "npc_dota_neutral_eimermole": {
+    "Model": "models/creeps/neutral_creeps/n_creep_eimermole/n_creep_eimermole.vmdl",
+    "BaseClass": "npc_dota_creep_neutral",
+    "SoundSet": "n_creep_Melee",
+    "Level": "4",
+    "ModelScale": "1.0",
+    "IsNeutralUnitType": "1",
+    "MaterialGroup": "1",
+    "Ability1": "eimermole_miners_aura",
+    "Ability2": "neutral_upgrade",
+    "Ability3": "",
+    "Ability4": "",
+    "ArmorPhysical": "3",
+    "AttackCapabilities": "DOTA_UNIT_CAP_MELEE_ATTACK",
+    "AttackDamageMin": "39",
+    "AttackDamageMax": "44",
+    "AttackRate": "2",
+    "BaseAttackSpeed": "135",
+    "AttackAnimationPoint": "0.3",
+    "AttackAcquisitionRange": "500",
+    "AttackRange": "100",
+    "ProjectileModel": "",
+    "ProjectileSpeed": "0",
+    "RingRadius": "70",
+    "HealthBarOffset": "200",
+    "BountyXP": "66",
+    "BountyGoldMin": "30",
+    "BountyGoldMax": "38",
+    "MovementCapabilities": "DOTA_UNIT_CAP_MOVE_GROUND",
+    "MovementSpeed": "320",
+    "MovementTurnRate": "0.9",
+    "StatusHealth": "700",
+    "StatusHealthRegen": "0.5",
+    "StatusMana": "0",
+    "StatusManaRegen": "1.0",
+    "VisionDaytimeRange": "800",
+    "VisionNighttimeRange": "800",
+    "TeamName": "DOTA_TEAM_NEUTRALS",
+    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
+    "show_occluded_outline": "1"
+  },
+  "npc_dota_neutral_eimermole_foreman": {
+    "Model": "models/creeps/neutral_creeps/n_creep_eimermole/n_creep_eimermole_lamp.vmdl",
+    "BaseClass": "npc_dota_creep_neutral",
+    "SoundSet": "n_creep_Melee",
+    "Level": "5",
+    "ModelScale": "1.3",
+    "IsNeutralUnitType": "1",
+    "Ability1": "eimermole_miners_slam",
+    "Ability2": "neutral_upgrade",
+    "Ability3": "",
+    "Ability4": "",
+    "ArmorPhysical": "4",
+    "AttackCapabilities": "DOTA_UNIT_CAP_MELEE_ATTACK",
+    "AttackDamageMin": "49",
+    "AttackDamageMax": "55",
+    "AttackRate": "2",
+    "BaseAttackSpeed": "135",
+    "AttackAnimationPoint": "0.3",
+    "AttackAcquisitionRange": "500",
+    "AttackRange": "100",
+    "ProjectileModel": "",
+    "ProjectileSpeed": "0",
+    "RingRadius": "80",
+    "HealthBarOffset": "220",
+    "BountyXP": "90",
+    "BountyGoldMin": "62",
+    "BountyGoldMax": "66",
+    "MovementCapabilities": "DOTA_UNIT_CAP_MOVE_GROUND",
+    "MovementSpeed": "320",
+    "MovementTurnRate": "0.9",
+    "StatusHealth": "950",
+    "StatusHealthRegen": "1",
+    "StatusMana": "300",
+    "StatusManaRegen": "1.0",
+    "VisionDaytimeRange": "800",
+    "VisionNighttimeRange": "800",
+    "TeamName": "DOTA_TEAM_NEUTRALS",
+    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
+    "show_occluded_outline": "1"
+  },
+  "npc_dota_neutral_odobenus_footman": {
+    "Model": "models/creeps/ice_biome/undeadtusk/undead_tuskskeleton01.vmdl",
+    "BaseClass": "npc_dota_creep_neutral",
+    "SoundSet": "n_creep_Melee",
+    "Level": "3",
+    "ModelScale": "0.8",
+    "IsNeutralUnitType": "1",
+    "Ability1": "odobenus_blight",
+    "Ability2": "neutral_upgrade",
+    "Ability3": "",
+    "Ability4": "",
+    "ArmorPhysical": "1",
+    "AttackCapabilities": "DOTA_UNIT_CAP_MELEE_ATTACK",
+    "AttackDamageMin": "16",
+    "AttackDamageMax": "18",
+    "AttackRate": "2",
+    "BaseAttackSpeed": "125",
+    "AttackAnimationPoint": "0.3",
+    "AttackAcquisitionRange": "500",
+    "AttackRange": "100",
+    "ProjectileModel": "",
+    "ProjectileSpeed": "0",
+    "RingRadius": "70",
+    "HealthBarOffset": "200",
+    "BountyXP": "40",
+    "BountyGoldMin": "18",
+    "BountyGoldMax": "22",
+    "MovementCapabilities": "DOTA_UNIT_CAP_MOVE_GROUND",
+    "MovementSpeed": "350",
+    "MovementTurnRate": "0.9",
+    "StatusHealth": "500",
+    "StatusHealthRegen": "0.5",
+    "StatusMana": "200",
+    "StatusManaRegen": "1",
+    "VisionDaytimeRange": "800",
+    "VisionNighttimeRange": "800",
+    "TeamName": "DOTA_TEAM_NEUTRALS",
+    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
+    "show_occluded_outline": "1"
+  },
+  "npc_dota_neutral_odobenus_frostmage": {
+    "Model": "models/creeps/ice_biome/undeadtusk/undead_tuskskeleton02.vmdl",
+    "BaseClass": "npc_dota_creep_neutral",
+    "SoundSet": "n_creep_Melee",
+    "Level": "5",
+    "ModelScale": "1.0",
+    "IsNeutralUnitType": "1",
+    "Ability1": "warpine_raider_seed_shot",
+    "Ability2": "neutral_upgrade",
+    "Ability3": "",
+    "Ability4": "",
+    "ArmorPhysical": "3",
+    "AttackCapabilities": "DOTA_UNIT_CAP_MELEE_ATTACK",
+    "AttackDamageMin": "26",
+    "AttackDamageMax": "30",
+    "AttackRate": "2",
+    "BaseAttackSpeed": "150",
+    "AttackAnimationPoint": "0.3",
+    "AttackAcquisitionRange": "500",
+    "AttackRange": "100",
+    "ProjectileModel": "",
+    "ProjectileSpeed": "0",
+    "RingRadius": "80",
+    "HealthBarOffset": "220",
+    "BountyXP": "60",
+    "BountyGoldMin": "32",
+    "BountyGoldMax": "34",
+    "MovementCapabilities": "DOTA_UNIT_CAP_MOVE_GROUND",
+    "MovementSpeed": "350",
+    "MovementTurnRate": "0.9",
+    "StatusHealth": "600",
+    "StatusHealthRegen": "0.5",
+    "StatusMana": "300",
+    "StatusManaRegen": "1",
+    "VisionDaytimeRange": "800",
+    "VisionNighttimeRange": "800",
+    "TeamName": "DOTA_TEAM_NEUTRALS",
+    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
+    "show_occluded_outline": "1"
   },
   "npc_dota_neutral_rock_golem": {
     "Model": "models/creeps/neutral_creeps/n_creep_golem_a/neutral_creep_golem_a.vmdl",
@@ -4963,8 +5247,8 @@
     "RingRadius": "60",
     "HealthBarOffset": "220",
     "BountyXP": "95",
-    "BountyGoldMin": "37",
-    "BountyGoldMax": "43",
+    "BountyGoldMin": "33",
+    "BountyGoldMax": "39",
     "MovementCapabilities": "DOTA_UNIT_CAP_MOVE_GROUND",
     "MovementSpeed": "270",
     "StatusHealth": "800",
@@ -4974,7 +5258,8 @@
     "VisionDaytimeRange": "800",
     "VisionNighttimeRange": "800",
     "TeamName": "DOTA_TEAM_NEUTRALS",
-    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT"
+    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
+    "show_occluded_outline": "1"
   },
   "npc_dota_neutral_granite_golem": {
     "Model": "models/creeps/neutral_creeps/n_creep_golem_a/neutral_creep_golem_a.vmdl",
@@ -5003,8 +5288,8 @@
     "RingRadius": "60",
     "HealthBarOffset": "220",
     "BountyXP": "124",
-    "BountyGoldMin": "76",
-    "BountyGoldMax": "80",
+    "BountyGoldMin": "68",
+    "BountyGoldMax": "72",
     "MovementCapabilities": "DOTA_UNIT_CAP_MOVE_GROUND",
     "MovementSpeed": "270",
     "StatusHealth": "1500",
@@ -5014,7 +5299,8 @@
     "VisionDaytimeRange": "800",
     "VisionNighttimeRange": "800",
     "TeamName": "DOTA_TEAM_NEUTRALS",
-    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT"
+    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
+    "show_occluded_outline": "1"
   },
   "npc_dota_neutral_ice_shaman": {
     "Model": "models/creeps/ice_biome/giant/ice_giant01.vmdl",
@@ -5055,7 +5341,8 @@
     "VisionDaytimeRange": "1400",
     "VisionNighttimeRange": "800",
     "TeamName": "DOTA_TEAM_NEUTRALS",
-    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT"
+    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
+    "show_occluded_outline": "1"
   },
   "npc_dota_neutral_frostbitten_golem": {
     "Model": "models/creeps/ice_biome/frostbitten/n_creep_frostbitten_swollen01.vmdl",
@@ -5095,7 +5382,8 @@
     "VisionDaytimeRange": "800",
     "VisionNighttimeRange": "800",
     "TeamName": "DOTA_TEAM_NEUTRALS",
-    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT"
+    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
+    "show_occluded_outline": "1"
   },
   "npc_dota_neutral_big_thunder_lizard": {
     "Model": "models/creeps/neutral_creeps/n_creep_thunder_lizard/n_creep_thunder_lizard_big.vmdl",
@@ -5124,8 +5412,8 @@
     "RingRadius": "90",
     "HealthBarOffset": "240",
     "BountyXP": "124",
-    "BountyGoldMin": "76",
-    "BountyGoldMax": "80",
+    "BountyGoldMin": "68",
+    "BountyGoldMax": "72",
     "MovementCapabilities": "DOTA_UNIT_CAP_MOVE_GROUND",
     "MovementSpeed": "270",
     "MovementTurnRate": "0.9",
@@ -5136,7 +5424,135 @@
     "VisionDaytimeRange": "1400",
     "VisionNighttimeRange": "800",
     "TeamName": "DOTA_TEAM_NEUTRALS",
-    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT"
+    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
+    "show_occluded_outline": "1"
+  },
+  "npc_dota_beastmaster_thunderhide": {
+    "Model": "models/creeps/neutral_creeps/n_creep_thunder_lizard/n_creep_thunder_lizard_aghs.vmdl",
+    "BaseClass": "npc_dota_beastmaster_thunderhide",
+    "SoundSet": "n_creep_Ranged",
+    "Level": "6",
+    "IsAncient": "1",
+    "IsSummoned": "1",
+    "ConsideredHero": "1",
+    "UnitLabel": "thunderhide",
+    "ModelScale": ".80",
+    "UnitToAbilityMap": "beastmaster_summon_thunderhide",
+    "Ability1": "big_thunder_lizard_slam",
+    "Ability2": "beastmaster_thunderhide_drum",
+    "Ability3": "",
+    "Ability4": "",
+    "ArmorPhysical": "7",
+    "MagicalResistance": "35",
+    "AttackCapabilities": "DOTA_UNIT_CAP_RANGED_ATTACK",
+    "AttackDamageMin": "60",
+    "AttackDamageMax": "65",
+    "AttackRate": "1.25",
+    "BaseAttackSpeed": "120",
+    "AttackAnimationPoint": "0.3",
+    "AttackAcquisitionRange": "525",
+    "AttackRange": "525",
+    "ProjectileModel": "particles/neutral_fx/thunderlizard_aghs_attack.vpcf",
+    "ProjectileSpeed": "1500",
+    "RingRadius": "90",
+    "HealthBarOffset": "240",
+    "BountyXP": "124",
+    "BountyGoldMin": "175",
+    "BountyGoldMax": "175",
+    "MovementCapabilities": "DOTA_UNIT_CAP_MOVE_GROUND",
+    "MovementSpeed": "270",
+    "MovementTurnRate": "0.9",
+    "StatusHealth": "1700",
+    "StatusHealthRegen": "0.5",
+    "StatusMana": "400",
+    "StatusManaRegen": "1.0",
+    "VisionDaytimeRange": "1400",
+    "VisionNighttimeRange": "800",
+    "TeamName": "DOTA_TEAM_GOODGUYS",
+    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
+    "show_occluded_outline": "1"
+  },
+  "npc_dota_neutral_ogre_seal": {
+    "Model": "models/creeps/ice_biome/ogreseal/ogreseal.vmdl",
+    "BaseClass": "npc_dota_creep_neutral",
+    "SoundSet": "n_creep_Melee",
+    "Level": "6",
+    "IsAncient": "1",
+    "ModelScale": ".70",
+    "IsNeutralUnitType": "1",
+    "Ability1": "ogre_seal_flop",
+    "Ability2": "neutral_upgrade",
+    "Ability3": "",
+    "Ability4": "",
+    "ArmorPhysical": "3",
+    "MagicalResistance": "30",
+    "AttackCapabilities": "DOTA_UNIT_CAP_MELEE_ATTACK",
+    "AttackDamageMin": "60",
+    "AttackDamageMax": "65",
+    "AttackRate": "2",
+    "BaseAttackSpeed": "120",
+    "AttackAnimationPoint": "0.5714",
+    "AttackAcquisitionRange": "300",
+    "AttackRange": "150",
+    "ProjectileModel": "",
+    "ProjectileSpeed": "0",
+    "RingRadius": "80",
+    "HealthBarOffset": "260",
+    "BountyXP": "124",
+    "BountyGoldMin": "68",
+    "BountyGoldMax": "72",
+    "MovementCapabilities": "DOTA_UNIT_CAP_MOVE_GROUND",
+    "MovementSpeed": "270",
+    "MovementTurnRate": "0.9",
+    "StatusHealth": "1700",
+    "StatusHealthRegen": "0.5",
+    "StatusMana": "400",
+    "StatusManaRegen": "1.0",
+    "VisionDaytimeRange": "1400",
+    "VisionNighttimeRange": "800",
+    "TeamName": "DOTA_TEAM_NEUTRALS",
+    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
+    "show_occluded_outline": "1"
+  },
+  "npc_dota_neutral_ogre_seal_pup": {
+    "Model": "models/creeps/ice_biome/ogreseal/ogreseal.vmdl",
+    "BaseClass": "npc_dota_creep_neutral",
+    "SoundSet": "n_creep_Melee",
+    "Level": "5",
+    "IsAncient": "1",
+    "ModelScale": ".5",
+    "IsNeutralUnitType": "1",
+    "Ability1": "ogre_seal_pup_disapproval_aura",
+    "Ability2": "neutral_upgrade",
+    "Ability3": "",
+    "Ability4": "",
+    "ArmorPhysical": "3",
+    "MagicalResistance": "50",
+    "AttackCapabilities": "DOTA_UNIT_CAP_MELEE_ATTACK",
+    "AttackDamageMin": "32",
+    "AttackDamageMax": "34",
+    "AttackRate": "1.8",
+    "AttackAnimationPoint": "0.5714",
+    "AttackAcquisitionRange": "800",
+    "AttackRange": "128",
+    "ProjectileModel": "",
+    "ProjectileSpeed": "0",
+    "RingRadius": "40",
+    "HealthBarOffset": "140",
+    "BountyXP": "95",
+    "BountyGoldMin": "38",
+    "BountyGoldMax": "44",
+    "MovementCapabilities": "DOTA_UNIT_CAP_MOVE_GROUND",
+    "MovementSpeed": "270",
+    "StatusHealth": "800",
+    "StatusHealthRegen": "0.5",
+    "StatusMana": "400",
+    "StatusManaRegen": "1.0",
+    "VisionDaytimeRange": "1400",
+    "VisionNighttimeRange": "800",
+    "TeamName": "DOTA_TEAM_NEUTRALS",
+    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
+    "show_occluded_outline": "1"
   },
   "npc_dota_neutral_small_thunder_lizard": {
     "Model": "models/creeps/neutral_creeps/n_creep_thunder_lizard/n_creep_thunder_lizard_small.vmdl",
@@ -5164,8 +5580,8 @@
     "RingRadius": "70",
     "HealthBarOffset": "220",
     "BountyXP": "95",
-    "BountyGoldMin": "42",
-    "BountyGoldMax": "49",
+    "BountyGoldMin": "38",
+    "BountyGoldMax": "44",
     "MovementCapabilities": "DOTA_UNIT_CAP_MOVE_GROUND",
     "MovementSpeed": "270",
     "StatusHealth": "800",
@@ -5175,7 +5591,8 @@
     "VisionDaytimeRange": "1400",
     "VisionNighttimeRange": "800",
     "TeamName": "DOTA_TEAM_NEUTRALS",
-    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT"
+    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
+    "show_occluded_outline": "1"
   },
   "npc_dota_neutral_gnoll_assassin": {
     "Model": "models/creeps/neutral_creeps/n_creep_gnoll/n_creep_gnoll.vmdl",
@@ -5214,7 +5631,8 @@
     "VisionDaytimeRange": "400",
     "VisionNighttimeRange": "400",
     "TeamName": "DOTA_TEAM_NEUTRALS",
-    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT"
+    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
+    "show_occluded_outline": "1"
   },
   "npc_dota_neutral_ghost": {
     "Model": "models/creeps/neutral_creeps/n_creep_ghost_a/n_creep_ghost_a.vmdl",
@@ -5237,7 +5655,7 @@
     "AttackAcquisitionRange": "300",
     "AttackRange": "400",
     "ProjectileModel": "particles/neutral_fx/ghost_base_attack.vpcf",
-    "ProjectileSpeed": "900",
+    "ProjectileSpeed": "1200",
     "RingRadius": "45",
     "HealthBarOffset": "190",
     "BountyXP": "42",
@@ -5253,7 +5671,8 @@
     "VisionDaytimeRange": "800",
     "VisionNighttimeRange": "800",
     "TeamName": "DOTA_TEAM_NEUTRALS",
-    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT"
+    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
+    "show_occluded_outline": "1"
   },
   "npc_dota_wraith_ghost": {
     "Model": "models/creeps/neutral_creeps/n_creep_ghost_a/n_creep_ghost_a.vmdl",
@@ -5290,7 +5709,8 @@
     "VisionDaytimeRange": "400",
     "VisionNighttimeRange": "400",
     "TeamName": "DOTA_TEAM_NEUTRALS",
-    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT"
+    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
+    "show_occluded_outline": "1"
   },
   "npc_dota_neutral_dark_troll": {
     "Model": "models/creeps/neutral_creeps/n_creep_troll_dark_a/n_creep_troll_dark_a.vmdl",
@@ -5329,7 +5749,8 @@
     "VisionDaytimeRange": "800",
     "VisionNighttimeRange": "800",
     "TeamName": "DOTA_TEAM_NEUTRALS",
-    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT"
+    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
+    "show_occluded_outline": "1"
   },
   "npc_dota_neutral_dark_troll_warlord": {
     "Model": "models/creeps/neutral_creeps/n_creep_troll_dark_b/n_creep_troll_dark_b.vmdl",
@@ -5368,7 +5789,8 @@
     "VisionDaytimeRange": "800",
     "VisionNighttimeRange": "800",
     "TeamName": "DOTA_TEAM_NEUTRALS",
-    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT"
+    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
+    "show_occluded_outline": "1"
   },
   "npc_dota_neutral_satyr_trickster": {
     "Model": "models/creeps/neutral_creeps/n_creep_satyr_b/n_creep_satyr_b.vmdl",
@@ -5394,9 +5816,9 @@
     "ProjectileSpeed": "1500",
     "RingRadius": "50",
     "HealthBarOffset": "170",
-    "BountyXP": "24",
-    "BountyGoldMin": "12",
-    "BountyGoldMax": "14",
+    "BountyXP": "30",
+    "BountyGoldMin": "15",
+    "BountyGoldMax": "17",
     "MovementCapabilities": "DOTA_UNIT_CAP_MOVE_GROUND",
     "MovementSpeed": "300",
     "MovementTurnRate": "0.9",
@@ -5407,7 +5829,8 @@
     "VisionDaytimeRange": "800",
     "VisionNighttimeRange": "800",
     "TeamName": "DOTA_TEAM_NEUTRALS",
-    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT"
+    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
+    "show_occluded_outline": "1"
   },
   "npc_dota_neutral_forest_troll_berserker": {
     "Model": "models/creeps/neutral_creeps/n_creep_forest_trolls/n_creep_forest_troll_berserker.vmdl",
@@ -5416,9 +5839,9 @@
     "Level": "2",
     "ModelScale": ".90",
     "IsNeutralUnitType": "1",
-    "Ability1": "berserker_troll_break",
-    "Ability2": "creep_piercing",
-    "Ability3": "neutral_upgrade",
+    "Ability1": "creep_piercing",
+    "Ability2": "neutral_upgrade",
+    "Ability3": "",
     "Ability4": "",
     "ArmorPhysical": "1",
     "AttackCapabilities": "DOTA_UNIT_CAP_RANGED_ATTACK",
@@ -5428,14 +5851,14 @@
     "BaseAttackSpeed": "125",
     "AttackAnimationPoint": "0.3",
     "AttackAcquisitionRange": "300",
-    "AttackRange": "500",
+    "AttackRange": "450",
     "ProjectileModel": "particles/base_attacks/ranged_badguy.vpcf",
-    "ProjectileSpeed": "1200",
+    "ProjectileSpeed": "1500",
     "RingRadius": "50",
     "HealthBarOffset": "160",
     "BountyXP": "28",
-    "BountyGoldMin": "18",
-    "BountyGoldMax": "20",
+    "BountyGoldMin": "16",
+    "BountyGoldMax": "18",
     "MovementCapabilities": "DOTA_UNIT_CAP_MOVE_GROUND",
     "MovementSpeed": "270",
     "MovementTurnRate": "0.9",
@@ -5446,7 +5869,8 @@
     "VisionDaytimeRange": "800",
     "VisionNighttimeRange": "800",
     "TeamName": "DOTA_TEAM_NEUTRALS",
-    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT"
+    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
+    "show_occluded_outline": "1"
   },
   "npc_dota_neutral_forest_troll_high_priest": {
     "Model": "models/creeps/neutral_creeps/n_creep_forest_trolls/n_creep_forest_troll_high_priest.vmdl",
@@ -5467,14 +5891,14 @@
     "BaseAttackSpeed": "125",
     "AttackAnimationPoint": "0.3",
     "AttackAcquisitionRange": "300",
-    "AttackRange": "600",
+    "AttackRange": "500",
     "ProjectileModel": "particles/base_attacks/ranged_badguy.vpcf",
-    "ProjectileSpeed": "900",
+    "ProjectileSpeed": "1500",
     "RingRadius": "50",
     "HealthBarOffset": "170",
     "BountyXP": "28",
-    "BountyGoldMin": "18",
-    "BountyGoldMax": "20",
+    "BountyGoldMin": "16",
+    "BountyGoldMax": "18",
     "MovementCapabilities": "DOTA_UNIT_CAP_MOVE_GROUND",
     "MovementSpeed": "290",
     "MovementTurnRate": "0.9",
@@ -5485,7 +5909,8 @@
     "VisionDaytimeRange": "1400",
     "VisionNighttimeRange": "800",
     "TeamName": "DOTA_TEAM_NEUTRALS",
-    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT"
+    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
+    "show_occluded_outline": "1"
   },
   "npc_dota_neutral_harpy_scout": {
     "Model": "models/creeps/neutral_creeps/n_creep_harpy_a/n_creep_harpy_a.vmdl",
@@ -5524,7 +5949,8 @@
     "VisionDaytimeRange": "1200",
     "VisionNighttimeRange": "800",
     "TeamName": "DOTA_TEAM_NEUTRALS",
-    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT"
+    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
+    "show_occluded_outline": "1"
   },
   "npc_dota_neutral_harpy_storm": {
     "Model": "models/creeps/neutral_creeps/n_creep_harpy_b/n_creep_harpy_b.vmdl",
@@ -5563,7 +5989,8 @@
     "VisionDaytimeRange": "1800",
     "VisionNighttimeRange": "1800",
     "TeamName": "DOTA_TEAM_NEUTRALS",
-    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT"
+    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
+    "show_occluded_outline": "1"
   },
   "npc_dota_neutral_black_drake": {
     "Model": "models/creeps/neutral_creeps/n_creep_black_drake/n_creep_black_drake.vmdl",
@@ -5604,7 +6031,8 @@
     "VisionDaytimeRange": "800",
     "VisionNighttimeRange": "800",
     "TeamName": "DOTA_TEAM_NEUTRALS",
-    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT"
+    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
+    "show_occluded_outline": "1"
   },
   "npc_dota_neutral_black_dragon": {
     "Model": "models/creeps/neutral_creeps/n_creep_black_dragon/n_creep_black_dragon.vmdl",
@@ -5645,7 +6073,8 @@
     "VisionDaytimeRange": "800",
     "VisionNighttimeRange": "800",
     "TeamName": "DOTA_TEAM_NEUTRALS",
-    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT"
+    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
+    "show_occluded_outline": "1"
   },
   "npc_dota_necronomicon_warrior_1": {
     "BaseClass": "npc_dota_creep",
@@ -5700,7 +6129,8 @@
     "TeamName": "DOTA_TEAM_GOODGUYS",
     "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
     "VisionDaytimeRange": "1300",
-    "VisionNighttimeRange": "800"
+    "VisionNighttimeRange": "800",
+    "show_occluded_outline": "1"
   },
   "npc_dota_necronomicon_warrior_2": {
     "include_keys_from": "npc_dota_necronomicon_warrior_1",
@@ -5714,7 +6144,8 @@
     "HealthBarOffset": "160",
     "MovementSpeed": "375",
     "StatusHealth": "800",
-    "VisionDaytimeRange": "1400"
+    "VisionDaytimeRange": "1400",
+    "show_occluded_outline": "1"
   },
   "npc_dota_necronomicon_warrior_3": {
     "include_keys_from": "npc_dota_necronomicon_warrior_1",
@@ -5733,7 +6164,8 @@
     "MovementSpeed": "380",
     "StatusHealth": "800",
     "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
-    "VisionDaytimeRange": "1500"
+    "VisionDaytimeRange": "1500",
+    "show_occluded_outline": "1"
   },
   "npc_dota_necronomicon_archer_1": {
     "BaseClass": "npc_dota_creep",
@@ -5787,7 +6219,8 @@
     "TeamName": "DOTA_TEAM_GOODGUYS",
     "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
     "VisionDaytimeRange": "1300",
-    "VisionNighttimeRange": "800"
+    "VisionNighttimeRange": "800",
+    "show_occluded_outline": "1"
   },
   "npc_dota_necronomicon_archer_2": {
     "include_keys_from": "npc_dota_necronomicon_archer_1",
@@ -5802,7 +6235,8 @@
     "HealthBarOffset": "160",
     "MovementSpeed": "385",
     "StatusHealth": "800",
-    "VisionDaytimeRange": "1400"
+    "VisionDaytimeRange": "1400",
+    "show_occluded_outline": "1"
   },
   "npc_dota_necronomicon_archer_3": {
     "include_keys_from": "npc_dota_necronomicon_archer_1",
@@ -5820,7 +6254,8 @@
     "HealthBarOffset": "165",
     "MovementSpeed": "425",
     "StatusHealth": "650",
-    "VisionDaytimeRange": "1500"
+    "VisionDaytimeRange": "1500",
+    "show_occluded_outline": "1"
   },
   "npc_dota_observer_wards": {
     "BaseClass": "npc_dota_ward_base",
@@ -5834,7 +6269,7 @@
     "BoundsHullName": "DOTA_HULL_SIZE_SMALL",
     "HealthBarOffset": "140",
     "MovementCapabilities": "DOTA_UNIT_CAP_MOVE_NONE",
-    "StatusHealth": "100",
+    "StatusHealth": "8",
     "StatusHealthRegen": "0",
     "StatusMana": "0",
     "StatusManaRegen": "0",
@@ -5844,7 +6279,8 @@
     "TeamName": "DOTA_TEAM_GOODGUYS",
     "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_WARD",
     "VisionDaytimeRange": "1600",
-    "VisionNighttimeRange": "1600"
+    "VisionNighttimeRange": "1600",
+    "show_occluded_outline": "1"
   },
   "npc_dota_sentry_wards": {
     "BaseClass": "npc_dota_ward_base_truesight",
@@ -5859,7 +6295,7 @@
     "BoundsHullName": "DOTA_HULL_SIZE_SMALL",
     "HealthBarOffset": "140",
     "MovementCapabilities": "DOTA_UNIT_CAP_MOVE_NONE",
-    "StatusHealth": "100",
+    "StatusHealth": "8",
     "StatusHealthRegen": "0",
     "StatusMana": "0",
     "StatusManaRegen": "0",
@@ -5869,7 +6305,8 @@
     "TeamName": "DOTA_TEAM_GOODGUYS",
     "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_WARD",
     "VisionDaytimeRange": "0",
-    "VisionNighttimeRange": "0"
+    "VisionNighttimeRange": "0",
+    "show_occluded_outline": "1"
   },
   "npc_dota_courier": {
     "BaseClass": "npc_dota_courier",
@@ -5902,7 +6339,7 @@
     },
     "BountyGoldMin": "35",
     "BountyGoldMax": "35",
-    "StatusHealth": "6",
+    "StatusHealth": "8",
     "StatusHealthRegen": "0",
     "StatusMana": "0",
     "StatusManaRegen": "0",
@@ -5921,7 +6358,8 @@
       "ACT_DOTA_RUN": {
         "regular": "0.5"
       }
-    }
+    },
+    "show_occluded_outline": "1"
   },
   "npc_dota_scout": {
     "BaseClass": "npc_dota_scout",
@@ -5999,7 +6437,8 @@
     "AttackDesire": "1.5",
     "HasInventory": "1",
     "IdleExpression": "scenes/default_idle.vcd",
-    "WakesNeutrals": "0"
+    "WakesNeutrals": "0",
+    "show_occluded_outline": "1"
   },
   "npc_dota_witch_doctor_death_ward": {
     "BaseClass": "npc_dota_witch_doctor_death_ward",
@@ -6039,7 +6478,8 @@
     "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_WARD",
     "VisionDaytimeRange": "1200",
     "VisionNighttimeRange": "800",
-    "HasInventory": "0"
+    "HasInventory": "0",
+    "show_occluded_outline": "1"
   },
   "npc_dota_shadow_shaman_ward_1": {
     "BaseClass": "npc_dota_shadowshaman_serpentward",
@@ -6089,7 +6529,8 @@
     },
     "party_hat_effects": {
       "party_hat_effect_0": "particles/econ/events/anniversary_10th/anniversary_10th_hat_ambient_npc_dota_hero_shadow_shaman.vpcf"
-    }
+    },
+    "show_occluded_outline": "1"
   },
   "npc_dota_shadow_shaman_ward_2": {
     "include_keys_from": "npc_dota_shadow_shaman_ward_1",
@@ -6149,7 +6590,8 @@
     },
     "party_hat_effects": {
       "party_hat_effect_0": "particles/econ/events/anniversary_10th/anniversary_10th_hat_ambient_npc_dota_hero_venomancer_plague_ward.vpcf"
-    }
+    },
+    "show_occluded_outline": "1"
   },
   "npc_dota_lesser_eidolon": {
     "BaseClass": "npc_dota_creep",
@@ -6179,8 +6621,8 @@
     "ArmorPhysical": "2",
     "MagicalResistance": "30",
     "AttackCapabilities": "DOTA_UNIT_CAP_RANGED_ATTACK",
-    "AttackDamageMin": "14",
-    "AttackDamageMax": "20",
+    "AttackDamageMin": "0",
+    "AttackDamageMax": "0",
     "AttackDamageType": "DAMAGE_TYPE_ArmorPhysical",
     "AttackRate": "1.5",
     "AttackAnimationPoint": "0.2",
@@ -6197,24 +6639,24 @@
     "MovementSpeed": "280",
     "MovementTurnRate": "0.9",
     "StatusHealth": "180",
-    "StatusHealthRegen": "4",
+    "StatusHealthRegen": "1",
     "StatusMana": "0",
     "StatusManaRegen": "0",
     "TeamName": "DOTA_TEAM_GOODGUYS",
     "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
     "VisionDaytimeRange": "1200",
-    "VisionNighttimeRange": "800"
+    "VisionNighttimeRange": "800",
+    "show_occluded_outline": "1"
   },
   "npc_dota_eidolon": {
     "include_keys_from": "npc_dota_lesser_eidolon",
     "ModelScale": "0.8",
     "ArmorPhysical": "3",
     "MagicalResistance": "40",
-    "AttackDamageMin": "24",
-    "AttackDamageMax": "30",
     "HealthBarOffset": "135",
     "MovementSpeed": "310",
     "StatusHealth": "200",
+    "StatusHealthRegen": "2",
     "AttackRange": "450"
   },
   "npc_dota_greater_eidolon": {
@@ -6222,11 +6664,10 @@
     "ModelScale": "0.85",
     "ArmorPhysical": "4",
     "MagicalResistance": "50",
-    "AttackDamageMin": "34",
-    "AttackDamageMax": "40",
     "HealthBarOffset": "140",
     "MovementSpeed": "340",
     "StatusHealth": "220",
+    "StatusHealthRegen": "3",
     "AttackRange": "475"
   },
   "npc_dota_dire_eidolon": {
@@ -6234,11 +6675,10 @@
     "ModelScale": ".9",
     "ArmorPhysical": "5",
     "MagicalResistance": "60",
-    "AttackDamageMin": "44",
-    "AttackDamageMax": "50",
     "HealthBarOffset": "145",
     "MovementSpeed": "370",
     "StatusHealth": "240",
+    "StatusHealthRegen": "4",
     "AttackRange": "500"
   },
   "npc_dota_dire_eidolon2": {
@@ -6246,11 +6686,10 @@
     "ModelScale": ".95",
     "ArmorPhysical": "6",
     "MagicalResistance": "70",
-    "AttackDamageMin": "54",
-    "AttackDamageMax": "60",
     "HealthBarOffset": "150",
     "MovementSpeed": "400",
     "StatusHealth": "260",
+    "StatusHealthRegen": "5",
     "AttackRange": "525"
   },
   "npc_dota_furion_treant": {
@@ -6307,7 +6746,8 @@
     },
     "party_hat_effects": {
       "party_hat_effect_0": "particles/econ/events/anniversary_10th/anniversary_10th_hat_ambient_npc_dota_hero_furion_treant.vpcf"
-    }
+    },
+    "show_occluded_outline": "1"
   },
   "npc_dota_furion_treant_large": {
     "BaseClass": "npc_dota_creep",
@@ -6360,7 +6800,8 @@
     },
     "party_hat_effects": {
       "party_hat_effect_0": "particles/econ/events/anniversary_10th/anniversary_10th_hat_ambient_npc_dota_hero_furion_treant.vpcf"
-    }
+    },
+    "show_occluded_outline": "1"
   },
   "npc_dota_furion_tree_fey": {
     "Model": "models/heroes/furion/treant.vmdl",
@@ -6395,7 +6836,8 @@
     "VisionDaytimeRange": "600",
     "VisionNighttimeRange": "600",
     "TeamName": "DOTA_TEAM_NEUTRALS",
-    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_WARD"
+    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_WARD",
+    "show_occluded_outline": "1"
   },
   "npc_dota_invoker_forged_spirit": {
     "BaseClass": "npc_dota_invoker_forged_spirit",
@@ -6448,7 +6890,8 @@
     },
     "party_hat_effects": {
       "party_hat_effect_0": "particles/econ/events/anniversary_10th/anniversary_10th_hat_ambient_npc_dota_hero_invoker_forge_spirit.vpcf"
-    }
+    },
+    "show_occluded_outline": "1"
   },
   "npc_dota_invoker_tornado_twister": {
     "BaseClass": "npc_dota_base_additive",
@@ -6509,10 +6952,10 @@
     "ArmorPhysical": "0",
     "MagicalResistance": "25",
     "AttackCapabilities": "DOTA_UNIT_CAP_MELEE_ATTACK",
-    "AttackDamageMin": "13",
-    "AttackDamageMax": "15",
+    "AttackDamageMin": "17",
+    "AttackDamageMax": "20",
     "AttackDamageType": "DAMAGE_TYPE_ArmorPhysical",
-    "AttackRate": "1.2",
+    "AttackRate": "1.6",
     "AttackAnimationPoint": "0.5",
     "AttackAcquisitionRange": "500",
     "AttackRange": "100",
@@ -6539,7 +6982,8 @@
     },
     "party_hat_effects": {
       "party_hat_effect_0": "particles/econ/events/anniversary_10th/anniversary_10th_hat_ambient_npc_dota_hero_broodmother_spiderling.vpcf"
-    }
+    },
+    "show_occluded_outline": "1"
   },
   "npc_dota_broodmother_spiderite": {
     "BaseClass": "npc_dota_broodmother_spiderling",
@@ -6563,10 +7007,10 @@
     "ArmorPhysical": "0",
     "MagicalResistance": "25",
     "AttackCapabilities": "DOTA_UNIT_CAP_MELEE_ATTACK",
-    "AttackDamageMin": "9",
-    "AttackDamageMax": "10",
+    "AttackDamageMin": "12",
+    "AttackDamageMax": "13",
     "AttackDamageType": "DAMAGE_TYPE_ArmorPhysical",
-    "AttackRate": "1.2",
+    "AttackRate": "1.6",
     "AttackAnimationPoint": "0.5",
     "AttackAcquisitionRange": "500",
     "AttackRange": "100",
@@ -6587,7 +7031,8 @@
     "TeamName": "DOTA_TEAM_GOODGUYS",
     "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
     "VisionDaytimeRange": "400",
-    "VisionNighttimeRange": "400"
+    "VisionNighttimeRange": "400",
+    "show_occluded_outline": "1"
   },
   "npc_dota_dark_troll_warlord_skeleton_warrior": {
     "BaseClass": "npc_dota_creep_neutral",
@@ -6631,7 +7076,8 @@
     "TeamName": "DOTA_TEAM_GOODGUYS",
     "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
     "VisionDaytimeRange": "800",
-    "VisionNighttimeRange": "600"
+    "VisionNighttimeRange": "600",
+    "show_occluded_outline": "1"
   },
   "npc_dota_wraith_king_skeleton_warrior": {
     "BaseClass": "npc_dota_creep_neutral",
@@ -6683,7 +7129,8 @@
     },
     "party_hat_effects": {
       "party_hat_effect_0": "particles/econ/events/anniversary_10th/anniversary_10th_hat_ambient_npc_dota_hero_skeleton_king.vpcf"
-    }
+    },
+    "show_occluded_outline": "1"
   },
   "npc_dota_clinkz_skeleton_archer": {
     "BaseClass": "npc_dota_clinkz_skeleton_archer",
@@ -6733,7 +7180,8 @@
     "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_WARD",
     "VisionDaytimeRange": "800",
     "VisionNighttimeRange": "800",
-    "HasInventory": "0"
+    "HasInventory": "0",
+    "show_occluded_outline": "1"
   },
   "npc_dota_enraged_wildkin_tornado": {
     "BaseClass": "npc_dota_base_additive",
@@ -6854,7 +7302,8 @@
     },
     "party_hat_effects": {
       "party_hat_effect_0": "particles/econ/events/frostivus_2024/frostivus_2024_hat_ambient_npc_dota_roshan.vpcf"
-    }
+    },
+    "show_occluded_outline": "1"
   },
   "npc_dota_miniboss": {
     "BaseClass": "npc_dota_miniboss",
@@ -6978,7 +7427,8 @@
     "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
     "VisionDaytimeRange": "0",
     "VisionNighttimeRange": "0",
-    "HasInventory": "0"
+    "HasInventory": "0",
+    "show_occluded_outline": "1"
   },
   "npc_dota_roshan_halloween": {
     "BaseClass": "npc_dota_roshan_halloween",
@@ -7164,7 +7614,8 @@
     "VisionNighttimeRange": "800",
     "TeamName": "DOTA_TEAM_NEUTRALS",
     "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
-    "HasInventory": "0"
+    "HasInventory": "0",
+    "show_occluded_outline": "1"
   },
   "npc_dota_warlock_minor_imp": {
     "Model": "models/heroes/warlock/warlock_demon.vmdl",
@@ -7212,7 +7663,8 @@
     "VisionNighttimeRange": "800",
     "TeamName": "DOTA_TEAM_NEUTRALS",
     "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
-    "HasInventory": "0"
+    "HasInventory": "0",
+    "show_occluded_outline": "1"
   },
   "npc_dota_warlock_golem": {
     "Model": "models/heroes/warlock/warlock_demon.vmdl",
@@ -7263,7 +7715,8 @@
     "TeamName": "DOTA_TEAM_NEUTRALS",
     "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
     "VoiceFile": "soundevents/voscripts/game_sounds_vo_warlock_golem.vsndevts",
-    "HasInventory": "0"
+    "HasInventory": "0",
+    "show_occluded_outline": "1"
   },
   "npc_dota_beastmaster_hawk": {
     "Model": "models/heroes/beastmaster/beastmaster_bird.vmdl",
@@ -7299,7 +7752,8 @@
     },
     "party_hat_effects": {
       "party_hat_effect_0": "particles/econ/events/anniversary_10th/anniversary_10th_hat_ambient_npc_dota_hero_axe.vpcf"
-    }
+    },
+    "show_occluded_outline": "1"
   },
   "npc_dota_beastmaster_boar": {
     "Model": "models/heroes/beastmaster/beastmaster_beast.vmdl",
@@ -7342,7 +7796,8 @@
     },
     "party_hat_effects": {
       "party_hat_effect_0": "particles/econ/events/anniversary_10th/anniversary_10th_hat_ambient_npc_dota_hero_axe.vpcf"
-    }
+    },
+    "show_occluded_outline": "1"
   },
   "npc_dota_brewmaster_earth_1": {
     "Model": "models/heroes/brewmaster/brewmaster_earthspirit.vmdl",
@@ -7387,7 +7842,8 @@
     "VisionDaytimeRange": "1800",
     "VisionNighttimeRange": "800",
     "TeamName": "DOTA_TEAM_NEUTRALS",
-    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT"
+    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
+    "show_occluded_outline": "1"
   },
   "npc_dota_brewmaster_earth_2": {
     "include_keys_from": "npc_dota_brewmaster_earth_1",
@@ -7398,7 +7854,7 @@
     "AttackDamageMax": "75",
     "HealthBarOffset": "165",
     "MovementSpeed": "355",
-    "StatusHealth": "2300",
+    "StatusHealth": "2200",
     "StatusHealthRegen": "4"
   },
   "npc_dota_brewmaster_earth_3": {
@@ -7410,7 +7866,7 @@
     "AttackDamageMax": "110",
     "HealthBarOffset": "175",
     "MovementSpeed": "380",
-    "StatusHealth": "3200",
+    "StatusHealth": "3000",
     "StatusHealthRegen": "6"
   },
   "npc_dota_brewmaster_earth_4": {
@@ -7422,7 +7878,7 @@
     "AttackDamageMax": "145",
     "HealthBarOffset": "175",
     "MovementSpeed": "380",
-    "StatusHealth": "4100",
+    "StatusHealth": "3800",
     "StatusHealthRegen": "8"
   },
   "npc_dota_brewmaster_storm_1": {
@@ -7472,7 +7928,8 @@
     "VisionDaytimeRange": "1800",
     "VisionNighttimeRange": "800",
     "TeamName": "DOTA_TEAM_NEUTRALS",
-    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT"
+    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
+    "show_occluded_outline": "1"
   },
   "npc_dota_brewmaster_storm_2": {
     "include_keys_from": "npc_dota_brewmaster_storm_1",
@@ -7531,9 +7988,9 @@
     "party_hat_effects": {
       "party_hat_effect_0": "particles/econ/events/anniversary_10th/anniversary_10th_hat_ambient_npc_dota_hero_brewmaster.vpcf"
     },
-    "Ability1": "brewmaster_fire_permanent_immolation",
-    "Ability2": "brewmaster_fire_phase",
-    "Ability3": "generic_hidden",
+    "Ability1": "brewmaster_fire_pull",
+    "Ability2": "brewmaster_fire_permanent_immolation",
+    "Ability3": "brewmaster_fire_phase",
     "Ability4": "generic_hidden",
     "Ability5": "generic_hidden",
     "Ability6": "brewmaster_primal_split_cancel",
@@ -7557,15 +8014,16 @@
     "VisionDaytimeRange": "1800",
     "VisionNighttimeRange": "800",
     "TeamName": "DOTA_TEAM_NEUTRALS",
-    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT"
+    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
+    "show_occluded_outline": "1"
   },
   "npc_dota_brewmaster_fire_2": {
     "include_keys_from": "npc_dota_brewmaster_fire_1",
     "Level": "8",
     "ModelScale": "0.9",
     "ArmorPhysical": "8",
-    "AttackDamageMin": "115",
-    "AttackDamageMax": "125",
+    "AttackDamageMin": "110",
+    "AttackDamageMax": "120",
     "HealthBarOffset": "165",
     "StatusHealth": "1450",
     "StatusHealthRegen": "4"
@@ -7575,8 +8033,8 @@
     "Level": "8",
     "ModelScale": ".95",
     "ArmorPhysical": "16",
-    "AttackDamageMin": "165",
-    "AttackDamageMax": "175",
+    "AttackDamageMin": "155",
+    "AttackDamageMax": "165",
     "HealthBarOffset": "175",
     "StatusHealth": "1600",
     "StatusHealthRegen": "6"
@@ -7586,8 +8044,8 @@
     "Level": "8",
     "ModelScale": "1",
     "ArmorPhysical": "24",
-    "AttackDamageMin": "215",
-    "AttackDamageMax": "225",
+    "AttackDamageMin": "200",
+    "AttackDamageMax": "210",
     "HealthBarOffset": "175",
     "StatusHealth": "1750",
     "StatusHealthRegen": "8"
@@ -7637,7 +8095,8 @@
     "VisionDaytimeRange": "1800",
     "VisionNighttimeRange": "800",
     "TeamName": "DOTA_TEAM_NEUTRALS",
-    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT"
+    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
+    "show_occluded_outline": "1"
   },
   "npc_dota_brewmaster_void_2": {
     "include_keys_from": "npc_dota_brewmaster_void_1",
@@ -7706,7 +8165,8 @@
     "TeamName": "DOTA_TEAM_BADGUYS",
     "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_WARD",
     "VisionDaytimeRange": "1200",
-    "VisionNighttimeRange": "1200"
+    "VisionNighttimeRange": "1200",
+    "show_occluded_outline": "1"
   },
   "npc_dota_unit_tombstone2": {
     "BaseClass": "npc_dota_unit_undying_tombstone",
@@ -7745,7 +8205,8 @@
     "TeamName": "DOTA_TEAM_BADGUYS",
     "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_WARD",
     "VisionDaytimeRange": "1200",
-    "VisionNighttimeRange": "1200"
+    "VisionNighttimeRange": "1200",
+    "show_occluded_outline": "1"
   },
   "npc_dota_unit_tombstone3": {
     "BaseClass": "npc_dota_unit_undying_tombstone",
@@ -7784,7 +8245,8 @@
     "TeamName": "DOTA_TEAM_BADGUYS",
     "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_WARD",
     "VisionDaytimeRange": "1200",
-    "VisionNighttimeRange": "1200"
+    "VisionNighttimeRange": "1200",
+    "show_occluded_outline": "1"
   },
   "npc_dota_unit_tombstone4": {
     "BaseClass": "npc_dota_unit_undying_tombstone",
@@ -7823,7 +8285,8 @@
     "TeamName": "DOTA_TEAM_BADGUYS",
     "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_WARD",
     "VisionDaytimeRange": "1200",
-    "VisionNighttimeRange": "1200"
+    "VisionNighttimeRange": "1200",
+    "show_occluded_outline": "1"
   },
   "npc_dota_unit_tombstone5": {
     "BaseClass": "npc_dota_unit_undying_tombstone",
@@ -7862,7 +8325,8 @@
     "TeamName": "DOTA_TEAM_BADGUYS",
     "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_WARD",
     "VisionDaytimeRange": "1200",
-    "VisionNighttimeRange": "1200"
+    "VisionNighttimeRange": "1200",
+    "show_occluded_outline": "1"
   },
   "npc_dota_unit_undying_zombie": {
     "BaseClass": "npc_dota_unit_undying_zombie",
@@ -7914,7 +8378,8 @@
     "TeamName": "DOTA_TEAM_BADGUYS",
     "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
     "VisionDaytimeRange": "800",
-    "VisionNighttimeRange": "800"
+    "VisionNighttimeRange": "800",
+    "show_occluded_outline": "1"
   },
   "npc_dota_unit_undying_zombie_torso": {
     "BaseClass": "npc_dota_unit_undying_zombie",
@@ -7966,7 +8431,8 @@
     "TeamName": "DOTA_TEAM_BADGUYS",
     "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
     "VisionDaytimeRange": "800",
-    "VisionNighttimeRange": "800"
+    "VisionNighttimeRange": "800",
+    "show_occluded_outline": "1"
   },
   "npc_dota_pugna_nether_ward": {
     "Model": "models/heroes/pugna/pugna_ward.vmdl",
@@ -8003,7 +8469,8 @@
     "VisionDaytimeRange": "600",
     "VisionNighttimeRange": "600",
     "TeamName": "DOTA_TEAM_NEUTRALS",
-    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_WARD"
+    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_WARD",
+    "show_occluded_outline": "1"
   },
   "npc_dota_item_wraith_pact_totem": {
     "Model": "models/props_gameplay/wraith_pact.vmdl",
@@ -8037,7 +8504,8 @@
     "VisionDaytimeRange": "600",
     "VisionNighttimeRange": "600",
     "TeamName": "DOTA_TEAM_NEUTRALS",
-    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_WARD"
+    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_WARD",
+    "show_occluded_outline": "1"
   },
   "npc_dota_templar_assassin_psionic_trap": {
     "Model": "models/heroes/lanaya/lanaya_trap_crystal_invis.vmdl",
@@ -8071,7 +8539,8 @@
     "VisionDaytimeRange": "250",
     "VisionNighttimeRange": "250",
     "TeamName": "DOTA_TEAM_NEUTRALS",
-    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_WARD"
+    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_WARD",
+    "show_occluded_outline": "1"
   },
   "npc_dota_rattletrap_cog": {
     "Model": "models/heroes/rattletrap/rattletrap_cog.vmdl",
@@ -8107,7 +8576,8 @@
     "VisionDaytimeRange": "800",
     "VisionNighttimeRange": "400",
     "TeamName": "DOTA_TEAM_NEUTRALS",
-    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_WARD"
+    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_WARD",
+    "show_occluded_outline": "1"
   },
   "npc_dota_rattletrap_rocket": {
     "Model": "models/development/invisiblebox.vmdl",
@@ -8198,7 +8668,8 @@
     "VisionDaytimeRange": "0",
     "VisionNighttimeRange": "0",
     "TeamName": "DOTA_TEAM_NEUTRALS",
-    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT"
+    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
+    "show_occluded_outline": "1"
   },
   "npc_dota_ember_spirit_remnant": {
     "Model": "models/development/invisiblebox.vmdl",
@@ -8228,7 +8699,8 @@
     "VisionDaytimeRange": "0",
     "VisionNighttimeRange": "0",
     "TeamName": "DOTA_TEAM_NEUTRALS",
-    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT"
+    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
+    "show_occluded_outline": "1"
   },
   "npc_dota_earth_spirit_stone": {
     "Model": "models/heroes/attachto_ghost/attachto_ghost.vmdl",
@@ -8258,7 +8730,8 @@
     "VisionDaytimeRange": "0",
     "VisionNighttimeRange": "0",
     "TeamName": "DOTA_TEAM_NEUTRALS",
-    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT"
+    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
+    "show_occluded_outline": "1"
   },
   "npc_dota_slark_visual": {
     "Model": "models/development/invisiblebox.vmdl",
@@ -8386,12 +8859,13 @@
     "BountyGoldMax": "50",
     "MovementCapabilities": "DOTA_UNIT_CAP_MOVE_GROUND",
     "MovementSpeed": "0",
-    "StatusHealth": "6",
+    "StatusHealth": "12",
     "StatusHealthRegen": "0.0",
     "VisionDaytimeRange": "400",
     "VisionNighttimeRange": "400",
     "TeamName": "DOTA_TEAM_NEUTRALS",
-    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_WARD"
+    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_WARD",
+    "show_occluded_outline": "1"
   },
   "npc_dota_plasma_field": {
     "BaseClass": "npc_dota_base",
@@ -8427,7 +8901,7 @@
       "party_hat_effect_0": "particles/econ/events/anniversary_10th/anniversary_10th_hat_ambient_npc_dota_hero_lycan_wolf.vpcf"
     },
     "UnitToAbilityMap": "lycan_summon_wolves",
-    "Ability1": "",
+    "Ability1": "lycan_summon_wolves_hightail",
     "Ability2": "",
     "Ability3": "",
     "Ability4": "",
@@ -8457,7 +8931,49 @@
     "VisionDaytimeRange": "1200",
     "VisionNighttimeRange": "800",
     "TeamName": "DOTA_TEAM_NEUTRALS",
-    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT"
+    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
+    "show_occluded_outline": "1"
+  },
+  "npc_dota_lycan_spirit_wolf": {
+    "BaseClass": "npc_dota_creep",
+    "Model": "models/heroes/lycan/summon_wolves_spirited.vmdl",
+    "SoundSet": "Lycan_Wolf",
+    "Level": "1",
+    "IsSummoned": "1",
+    "ModelScale": "0.9",
+    "UnitLabel": "lycan_spirit_wolf",
+    "UseNeutralCreepBehavior": "0",
+    "Ability1": "",
+    "ArmorPhysical": "0",
+    "MagicalResistance": "0",
+    "AttackCapabilities": "DOTA_UNIT_CAP_MELEE_ATTACK",
+    "AttackDamageMin": "21",
+    "AttackDamageMax": "23",
+    "AttackRate": "1.2",
+    "AttackAnimationPoint": "0.33",
+    "AttackAcquisitionRange": "500",
+    "AttackRange": "125",
+    "ProjectileModel": "",
+    "ProjectileSpeed": "0",
+    "BountyXP": "0",
+    "BountyGoldMin": "0",
+    "BountyGoldMax": "0",
+    "RingRadius": "70",
+    "HealthBarOffset": "160",
+    "BoundsHullName": "DOTA_HULL_SIZE_SMALL",
+    "MovementCapabilities": "DOTA_UNIT_CAP_MOVE_GROUND",
+    "MovementSpeed": "600",
+    "MovementTurnRate": "1.4",
+    "FollowRange": "0",
+    "StatusHealth": "1",
+    "StatusHealthRegen": "0",
+    "StatusMana": "0",
+    "StatusManaRegen": "0",
+    "VisionDaytimeRange": "300",
+    "VisionNighttimeRange": "300",
+    "TeamName": "DOTA_TEAM_GOODGUYS",
+    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_WARD",
+    "show_occluded_outline": "1"
   },
   "npc_dota_lycan_wolf2": {
     "include_keys_from": "npc_dota_lycan_wolf1",
@@ -8476,6 +8992,7 @@
     "include_keys_from": "npc_dota_lycan_wolf1",
     "Level": "3",
     "ModelScale": ".975",
+    "Ability2": "lycan_summon_wolves_invisibility",
     "AttackDamageMin": "33",
     "AttackDamageMax": "35",
     "AttackRate": "1.0",
@@ -8489,6 +9006,8 @@
     "include_keys_from": "npc_dota_lycan_wolf1",
     "Level": "4",
     "ModelScale": ".99",
+    "Ability2": "lycan_summon_wolves_invisibility",
+    "Ability3": "lycan_summon_wolves_critical_strike",
     "AttackDamageMin": "39",
     "AttackDamageMax": "41",
     "AttackRate": "0.9",
@@ -8502,6 +9021,9 @@
     "include_keys_from": "npc_dota_lycan_wolf1",
     "Level": "5",
     "ModelScale": "1.1",
+    "Ability2": "lycan_summon_wolves_invisibility",
+    "Ability3": "lycan_summon_wolves_critical_strike",
+    "Ability4": "lycan_summon_wolves_hamstring",
     "AttackDamageMin": "45",
     "AttackDamageMax": "47",
     "AttackRate": "0.9",
@@ -8515,6 +9037,9 @@
     "include_keys_from": "npc_dota_lycan_wolf1",
     "Level": "6",
     "ModelScale": "1.2",
+    "Ability2": "lycan_summon_wolves_invisibility",
+    "Ability3": "lycan_summon_wolves_critical_strike",
+    "Ability4": "lycan_summon_wolves_hamstring",
     "AttackDamageMin": "51",
     "AttackDamageMax": "53",
     "AttackRate": "0.9",
@@ -8527,6 +9052,9 @@
   "npc_dota_lycan_wolf_lane1": {
     "include_keys_from": "npc_dota_lycan_wolf4",
     "Ability1": "lycan_summon_wolves_critical_strike",
+    "Ability2": "",
+    "Ability3": "",
+    "Ability4": "",
     "BountyXP": "10",
     "BountyGoldMin": "15",
     "BountyGoldMax": "15",
@@ -8535,7 +9063,9 @@
   "npc_dota_lycan_wolf_lane2": {
     "include_keys_from": "npc_dota_lycan_wolf5",
     "Ability1": "lycan_summon_wolves_critical_strike",
+    "Ability2": "",
     "Ability3": "lycan_summon_wolves_hamstring",
+    "Ability4": "",
     "BountyXP": "10",
     "BountyGoldMin": "15",
     "BountyGoldMax": "15",
@@ -8544,6 +9074,7 @@
   "npc_dota_lycan_wolf_lane3": {
     "include_keys_from": "npc_dota_lycan_wolf6",
     "Ability1": "lycan_summon_wolves_critical_strike",
+    "Ability2": "",
     "Ability3": "lycan_summon_wolves_hamstring",
     "Ability4": "generic_hidden",
     "BountyXP": "10",
@@ -8568,9 +9099,10 @@
     "Ability1": "lone_druid_spirit_bear_return",
     "Ability2": "lone_druid_spirit_bear_entangle",
     "Ability3": "lone_druid_savage_roar_bear",
-    "Ability4": "lone_druid_spirit_bear_spirit_link",
+    "Ability4": "lone_druid_spirit_bear_summon_druid",
     "Ability5": "lone_druid_spirit_bear_fetch",
     "Ability6": "lone_druid_spirit_bear_demolish",
+    "Ability7": "lone_druid_spirit_bear_spirit_link",
     "Ability10": "special_bonus_movement_speed_15",
     "Ability11": "special_bonus_magic_resistance_10",
     "Ability12": "special_bonus_unique_lone_druid_spirit_bear_return_cd",
@@ -8611,7 +9143,8 @@
     "TeamName": "DOTA_TEAM_NEUTRALS",
     "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
     "MinimapIconSize": "2000",
-    "HasInventory": "1"
+    "HasInventory": "1",
+    "show_occluded_outline": "1"
   },
   "npc_dota_visage_familiar1": {
     "BaseClass": "npc_dota_visage_familiar",
@@ -8667,7 +9200,8 @@
     "TeamName": "DOTA_TEAM_BADGUYS",
     "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_WARD",
     "VisionDaytimeRange": "400",
-    "VisionNighttimeRange": "400"
+    "VisionNighttimeRange": "400",
+    "show_occluded_outline": "1"
   },
   "npc_dota_visage_familiar2": {
     "include_keys_from": "npc_dota_visage_familiar1",
@@ -8852,7 +9386,8 @@
     "TeamName": "DOTA_TEAM_GOODGUYS",
     "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
     "VisionDaytimeRange": "750",
-    "VisionNighttimeRange": "750"
+    "VisionNighttimeRange": "750",
+    "show_occluded_outline": "1"
   },
   "npc_dota_creep_goodguys_ranged_diretide": {
     "BaseClass": "npc_dota_creep_lane",
@@ -8903,7 +9438,8 @@
     "TeamName": "DOTA_TEAM_GOODGUYS",
     "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
     "VisionDaytimeRange": "750",
-    "VisionNighttimeRange": "750"
+    "VisionNighttimeRange": "750",
+    "show_occluded_outline": "1"
   },
   "npc_dota_creep_badguys_melee_diretide": {
     "BaseClass": "npc_dota_creep_lane",
@@ -8954,7 +9490,8 @@
     "TeamName": "DOTA_TEAM_BADGUYS",
     "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
     "VisionDaytimeRange": "750",
-    "VisionNighttimeRange": "750"
+    "VisionNighttimeRange": "750",
+    "show_occluded_outline": "1"
   },
   "npc_dota_creep_badguys_ranged_diretide": {
     "BaseClass": "npc_dota_creep_lane",
@@ -9005,7 +9542,8 @@
     "TeamName": "DOTA_TEAM_BADGUYS",
     "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
     "VisionDaytimeRange": "750",
-    "VisionNighttimeRange": "750"
+    "VisionNighttimeRange": "750",
+    "show_occluded_outline": "1"
   },
   "npc_dota_goodguys_siege_diretide": {
     "BaseClass": "npc_dota_creep_diretide",
@@ -9058,7 +9596,8 @@
     "TeamName": "DOTA_TEAM_GOODGUYS",
     "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
     "VisionDaytimeRange": "800",
-    "VisionNighttimeRange": "800"
+    "VisionNighttimeRange": "800",
+    "show_occluded_outline": "1"
   },
   "npc_dota_badguys_siege_diretide": {
     "BaseClass": "npc_dota_creep_diretide",
@@ -9111,7 +9650,8 @@
     "TeamName": "DOTA_TEAM_BADGUYS",
     "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
     "VisionDaytimeRange": "800",
-    "VisionNighttimeRange": "800"
+    "VisionNighttimeRange": "800",
+    "show_occluded_outline": "1"
   },
   "npc_dota_halloween_chaos_unit": {
     "BaseClass": "npc_dota_creep_neutral",
@@ -9963,7 +10503,8 @@
     "VisionDaytimeRange": "1800",
     "VisionNighttimeRange": "800",
     "TeamName": "DOTA_TEAM_NEUTRALS",
-    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT"
+    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
+    "show_occluded_outline": "1"
   },
   "npc_dota_ignis_fatuus": {
     "Model": "models/heroes/keeper_of_the_light/kotl_wisp.vmdl",
@@ -10000,7 +10541,8 @@
     "VisionNighttimeRange": "800",
     "TeamName": "DOTA_TEAM_GOODGUYS",
     "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_WARD",
-    "AttackDesire": "1.5"
+    "AttackDesire": "1.5",
+    "show_occluded_outline": "1"
   },
   "aghsfort_mars_bulwark_soldier": {
     "Model": "models/heroes/mars/mars_soldier.vmdl",
@@ -10039,7 +10581,8 @@
     "TeamName": "DOTA_TEAM_GOODGUYS",
     "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
     "HasInventory": "0",
-    "ImmuneToOmnislash": "1"
+    "ImmuneToOmnislash": "1",
+    "show_occluded_outline": "1"
   },
   "npc_dota_target_dummy": {
     "BaseClass": "npc_dota_target_dummy",
@@ -10066,7 +10609,8 @@
     "TeamName": "DOTA_TEAM_GOODGUYS",
     "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
     "VisionDaytimeRange": "1",
-    "VisionNighttimeRange": "1"
+    "VisionNighttimeRange": "1",
+    "show_occluded_outline": "1"
   },
   "npc_dota_looping_sound": {
     "BaseClass": "npc_dota_looping_sound",
@@ -10124,12 +10668,13 @@
     "MovementCapabilities": "DOTA_UNIT_CAP_MOVE_GROUND",
     "MovementSpeed": "0",
     "MovementTurnRate": "0.4",
-    "StatusHealth": "1",
+    "StatusHealth": "4",
     "StatusHealthRegen": "0.0",
     "VisionDaytimeRange": "64",
     "VisionNighttimeRange": "64",
     "TeamName": "DOTA_TEAM_NEUTRALS",
-    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_WARD"
+    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_WARD",
+    "show_occluded_outline": "1"
   },
   "npc_dota_techies_stasis_trap": {
     "Model": "models/heroes/techies/fx_techiesfx_stasis.vmdl",
@@ -10166,7 +10711,8 @@
     "VisionDaytimeRange": "0",
     "VisionNighttimeRange": "0",
     "TeamName": "DOTA_TEAM_NEUTRALS",
-    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_WARD"
+    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_WARD",
+    "show_occluded_outline": "1"
   },
   "npc_dota_techies_snare_trap": {
     "Model": "models/heroes/techies/fx_techiesfx_stasis.vmdl",
@@ -10203,7 +10749,8 @@
     "VisionDaytimeRange": "0",
     "VisionNighttimeRange": "0",
     "TeamName": "DOTA_TEAM_NEUTRALS",
-    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_WARD"
+    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_WARD",
+    "show_occluded_outline": "1"
   },
   "npc_dota_bounty_hunter_bear_trap": {
     "Model": "models/heroes/techies/fx_techiesfx_stasis.vmdl",
@@ -10240,7 +10787,8 @@
     "VisionDaytimeRange": "400",
     "VisionNighttimeRange": "400",
     "TeamName": "DOTA_TEAM_NEUTRALS",
-    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_WARD"
+    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_WARD",
+    "show_occluded_outline": "1"
   },
   "npc_dota_techies_remote_mine": {
     "Model": "models/heroes/techies/fx_techies_remote_cart.vmdl",
@@ -10277,7 +10825,8 @@
     "VisionDaytimeRange": "700",
     "VisionNighttimeRange": "700",
     "TeamName": "DOTA_TEAM_NEUTRALS",
-    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_WARD"
+    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_WARD",
+    "show_occluded_outline": "1"
   },
   "npc_dota_techies_innate_mine": {
     "Model": "models/heroes/techies/fx_techies_remotebomb.vmdl",
@@ -10310,12 +10859,13 @@
     "MovementCapabilities": "DOTA_UNIT_CAP_MOVE_NONE",
     "MovementSpeed": "0",
     "MovementTurnRate": "0",
-    "StatusHealth": "200",
+    "StatusHealth": "12",
     "StatusHealthRegen": "0.0",
     "VisionDaytimeRange": "700",
     "VisionNighttimeRange": "700",
     "TeamName": "DOTA_TEAM_NEUTRALS",
-    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_WARD"
+    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_WARD",
+    "show_occluded_outline": "1"
   },
   "npc_dota_techies_minefield_sign": {
     "BaseClass": "npc_dota_techies_minefield_sign",
@@ -10360,7 +10910,8 @@
     "StatusManaRegen": "0",
     "VisionDaytimeRange": "0",
     "VisionNighttimeRange": "0",
-    "HasInventory": "0"
+    "HasInventory": "0",
+    "show_occluded_outline": "1"
   },
   "npc_dota_treant_eyes": {
     "BaseClass": "npc_dota_treant_eyes",
@@ -10438,7 +10989,8 @@
     "VisionDaytimeRange": "800",
     "VisionNighttimeRange": "800",
     "TeamName": "DOTA_TEAM_NEUTRALS",
-    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_WARD"
+    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_WARD",
+    "show_occluded_outline": "1"
   },
   "npc_dota_phantomassassin_gravestone": {
     "BaseClass": "npc_dota_phantomassassin_gravestone",
@@ -10591,7 +11143,8 @@
       "MoveSpeedGain": "5",
       "BountyGain": "50",
       "XPGain": "50"
-    }
+    },
+    "show_occluded_outline": "1"
   },
   "npc_dota_badguys_cny_beast": {
     "BaseClass": "npc_dota_cny_beast",
@@ -10667,7 +11220,8 @@
       "BountyGain": "50",
       "XPGain": "50",
       "CanRespawn": "1"
-    }
+    },
+    "show_occluded_outline": "1"
   },
   "dota_death_prophet_exorcism_spirit": {
     "Model": "models/heroes/death_prophet/death_prophet_ghost.vmdl",
@@ -10783,7 +11337,8 @@
     "TeamName": "DOTA_TEAM_NEUTRALS",
     "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
     "VisionDaytimeRange": "1400",
-    "VisionNighttimeRange": "1400"
+    "VisionNighttimeRange": "1400",
+    "show_occluded_outline": "1"
   },
   "npc_dota_grimstroke_ink_creature": {
     "Model": "models/heroes/grimstroke/ink_phantom.vmdl",
@@ -10826,7 +11381,8 @@
     "VisionDaytimeRange": "200",
     "VisionNighttimeRange": "200",
     "TeamName": "DOTA_TEAM_NEUTRALS",
-    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_ATTACHED"
+    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_ATTACHED",
+    "show_occluded_outline": "1"
   },
   "npc_dota_seasonal_snowman": {
     "BaseClass": "npc_dota_seasonal_snowman",
@@ -11402,7 +11958,8 @@
     "VisionDaytimeRange": "700",
     "VisionNighttimeRange": "700",
     "TeamName": "DOTA_TEAM_NEUTRALS",
-    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_WARD"
+    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_WARD",
+    "show_occluded_outline": "1"
   },
   "npc_dota_unit_underlord_portal": {
     "BaseClass": "npc_dota_unit_underlord_portal",
@@ -11704,7 +12261,8 @@
     "StatusManaRegen": "0",
     "VisionDaytimeRange": "0",
     "VisionNighttimeRange": "0",
-    "HasInventory": "0"
+    "HasInventory": "0",
+    "show_occluded_outline": "1"
   },
   "npc_dota_seasonal_ti11_balloon": {
     "BaseClass": "npc_dota_seasonal_ti11_balloon",
@@ -11962,7 +12520,8 @@
     "VisionDaytimeRange": "0",
     "VisionNighttimeRange": "0",
     "TeamName": "DOTA_TEAM_NEUTRALS",
-    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT"
+    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
+    "show_occluded_outline": "1"
   },
   "npc_dota_unit_tidehunter_anchor": {
     "BaseClass": "npc_dota_unit_tidehunter_anchor",
@@ -11999,7 +12558,8 @@
     "TeamName": "DOTA_TEAM_BADGUYS",
     "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_WARD",
     "VisionDaytimeRange": "0",
-    "VisionNighttimeRange": "0"
+    "VisionNighttimeRange": "0",
+    "show_occluded_outline": "1"
   },
   "npc_dota_unit_roshans_banner": {
     "BaseClass": "npc_dota_unit_roshans_banner",
@@ -12043,7 +12603,8 @@
     "TeamName": "DOTA_TEAM_BADGUYS",
     "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_WARD",
     "VisionDaytimeRange": "1200",
-    "VisionNighttimeRange": "1200"
+    "VisionNighttimeRange": "1200",
+    "show_occluded_outline": "1"
   },
   "npc_dota_ringmaster_wheel": {
     "BaseClass": "npc_dota_base_additive",
@@ -12078,7 +12639,8 @@
     "StatusHealth": "16",
     "StatusHealthRegen": "0.0",
     "VisionDaytimeRange": "1800",
-    "VisionNighttimeRange": "800"
+    "VisionNighttimeRange": "800",
+    "show_occluded_outline": "1"
   },
   "npc_dota_xp_fountain": {
     "BaseClass": "npc_dota_xp_fountain",
@@ -12250,7 +12812,8 @@
     "VisionDaytimeRange": "400",
     "VisionNighttimeRange": "400",
     "TeamName": "DOTA_TEAM_NEUTRALS",
-    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT"
+    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
+    "show_occluded_outline": "1"
   },
   "npc_dota_neutral_froglet": {
     "Model": "models/creeps/neutral_creeps/n_creep_tadpole/n_creep_tadpole_v2.vmdl",
@@ -12288,7 +12851,8 @@
     "VisionDaytimeRange": "800",
     "VisionNighttimeRange": "800",
     "TeamName": "DOTA_TEAM_NEUTRALS",
-    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT"
+    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
+    "show_occluded_outline": "1"
   },
   "npc_dota_neutral_grown_frog": {
     "Model": "models/creeps/neutral_creeps/n_creep_froglet/n_creep_froglet.vmdl",
@@ -12327,7 +12891,8 @@
     "VisionDaytimeRange": "800",
     "VisionNighttimeRange": "800",
     "TeamName": "DOTA_TEAM_NEUTRALS",
-    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT"
+    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
+    "show_occluded_outline": "1"
   },
   "npc_dota_neutral_ancient_frog": {
     "Model": "models/creeps/neutral_creeps/n_creep_ancient_frog/n_creep_ancient_frog.vmdl",
@@ -12367,7 +12932,8 @@
     "VisionDaytimeRange": "800",
     "VisionNighttimeRange": "800",
     "TeamName": "DOTA_TEAM_NEUTRALS",
-    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT"
+    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
+    "show_occluded_outline": "1"
   },
   "npc_dota_neutral_froglet_mage": {
     "Model": "models/creeps/neutral_creeps/n_creep_tadpole/n_creep_tadpole_ranged_v2.vmdl",
@@ -12405,7 +12971,8 @@
     "VisionDaytimeRange": "800",
     "VisionNighttimeRange": "800",
     "TeamName": "DOTA_TEAM_NEUTRALS",
-    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT"
+    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
+    "show_occluded_outline": "1"
   },
   "npc_dota_neutral_grown_frog_mage": {
     "Model": "models/creeps/neutral_creeps/n_creep_froglet/n_creep_froglet_mage.vmdl",
@@ -12444,7 +13011,8 @@
     "VisionDaytimeRange": "800",
     "VisionNighttimeRange": "800",
     "TeamName": "DOTA_TEAM_NEUTRALS",
-    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT"
+    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
+    "show_occluded_outline": "1"
   },
   "npc_dota_neutral_ancient_frog_mage": {
     "Model": "models/creeps/neutral_creeps/n_creep_ancient_frog/n_creep_ancient_frog_mage.vmdl",
@@ -12484,7 +13052,8 @@
     "VisionDaytimeRange": "800",
     "VisionNighttimeRange": "800",
     "TeamName": "DOTA_TEAM_NEUTRALS",
-    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT"
+    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
+    "show_occluded_outline": "1"
   },
   "npc_dota_poogie": {
     "BaseClass": "npc_dota_poogie",
@@ -12592,7 +13161,7 @@
     "SoundSet": "Creep_Good_Melee",
     "ModelScale": "1.1",
     "Level": "3",
-    "Ability1": "chen_martyrdom",
+    "Ability1": "",
     "Ability2": "",
     "Ability3": "",
     "Ability4": "",
@@ -12635,7 +13204,8 @@
     "TeamName": "DOTA_TEAM_GOODGUYS",
     "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
     "VisionDaytimeRange": "750",
-    "VisionNighttimeRange": "750"
+    "VisionNighttimeRange": "750",
+    "show_occluded_outline": "1"
   },
   "npc_dota_ringmaster_unicycle": {
     "BaseClass": "npc_dota_base_additive",
@@ -12672,7 +13242,8 @@
     "StatusManaRegen": "0",
     "VisionDaytimeRange": "0",
     "VisionNighttimeRange": "0",
-    "HasInventory": "0"
+    "HasInventory": "0",
+    "show_occluded_outline": "1"
   },
   "npc_dota_falconers_glove_hawk": {
     "Model": "models/heroes/beastmaster/beastmaster_bird.vmdl",
@@ -12702,7 +13273,8 @@
     "VisionNighttimeRange": "750",
     "TeamName": "DOTA_TEAM_NEUTRALS",
     "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_WARD",
-    "WakesNeutrals": "0"
+    "WakesNeutrals": "0",
+    "show_occluded_outline": "1"
   },
   "npc_dota_bot_challenge_ancient_radiant": {
     "Model": "models/heroes/treant_protector/treant_protector.vmdl",
@@ -12748,7 +13320,8 @@
     "VisionNighttimeRange": "2600",
     "TeamName": "DOTA_TEAM_GOODGUYS",
     "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_BUILDING",
-    "Ability1": "creep_siege"
+    "Ability1": "creep_siege",
+    "show_occluded_outline": "1"
   },
   "npc_dota_bot_challenge_ancient_dire": {
     "Model": "models/heroes/treant_protector/treant_protector.vmdl",
@@ -12794,18 +13367,17 @@
     "VisionNighttimeRange": "2600",
     "TeamName": "DOTA_TEAM_BADGUYS",
     "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_BUILDING",
-    "Ability1": "creep_siege"
+    "Ability1": "creep_siege",
+    "show_occluded_outline": "1"
   },
-  "npc_dota_unit_item_stone_of_recall": {
+  "npc_dota_stone_of_recall": {
     "Model": "models/development/invisiblebox.vmdl",
-    "BaseClass": "npc_dota_unit_item_stone_of_recall",
+    "BaseClass": "npc_dota_stone_of_recall",
     "SoundSet": "Creep_Good_Melee",
     "MinimapIcon": "minimap_glowenemy",
-    "ModelScale": "0.8",
-    "IsAncient": "1",
-    "IsSummoned": "1",
+    "ModelScale": "0.75",
     "UntargetableByExorcismSpirits": "1",
-    "Ability1": "",
+    "Ability1": "ability_stone_of_recall",
     "Ability2": "",
     "Ability3": "",
     "Ability4": "",
@@ -12850,6 +13422,62 @@
     "VisionDaytimeRange": "0",
     "VisionNighttimeRange": "0"
   },
+  "npc_dota_stone_of_recall_summoned": {
+    "Model": "models/gameplay/stone_of_recall.vmdl",
+    "BaseClass": "npc_dota_stone_of_recall",
+    "SoundSet": "Creep_Good_Melee",
+    "MinimapIcon": "minimap_glowenemy",
+    "ModelScale": "0.8",
+    "IsSummoned": "1",
+    "IsOther": "1",
+    "IgnoreAddSummonedToSelection": "1",
+    "UntargetableByExorcismSpirits": "1",
+    "Ability1": "ability_stone_of_recall",
+    "Ability2": "",
+    "Ability3": "",
+    "Ability4": "",
+    "Ability5": "",
+    "Ability6": "",
+    "Ability7": "",
+    "Ability8": "",
+    "ArmorPhysical": "0",
+    "MagicalResistance": "0",
+    "AttackCapabilities": "DOTA_UNIT_CAP_NO_ATTACK",
+    "AttackDamageMin": "0",
+    "AttackDamageMax": "0",
+    "AttackDamageType": "DAMAGE_TYPE_ArmorPhysical",
+    "AttackRate": "0",
+    "AttackAnimationPoint": "0",
+    "AttackAcquisitionRange": "0",
+    "AttackRange": "0",
+    "ProjectileModel": "",
+    "ProjectileSpeed": "0",
+    "AttributePrimary": "DOTA_ATTRIBUTE_STRENGTH",
+    "AttributeBaseStrength": "0",
+    "AttributeStrengthGain": "0",
+    "AttributeBaseIntelligence": "0",
+    "AttributeIntelligenceGain": "0",
+    "AttributeBaseAgility": "0",
+    "AttributeAgilityGain": "0",
+    "BountyXP": "0",
+    "BountyGoldMin": "0",
+    "BountyGoldMax": "0",
+    "BoundsHullName": "DOTA_HULL_SIZE_SMALL",
+    "RingRadius": "100",
+    "HealthBarOffset": "200",
+    "MinimapIconSize": "300",
+    "MovementCapabilities": "DOTA_UNIT_CAP_MOVE_NONE",
+    "MovementSpeed": "0",
+    "MovementTurnRate": "0",
+    "StatusHealth": "24",
+    "StatusHealthRegen": "0",
+    "StatusMana": "0",
+    "StatusManaRegen": "0",
+    "TeamName": "DOTA_TEAM_BADGUYS",
+    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_WARD",
+    "VisionDaytimeRange": "0",
+    "VisionNighttimeRange": "0"
+  },
   "npc_dota_frogling_event": {
     "Model": "models/heroes/bard/bard_frogling.vmdl",
     "BaseClass": "npc_dota_frogling_event",
@@ -12885,7 +13513,8 @@
     "VisionDaytimeRange": "200",
     "VisionNighttimeRange": "200",
     "TeamName": "DOTA_TEAM_GOODGUYS",
-    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT"
+    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
+    "show_occluded_outline": "1"
   },
   "npc_dota_largo_frogling": {
     "Model": "models/heroes/bard/bard_frogling.vmdl",
@@ -12922,7 +13551,8 @@
     "VisionDaytimeRange": "200",
     "VisionNighttimeRange": "200",
     "TeamName": "DOTA_TEAM_GOODGUYS",
-    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT"
+    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
+    "show_occluded_outline": "1"
   },
   "npc_dota_tinker_turret1": {
     "BaseClass": "npc_dota_tinker_turret",
@@ -12965,7 +13595,8 @@
     "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_WARD",
     "VisionDaytimeRange": "700",
     "VisionNighttimeRange": "700",
-    "HasInventory": "0"
+    "HasInventory": "0",
+    "show_occluded_outline": "1"
   },
   "npc_dota_tinker_turret2": {
     "include_keys_from": "npc_dota_tinker_turret1",
@@ -13043,5 +13674,245 @@
     "BoundsHullName": "DOTA_HULL_SIZE_HERO",
     "VisionDaytimeRange": "0",
     "VisionNighttimeRange": "0"
+  },
+  "npc_dota_neutral_kobold_tunneler_gold": {
+    "Model": "models/creeps/neutral_creeps/n_creep_kobold/kobold_b/n_creep_kobold_b.vmdl",
+    "BaseClass": "npc_dota_creep_neutral",
+    "SoundSet": "n_creep_Melee",
+    "Level": "1",
+    "ModelScale": "1",
+    "IsNeutralUnitType": "1",
+    "Ability1": "kobold_disarm",
+    "Ability2": "neutral_upgrade",
+    "Ability3": "neutral_gold_upgrade_ability",
+    "Ability4": "",
+    "ArmorPhysical": "1",
+    "AttackCapabilities": "DOTA_UNIT_CAP_MELEE_ATTACK",
+    "AttackDamageMin": "22",
+    "AttackDamageMax": "23",
+    "AttackRate": "2",
+    "BaseAttackSpeed": "200",
+    "AttackAnimationPoint": "0.38",
+    "AttackAcquisitionRange": "500",
+    "AttackRange": "100",
+    "ProjectileModel": "",
+    "ProjectileSpeed": "0",
+    "RingRadius": "40",
+    "HealthBarOffset": "150",
+    "BountyXP": "17",
+    "BountyGoldMin": "12",
+    "BountyGoldMax": "14",
+    "MovementCapabilities": "DOTA_UNIT_CAP_MOVE_GROUND",
+    "MovementSpeed": "270",
+    "MovementTurnRate": "0.9",
+    "StatusHealth": "325",
+    "StatusHealthRegen": "0.5",
+    "StatusMana": "0",
+    "StatusManaRegen": "1.0",
+    "VisionDaytimeRange": "800",
+    "VisionNighttimeRange": "800",
+    "TeamName": "DOTA_TEAM_NEUTRALS",
+    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
+    "show_occluded_outline": "1"
+  },
+  "npc_dota_neutral_gnoll_assassin_gold": {
+    "Model": "models/creeps/neutral_creeps/n_creep_gnoll/n_creep_gnoll.vmdl",
+    "BaseClass": "npc_dota_creep_neutral",
+    "SoundSet": "n_creep_Ranged",
+    "Level": "2",
+    "ModelScale": ".90",
+    "IsNeutralUnitType": "1",
+    "Ability1": "gnoll_assassin_envenomed_weapon",
+    "Ability2": "creep_piercing",
+    "Ability3": "neutral_upgrade",
+    "Ability4": "neutral_gold_upgrade_ability",
+    "ArmorPhysical": "1",
+    "AttackCapabilities": "DOTA_UNIT_CAP_RANGED_ATTACK",
+    "AttackDamageMin": "25",
+    "AttackDamageMax": "27",
+    "AttackRate": "2",
+    "BaseAttackSpeed": "125",
+    "AttackAnimationPoint": "0.4",
+    "AttackAcquisitionRange": "800",
+    "AttackRange": "500",
+    "ProjectileModel": "particles/neutral_fx/gnoll_base_attack.vpcf",
+    "ProjectileSpeed": "1500",
+    "RingRadius": "40",
+    "HealthBarOffset": "170",
+    "BountyXP": "30",
+    "BountyGoldMin": "16",
+    "BountyGoldMax": "18",
+    "MovementCapabilities": "DOTA_UNIT_CAP_MOVE_GROUND",
+    "MovementSpeed": "270",
+    "MovementTurnRate": "0.9",
+    "StatusHealth": "400",
+    "StatusHealthRegen": "0.5",
+    "StatusMana": "0",
+    "StatusManaRegen": "1.0",
+    "VisionDaytimeRange": "400",
+    "VisionNighttimeRange": "400",
+    "TeamName": "DOTA_TEAM_NEUTRALS",
+    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
+    "show_occluded_outline": "1"
+  },
+  "npc_dota_neutral_alpha_wolf_gold": {
+    "Model": "models/creeps/neutral_creeps/n_creep_worg_large/n_creep_worg_large.vmdl",
+    "BaseClass": "npc_dota_creep_neutral",
+    "SoundSet": "n_creep_Melee",
+    "Level": "5",
+    "ModelScale": ".90",
+    "IsNeutralUnitType": "1",
+    "Ability1": "alpha_wolf_critical_strike",
+    "Ability2": "alpha_wolf_command_aura",
+    "Ability3": "neutral_upgrade",
+    "Ability4": "neutral_gold_upgrade_ability",
+    "ArmorPhysical": "3",
+    "AttackCapabilities": "DOTA_UNIT_CAP_MELEE_ATTACK",
+    "AttackDamageMin": "27",
+    "AttackDamageMax": "29",
+    "AttackRate": "2",
+    "BaseAttackSpeed": "150",
+    "AttackAnimationPoint": "0.33",
+    "AttackAcquisitionRange": "500",
+    "AttackRange": "90",
+    "ProjectileModel": "",
+    "ProjectileSpeed": "0",
+    "RingRadius": "70",
+    "HealthBarOffset": "160",
+    "BountyXP": "60",
+    "BountyGoldMin": "32",
+    "BountyGoldMax": "34",
+    "MovementCapabilities": "DOTA_UNIT_CAP_MOVE_GROUND",
+    "MovementSpeed": "350",
+    "MovementTurnRate": "0.9",
+    "StatusHealth": "600",
+    "StatusHealthRegen": "0.5",
+    "StatusMana": "0",
+    "StatusManaRegen": "1",
+    "VisionDaytimeRange": "800",
+    "VisionNighttimeRange": "800",
+    "TeamName": "DOTA_TEAM_NEUTRALS",
+    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
+    "show_occluded_outline": "1"
+  },
+  "npc_dota_neutral_mud_golem_gold": {
+    "Model": "models/creeps/neutral_creeps/n_creep_golem_b/n_creep_golem_b.vmdl",
+    "BaseClass": "npc_dota_creep_neutral",
+    "SoundSet": "n_creep_Melee",
+    "Level": "4",
+    "ModelScale": "1.1",
+    "IsNeutralUnitType": "1",
+    "Ability1": "mud_golem_hurl_big_boulder",
+    "Ability2": "mud_golem_rock_destroy",
+    "Ability3": "neutral_upgrade",
+    "Ability4": "neutral_gold_upgrade_ability",
+    "ArmorPhysical": "0",
+    "MagicalResistance": "30",
+    "AttackCapabilities": "DOTA_UNIT_CAP_MELEE_ATTACK",
+    "AttackDamageMin": "24",
+    "AttackDamageMax": "26",
+    "AttackRate": "2",
+    "BaseAttackSpeed": "150",
+    "AttackAnimationPoint": "0.3",
+    "AttackAcquisitionRange": "500",
+    "AttackRange": "100",
+    "ProjectileModel": "",
+    "ProjectileSpeed": "0",
+    "RingRadius": "60",
+    "HealthBarOffset": "190",
+    "BountyXP": "32",
+    "BountyGoldMin": "19",
+    "BountyGoldMax": "21",
+    "MovementCapabilities": "DOTA_UNIT_CAP_MOVE_GROUND",
+    "MovementSpeed": "310",
+    "StatusHealth": "750",
+    "StatusHealthRegen": "0.5",
+    "StatusMana": "400",
+    "StatusManaRegen": "1",
+    "VisionDaytimeRange": "800",
+    "VisionNighttimeRange": "800",
+    "TeamName": "DOTA_TEAM_NEUTRALS",
+    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
+    "show_occluded_outline": "1"
+  },
+  "npc_dota_neutral_enraged_wildkin_gold": {
+    "Model": "models/creeps/neutral_creeps/n_creep_vulture_a/n_creep_vulture_a.vmdl",
+    "BaseClass": "npc_dota_creep_neutral",
+    "SoundSet": "n_creep_Melee",
+    "Level": "5",
+    "ModelScale": "1.1",
+    "IsNeutralUnitType": "1",
+    "Ability1": "enraged_wildkin_hurricane",
+    "Ability2": "enraged_wildkin_toughness_aura",
+    "Ability3": "neutral_upgrade",
+    "Ability4": "neutral_gold_upgrade_ability",
+    "ArmorPhysical": "4",
+    "AttackCapabilities": "DOTA_UNIT_CAP_MELEE_ATTACK",
+    "AttackDamageMin": "50",
+    "AttackDamageMax": "56",
+    "AttackRate": "2",
+    "BaseAttackSpeed": "150",
+    "AttackAnimationPoint": "0.3",
+    "AttackAcquisitionRange": "500",
+    "AttackRange": "128",
+    "ProjectileModel": "",
+    "ProjectileSpeed": "0",
+    "RingRadius": "50",
+    "HealthBarOffset": "220",
+    "BountyXP": "90",
+    "BountyGoldMin": "58",
+    "BountyGoldMax": "64",
+    "MovementCapabilities": "DOTA_UNIT_CAP_MOVE_GROUND",
+    "MovementSpeed": "320",
+    "MovementTurnRate": "0.9",
+    "StatusHealth": "950",
+    "StatusHealthRegen": "0.5",
+    "StatusMana": "400",
+    "StatusManaRegen": "1",
+    "VisionDaytimeRange": "800",
+    "VisionNighttimeRange": "800",
+    "TeamName": "DOTA_TEAM_NEUTRALS",
+    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
+    "show_occluded_outline": "1"
+  },
+  "npc_dota_neutral_polar_furbolg_champion_gold": {
+    "Model": "models/creeps/neutral_creeps/n_creep_beast/n_creep_beast.vmdl",
+    "BaseClass": "npc_dota_creep_neutral",
+    "SoundSet": "n_creep_Melee",
+    "Level": "4",
+    "ModelScale": ".80",
+    "IsNeutralUnitType": "1",
+    "Ability1": "centaur_khan_endurance_aura",
+    "Ability2": "furbolg_enrage_attack_speed",
+    "Ability3": "neutral_upgrade",
+    "Ability4": "neutral_gold_upgrade_ability",
+    "ArmorPhysical": "3",
+    "AttackCapabilities": "DOTA_UNIT_CAP_MELEE_ATTACK",
+    "AttackDamageMin": "39",
+    "AttackDamageMax": "44",
+    "AttackRate": "2",
+    "BaseAttackSpeed": "135",
+    "AttackAnimationPoint": "0.3",
+    "AttackAcquisitionRange": "500",
+    "AttackRange": "100",
+    "ProjectileModel": "",
+    "ProjectileSpeed": "0",
+    "RingRadius": "50",
+    "HealthBarOffset": "180",
+    "BountyXP": "66",
+    "BountyGoldMin": "30",
+    "BountyGoldMax": "38",
+    "MovementCapabilities": "DOTA_UNIT_CAP_MOVE_GROUND",
+    "MovementSpeed": "320",
+    "MovementTurnRate": "0.9",
+    "StatusHealth": "700",
+    "StatusHealthRegen": "0.5",
+    "StatusMana": "0",
+    "StatusManaRegen": "1.0",
+    "VisionDaytimeRange": "800",
+    "VisionNighttimeRange": "800",
+    "TeamName": "DOTA_TEAM_NEUTRALS",
+    "UnitRelationshipClass": "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_DEFAULT",
+    "show_occluded_outline": "1"
   }
 }

@@ -5,7 +5,7 @@ import { addStatus } from './hero-runtime.js';
 const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
 export function ensureCourier(g,h){
  let c=g.entities.find(e=>e.kind==='courier'&&e.ownerId===h.id);if(c)return c;
- const base=BASES[h.team];c=g._unit('courier',h.team,base.x,base.y,{name:h.name+'的信使',ownerId:h.id,level:h.level,maxHp:6,hp:6,armor:0,magicResistance:1,speed:290,range:0,damage:0,attackCooldown:Infinity,radius:20,visionDay:200,visionNight:200,command:'idle',cargo:[],cargoMeta:[],burstReadyAt:0,shieldReadyAt:0});
+ const base=BASES[h.team];c=g._unit('courier',h.team,base.x,base.y,{name:h.name+'的信使',ownerId:h.id,level:h.level,maxHp:2,hp:2,pipHealth:true,fragile:true,armor:0,magicResistance:1,speed:290,range:0,damage:0,attackCooldown:Infinity,radius:20,visionDay:200,visionNight:200,command:'idle',cargo:[],cargoMeta:[],burstReadyAt:0,shieldReadyAt:0});
  Inventory.ensureInventory(c);h.courierId=c.id;g.entities.push(c);return c;
 }
 export function courierCommand(g,h,command){
@@ -42,8 +42,8 @@ export function tickCouriers(g,dt){
   const h=g.entities.find(e=>e.id===c.ownerId);if(!h)continue;
   c.level=h.level;c.flying=h.level>=4;c.speed=(290+10*(h.level-1))*(c.burstUntil>g.time?1.5:1);
   const base=BASES[c.team];
-  if(c.dead){if(g.time>=c.respawnAt){Object.assign(c,{...base,hp:6,dead:false,command:'idle',statuses:{},buffs:{}});}continue;}
-  if(distance(c,base)<250)c.hp=6;
+  if(c.dead){if(g.time>=c.respawnAt){Object.assign(c,{...base,hp:2,maxHp:2,pipHealth:true,fragile:true,dead:false,command:'idle',statuses:{},buffs:{}});}continue;}
+  if(distance(c,base)<250)c.hp=c.maxHp;
   if(!h.isPlayer&&c.command==='idle'&&h.stash.some(Boolean))c.command='collect';
   let goal;
   if(c.command==='collect'||c.command==='return'){

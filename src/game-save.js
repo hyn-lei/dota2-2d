@@ -7,13 +7,14 @@ import {hasExpiredMatchTime,MAX_MATCH_MINUTES} from './match-clock.js';
 
 export const SAVE_KEY = 'af-single-match-v1';
 const VERSION = 1;
-const RULESET = '7.41f';
+const RULESET = '7.42';
 const stateFields = new Set([
   'time', 'status', 'paused', 'winner', 'score', 'entities', 'effects', 'pendingSpells',
   'feed', 'wave', 'nextWave', 'difficulty', 'seed', 'serial', 'keyboard', 'camps',
   'nextNeutralSpawn', 'nextBuildingCheck', 'selectedId', 'heroChoice', 'roshanPit',
   'roshanRespawnAt', 'cutTrees', 'plantedTrees', 'shopStocks', 'itemZones', 'nextItemAuraAt',
   '_chenTickAt','_creatureTickAt','_nextCreatureAuraAt',
+  'glyphStates','worldObjectives','madstoneDrops','tormentorDeaths','tormentorRespawnAt','roshanDeaths',
 ]);
 const tag = '$singleMatch';
 const encode = value => {
@@ -64,7 +65,7 @@ function validHero(hero){
     hero.abilityLevels.every(rank=>Number.isInteger(rank)&&rank>=0&&rank<=4)&&
     Array.isArray(hero.cooldowns)&&hero.cooldowns.length===4&&hero.cooldowns.every(timer);
 }
-const skillSpellTypes=new Set(['shackle','torrent','gale','tidal','ship','cannon','powershot','ogre:fireblast','ogre:igniteCast','ogre:ignite','drowGust','drowMultishot','chenProjectile','creatureMissile','creatureChain','creatureLine','creatureFireball']);
+const skillSpellTypes=new Set(['shackle','torrent','gale','tidal','ship','cannon','powershot','ogre:fireblast','ogre:igniteCast','ogre:ignite','drowGust','drowMultishot','chenProjectile','creatureMissile','creatureChain','creatureLine','creatureFireball','chaos:bolt','chaos:phantasm','creatureEgg','creatureBigBoulder','creatureSlam']);
 function validSpell(spell){
   if(!object(spell)||typeof spell.sourceId!=='string'||!timer(spell.landAt))return false;
   if(spell.type==='attack')return typeof spell.targetId==='string'&&object(spell.result)&&Number.isFinite(spell.result.damage)&&Number.isFinite(spell.x)&&Number.isFinite(spell.y)&&Number.isFinite(spell.speed)&&spell.speed>0&&Number.isFinite(spell.lastTick);

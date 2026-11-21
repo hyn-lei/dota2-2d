@@ -8,7 +8,8 @@ const integer = (value, low, high) => Number.isInteger(value) && value >= low &&
 const number = (value, low, high) => Number.isFinite(value) && value >= low && value <= high;
 const id = value => typeof value === 'string' && /^[a-zA-Z0-9:_-]{1,100}$/.test(value);
 const item = value => typeof value === 'string' && Object.hasOwn(ITEM_BY_ID,value);
-const slot = (area,index) => ['inventory','backpack','stash','tp'].includes(area) && integer(index,0,SLOT_COUNTS[area]-1);
+const standardSlot = (area,index) => ['inventory','backpack','stash','tp'].includes(area) && integer(index,0,SLOT_COUNTS[area]-1);
+const slot = (area,index) => area==='neutral'?index===0:standardSlot(area,index);
 const point = value => value == null || exact(value,['x','y','direction','self'])
   && number(value.x,0,WORLD.width) && number(value.y,0,WORLD.height)
   && (value.self===undefined||value.self===true)
@@ -22,20 +23,23 @@ const validators = {
   attackTarget:a=>args(a,1)&&id(a[0]),
   cast:a=>args(a,1,2)&&integer(a[0],0,3)&&point(a[1]),
   castExtra:a=>args(a,1,2)&&id(a[0])&&point(a[1]),
-  useItem:a=>args(a,1,3)&&slot(a[2]??'inventory',a[0])&&['inventory','tp'].includes(a[2]??'inventory')&&point(a[1]),
+  useItem:a=>args(a,1,3)&&slot(a[2]??'inventory',a[0])&&['inventory','backpack','tp','neutral'].includes(a[2]??'inventory')&&point(a[1]),
   toggleAutocast:a=>args(a,1)&&integer(a[0],0,3),
   learnAbility:a=>args(a,1)&&integer(a[0],0,3),
   learnTalent:a=>args(a,1)&&integer(a[0],0,7),
   learnAttributes:noArgs,recall:noArgs,stop:noArgs,
   buy:a=>args(a,1)&&item(a[0]),
-  moveItem:a=>args(a,4)&&slot(a[0],a[1])&&slot(a[2],a[3]),
-  sellItem:a=>args(a,2)&&slot(a[0],a[1]),
+  moveItem:a=>args(a,4)&&standardSlot(a[0],a[1])&&standardSlot(a[2],a[3]),
+  sellItem:a=>args(a,2)&&standardSlot(a[0],a[1]),
+  craftNeutral:a=>args(a,2)&&(a[0]==='keep'||item(a[0]))&&item(a[1]),
+  useGlyph:noArgs,
+  interactObjective:a=>args(a,1)&&id(a[0]),
   collectStash:noArgs,
   queueItem:a=>args(a,1,2)&&item(a[0])&&(a[1]===undefined||typeof a[1]==='boolean'),
   clearQuickbuy:noArgs,buyQuick:noArgs,
-  setCombineLock:a=>args(a,3)&&slot(a[0],a[1])&&typeof a[2]==='boolean',
-  disassembleItem:a=>args(a,2)&&slot(a[0],a[1]),
-  dropItem:a=>args(a,2,3)&&slot(a[0],a[1])&&point(a[2]),
+  setCombineLock:a=>args(a,3)&&standardSlot(a[0],a[1])&&typeof a[2]==='boolean',
+  disassembleItem:a=>args(a,2)&&standardSlot(a[0],a[1]),
+  dropItem:a=>args(a,2,3)&&standardSlot(a[0],a[1])&&point(a[2]),
   pickupItem:a=>args(a,1)&&id(a[0]),
   courierCommand:a=>args(a,1)&&['deliver','return','secret','burst','shield','stop'].includes(a[0]),
   buyWithCourier:a=>args(a,1)&&item(a[0]),
@@ -65,9 +69,10 @@ export function executeCommand(game, actorId, message) {
     if(message.action==='unitCommand'&&(!inventoryActor||!game.canControl(inventoryActor)||inventoryActor.id===actor.id))return fail('只能操控自己的单位');
     for(const [area,index] of required) {
       const matches=guards.filter(g=>g.area===area&&g.index===index);
-      const uid=inventoryActor[area]?.[index] ? inventoryActor[area+'Meta']?.[index]?.uid : null;
+      const meta=area==='neutral'?inventoryActor.neutralItemMeta:inventoryActor[area+'Meta']?.[index];
+      const uid=(area==='neutral'?inventoryActor.neutralItem:inventoryActor[area]?.[index])?meta?.uid:null;
       if(matches.length!==1 || matches[0].uid!==uid) return fail('物品栏已更新，请重试');
-      if(uid && inventoryActor[area+'Meta'][index].ownerId!==inventoryActor.id && !inventoryActor[area+'Meta'][index].freeRapier) return fail('该物品不属于此玩家');
+      if(uid && meta.ownerId!==inventoryActor.id && !meta.freeRapier) return fail('该物品不属于此玩家');
     }
     const action=message.action,a=message.args.map(value=>value===null?undefined:value);
     if(['cast','castExtra','useItem'].includes(action)&&a[1]?.self)a[1]=actor;

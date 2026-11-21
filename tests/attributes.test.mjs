@@ -7,7 +7,7 @@ import { calculateHeroStats, physicalDamageMultiplier, magicalDamageMultiplier }
 
 const near = (actual, expected) => assert.ok(Math.abs(actual - expected) < 1e-5, `${actual} ≈ ${expected}`);
 
-test('all six level-one heroes reproduce official stats, including Ogre innate mana', async () => {
+test('all nine level-one heroes reproduce official stats, including Ogre innate mana', async () => {
   for (const [id, source] of Object.entries(HERO_STATS)) {
     const raw = JSON.parse(await readFile(new URL(`../docs/research/heroes/${source.dotaId}.json`, import.meta.url)));
     const official = raw.result.data.heroes[0];
@@ -23,14 +23,14 @@ test('all six level-one heroes reproduce official stats, including Ogre innate m
     const universalBonus = id === 'windranger' ? 25.2 : 0;
     near(hero.damageMin, official.damage_min + universalBonus);
     near(hero.damageMax, official.damage_max + universalBonus);
-    near(hero.magicResistance, 0.25 + official.int_base * 0.001);
+    near(hero.magicResistance, 0.25 + official.int_base * 0.00125);
   }
 });
 
 test('Kunkka level growth applies each attribute once before derived stats', () => {
   const h = calculateHeroStats('kunkka', 11);
   near(h.strength, 60); near(h.agility, 30); near(h.intelligence, 36);
-  near(h.maxHp, 1440); near(h.maxMana, 507);
+  near(h.maxHp, 1400); near(h.maxMana, 507);
   near(h.damageMin, 90); near(h.damageMax, 96);
   near(h.armor, 7); near(h.attackSpeed, 130);
   near(h.attackInterval, 1.7 / 1.3);
@@ -43,7 +43,7 @@ test('Universal Windranger gains damage from all three stats with 0.45 coefficie
   assert.equal(base.primaryAttribute, 'universal');
   near(base.damageMin, 49.2); near(base.damageMax, 61.2);
   near(equipped.damage - base.damage, 6.75);
-  near(equipped.maxHp - base.maxHp, 110);
+  near(equipped.maxHp - base.maxHp, 100);
   near(equipped.maxMana - base.maxMana, 60);
 });
 
@@ -51,10 +51,10 @@ test('items contribute attributes and independent bonuses without mutating input
   const inventory = ['arcane', ITEM_BY_ID.gauntlets, 'vitality', 'armor', 'gloves', 'boots'];
   const before = JSON.stringify(inventory);
   const h = calculateHeroStats('crystal_maiden', 1, inventory);
-  near(h.maxHp, 810); near(h.maxMana, 435);
+  near(h.maxHp, 850); near(h.maxMana, 435);
   near(h.damageMin, 58); near(h.armor, 12 + 2 / 3);
   near(h.attackSpeed, 136); near(h.speed, 325);
-  near(h.magicResistance, 0.28);
+  near(h.magicResistance, 0.2875);
   assert.equal(JSON.stringify(inventory), before);
 });
 

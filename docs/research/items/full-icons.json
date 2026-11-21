@@ -1,5 +1,5 @@
 {
-  "retrieved": "2026-10-28",
+  "retrieved": "2026-11-21",
   "items": [
     {
       "id": "blink",
@@ -290,6 +290,12 @@
       "sha256": "3b35f973243072835152b26c4ccf594df206d95746a9b3e7850361e17e811880"
     },
     {
+      "id": "cheese",
+      "file": "assets/items/cheese.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/cheese.png",
+      "sha256": "3279a98822dc0f27366353cf95e022b1fcec4d0e1c701242a188f9fcd01088c4"
+    },
+    {
       "id": "magic_stick",
       "file": "assets/items/magic_stick.png",
       "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/magic_stick.png",
@@ -330,6 +336,18 @@
       "file": "assets/items/blood_grenade.png",
       "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/blood_grenade.png",
       "sha256": "2664de0aa2a506fea2e8a921cdcea1ecc89f75769bf5ff1978efb6412c4ba2ea"
+    },
+    {
+      "id": "recipe_bloodslinger",
+      "file": "assets/items/recipe_bloodslinger.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/recipe.png",
+      "sha256": "ce022163ddccb8df8890b408f641d27ca05a92a974f43297bb31eb067ccac9d6"
+    },
+    {
+      "id": "bloodslinger",
+      "file": "assets/items/bloodslinger.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/bloodslinger.png",
+      "sha256": "14266d6278c795932819ca9ae2b97bb98cfe35f90764d97d95bc9fc7b660ba43"
     },
     {
       "id": "flask",
@@ -518,6 +536,18 @@
       "sha256": "b27c071b8a6051b1058f979c23abb00525e5c557d1c3760a9f142420c0a089e3"
     },
     {
+      "id": "recipe_caduceus",
+      "file": "assets/items/recipe_caduceus.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/recipe.png",
+      "sha256": "ce022163ddccb8df8890b408f641d27ca05a92a974f43297bb31eb067ccac9d6"
+    },
+    {
+      "id": "caduceus",
+      "file": "assets/items/caduceus.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/caduceus.png",
+      "sha256": "7e96d6b6c1270ebef86cb68b38ce249309ebdb42d17e84ff56b50c71fa605b93"
+    },
+    {
       "id": "recipe_hand_of_midas",
       "file": "assets/items/recipe_hand_of_midas.png",
       "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/recipe.png",
@@ -606,6 +636,12 @@
       "file": "assets/items/vladmir.png",
       "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/vladmir.png",
       "sha256": "749ec25bc12f5cd3ea12f59b530203611ff8d66acc0a89c3e4cc057ad7b2e239"
+    },
+    {
+      "id": "ristuls_devotion",
+      "file": "assets/items/ristuls_devotion.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/ristuls_devotion.png",
+      "sha256": "d0447e138f525346943aa3e7ae8b2aeea95fed97cf17c9b4dad4a9ccb1aea5f1"
     },
     {
       "id": "recipe_buckler",
@@ -944,6 +980,18 @@
       "sha256": "a975258dd8ca3e6b57db1cd33f95462e3fbb49416b3089d43a1b4f1f25331f20"
     },
     {
+      "id": "recipe_starforge",
+      "file": "assets/items/recipe_starforge.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/recipe.png",
+      "sha256": "ce022163ddccb8df8890b408f641d27ca05a92a974f43297bb31eb067ccac9d6"
+    },
+    {
+      "id": "starforge",
+      "file": "assets/items/starforge.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/starforge.png",
+      "sha256": "2eca330932f8ce0a7126301896112c7a9b09a9b37f5b6faac37cfc456e33ed54"
+    },
+    {
       "id": "nullifier",
       "file": "assets/items/nullifier.png",
       "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/nullifier.png",
@@ -972,6 +1020,12 @@
       "file": "assets/items/kaya.png",
       "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/kaya.png",
       "sha256": "7c9000743e0500653708301ff3816c5f13173463519c137f3322f7219c254a7e"
+    },
+    {
+      "id": "refresher_shard",
+      "file": "assets/items/refresher_shard.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/refresher_shard.png",
+      "sha256": "33af29f710d6dc9bff3c96d4053dcf6470d93b274590d43ca8563a7e0b7df8b5"
     },
     {
       "id": "recipe_spirit_vessel",
@@ -1268,6 +1322,12 @@
       "sha256": "7ff2b1769066d3321d5439202311679fdc86aad2fba4b74c9de150ccd88d99c4"
     },
     {
+      "id": "recipe_maelstrom",
+      "file": "assets/items/recipe_maelstrom.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/recipe.png",
+      "sha256": "ce022163ddccb8df8890b408f641d27ca05a92a974f43297bb31eb067ccac9d6"
+    },
+    {
       "id": "maelstrom",
       "file": "assets/items/maelstrom.png",
       "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/maelstrom.png",
@@ -1484,18 +1544,6 @@
       "sha256": "e4accf91cdd05a3aff33e922bfb6fa5edfe17e508499be53c0f94f9865f51c36"
     },
     {
-      "id": "recipe_revenants_brooch",
-      "file": "assets/items/recipe_revenants_brooch.png",
-      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/recipe.png",
-      "sha256": "ce022163ddccb8df8890b408f641d27ca05a92a974f43297bb31eb067ccac9d6"
-    },
-    {
-      "id": "revenants_brooch",
-      "file": "assets/items/revenants_brooch.png",
-      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/revenants_brooch.png",
-      "sha256": "d9a0c3b8886000ee850fb1e6a05b12c671fd022e33480bf9637bbfdac9c74aa7"
-    },
-    {
       "id": "recipe_devastator",
       "file": "assets/items/recipe_devastator.png",
       "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/recipe.png",
@@ -1556,6 +1604,18 @@
       "sha256": "da7c9b111193bab2df17ab67e560abde736d45410ed55b7efee780dd50657eac"
     },
     {
+      "id": "recipe_skypiercer",
+      "file": "assets/items/recipe_skypiercer.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/recipe.png",
+      "sha256": "ce022163ddccb8df8890b408f641d27ca05a92a974f43297bb31eb067ccac9d6"
+    },
+    {
+      "id": "skypiercer",
+      "file": "assets/items/skypiercer.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/skypiercer.png",
+      "sha256": "a3d43758f29e53ee5824afa0ac90074b6b1ce91de95bf311985f0dc732a3485b"
+    },
+    {
       "id": "tranquil_boots",
       "file": "assets/items/tranquil_boots.png",
       "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/tranquil_boots.png",
@@ -1580,6 +1640,96 @@
       "sha256": "c46279ba8105e3c25585b0c4a2b72789378ce76ae79f19a3143a58462a2fae7a"
     },
     {
+      "id": "mind_breaker",
+      "file": "assets/items/mind_breaker.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/mind_breaker.png",
+      "sha256": "8e204ac2a09be96a41566de714bace05e7241eb4d72e4d88f5d616a7e4f8db57"
+    },
+    {
+      "id": "imp_claw",
+      "file": "assets/items/imp_claw.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/imp_claw.png",
+      "sha256": "fd426e492067949e5f27207cb2f2d384b8028e40ef82c58555a79e1fc5a9a114"
+    },
+    {
+      "id": "flicker",
+      "file": "assets/items/flicker.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/flicker.png",
+      "sha256": "a7f191295401e8930d703e3cc6374e3c5c5cfcff9b7800c636116c99ba577495"
+    },
+    {
+      "id": "demonicon",
+      "file": "assets/items/demonicon.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/demonicon.png",
+      "sha256": "a4f1a05dc7abf4a89d27cffc5cb7dbbc29c33a6e9db9725ee977e8943efa1ab3"
+    },
+    {
+      "id": "fallen_sky",
+      "file": "assets/items/fallen_sky.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/fallen_sky.png",
+      "sha256": "b922573d4eea6868fc2e5c8ea1307e58dc0e82f2d1288f3abc179e6036e1bca7"
+    },
+    {
+      "id": "minotaur_horn",
+      "file": "assets/items/minotaur_horn.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/minotaur_horn.png",
+      "sha256": "183f80e84547e5dc88fb3c7c98b01abd5e0313d205c1c8768d02015806f6381d"
+    },
+    {
+      "id": "chipped_vest",
+      "file": "assets/items/chipped_vest.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/chipped_vest.png",
+      "sha256": "f5a909831fad6df996a08c8794a83cf192cf00f3b42e11540e5f5d734a5707c7"
+    },
+    {
+      "id": "possessed_mask",
+      "file": "assets/items/possessed_mask.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/possessed_mask.png",
+      "sha256": "485e8da1b8c46ffcb02d361708859b64c37448b66f87f5551ed22320862741b3"
+    },
+    {
+      "id": "psychic_headband",
+      "file": "assets/items/psychic_headband.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/psychic_headband.png",
+      "sha256": "31bf96e184f76675c8bf3dc6df71a735e5febb78e86edbfcefb3735fdc5e33a4"
+    },
+    {
+      "id": "ceremonial_robe",
+      "file": "assets/items/ceremonial_robe.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/ceremonial_robe.png",
+      "sha256": "6e57e8eead2d59e301006815364d04f1c0f0285bdbcc8f81c432706ba7b268ad"
+    },
+    {
+      "id": "giants_ring",
+      "file": "assets/items/giants_ring.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/giants_ring.png",
+      "sha256": "06ea9be3cf2e809392593dfad0dd678fed9236173af7b7e37c63ce7e9288dfcb"
+    },
+    {
+      "id": "stormcrafter",
+      "file": "assets/items/stormcrafter.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/stormcrafter.png",
+      "sha256": "7e6608042ec93135626002d8190f35c20ccb658949d29079c43859a9babe0506"
+    },
+    {
+      "id": "heavy_blade",
+      "file": "assets/items/heavy_blade.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/heavy_blade.png",
+      "sha256": "5d2824d665682656c40ef1ffa4e06811413d55ec4f7519d7afcbb690e91f33c6"
+    },
+    {
+      "id": "pogo_stick",
+      "file": "assets/items/pogo_stick.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/pogo_stick.png",
+      "sha256": "5da8634613eb059097f331c913c6a8a65ab0fe5e48ab05491ebd7f06e868e3ce"
+    },
+    {
+      "id": "seeds_of_serenity",
+      "file": "assets/items/seeds_of_serenity.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/seeds_of_serenity.png",
+      "sha256": "0a36cb3657180c3f4ad7630b809751f6db1ad16a275a1d9ec291635a41436d47"
+    },
+    {
       "id": "recipe_harpoon",
       "file": "assets/items/recipe_harpoon.png",
       "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/recipe.png",
@@ -1590,6 +1740,198 @@
       "file": "assets/items/harpoon.png",
       "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/harpoon.png",
       "sha256": "55c0a569da9990a9aebecbf9bf998395d68855e3728bf9a69ec0a1c36b007c0e"
+    },
+    {
+      "id": "defiant_shell",
+      "file": "assets/items/defiant_shell.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/defiant_shell.png",
+      "sha256": "7da72f078412d2a652e55cbd944eec14b5cc6d692aaa7a6c19c1889d0b513972"
+    },
+    {
+      "id": "revenants_brooch",
+      "file": "assets/items/revenants_brooch.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/revenants_brooch.png",
+      "sha256": "d9a0c3b8886000ee850fb1e6a05b12c671fd022e33480bf9637bbfdac9c74aa7"
+    },
+    {
+      "id": "safety_bubble",
+      "file": "assets/items/safety_bubble.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/safety_bubble.png",
+      "sha256": "68c0d7828c20ddd668debbc330684a726811392afaeaf387edf77fd5d08a6260"
+    },
+    {
+      "id": "dandelion_amulet",
+      "file": "assets/items/dandelion_amulet.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/dandelion_amulet.png",
+      "sha256": "cf8aaf08c0ab5e6755a7ce6c2c3db2942ee3b400f4bd56c4c5786848952ee198"
+    },
+    {
+      "id": "rattlecage",
+      "file": "assets/items/rattlecage.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/rattlecage.png",
+      "sha256": "4a3cd94ffb7280b27ed56b87f99286ee24d15e3e2deabffa68f393f490ccdee7"
+    },
+    {
+      "id": "roshans_banner",
+      "file": "assets/items/roshans_banner.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/roshans_banner.png",
+      "sha256": "d4d7a3b78a5bb818dc9a2ccaabd86660dcea606daeddfef9bea6f547957bedc6"
+    },
+    {
+      "id": "horn_of_battle_greater",
+      "file": "assets/items/horn_of_battle_greater.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/horn_of_battle_greater.png",
+      "sha256": "4d42424f1abaf7ea31107136be31d4fb97ec28e389d5cc9d0859897d837b09a1"
+    },
+    {
+      "id": "enhancement_quickened",
+      "file": "assets/items/enhancement_quickened.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/enhancement_quickened.png",
+      "sha256": "3d6bdc4106557eceee16f0cf81388580c9ea7673788b48bf079cae51fc7d8eaa"
+    },
+    {
+      "id": "enhancement_audacious",
+      "file": "assets/items/enhancement_audacious.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/enhancement_audacious.png",
+      "sha256": "8d41b85c3ab02886d5bbf83b782a481f37b5fab3dd91a2126e50af15f70688bb"
+    },
+    {
+      "id": "enhancement_mystical",
+      "file": "assets/items/enhancement_mystical.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/enhancement_mystical.png",
+      "sha256": "e1626556d493dfcc972571ea5388b58939c8e57622e791a3efd00919755c93db"
+    },
+    {
+      "id": "enhancement_alert",
+      "file": "assets/items/enhancement_alert.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/enhancement_alert.png",
+      "sha256": "34d73a56494d76d2762426d1664ae3599dfc743a3d118ee8ecafbe7e9486ee49"
+    },
+    {
+      "id": "enhancement_brawny",
+      "file": "assets/items/enhancement_brawny.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/enhancement_brawny.png",
+      "sha256": "e1744e52f0cbfe23141ff922ae05715528440edeabbba9eceb6fe08266a1e180"
+    },
+    {
+      "id": "enhancement_tough",
+      "file": "assets/items/enhancement_tough.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/enhancement_tough.png",
+      "sha256": "12d99dd017c0776408ca866b58341176bb96dc68ee4a61bade784cc675bda185"
+    },
+    {
+      "id": "enhancement_feverish",
+      "file": "assets/items/enhancement_feverish.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/enhancement_feverish.png",
+      "sha256": "e14ec008e3bc2e17e81ebb10bd04b825419622fccfda4f9bf906a279831131af"
+    },
+    {
+      "id": "enhancement_fleetfooted",
+      "file": "assets/items/enhancement_fleetfooted.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/enhancement_fleetfooted.png",
+      "sha256": "554216dcd911189675229041e159037227b3b0b45b66f053859447eac35cc4af"
+    },
+    {
+      "id": "enhancement_crude",
+      "file": "assets/items/enhancement_crude.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/enhancement_crude.png",
+      "sha256": "f48beac4352c6edd935324fd509c66fd2084311f2ba57aa4db445cc885bc5a4e"
+    },
+    {
+      "id": "enhancement_timeless",
+      "file": "assets/items/enhancement_timeless.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/enhancement_timeless.png",
+      "sha256": "cb2420af3ec8d4168f2e707f361f0027e3f3f6807652a74b93b726171a9f8cd3"
+    },
+    {
+      "id": "enhancement_greedy",
+      "file": "assets/items/enhancement_greedy.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/enhancement_greedy.png",
+      "sha256": "5106d11a8c2c857dece1b639017e39e1840e18f899ea2b57f4776624aec770d1"
+    },
+    {
+      "id": "enhancement_vampiric",
+      "file": "assets/items/enhancement_vampiric.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/enhancement_vampiric.png",
+      "sha256": "456b4ebac28831016c8abde9153522515c034cefef75c5139f771ef3a15b15df"
+    },
+    {
+      "id": "enhancement_keen_eyed",
+      "file": "assets/items/enhancement_keen_eyed.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/enhancement_keen_eyed.png",
+      "sha256": "b0d3bec4c15ad29178b8ad01a1624a91fb8643600453ddae5c93c9ba0f1265e6"
+    },
+    {
+      "id": "enhancement_evolved",
+      "file": "assets/items/enhancement_evolved.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/enhancement_evolved.png",
+      "sha256": "4d907cad9ae9bac4653f421fa8788b5b7d6dea1deb06e59fa6040b284bafa446"
+    },
+    {
+      "id": "enhancement_titanic",
+      "file": "assets/items/enhancement_titanic.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/enhancement_titanic.png",
+      "sha256": "1d01fd47cdeec465e0b5027d36cdc1f447381fce37b0da1a28c9c13d0946ddf4"
+    },
+    {
+      "id": "mana_draught",
+      "file": "assets/items/mana_draught.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/mana_draught.png",
+      "sha256": "d02082eb131b1aaadf111df9c942ec69f2cb16a16142351603d4469d9687266c"
+    },
+    {
+      "id": "crippling_crossbow",
+      "file": "assets/items/crippling_crossbow.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/crippling_crossbow.png",
+      "sha256": "b3bc1eada1fe092663a7177e5baacf1b3fab81deccdd8c22cd224b189d443bda"
+    },
+    {
+      "id": "gunpowder_gauntlets",
+      "file": "assets/items/gunpowder_gauntlets.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/gunpowder_gauntlets.png",
+      "sha256": "e93e414625c2a7a8e3fca2ba035aa76fda9c6639e2b5add3f7228931530f6d2a"
+    },
+    {
+      "id": "serrated_shiv",
+      "file": "assets/items/serrated_shiv.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/serrated_shiv.png",
+      "sha256": "dc97826a2cf83763dbb2ae7212a949564b11aabcaa0e2dfe3c1803224978ed6c"
+    },
+    {
+      "id": "polliwog_charm",
+      "file": "assets/items/polliwog_charm.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/polliwog_charm.png",
+      "sha256": "58df331fc72dd81c567539a289b25c3b64435b478898310a9badc51b32f1019f"
+    },
+    {
+      "id": "kobold_cup",
+      "file": "assets/items/kobold_cup.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/kobold_cup.png",
+      "sha256": "7fcdd0a2b8a0ba8da41df6aa6ddcb40f935d9cc93c850f33022c352f418acef3"
+    },
+    {
+      "id": "dormant_curio",
+      "file": "assets/items/dormant_curio.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/dormant_curio.png",
+      "sha256": "200c77734030c972e7a96b3342a1aaa44e234ff0b1d26becffc92dcdb9f14b15"
+    },
+    {
+      "id": "jidi_pollen_bag",
+      "file": "assets/items/jidi_pollen_bag.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/jidi_pollen_bag.png",
+      "sha256": "b6e06207fbf457f68ccd37b4423623fb60f9346e087576df3c642a081e7646c8"
+    },
+    {
+      "id": "dezun_bloodrite",
+      "file": "assets/items/dezun_bloodrite.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/dezun_bloodrite.png",
+      "sha256": "45cca7c3067b9cffae3d4fa58a10c13cc8f167417134526ee3fb154e78f044e9"
+    },
+    {
+      "id": "divine_regalia",
+      "file": "assets/items/divine_regalia.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/divine_regalia.png",
+      "sha256": "364985fd98db67c462a1ed3ff569928b21b6f3345712e7faf4555529e724bda3"
     },
     {
       "id": "recipe_specialists_array",
@@ -1616,10 +1958,172 @@
       "sha256": "a63c07a1736082b66366f588e7cdfc7ed4991973459a4067517020d1c6361f7a"
     },
     {
+      "id": "weighted_dice",
+      "file": "assets/items/weighted_dice.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/weighted_dice.png",
+      "sha256": "c41bc357a798092aae72a84e6087d8ed7ad7e2ac14b665a33b64dcffcd07b2db"
+    },
+    {
+      "id": "ash_legion_shield",
+      "file": "assets/items/ash_legion_shield.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/ash_legion_shield.png",
+      "sha256": "8f7680d4c293bdbc7915cd1a66ecb228cadb2322182225d308ee5316c30eece5"
+    },
+    {
+      "id": "riftshadow_prism",
+      "file": "assets/items/riftshadow_prism.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/riftshadow_prism.png",
+      "sha256": "d54d6106472261fb687e190e0d44206c035e7f5063ef5cb3f658920d21dc95c0"
+    },
+    {
+      "id": "metamorphic_mandible",
+      "file": "assets/items/metamorphic_mandible.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/metamorphic_mandible.png",
+      "sha256": "2e7a7ac336b4d34008abea11f761da7048c59d10b971c6e971e3394eff892557"
+    },
+    {
+      "id": "idol_of_screeauk",
+      "file": "assets/items/idol_of_screeauk.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/idol_of_screeauk.png",
+      "sha256": "9095541ac7a5bf6692fe2acc7319298dc8b9e287918be5c88748b244fc30e61d"
+    },
+    {
+      "id": "spellslinger",
+      "file": "assets/items/spellslinger.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/spellslinger.png",
+      "sha256": "b9fd5c5c7fe133ad354ec88af2bcfb776fb68753116be0b29b29c40be4aa5fbc"
+    },
+    {
+      "id": "prophets_pendulum",
+      "file": "assets/items/prophets_pendulum.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/prophets_pendulum.png",
+      "sha256": "fcfcc0a21ef71f02acab1d7c5f524df72c923b28b9d7cf02cb19fd095e2084ac"
+    },
+    {
+      "id": "stonefeather_satchel",
+      "file": "assets/items/stonefeather_satchel.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/stonefeather_satchel.png",
+      "sha256": "5de3e597aec90dc5255dfe237061c30c3513bb32121cc822e1360870c525f64e"
+    },
+    {
+      "id": "enchanters_bauble",
+      "file": "assets/items/enchanters_bauble.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/enchanters_bauble.png",
+      "sha256": "e2d4d21c4a4310e6ad5ad1283d738b93ac632ce1fa2323422d18a3e19c8c1352"
+    },
+    {
+      "id": "harmonizer",
+      "file": "assets/items/harmonizer.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/harmonizer.png",
+      "sha256": "dc3848ab3baa90518a7def0c49ac0a0681e3faafec15d8078ef35808313708bd"
+    },
+    {
+      "id": "helm_of_the_hivemind",
+      "file": "assets/items/helm_of_the_hivemind.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/helm_of_the_hivemind.png",
+      "sha256": "8d0367792aa41154036ea46897e1ade26f91a89225601316df20b07afbceecaf"
+    },
+    {
+      "id": "brick",
+      "file": "assets/items/brick.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/brick.png",
+      "sha256": "a045f30d95401cb80b66bbf31e24280d1dc17a1d75c72512c935b3af929b29bf"
+    },
+    {
+      "id": "balmhook",
+      "file": "assets/items/balmhook.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/balmhook.png",
+      "sha256": "f98e6448b2fffb5a817a330044292bfcd34b0c441fd2e91c04b19446aa1884a2"
+    },
+    {
+      "id": "conjurers_catalyst",
+      "file": "assets/items/conjurers_catalyst.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/conjurers_catalyst.png",
+      "sha256": "0b23f54ec838a3c1f32a515f2597a7dfacbb488016c639ae31e393d7b9c8a3bc"
+    },
+    {
+      "id": "enhancement_vital",
+      "file": "assets/items/enhancement_vital.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/enhancement_vital.png",
+      "sha256": "ee35eddcb4e63c312fd9b1cec80aec8d10546874f07ac435d83a58b212a4d3d4"
+    },
+    {
+      "id": "enhancement_hulking",
+      "file": "assets/items/enhancement_hulking.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/enhancement_hulking.png",
+      "sha256": "c008aa8f079c1a98eb04bbb9ebc40531289ad1349675f9f7f6ba0df61641f751"
+    },
+    {
+      "id": "enhancement_manic",
+      "file": "assets/items/enhancement_manic.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/enhancement_manic.png",
+      "sha256": "1fcbb5fd053bc9bd9b173a0d6959aaa3bbd777140ba9ca7a79bef9b9f01dff74"
+    },
+    {
+      "id": "foragers_kit",
+      "file": "assets/items/foragers_kit.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/foragers_kit.png",
+      "sha256": "bebdf1ab334d6aedf37feb2c9d19995603df998a5dc68e86cb1e7e8302f4cee0"
+    },
+    {
+      "id": "foragers_health",
+      "file": "assets/items/foragers_health.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/foragers_health.png",
+      "sha256": "0947c98ae43e35a82b6188c203615e5b405b02e446ce363f8599c0fbf0b0f5b5"
+    },
+    {
+      "id": "foragers_stats",
+      "file": "assets/items/foragers_stats.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/foragers_stats.png",
+      "sha256": "83cf6d4746398bbcfc8ea9dec5e257d37051cc36d3d0ad06fa831afe08e57a3b"
+    },
+    {
+      "id": "foragers_mana",
+      "file": "assets/items/foragers_mana.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/foragers_mana.png",
+      "sha256": "35ab560431f654ea4b1d9478200d98419ccafe2a502e069a24221aa4f2185b95"
+    },
+    {
       "id": "chasm_stone",
       "file": "assets/items/chasm_stone.png",
       "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/chasm_stone.png",
       "sha256": "1512df69b4a6e1584aaf2ddd2ed156e0a775688b1cd88dcf9b583ef918f6bff0"
+    },
+    {
+      "id": "partisans_brand",
+      "file": "assets/items/partisans_brand.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/partisans_brand.png",
+      "sha256": "1708dae87a45719cb164c56b4af3c9618588911e8ac878ec66104737542f1fb8"
+    },
+    {
+      "id": "enhancement_nimble",
+      "file": "assets/items/enhancement_nimble.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/enhancement_nimble.png",
+      "sha256": "9cad237744ccc98d387f0d423399780a8c8b6aeb820b7f83f24bef9a3d666355"
+    },
+    {
+      "id": "red_ledger",
+      "file": "assets/items/red_ledger.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/red_ledger.png",
+      "sha256": "0c9d60293a3499b2592dfc58d943a01a7a3f6c1e8f38fe3c34a8a8e5c66578ce"
+    },
+    {
+      "id": "vile_phial",
+      "file": "assets/items/vile_phial.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/vile_phial.png",
+      "sha256": "75e1a33ac7196539184173d5811376f914f5e31f4417c147b534ac97fcea3a3c"
+    },
+    {
+      "id": "recipe_berserkers_sabatons",
+      "file": "assets/items/recipe_berserkers_sabatons.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/recipe.png",
+      "sha256": "ce022163ddccb8df8890b408f641d27ca05a92a974f43297bb31eb067ccac9d6"
+    },
+    {
+      "id": "berserkers_sabatons",
+      "file": "assets/items/berserkers_sabatons.png",
+      "source": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/items/berserkers_sabatons.png",
+      "sha256": "e326a3b65f908a56c0b436982f90bd295a559b27c9e738b911827a4581e43e87"
     }
   ]
 }

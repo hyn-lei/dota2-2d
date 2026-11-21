@@ -1,5 +1,6 @@
 import { BASES, TEAM_LANES } from './map-data.js';
 import * as Skills from './hero-runtime.js';
+import * as Chen from './chen-runtime.js';
 import * as Progression from './progression.js';
 import * as Inventory from './inventory.js';
 import * as ItemRuntime from './item-runtime.js';
@@ -52,8 +53,8 @@ function director(g){
 }
 function controlWindow(h,s,target){
   const v=s.values||{},cast=Skills.castingStats(h,s).castPoint||0;
-  const delay=s.id==='windrunner_shackleshot'?distance(h,target)/v.arrow_speed:s.id==='kunkka_torrent'?v.delay:s.id==='kunkka_ghostship'?v.ghostship_distance/v.ghostship_speed:0;
-  return {delay:cast+delay,duration:v.stun_duration||v.duration||1};
+  const delay=s.id==='chaos_knight_chaos_bolt'?distance(h,target)/v.chaos_bolt_speed:s.id==='windrunner_shackleshot'?distance(h,target)/v.arrow_speed:s.id==='kunkka_torrent'?v.delay:s.id==='kunkka_ghostship'?v.ghostship_distance/v.ghostship_speed:0;
+  return {delay:cast+delay,duration:v.stun_min||v.stun_duration||v.duration||1};
 }
 function controlUntil(g,target,includeSilence=false){
   let until=Math.max(target.buffs?.stunUntil||0,target.buffs?.rootUntil||0,target.buffs?.tauntUntil||0);
@@ -237,9 +238,14 @@ function castBotSkills(g,h,target,ctx,settings,retreating=false){
     if(!retreating&&hero&&d<=skill(3).range+target.radius&&!has(g,h,'spin')){
       const nearby=ctx.enemies.filter(e=>fighter(e)&&e!==target&&distance(e,target)<skill(3).values.omni_slash_radius).length;
       if((nearby<3||target.hp/target.maxHp<.4)&&cast(3))return true;
-      if(h.hasScepter&&h.cooldowns[3]>0&&Skills.castExtraAbility(g,h,'juggernaut_swift_slash',target).ok)return true;
     }
     if(target&&d<=skill(0).values.blade_fury_radius+35&&!has(g,h,'spin')&&(hero||ctx.enemies.filter(e=>fighter(e)&&distance(h,e)<260).length>=3||retreating)&&cast(0,h))return true;
+  }else if(h.heroId==='chaos_knight'){
+    const army=g.entities.filter(e=>alive(e)&&e.kind==='illusion'&&e.ownerId===h.id);
+    if(!retreating&&hero&&d<1200&&!army.some(e=>e.phantasmOwnerId===h.id)&&cast(3,h))return true;
+    if(target&&controlCast(0))return true;
+    if(!retreating&&target&&d>220&&cast(1,target))return true;
+    if(hero&&d>600&&d<1800&&!retreating&&Skills.castExtraAbility(g,h,'chaos_knight_armageddon',target).ok)return true;
   }else if(h.heroId==='windranger'){
     if((retreating||d<320)&&!has(g,h,'windrun')&&cast(2,h))return true;
     if(!retreating&&target){
@@ -276,12 +282,16 @@ function castBotSkills(g,h,target,ctx,settings,retreating=false){
     const shieldTarget=ctx.allies.filter(a=>distance(h,a)<=600&&(!has(g,a,'ogreFireShield')||a.statuses.ogreFireShield.stacks<2)).sort((a,b)=>a.hp/a.maxHp-b.hp/b.maxHp)[0];
     if(h.hasShard&&ctx.enemyHeroes.length&&shieldTarget&&Skills.castExtraAbility(g,h,'ogre_magi_smash',shieldTarget).ok)return true;
   }else if(h.heroId==='chen'){
+    if(h.zealotDead&&Skills.castExtraAbility(g,h,'chen_zealot',h).ok)return true;
     const wounded=g.entities.filter(e=>alive(e)&&e.kind==='hero'&&e.team===h.team&&e.hp/e.maxHp<.6);
     if(wounded.length&&(wounded.length>1||wounded.some(e=>e.hp/e.maxHp<.35))&&cast(3,h))return true;
     const ally=ctx.allies.filter(e=>distance(h,e)<=skill(2).range&&!has(g,e,'chenDivineFavor')).sort((a,b)=>a.hp/a.maxHp-b.hp/b.maxHp)[0];
     if((target||retreating)&&ally&&cast(2,ally))return true;
     if(target&&!has(g,target,'chenPenitence')&&cast(0,target))return true;
     const units=g.entities.filter(e=>alive(e)&&e.chenPersuadedBy===h.id);
+    const zealot=g.entities.find(e=>e.id===h.zealotId&&alive(e));
+    const successor=units.filter(e=>!e.zealot).sort((a,b)=>b.maxHp-a.maxHp)[0];
+    if(successor&&(!zealot||successor.maxHp>zealot.maxHp*1.25)&&Chen.castAnoint(g,successor).ok)return true;
     if(!retreating&&units.length<(skill(1).values.max_units||0)){
       const food=g.entities.filter(e=>alive(e)&&['neutral','creep'].includes(e.kind)&&e.team!==h.team&&distance(h,e)<=skill(1).range&&!e.isRoshan).sort((a,b)=>b.maxHp-a.maxHp);
       for(const unit of food)if(cast(1,unit))return true;

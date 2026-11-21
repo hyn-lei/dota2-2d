@@ -32,7 +32,7 @@ test('taunt, X-mark return and respawn clear the affected human without clearing
  const g=match(),humans=g.entities.filter(h=>h.kind==='hero'&&h.team===0),a=humans[0],b=humans[1];
  a.movementInput={x:1,y:0};b.movementInput={x:0,y:1};g._respawn(a);
  assert.deepEqual(a.movementInput,{x:0,y:0});assert.deepEqual(b.movementInput,{x:0,y:1});
- const k=g.entities.find(h=>h.heroId==='kunkka');k.xMark={targetId:a.id,x:a.x,y:a.y};a.movementInput={x:1,y:0};
+ const k=g._makeHero('kunkka',1,1,false,0);k.xMark={targetId:a.id,x:a.x,y:a.y};a.movementInput={x:1,y:0};
  assert.ok(Skills.returnMark(g,k).ok);assert.deepEqual(a.movementInput,{x:0,y:0});assert.deepEqual(b.movementInput,{x:0,y:1});
   const axe=g._makeHero('axe',1,1,false,0);
   Object.assign(a,{x:10400,y:10400,movementInput:{x:1,y:0}});Object.assign(axe,{x:10500,y:10400,abilityLevels:[1,0,0,0]});
