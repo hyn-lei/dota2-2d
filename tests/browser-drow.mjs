@@ -8,7 +8,7 @@ const browser=await chromium.launch({headless:true}),page=await browser.newPage(
 page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});
 try{
  await page.goto(url,{waitUntil:'networkidle'});await closeDevelopmentNotice(page);
- assert.equal(await page.locator('.hero-option').count(),8);await page.locator('[data-hero="drow_ranger"]').click();
+ assert.equal(await page.locator('.hero-option').count(),9);await page.locator('[data-hero="drow_ranger"]').click();
  await page.waitForFunction(()=>document.querySelector('#hero-render')?.complete&&document.querySelector('#hero-render').naturalWidth>0);
  await page.screenshot({path:'artifacts/drow-lobby.png'});
  await page.evaluate(async()=>{const {Renderer}=await import('/src/renderer.js'),render=Renderer.prototype.render;Renderer.prototype.render=function(g,t){window.drowRenderer=this;window.observedDrowGame=g;return render.call(this,window.drowScene||g,window.drowScene?.time??t);};});
@@ -44,7 +44,7 @@ try{
    for(const fx of tile.g.effects)drawCombatEffect(c,fx,tile.g,zoom);c.restore();
   }
   const panel=document.createElement('section');panel.id='drow-evidence';panel.style.cssText='position:absolute;left:0;top:0;width:1366px;background:#111e1b;padding:22px;box-sizing:border-box;z-index:500;color:#e4ecdd;font:16px Segoe UI,Microsoft YaHei,sans-serif';
-  const title=document.createElement('h2');title.textContent='技能特效与实际弹道 · 7.41f';panel.append(title);const grid=document.createElement('div');grid.style.cssText='display:grid;grid-template-columns:repeat(3,1fr);gap:12px';panel.append(grid);
+  const title=document.createElement('h2');title.textContent='技能特效与实际弹道 · 7.42';panel.append(title);const grid=document.createElement('div');grid.style.cssText='display:grid;grid-template-columns:repeat(3,1fr);gap:12px';panel.append(grid);
   for(const tile of tiles){tile.g.paused=true;const cell=document.createElement('div'),label=document.createElement('p');label.textContent=tile.label;label.style.cssText='margin:12px 10px';cell.append(label);const canvas=document.createElement('canvas');canvas.width=420;canvas.height=290;canvas.style.cssText='width:100%;display:block';cell.append(canvas);grid.append(cell);draw(canvas.getContext('2d'),tile);}
   document.body.append(panel);
   const probe=document.createElement('canvas');probe.width=420;probe.height=290;const ctx=probe.getContext('2d');ctx.save();ctx.translate(210,190);ctx.scale(.18,.18);ctx.translate(-hunger.e.x,-hunger.e.y);drawUnitCombatEffects(ctx,hunger.e,hunger.g,.18,'above');ctx.restore();const bytes=ctx.getImageData(0,0,420,290).data;let red=0;for(let i=0;i<bytes.length;i+=4)if(bytes[i]>120&&bytes[i]>bytes[i+1]*1.2&&bytes[i]>bytes[i+2]*1.3&&bytes[i+3]>80)red++;check(red>=12,'Hunger retains visible red pixels at minimum zoom');

@@ -17,6 +17,8 @@
 
 完整清单及排除原因位于 `docs/research/items/full-catalog-manifest.json`；提取的 KV 字段位于 `full-items-script.json`；图标 URL 和摘要位于 `full-icons.json`。
 
+2026-11-21 商店分组从本机 Valve Steam build 26825343 的 VPK 单独提取 `scripts/shops.txt`，原始字节、CRC32和SHA256记录在 `docs/research/hud/client-sources.json` 的 `shopSnapshot`，其余历史HUD纹理来源保留。`scripts/extract-client-shop.py` 仅读取该文本，不调用纹理解码器、不修改Steam文件；随后运行 `scripts/generate-shop-layout.mjs`，得到186个普通展示项、5个升级等级变体及83张可购买卷轴。此前沿用旧生成布局会在卷轴分类引用已不存在的亡灵胸针卷轴，造成渲染异常；本次按最新客户端顺序和当前可购目录重新生成，分类与搜索业务检查保留。
+
 ```sh
 node scripts/extract-full-items.mjs
 node --test tests/full-item-data.test.mjs tests/attributes.test.mjs

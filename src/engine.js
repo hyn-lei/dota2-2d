@@ -472,8 +472,8 @@ export class Game {
 
   _addXp(h, amount) {
     h.xp += amount;
-    while (h.xp >= h.xpNext && h.level < 30) {
-      h.xp -= h.xpNext;
+    while (h.xp + 1e-9 >= h.xpNext && h.level < 30) {
+      h.xp = Math.max(0,h.xp-h.xpNext);
       const previousLevel=h.level++;
       Progression.grantLevelPoints(h,previousLevel);
       if(!h.isPlayer)Progression.autoLearn(h);

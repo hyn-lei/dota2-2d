@@ -13,11 +13,16 @@
     "panorama/styles/hud/dota_hud_stat_branch.vcss_c"
   ],
   "shopSnapshot": {
+    "retrieved": "2026-11-21",
+    "steamApp": 570,
+    "steamBuild": "26825343",
+    "archive": "game/dota/pak01_dir.vpk",
     "resource": "scripts/shops.txt",
     "file": "docs/research/hud/shops-client.txt",
-    "sha256": "1869a641bca30efd6eb11f2042330b7475e83756acd35a42937d70c9d3007a7f",
-    "rawSha256": "c9a71989c3404b0b646ee434cc98ad0a9fdd8ea078b1aede284dd8a22eb26c02",
-    "normalization": "Whitespace normalized to LF/spaces; trailing whitespace removed; tokens and order retained."
+    "sha256": "b273e28c5598dcd8ff161d034122f0f0e4fae68d5bb951a3369633736c76aa4e",
+    "rawSha256": "b273e28c5598dcd8ff161d034122f0f0e4fae68d5bb951a3369633736c76aa4e",
+    "crc32": "fa400562",
+    "normalization": "None; original VPK payload bytes retained."
   },
   "assets": [
     {

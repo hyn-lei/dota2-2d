@@ -24,15 +24,15 @@ try{
   await page.goto(base,{waitUntil:'networkidle'});
   await closeDevelopmentNotice(page);
   assert.equal(await page.title(),'Ancient Front · Dota 2D');
-  assert.equal(await page.locator('.hero-option').count(),8);
-  for(const hero of ['juggernaut','crystal_maiden','windranger','axe','ogre_magi','kunkka','drow_ranger','chen']){
+  assert.equal(await page.locator('.hero-option').count(),9);
+  for(const hero of ['juggernaut','crystal_maiden','windranger','axe','ogre_magi','kunkka','drow_ranger','chen','chaos_knight']){
     await page.locator(`[data-hero="${hero}"]`).click();
     await page.waitForFunction(()=>document.querySelector('#hero-render').complete&&document.querySelector('#hero-render').naturalWidth>0);
     if(hero==='windranger')assert.match(await page.locator('#selected-info').textContent(),/全才/);
   }
   await page.locator('.hero-detail').click();assert.equal(await page.locator('.skill-detail').count(),4);await page.keyboard.press('Escape');
   await page.screenshot({path:'artifacts/lobby-741f.png'});
-  check('All eight heroes load; Windranger is Universal and Kunkka remains playable');
+  check('All nine heroes load; Windranger is Universal and Kunkka remains playable');
 
   await page.locator('[data-hero="kunkka"]').click();
   await page.locator('.settings-button').click();await page.locator('#setting-difficulty').selectOption('normal');

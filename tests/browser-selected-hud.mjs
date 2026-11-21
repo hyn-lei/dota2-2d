@@ -12,6 +12,7 @@ try{
  await page.goto(process.env.GAME_URL||'http://localhost:5184',{waitUntil:'networkidle'});await closeDevelopmentNotice(page);
  await page.evaluate(async()=>{const {Renderer}=await import('/src/renderer.js'),render=Renderer.prototype.render;Renderer.prototype.render=function(g,t){window.g=g;window.r=this;return render.call(this,g,t);};});
  await page.locator('[data-hero="drow_ranger"]').click();await page.locator('#start-game').click();await page.waitForFunction(()=>window.g?.time>.1);
+ if(process.env.BROWSER_SCENARIO!=='catalog'){
  await page.evaluate(async()=>{
   const g=window.g,p=g.player,{createMeta}=await import('/src/inventory.js'),{addStatus}=await import('/src/hero-runtime.js');
   g.nextWave=g.nextNeutralSpawn=g.roshanRespawnAt=Infinity;
@@ -64,13 +65,15 @@ try{
  // Synthetic frozen fixtures cannot be serialized (their spawn timers are Infinity).
  await page.locator('#toast').evaluate(e=>e.classList.remove('visible'));await page.screenshot({path:'artifacts/selected-talents-1920.png'});await page.locator('.talent-close').click();await page.evaluate(()=>window.g.paused=true);
  check('Large Valve talent tree, square plus above it, eligible learning and immediate plus removal');
+ }
+ await page.evaluate(()=>window.g.paused=true);
  await page.locator('#shop-button').click();assert.equal(await page.locator('.shop-column').count(),2);assert.equal(await page.locator('.shop-group').count(),11);
  assert.deepEqual(await page.locator('[data-shop-group="consumables"] [data-item]').evaluateAll(bs=>bs.map(b=>b.dataset.item)),SHOP_GROUPS.find(g=>g.id==='consumables').items);
  assert.equal(await page.locator('.shop-catalog [data-item]').count(),SHOP_GROUPS.filter(g=>g.column!=='recipes'&&g.id!=='variants').reduce((n,g)=>n+g.items.length,0));
  await page.locator('[data-category="recipes"]').click();assert.equal(await page.locator('.shop-catalog [data-item]').count(),ITEMS.filter(i=>i.recipeOnly).length);
  await page.locator('[data-category="all"]').click();await page.locator('#item-search').fill('recipe_');assert.equal(await page.locator('.shop-catalog [data-item]').count(),ITEMS.filter(i=>i.recipeOnly).length);await page.locator('#item-search').fill('');
  for(const id of SHOP_GROUPS.find(g=>g.id==='variants').items){await page.locator('#item-search').fill(id);assert.ok(await page.locator(`.shop-catalog [data-item="${id}"]`).count());}await page.locator('#item-search').fill('');
- check('Valve shop groups/order, two-column basic/upgrades view and all 268 items reachable through catalog/recipes/search');
+ check('Valve shop groups/order, two-column basic/upgrades view and all current items reachable through catalog/recipes/search');
  for(const viewport of [{width:1920,height:1080},{width:1366,height:768},{width:390,height:844}]){
   await page.setViewportSize(viewport);await page.mouse.move(0,0);await page.locator('#shop').evaluate(e=>e.scrollTop=0);await page.waitForTimeout(150);
   assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));

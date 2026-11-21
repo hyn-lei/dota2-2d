@@ -20,7 +20,7 @@ async function rightClick(point){
 }
 try{
  await page.goto(base,{waitUntil:'networkidle'});await closeDevelopmentNotice(page);
- assert.equal(await page.locator('[data-hero]').count(),8);await page.locator('[data-hero="chen"]').click();
+ assert.equal(await page.locator('[data-hero]').count(),9);await page.locator('[data-hero="chen"]').click();
  await page.evaluate(async()=>{const {Renderer}=await import('/src/renderer.js'),render=Renderer.prototype.render;Renderer.prototype.render=function(game,time){window.g=game;window.r=this;return render.call(this,game,time);};});
  await page.locator('#start-game').click();await page.waitForFunction(()=>window.g?.player?.heroId==='chen'&&g.time>.1);await page.locator('#control-hint button').click();
  await page.waitForFunction(()=>document.querySelector('.hud-portrait>img').naturalWidth>0);
@@ -55,7 +55,7 @@ try{
  await select(ids.zealot);check('Growth appears as a passive with its formulas and caps; real XP upgrades stack bonuses; bottom and top portrait clicks show live attributes and support keyboard/open/close behavior');
  await page.evaluate(()=>{g.player.x-=400;window.closeEnemy=addEnemy(z.x+80,z.y);});const before=await page.evaluate(()=>Math.hypot(z.x-g.player.x,z.y-g.player.y));
  await advance(.5);assert.equal(await page.evaluate(()=>z.creatureOrder),'follow');assert.ok(await page.evaluate(before=>Math.hypot(z.x-g.player.x,z.y-g.player.y)<before-100,before));assert.equal(await page.evaluate(()=>closeEnemy.hp),10000);
- check('Chen opens with his portrait, four current skills, innate recall and an independently selectable Zealot that follows him');
+ check('Chen opens with his portrait, four current skills, innate resurrection and an independently selectable Zealot that follows him');
 
  await rightClick({x:7100,y:6000});await advance(8);
  assert.ok(await page.evaluate(()=>Math.hypot(z.x-g.player.x,z.y-g.player.y)>600));assert.ok(await page.evaluate(()=>Math.hypot(z.x-7100,z.y-6000)<4));
@@ -116,8 +116,9 @@ try{
  await page.keyboard.down('ArrowDown');await advance(.25);await page.keyboard.up('ArrowDown');
  assert.ok(await page.evaluate(start=>g.player.y>start.y+20,heroStart));
  check('When the selected Zealot dies, ground clicks and keyboard movement immediately control Chen again');
+ await page.evaluate(()=>{g._respawn(g.player);const result=g.castExtra('chen_zealot',g.player);if(!result.ok)throw Error(result.reason);});await advance(.35);
  const groupStart=await page.evaluate(()=>{
-  g._respawn(g.player);window.liveZealot=g.entities.find(e=>e.zealot&&e.ownerId===g.player.id&&!e.dead);
+  window.liveZealot=g.entities.find(e=>e.zealot&&e.ownerId===g.player.id&&!e.dead);
   Object.assign(liveZealot,{x:6000,y:6000,attackCooldown:Infinity});g.selectEntity(liveZealot.id);g.selectedIds=[liveZealot.id,centaur.id];
   centaur.expiresAt=g.time+.1;g._index();return {x:liveZealot.x,y:liveZealot.y};
  });

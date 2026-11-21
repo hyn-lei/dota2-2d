@@ -3,21 +3,30 @@ import {mkdir,writeFile} from 'node:fs/promises';
 import {chromium} from 'playwright';
 import {closeDevelopmentNotice} from './browser-helpers.mjs';
 const browser=await chromium.launch(),page=await browser.newPage({viewport:{width:1366,height:768}}),checks=[],errors=[];
+const scenario=process.env.BROWSER_SCENARIO||'all';
 page.on('pageerror',e=>errors.push(e.message));const check=s=>{checks.push(s);console.log('PASS '+s);};await mkdir('artifacts',{recursive:true});
 try{
  await page.goto(process.env.GAME_URL||'http://localhost:5194',{waitUntil:'networkidle'});await closeDevelopmentNotice(page);
- await page.evaluate(async()=>{const {Renderer}=await import('/src/renderer.js'),render=Renderer.prototype.render;Renderer.prototype.render=function(g,t){window.g=g;window.r=this;return render.call(this,g,t);};});
- await page.locator('#start-game').click();await page.waitForFunction(()=>g?.time>.1);
- const opening=await page.evaluate(async()=>{
-  const {collisionShape}=await import('/src/collision.js'),heroes=g.entities.filter(e=>e.kind==='hero');
-  return {time:g.time,heroes:heroes.map(h=>({id:h.id,x:h.x,y:h.y,isPlayer:h.isPlayer,walkable:g.navigation.isWalkable(h),fountainGap:Math.min(...g.entities.filter(e=>e.kind==='fountain').map(f=>Math.hypot(h.x-f.x,h.y-f.y)-Math.max(200,f.radius)-h.collisionRadius)),overlaps:g.entities.filter(e=>{
-   if(e===h||e.dead||e.hp<=0||e.flying||e.noCollision)return false;
-   const shape=collisionShape(e),radius=h.collisionRadius;
-   return shape.type==='circle'?Math.hypot(h.x-e.x,h.y-e.y)<radius+shape.radius-.001:Math.abs(h.x-e.x)<shape.hx+radius-.001&&Math.abs(h.y-e.y)<shape.hy+radius-.001;
-  }).map(e=>e.id)}))};
+ await page.evaluate(async()=>{
+  const {Renderer}=await import('/src/renderer.js'),{Game}=await import('/src/engine.js'),{collisionShape}=await import('/src/collision.js'),render=Renderer.prototype.render,tick=Game.prototype._tick,captured=new WeakSet();
+  Renderer.prototype.render=function(g,t){window.g=g;window.r=this;return render.call(this,g,t);};
+  Game.prototype._tick=function(dt){
+   if(!captured.has(this)){
+    captured.add(this);const g=this,heroes=g.entities.filter(e=>e.kind==='hero');
+    window.collisionOpening={time:g.time,heroes:heroes.map(h=>({id:h.id,x:h.x,y:h.y,isPlayer:h.isPlayer,walkable:g.navigation.isWalkable(h),fountainGap:Math.min(...g.entities.filter(e=>e.kind==='fountain').map(f=>Math.hypot(h.x-f.x,h.y-f.y)-Math.max(200,f.radius)-h.collisionRadius)),overlaps:g.entities.filter(e=>{if(e===h||e.dead||e.hp<=0||e.flying||e.noCollision)return false;const s=collisionShape(e);return s.type==='circle'?Math.hypot(h.x-e.x,h.y-e.y)<h.collisionRadius+s.radius-.001:Math.abs(h.x-e.x)<s.hx+h.collisionRadius-.001&&Math.abs(h.y-e.y)<s.hy+h.collisionRadius-.001;}).map(e=>e.id)}))};
+   }
+   return tick.call(this,dt);
+  };
  });
- assert.equal(opening.heroes.length,10);assert.ok(opening.heroes.every(h=>h.walkable&&!h.overlaps.length&&h.fountainGap>=-.001),JSON.stringify(opening));
- await page.screenshot({path:'artifacts/collision-spawns.png'});check('Both teams start on walkable ground without overlapping heroes, couriers or buildings');
+ await page.locator('#start-game').click();await page.waitForFunction(()=>g?.time>.1);
+ const opening=await page.evaluate(()=>window.collisionOpening);
+ if(scenario!=='after-opening'){
+  assert.equal(opening.time,0);assert.equal(opening.heroes.length,10);assert.ok(opening.heroes.every(h=>h.walkable&&!h.overlaps.length&&h.fountainGap>=-.001),JSON.stringify(opening));
+  await page.screenshot({path:'artifacts/collision-spawns.png'});check('Both teams start on walkable ground without overlapping heroes, couriers or buildings');
+ }
+ if(scenario==='opening'){
+  assert.deepEqual(errors,[]);await writeFile('artifacts/collision-opening-report.json',JSON.stringify({checks,opening,errors},null,2)+'\n');
+ }else{
  await page.waitForFunction(t=>g.time>t+5,opening.time);
  const departures=await page.evaluate(starts=>starts.map(start=>{const h=g.entities.find(e=>e.id===start.id);return {id:h.id,isPlayer:h.isPlayer,moved:Math.hypot(h.x-start.x,h.y-start.y)};}),opening.heroes);
  assert.ok(departures.filter(h=>!h.isPlayer).every(h=>h.moved>700),JSON.stringify(departures));assert.equal(departures.find(h=>h.isPlayer).moved,0);
@@ -57,4 +66,5 @@ try{
   await page.screenshot({path:`artifacts/collision-${kind}-detour.png`});check(`${kind} detects three front blockers, walks around the group and tower, and reaches its destination`);
  }
  assert.deepEqual(errors,[]);await writeFile('artifacts/collision-report.json',JSON.stringify({checks,opening,departures,fountainReturn,routes,errors},null,2)+'\n');
+ }
 }finally{await browser.close();}

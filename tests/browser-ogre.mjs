@@ -8,14 +8,14 @@ const page=await browser.newPage({viewport:{width:1440,height:900},deviceScaleFa
 page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});
 const check=name=>{checks.push(name);console.log(`PASS ${name}`);};
 try{
-  await page.goto(process.env.GAME_URL||'http://localhost:5184',{waitUntil:'networkidle'});await closeDevelopmentNotice(page);assert.equal(await page.locator('.hero-option').count(),8);
+  await page.goto(process.env.GAME_URL||'http://localhost:5184',{waitUntil:'networkidle'});await closeDevelopmentNotice(page);assert.equal(await page.locator('.hero-option').count(),9);
   await page.locator('[data-hero="ogre_magi"]').click();await page.waitForFunction(()=>document.querySelector('#hero-render').complete&&document.querySelector('#hero-render').naturalWidth>0);
   assert.match(await page.locator('#selected-info').textContent(),/食人魔魔法师/);await page.screenshot({path:'artifacts/ogre-lobby.png'});
   await page.evaluate(async()=>{const {Renderer}=await import('/src/renderer.js'),render=Renderer.prototype.render;Renderer.prototype.render=function(g,t){window.g=g;window.r=this;return render.call(this,g,t);};});
   await page.locator('#start-game').click();await page.waitForFunction(()=>window.g?.time>.1);
   const opening=await page.evaluate(()=>{const g=window.g;return {hero:g.player.heroId,int:g.player.intelligence,mana:g.player.maxMana,teams:[0,1].map(t=>g.entities.filter(e=>e.kind==='hero'&&e.team===t).map(e=>e.heroId))};});
   assert.equal(opening.hero,'ogre_magi');assert.equal(opening.int,0);assert.equal(opening.mana,276);assert.ok(opening.teams.every(t=>t.length===5&&new Set(t).size===5));
-  check('Seven-hero roster and official art load; Ogre has zero INT, innate mana and 5v5 drafting');
+  check('Nine-hero roster and official art load; Ogre has zero INT, innate mana and 5v5 drafting');
   await page.locator('#ability-0').hover();
   const tooltip=await page.locator('.skill-tooltip').textContent();
   assert.match(tooltip,/火焰爆轰伤害/);assert.match(tooltip,/施法前摇/);assert.ok(!tooltip.includes('???'));
@@ -24,7 +24,7 @@ try{
   await page.keyboard.press('u');await page.waitForFunction(()=>!document.querySelector('[data-talent="1"]').disabled);
   assert.match(await page.locator('.talent-points').textContent(),/可用天赋点 1/);
   const points=await page.evaluate(()=>window.g.player.skillPoints);await page.locator('[data-talent="1"]').click();assert.equal(await page.evaluate(()=>window.g.player.skillPoints),points);
-  assert.equal(await page.evaluate(()=>window.g.player.talentPoints),0);assert.equal(await page.evaluate(()=>window.g.player.maxMana),616);await page.locator('.talent-close').click();
+  assert.equal(await page.evaluate(()=>window.g.player.talentPoints),0);assert.equal(await page.evaluate(()=>window.g.player.maxMana),678);await page.locator('.talent-close').click();
   check('Talent learns with its own point and Dumb Luck mana talent changes real mana');
 
   await page.evaluate(()=>{

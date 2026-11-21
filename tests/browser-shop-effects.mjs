@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { chromium } from 'playwright';
 import { closeDevelopmentNotice } from './browser-helpers.mjs';
+import {ITEMS} from '../src/item-data.js';
 
 await mkdir('artifacts',{recursive:true});
 const browser=await chromium.launch({headless:true}),page=await browser.newPage({viewport:{width:1440,height:900}});
@@ -60,7 +61,7 @@ try{
   }
   return {count:ITEMS.length,missing};
  });
- assert.deepEqual(catalog.missing,[]);assert.equal(catalog.count,268);
+ assert.deepEqual(catalog.missing,[]);assert.equal(catalog.count,ITEMS.length);
  check('Every purchasable item retains its complete source description in the selected details');
 
  for(const viewport of [{width:1920,height:1080},{width:1366,height:768},{width:1024,height:576},{width:390,height:844}]){

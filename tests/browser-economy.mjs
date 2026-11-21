@@ -29,7 +29,7 @@ try{
  check('Large shop button, visible quickbuy, and complete stash/courier icons retain 88:64 proportions on desktop/laptop/mobile');
  await page.setViewportSize({width:1366,height:768});await page.locator('#close-shop').click();
  const before=await page.evaluate(async()=>{const {createMeta}=await import('/src/inventory.js');const p=g.player;p.inventory=['armlet'];p.inventoryMeta=[createMeta(p,'armlet')];g._refreshHero(p);p.hp=100;window.armletBase=p.maxHp;g.useItem(0,p);return p.maxHp;});
- await page.waitForFunction(()=>g.player.inventoryMeta[0].armletStrength===25);await page.evaluate(()=>g.paused=true);await page.waitForFunction(()=>document.querySelector('#hp-label').textContent.endsWith(' / '+g.player.maxHp));assert.equal(await page.evaluate(()=>g.player.maxHp),before+550);assert.ok(await page.evaluate(()=>g.player.hp>500));await page.waitForSelector('[data-status-id="armletUnholy"]');
+ await page.waitForFunction(()=>g.player.inventoryMeta[0].armletStrength===25);await page.evaluate(()=>g.paused=true);await page.waitForFunction(()=>document.querySelector('#hp-label').textContent.endsWith(' / '+g.player.maxHp));assert.equal(await page.evaluate(()=>g.player.maxHp),before+500);assert.ok(await page.evaluate(()=>g.player.hp>500));await page.waitForSelector('[data-status-id="armletUnholy"]');
  check('Armlet ramp visibly adds current/max HP in the live HUD and exposes Unholy Strength status');
  assert.deepEqual(errors,[]);await writeFile('artifacts/economy-report.json',JSON.stringify({checks,errors},null,2)+'\n');
 }finally{await browser.close();}

@@ -3,17 +3,21 @@ import {mkdir,writeFile} from 'node:fs/promises';
 import {chromium} from 'playwright';
 import {closeDevelopmentNotice} from './browser-helpers.mjs';
 const base=process.env.GAME_URL||'http://127.0.0.1:5194';
+const controlsOnly=process.env.BROWSER_SCENARIO==='controls';
 const browser=await chromium.launch(),page=await browser.newPage({viewport:{width:1366,height:768}}),checks=[],errors=[];
 page.on('pageerror',e=>errors.push(e.message));const check=name=>{checks.push(name);console.log('PASS '+name);};
 await mkdir('artifacts',{recursive:true});
 async function clickUnit(id){await page.evaluate(()=>r.lookAt(g.player.x,g.player.y-55/r.zoom));const p=await page.evaluate(id=>{const u=g.entities.find(e=>e.id===id);return r.worldToScreen(u.x,u.y);},id);await page.locator('#battlefield').click({position:p});await page.waitForFunction(id=>document.querySelector('.game-hud').dataset.unitId===id,id);}
-async function advance(seconds){const start=await page.evaluate(()=>g.time);await page.waitForFunction(({start,seconds})=>g.time>start+seconds,{start,seconds});}
+async function advance(seconds){await page.evaluate(async seconds=>{const {Game}=await import('/src/engine.js');Game.prototype.step.call(g,seconds);},seconds);}
 try{
  await page.goto(base,{waitUntil:'networkidle'});await closeDevelopmentNotice(page);
  await page.evaluate(async()=>{const {Renderer}=await import('/src/renderer.js'),render=Renderer.prototype.render;Renderer.prototype.render=function(game,t){window.g=game;window.r=this;return render.call(this,game,t);};});
  await page.locator('[data-hero="juggernaut"]').click();await page.locator('#start-game').click();await page.waitForFunction(()=>g?.time>.1);await page.locator('#control-hint button').click();
  await page.evaluate(async()=>{const {Navigator}=await import('/src/navigation.js'),{createMeta}=await import('/src/inventory.js');g.entities=[g.player];g.nextWave=g.nextNeutralSpawn=g.roshanRespawnAt=1e9;g._chooseTarget=()=>null;g._creepTick=()=>{};g.navigation=new Navigator({cols:160,rows:160,cellSize:64,blocked:'0'.repeat(25600)},[]);const p=g.player;Object.assign(p,{x:6000,y:6000,level:15,abilityLevels:[4,4,4,2],skillPoints:0,talentPoints:0,destination:null,navPath:null,inventory:['manta','phase_boots']});p.inventoryMeta=p.inventory.map(id=>createMeta(p,id));g._refreshHero(p);p.mana=p.maxMana;r.center(p);r.zoom=.8;});
- const pixels=await page.evaluate(()=>{
+ // Browser interactions must not spend the twenty-second illusion lifetime while waiting on the host.
+ await page.evaluate(()=>g.step=()=>{});
+ let pixels={rows:[]};
+ if(!controlsOnly){pixels=await page.evaluate(()=>{
   const rows=[],board=document.createElement('canvas');board.width=980;board.height=340;const bc=board.getContext('2d');bc.fillStyle='#0d1820';bc.fillRect(0,0,980,340);
   for(const [i,heroId]of ['juggernaut','crystal_maiden','windranger','axe','ogre_magi','kunkka','drow_ranger'].entries()){
    const a=document.createElement('canvas'),b=document.createElement('canvas');a.width=a.height=b.width=b.height=384;const ac=a.getContext('2d'),cc=b.getContext('2d'),unit={...g.player,x:192,y:192,isPlayer:false,heroId,kind:'hero',angle:0};r.drawUnit(ac,unit,g,1);r.drawUnit(cc,{...unit,kind:'illusion'},g,1);const original=ac.getImageData(0,0,384,384).data,blue=cc.getImageData(0,0,384,384).data;let opaque=0,blueCount=0,shapeMismatch=0,minY=384,maxY=0;
@@ -23,6 +27,7 @@ try{
  });
  for(const p of pixels.rows){assert.ok(p.opaque>2000&&p.height>80,JSON.stringify(p));assert.ok(p.blueRatio>.98,JSON.stringify(p));assert.equal(p.shapeMismatch,0,p.heroId);}
  await writeFile('artifacts/illusion-seven-heroes.png',Buffer.from(pixels.image,'base64'));check('All seven illusions preserve the complete hero silhouette and animation, with more than 98% of the model blue');
+ }
  await page.locator('#battlefield').focus();await page.keyboard.press('1');await page.waitForFunction(()=>g.entities.filter(e=>e.kind==='illusion').length===2);
  const ids=await page.evaluate(()=>g.entities.filter(e=>e.kind==='illusion').map(e=>e.id));await clickUnit(ids[0]);assert.ok(await page.locator('.illusion-controls').isVisible());assert.ok(await page.locator('#ability-0').isDisabled());assert.ok(await page.locator('.hud-portrait>img').evaluate(i=>i.complete&&i.naturalWidth>0));assert.equal(await page.evaluate(()=>g.selected.illusionType),'weak');
  const before=await page.evaluate(()=>g.entities.filter(e=>e.kind==='hero'||e.kind==='illusion').map(e=>({id:e.id,x:e.x,y:e.y})));
@@ -38,7 +43,9 @@ try{
   g._neutralTick=()=>{};g.entities.push(enemy);g._index();
   return {id:c.id,enemyId:enemy.id,x:c.x,player:{x:g.player.x,y:g.player.y}};
  },ids[0]);
+ await advance(.05);
  await page.waitForFunction(({id,enemyId})=>g.entities.find(e=>e.id===id)?.targetId===enemyId,automatic);
+ await advance(1.5);
  await page.waitForFunction(({enemyId})=>{const e=g.entities.find(e=>e.id===enemyId);return e&&e.hp<e.maxHp;},automatic);
  assert.ok(await page.evaluate(({id,x})=>g.entities.find(e=>e.id===id).x<x-150,automatic));
  assert.deepEqual(await page.evaluate(()=>({x:g.player.x,y:g.player.y})),automatic.player);
@@ -46,11 +53,11 @@ try{
  await page.keyboard.press('Space');await page.waitForFunction(()=>g.selected.id===g.player.id);
  check('Weak illusion HUD shows radius 600 and the real game automatically chases and attacks an unprovoked neutral without moving its owner');
  const snapshots=await page.evaluate(async()=>{
-  const Skills=await import('/src/hero-runtime.js'),{createIllusions}=await import('/src/illusions.js');
+  const Skills=await import('/src/hero-runtime.js'),{createIllusions}=await import('/src/illusions.js'),{Game}=await import('/src/engine.js');
   const p=g.player,caster=g._makeHero('ogre_magi',0,1,false,0);
   Object.assign(caster,{x:p.x+180,y:p.y,level:15,abilityLevels:[0,0,4,0],talents:[3],skillPoints:0,aiTimer:Infinity});
   g._refreshHero(caster);caster.mana=caster.maxMana;
-  const cast=g._cast(caster,2,p);if(!cast.ok)throw new Error(cast.reason);g.step(.5);
+  const cast=g._cast(caster,2,p);if(!cast.ok)throw new Error(cast.reason);Game.prototype.step.call(g,.5);
   const original=p.statuses.ogreBloodlust,types=['weak','strong'];
   const copies=types.map((type,i)=>{const c=createIllusions(g,p,1,60,33,300,{type})[0];Object.assign(c,{x:p.x+(i?280:-280),y:p.y+160});return c;});
   Skills.addStatus(g,p,'laterBonus',{positive:true,duration:20,armor:50});original.attackSpeed+=50;
@@ -60,7 +67,7 @@ try{
  for(const snapshot of snapshots){assert.equal(snapshot.attackSpeed,snapshot.expected);assert.equal(snapshot.expiry,snapshot.originalExpiry);assert.equal(snapshot.laterBonus,false);assert.equal(snapshot.independent,true);}
  check('Both illusion types snapshot an allied talent-enhanced Bloodlust buff and keep it independent of later owner buffs');
  const foreignId=await page.evaluate(async()=>{const {illusion}=await import('/src/item-common.js');const other=g._makeHero('axe',0,1,false,20);Object.assign(other,{x:g.player.x-180,y:g.player.y+120,controller:'human'});const c=illusion(g,other,1,60,33,300)[0];window.foreign=c;return c.id;});await clickUnit(foreignId);assert.ok(await page.locator('.illusion-controls').isHidden());assert.equal(await page.evaluate(()=>g.unitCommand(foreign.id,'moveTo',[7000,7000]).ok),false);assert.equal(await page.locator('.equipped-slots [data-slot-index="0"]').getAttribute('draggable'),'false');check('Other players’ illusions are inspectable in the shared HUD and cannot be controlled or trade copied items');
- const strongId=await page.evaluate(async()=>{const {illusion}=await import('/src/item-common.js'),{createMeta}=await import('/src/inventory.js');g.entities=[g.player];const p=g.player;Object.assign(p,{heroId:'crystal_maiden',name:'Crystal Maiden',inventory:['phase_boots'],abilityLevels:[4,4,4,2],cooldowns:[0,0,0,0],destination:null,explicitTarget:null});p.inventoryMeta=[createMeta(p,'phase_boots')];g._refreshHero(p);p.mana=p.maxMana;const c=illusion(g,p,1,60,33,300,{type:'strong'})[0];Object.assign(c,{x:p.x-180,y:p.y+100});window.strong=c;window.enemy=g._unit('creep',1,c.x+250,c.y,{maxHp:10000,speed:0});g.entities.push(enemy);g._index();r.center(p);return c.id;});await clickUnit(strongId);assert.ok(await page.locator('#ability-0').isEnabled());await advance(.35);assert.equal(await page.evaluate(()=>strong.targetId),null);assert.equal(await page.evaluate(()=>enemy.hp),10000);const mana=await page.evaluate(()=>strong.mana);const aim=await page.evaluate(()=>r.worldToScreen(enemy.x,enemy.y));await page.mouse.move(aim.x,aim.y);await page.keyboard.press('q');await page.waitForFunction(()=>strong.cooldowns[0]>0&&enemy.hp<enemy.maxHp);assert.ok(await page.evaluate(mana=>strong.mana<mana,mana));assert.equal(await page.evaluate(()=>g.player.cooldowns[0]),0);
+ const strongId=await page.evaluate(async()=>{const {illusion}=await import('/src/item-common.js'),{createMeta}=await import('/src/inventory.js');g.entities=[g.player];const p=g.player;Object.assign(p,{heroId:'crystal_maiden',name:'Crystal Maiden',inventory:['phase_boots'],abilityLevels:[4,4,4,2],cooldowns:[0,0,0,0],destination:null,explicitTarget:null});p.inventoryMeta=[createMeta(p,'phase_boots')];g._refreshHero(p);p.mana=p.maxMana;const c=illusion(g,p,1,60,33,300,{type:'strong'})[0];Object.assign(c,{x:p.x-180,y:p.y+100});window.strong=c;window.enemy=g._unit('creep',1,c.x+250,c.y,{maxHp:10000,speed:0});g.entities.push(enemy);g._index();r.center(p);return c.id;});await clickUnit(strongId);assert.ok(await page.locator('#ability-0').isEnabled());await advance(.35);assert.equal(await page.evaluate(()=>strong.targetId),null);assert.equal(await page.evaluate(()=>enemy.hp),10000);const mana=await page.evaluate(()=>strong.mana);const aim=await page.evaluate(()=>r.worldToScreen(enemy.x,enemy.y));await page.mouse.move(aim.x,aim.y);await page.keyboard.press('q');await advance(.35);await page.waitForFunction(()=>strong.cooldowns[0]>0&&enemy.hp<enemy.maxHp);assert.ok(await page.evaluate(mana=>strong.mana<mana,mana));assert.equal(await page.evaluate(()=>g.player.cooldowns[0]),0);
  await page.locator('.equipped-slots [data-slot-index="0"]').dblclick();await page.waitForFunction(()=>strong.inventoryMeta[0].cooldownRemaining>0);assert.equal(await page.evaluate(()=>g.player.inventoryMeta[0].cooldownRemaining),0);await page.screenshot({path:'artifacts/illusion-controlled-desktop.png'});check('Strong illusion HUD keys and item clicks cast independently with its own mana and cooldowns');
  await page.setViewportSize({width:390,height:844});await page.waitForTimeout(150);assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);assert.ok(await page.locator('#return-own-hero').isVisible());await page.screenshot({path:'artifacts/illusion-controlled-mobile.png'});await page.locator('#return-own-hero').click();await page.waitForFunction(()=>g.selected.id===g.player.id);await page.evaluate(()=>{strong.expiresAt=g.time+.1;g.selectEntity(strong.id);});await advance(.3);await page.waitForFunction(()=>document.querySelector('.game-hud').dataset.unitId===g.player.id);check('Mobile controls fit the viewport; returning or illusion expiry restores the hero HUD');
  assert.deepEqual(errors,[]);await writeFile('artifacts/illusion-browser-report.json',JSON.stringify({checks,pixels:pixels.rows,automatic,snapshots,errors},null,2)+'\n');

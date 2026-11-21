@@ -15,6 +15,7 @@ await mkdir('artifacts', { recursive: true });
 const browser = await chromium.launch(), errors = [], checks = [];
 const context = await browser.newContext({ viewport: { width: 1366, height: 768 } });
 const check = name => { checks.push(name); console.log('PASS ' + name); };
+const resumeAt=process.env.BROWSER_START_CHECK||'';
 async function observe(page) {
   await page.evaluate(async () => {
     const { Renderer } = await import('/src/renderer.js'), render = Renderer.prototype.render;
@@ -51,9 +52,11 @@ async function assertLocked(page) {
 let page;
 try {
   page = await open(context, base);
+  if(resumeAt!=='levels'){
   await settings(page); assert.equal(await page.locator('#developer-mode-toggle').isDisabled(), true);
   assert.equal(await page.evaluate(() => document.querySelector('.modal-body').lastElementChild.id), 'developer-mode-settings');
   await page.keyboard.press('Escape');
+  }
   await page.locator('[data-hero="juggernaut"]').click(); await page.locator('#start-game').click();
   await page.waitForFunction(() => window.g?.time > .1);
   const ids = await page.evaluate(() => {
@@ -67,6 +70,8 @@ try {
     return { own: g.player.id, ally: g.entities.find(e => e.kind === 'hero' && !e.isPlayer && e.team === 0).id, enemy: g.entities.find(e => e.kind === 'hero' && e.team === 1).id };
   });
   await settings(page); const beforeGold = await page.evaluate(() => g.player.gold), beforeTime = await page.evaluate(() => g.time);
+  if(resumeAt==='levels')await unlock(page);
+  else{
   await assertLocked(page); await page.locator('#developer-mode-toggle').click();
   await page.locator('#developer-password').fill('000000'); await page.locator('#developer-password').press('Enter');
   assert.match(await page.locator('#developer-mode-status').textContent(), /密码错误/);
@@ -77,6 +82,7 @@ try {
   assert.deepEqual(await state(page), { enabled: true, health: false, mana: false });
   assert.equal(await page.locator('.match-settings-button').evaluate(el => el.classList.contains('developer-mode-active')), true);
   check('Settings ends with a password gate; lobby access and wrong passwords are blocked, correct Enter unlocks 99999 gold without advancing the match');
+  }
 
   await page.locator('#developer-level').fill('10'); await page.locator('#developer-level-apply').click();
   assert.deepEqual(await page.evaluate(() => [g.player.level, g.player.skillPoints, g.player.talentPoints]), [10, 10, 1]);

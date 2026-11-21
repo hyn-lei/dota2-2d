@@ -56,6 +56,13 @@ test('a chosen level grants the same stats, skill points and talent unlocks as n
     assert.deepEqual(game.player[key], normal.player[key], key);
   assert.equal(game.player.skillPoints, 15); assert.equal(game.player.talentPoints, 2);
 });
+test('fractional passive experience does not leave a developer upgrade one level short', () => {
+  const game=new Game({hero:'juggernaut'}),ally=game.entities.find(e=>e.kind==='hero'&&!e.isPlayer&&e.team===0);
+  ally.xp=.014246913578;unlock(game);
+  assert.equal(setDeveloperLevel(game,ally.id,15).level,15);
+  assert.equal(ally.xp,0);assert.ok(ally.abilityLevels.some(rank=>rank>1));
+  assert.equal(game.player.level,1);
+});
 
 test('level 30 is capped, retains independent player skill choices and does not grant duplicate points', () => {
   const game = new Game(); unlock(game);

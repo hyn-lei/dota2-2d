@@ -8,17 +8,22 @@ page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()
 const check=name=>{checks.push(name);console.log('PASS '+name);};
 const select=async id=>{await page.locator('#item-search').fill(id);await page.locator(`.shop-catalog [data-item="${id}"]`).click();};
 const buy=async id=>{await select(id);await page.locator('#buy-selected').click();};
+const scenario=process.env.BROWSER_SCENARIO||'all';
 try{
  await page.goto(process.env.GAME_URL||'http://localhost:5184',{waitUntil:'networkidle'});
  await closeDevelopmentNotice(page);
  await page.evaluate(async()=>{const {Renderer}=await import('/src/renderer.js'),render=Renderer.prototype.render;Renderer.prototype.render=function(g,t){window.game=g;window.renderer=this;return render.call(this,g,t);};});
  await page.locator('[data-hero="crystal_maiden"]').click();await page.locator('#start-game').click();await page.waitForFunction(()=>window.game?.time>.1);
  await page.evaluate(()=>{const g=window.game;g.entities=[g.player];g.nextWave=Infinity;g.nextNeutralSpawn=Infinity;g.roshanRespawnAt=Infinity;g.player.gold=20000;});
- await page.locator('#shop-button').click();assert.equal(await page.locator('.shop-catalog [data-item]').count(),SHOP_GROUPS.filter(g=>g.column!=='recipes'&&g.id!=='variants').reduce((n,g)=>n+g.items.length,0));
+ await page.locator('#shop-button').click();
+ if(scenario!=='refund'&&scenario!=='after-refund'){assert.equal(await page.locator('.shop-catalog [data-item]').count(),SHOP_GROUPS.filter(g=>g.column!=='recipes'&&g.id!=='variants').reduce((n,g)=>n+g.items.length,0));
  await select('wraith_band');assert.match(await page.locator('.item-detail').textContent(),/怨灵系带/);
  await page.locator('#item-search').fill('does-not-exist');assert.equal(await page.locator('.shop-empty').isVisible(),true);
  await page.locator('#item-search').fill('');await page.locator('[data-category="upgrades"]').click();assert.equal(await page.locator('.shop-catalog [data-item]').count(),SHOP_GROUPS.filter(g=>g.column==='upgrades'&&g.id!=='variants').reduce((n,g)=>n+g.items.length,0));
  await page.locator('[data-category="all"]').click();check('Complete current catalog, local icons, search and upgrade recipes render');
+ }
+ if(scenario!=='after-refund'&&scenario!=='catalog'){
+ await page.evaluate(()=>{window.shopStep=window.game.step;window.game.step=()=>{};});
  await buy('circlet');await buy('gauntlets');await select('bracer');assert.match(await page.locator('.purchase-summary').textContent(),/210/);
  assert.equal(await page.locator('.recipe-part.owned').count(),2);await page.locator('#buy-selected').click();
  assert.deepEqual(await page.evaluate(()=>window.game.player.inventory),['bracer']);
@@ -27,6 +32,9 @@ try{
  await page.locator('#inventory [data-slot-area="inventory"][data-slot-index="0"]').click();
  assert.match(await page.locator('#sell-selected').textContent(),/505/);await page.locator('#sell-selected').click();
  assert.deepEqual(await page.evaluate(()=>window.game.player.inventory),[]);check('Owned item details sell a new item for its full refund');
+ await page.evaluate(()=>{window.game.step=window.shopStep;delete window.shopStep;});
+ }
+ if(scenario!=='refund'&&scenario!=='catalog'){
  await buy('blade');const damage=await page.evaluate(()=>window.game.player.damage);
  await page.locator('#inventory [data-slot-area="inventory"][data-slot-index="0"]').click();await page.locator('[data-transfer="backpack"]').click();
  assert.equal(await page.evaluate(()=>window.game.player.damage),damage-15);
@@ -57,5 +65,6 @@ try{
   const box=await page.locator('#shop').boundingBox();assert.ok(box.x>=0&&box.x+box.width<=width+1&&box.y>=0);
  }
  check('Shop remains inside desktop and mobile viewports without horizontal overflow');
+ }
  assert.deepEqual(errors,[]);console.log(JSON.stringify({checks:checks.length,errors}));
 }finally{await browser.close();}
