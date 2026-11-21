@@ -10,6 +10,14 @@ if(!base){service=createCoopServer({root:resolve(process.env.STATIC_ROOT||'dist'
 await mkdir('artifacts',{recursive:true});
 const browser=await chromium.launch(),page=await browser.newPage({viewport:{width:1366,height:768}}),errors=[],checks=[],pixels=[];
 page.on('pageerror',error=>errors.push(error.message));
+if(process.argv.includes('--memory-only')){
+  try{await checkTerrainMemory();}finally{await browser.close();await service?.close();}
+  process.exit(0);
+}
+if(process.argv.includes('--recovery-only')){
+  try{await checkCropRecovery();}finally{await browser.close();await service?.close();}
+  process.exit(0);
+}
 if(process.argv.includes('--large-viewport-only')){
   try{await checkLargeBattlefield();}finally{await browser.close();await service?.close();}
   process.exit(0);
@@ -17,9 +25,9 @@ if(process.argv.includes('--large-viewport-only')){
 try{
   await page.addInitScript(()=>{
     window.nativeTerrainBitmap=window.createImageBitmap.bind(window);window.terrainDecodes=[];
-    window.createImageBitmap=(source,options)=>{
-      if(source instanceof Blob&&source.type==='image/jpeg')terrainDecodes.push({...options});
-      return nativeTerrainBitmap(source,options);
+    window.createImageBitmap=(source,...args)=>{
+      if(source instanceof Blob&&source.type==='image/jpeg')terrainDecodes.push(args);
+      return nativeTerrainBitmap(source,...args);
     };
   });
   await page.goto(base,{waitUntil:'networkidle'});await closeDevelopmentNotice(page);
@@ -32,44 +40,44 @@ try{
       const isTerrain=window.r&&this.canvas===r.canvas&&(image===r.mapAsset.image||[...(r.mapAsset.bitmaps?.values()||[])].includes(image));
       const result=drawImage.call(this,image,...args);
       if(isTerrain){
-        terrainCalls.push({args,bitmap:image instanceof ImageBitmap,imageWidth:image.naturalWidth||image.width,imageHeight:image.naturalHeight||image.height});
+        terrainCalls.push({args,bitmap:image instanceof ImageBitmap,imageWidth:image.naturalWidth||image.width,imageHeight:image.naturalHeight||image.height,divisor:[...r.mapAsset.bitmaps].find(([,bitmap])=>bitmap===image)?.[0]});
         if(window.captureTerrain){window.captureTerrain=false;window.terrainPixels=this.getImageData(0,0,this.canvas.width,this.canvas.height).data;}
       }
       return result;
     };
     window.terrainBlob=await (await fetch((await import('/src/map-data.js')).MAP_IMAGE.url)).blob();
+    window.terrainOriginalImage=new Image();
+    const {MAP_IMAGE}=await import('/src/map-data.js');
+    await new Promise((resolve,reject)=>{terrainOriginalImage.onload=resolve;terrainOriginalImage.onerror=reject;terrainOriginalImage.src=MAP_IMAGE.url;});
   });
-  await page.locator('#start-game').click();await page.waitForFunction(()=>window.g&&r.mapAsset.ready&&terrainCalls.length);
-  const calls=await page.evaluate(()=>{g.setPaused(true);return terrainCalls;});
+  await page.locator('#start-game').click();await waitForTerrain(1);
+  const calls=await page.evaluate(()=>{g.setPaused(true);return terrainCalls.filter(call=>call.divisor===1);});
   assert.ok(calls.every(call=>call.bitmap),'the real battlefield must reuse decoded map bitmaps instead of repeatedly drawing the large JPEG');
-  assert.ok(calls.every(call=>call.imageWidth===8878&&call.imageHeight===8356),'the default camera must retain the native map resolution');
-  checks.push('The production battlefield uses a decoded native map bitmap');
+  assert.ok(calls.every(call=>call.imageWidth*call.imageHeight*4<64*1048576),'the default camera must retain bounded decoded pixels');
+  checks.push('The production battlefield uses a bounded camera crop at native detail');
 
   await page.evaluate(()=>{r.followPlayer=false;r.w=512;r.h=384;r.dpr=1;r.canvas.width=512;r.canvas.height=384;});
   await page.evaluate(()=>window.nativeTerrainSource=r.mapAsset.bitmaps.get(1));
   for(const {zoom,divisor} of [{zoom:.18,divisor:2},{zoom:.04,divisor:8}]){
     await page.evaluate(zoom=>{r.zoom=zoom;r.render(g,g.time);},zoom);
-    await page.waitForFunction(divisor=>r.mapAsset.bitmaps.has(divisor),divisor);
+    await waitForTerrain(divisor);
     if(divisor===2)await page.evaluate(()=>window.replacedTerrainSource=r.mapAsset.bitmaps.get(2));
   }
-  const restored=await page.evaluate(()=>{
-    const before=terrainDecodes.length;r.zoom=.45;r.dpr=2;r.render(g,g.time);
-    return {retained:r.mapAsset.bitmaps.get(1)===nativeTerrainSource,released:replacedTerrainSource.width===0&&replacedTerrainSource.height===0,before,after:terrainDecodes.length,call:terrainCalls.at(-1),cached:r.mapAsset.bitmaps.size};
-  });
-  assert.ok(restored.retained,'overview zoom must not evict the native map needed when zooming back in');
-  assert.equal(restored.call.imageWidth,8878,'restoring a detailed high-DPR camera must immediately draw the native map');
-  assert.equal(restored.after,restored.before,'returning to native detail must reuse the prepared bitmap');
-  assert.ok(restored.released,'evicting an alternate resolution must close its bitmap and release decoded pixels');
-  assert.ok(restored.cached<=2);
-  checks.push('Playable, overview and high-DPR zoom transitions retain native detail without decoding it again');
+  await page.evaluate(()=>{r.zoom=.45;r.dpr=2;r.render(g,g.time);});await waitForTerrain(1);
+  const restored=await page.evaluate(()=>({call:terrainCalls.at(-1),cached:r.mapAsset.bitmaps.size}));
+  assert.equal(restored.call.divisor,1,'a detailed high-DPR camera must recover native texels');
+  assert.ok(restored.call.imageWidth*restored.call.imageHeight*4<64*1048576);
+  assert.ok(restored.cached<=3);
+  checks.push('Playable, overview and high-DPR zoom transitions recover native camera detail');
   await page.evaluate(()=>r.dpr=1);
   for(const {zoom,divisor} of [{zoom:.04,divisor:8},{zoom:.18,divisor:2},{zoom:.45,divisor:1},{zoom:1.05,divisor:1}]){
     await page.evaluate(zoom=>{r.zoom=zoom;r.render(g,g.time);},zoom);
-    await page.waitForFunction(divisor=>r.mapAsset.bitmaps?.has(divisor),divisor);
+    await waitForTerrain(divisor);
     await page.evaluate(async divisor=>{
       window.terrainReference=await nativeTerrainBitmap(terrainBlob,{resizeWidth:Math.ceil(8878/divisor),resizeHeight:Math.ceil(8356/divisor),resizeQuality:'high'});
     },divisor);
     for(const camera of [{x:10000,y:11000},{x:1100,y:900},{x:15900,y:15000}]){
+      await page.evaluate(camera=>{r.camera={...camera};r.render(g,g.time);},camera);await waitForTerrain(divisor);
       pixels.push(await page.evaluate(({camera,zoom,divisor})=>{
         r.camera={...camera};window.captureTerrain=true;r.render(g,g.time);
         const {x,y}=r.camera,rect={x:994.7115844901873,y:769,width:19466.576831019625,height:18322};
@@ -77,43 +85,53 @@ try{
         const context=reference.getContext('2d');context.fillStyle='#1b2927';context.fillRect(0,0,512,384);
         context.translate(256,192);context.scale(zoom,zoom);context.translate(-x,-y);
         context.drawImage(terrainReference,rect.x,rect.y,rect.width,rect.height);
-        const compare=data=>{let maxDelta=0,differentPixels=0;for(let i=0;i<data.length;i+=4){let different=false;for(let channel=0;channel<4;channel++){
+        const compare=data=>{let maxDelta=0,differentPixels=0,totalDelta=0;for(let i=0;i<data.length;i+=4){let different=false;for(let channel=0;channel<4;channel++){
           const delta=Math.abs(data[i+channel]-terrainPixels[i+channel]);maxDelta=Math.max(maxDelta,delta);different||=delta>0;
-        }if(different)differentPixels++;}return {maxDelta,differentPixels};};
+          totalDelta+=delta;
+        }if(different)differentPixels++;}return {maxDelta,differentPixels,meanDelta:totalDelta/data.length};};
         const decoded=compare(context.getImageData(0,0,512,384).data);
         context.setTransform(1,0,0,1,0,0);context.fillStyle='#1b2927';context.fillRect(0,0,512,384);
         context.translate(256,192);context.scale(zoom,zoom);context.translate(-x,-y);
-        context.drawImage(r.mapAsset.image,rect.x,rect.y,rect.width,rect.height);
+        context.drawImage(terrainOriginalImage,rect.x,rect.y,rect.width,rect.height);
         return {camera,shownCamera:{x,y},zoom,divisor,decoded,originalJpeg:compare(context.getImageData(0,0,512,384).data),totalPixels:512*384};
       },{camera,zoom,divisor}));
     }
     await page.evaluate(()=>terrainReference.close());
   }
   await writeFile('artifacts/terrain-browser-pixels.json',JSON.stringify(pixels,null,2)+'\n');
-  assert.ok(pixels.every(result=>result.decoded.maxDelta<=2),JSON.stringify(pixels));
-  assert.ok(pixels.filter(result=>result.zoom>=.18).every(result=>result.originalJpeg.maxDelta<=2),JSON.stringify(pixels));
+  // Bound the sparse bilinear-rounding changes introduced by cropped draw geometry.
+  const matches=(comparison,total)=>comparison.maxDelta<=8&&comparison.meanDelta<.05&&comparison.differentPixels/total<.02;
+  assert.ok(pixels.every(result=>matches(result.decoded,result.totalPixels)),JSON.stringify(pixels));
+  assert.ok(pixels.filter(result=>result.zoom>=.18).every(result=>matches(result.originalJpeg,result.totalPixels)),JSON.stringify(pixels));
   checks.push('Rendered map pixels match the decoded source at overview, playable zooms and map edges; playable zooms also match the original JPEG');
 
   const reuse=await page.evaluate(async()=>{
-    const {Renderer}=await import('/src/renderer.js'),before=terrainDecodes.length;
+    const {Renderer}=await import('/src/renderer.js'),before=terrainDecodes.length,original=r;
     for(let i=0;i<20;i++)r.render(g,g.time);
     const secondCanvas=document.createElement('canvas');document.body.append(secondCanvas);
-    const second=new Renderer(secondCanvas);second.render(g,g.time);second.resizeObserver.disconnect();secondCanvas.remove();
-    return {before,after:terrainDecodes.length,bitmaps:r.mapAsset.bitmaps.size};
+    const second=new Renderer(secondCanvas);second.zoom=original.zoom;second.lookAt(original.camera.x,original.camera.y);second.render(g,g.time);second.destroy();secondCanvas.remove();
+    return {before,after:terrainDecodes.length,bitmaps:original.mapAsset.bitmaps.size};
   });
   assert.equal(reuse.after,reuse.before,'stable frames and a new renderer must reuse prepared map images');
-  assert.ok(reuse.bitmaps<=2,'decoded map memory must remain bounded when changing zoom levels');
-  checks.push('Map bitmaps are reused across frames and renderer lifecycles with at most two cached resolutions');
+  assert.ok(reuse.bitmaps<=3,'decoded map memory must remain bounded when changing zoom levels');
+  checks.push('Camera bitmaps are reused across stable frames and matching renderer lifecycles');
   for(const viewport of [{width:1366,height:768},{width:390,height:844}]){
     await page.setViewportSize(viewport);await page.evaluate(()=>r.resize());await page.waitForTimeout(100);await page.screenshot({path:`artifacts/terrain-${viewport.width}.png`});
     assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
   }
   checks.push('Desktop and mobile battlefield layouts remain usable');
 
-  for(const missing of [true,false]){
+  for(const missing of [true,false,'sync']){
     const fallback=await browser.newPage({viewport:{width:1366,height:768}});fallback.on('pageerror',error=>errors.push(error.message));
     try{
-      await fallback.addInitScript(missing=>{window.fallbackDecodes=0;window.createImageBitmap=missing?undefined:()=>{fallbackDecodes++;return Promise.reject(new Error('Unsupported bitmap decoding'));};},missing);
+      await fallback.addInitScript(missing=>{
+        window.fallbackDecodes=0;
+        window.createImageBitmap=missing===true?undefined:()=>{
+          fallbackDecodes++;
+          if(missing==='sync')throw new Error('Unsupported bitmap decoding');
+          return Promise.reject(new Error('Unsupported bitmap decoding'));
+        };
+      },missing);
       await fallback.goto(base,{waitUntil:'networkidle'});await closeDevelopmentNotice(fallback);
       await fallback.evaluate(async()=>{
         const {Renderer}=await import('/src/renderer.js'),render=Renderer.prototype.render;
@@ -127,8 +145,64 @@ try{
   checks.push('Browsers without bitmap support or with a decode failure retain a usable original-image fallback');
   assert.deepEqual(errors,[]);await writeFile('artifacts/terrain-browser-report.json',JSON.stringify({checks,pixels,reuse,errors},null,2)+'\n');
   for(const check of checks)console.log('PASS '+check);
-  await page.close();await checkLargeBattlefield();
+  await page.close();await checkTerrainMemory();await checkCropRecovery();await checkLargeBattlefield();
 }finally{await browser.close();await service?.close();}
+
+async function waitForTerrain(divisor){
+  await page.waitForFunction(divisor=>{
+    if(!window.g||!r.mapAsset.ready)return false;
+    r.render(g,g.time);
+    return terrainCalls.at(-1)?.divisor===divisor;
+  },divisor);
+}
+
+async function checkTerrainMemory(){
+  const probe=await browser.newPage({viewport:{width:2560,height:1340},deviceScaleFactor:1.5});
+  try{
+    await probe.goto(base,{waitUntil:'networkidle'});await closeDevelopmentNotice(probe);
+    await probe.evaluate(async()=>{
+      const {Renderer}=await import('/src/renderer.js'),render=Renderer.prototype.render;
+      Renderer.prototype.render=function(game,time){window.g=game;window.r=this;return render.call(this,game,time);};
+    });
+    await probe.locator('#start-game').click();
+    await probe.waitForFunction(()=>window.g&&r.mapAsset.ready&&r.mapAsset.bitmaps.has(1));
+    const report=await probe.evaluate(()=>({decodedMiB:[...r.mapAsset.bitmaps.values()].reduce((sum,image)=>sum+image.width*image.height*4/1048576,0),images:[...r.mapAsset.bitmaps.values()].map(image=>({width:image.width,height:image.height}))}));
+    await writeFile('artifacts/terrain-memory-regression.json',JSON.stringify(report,null,2)+'\n');
+    console.log(JSON.stringify(report));
+    assert.ok(report.decodedMiB<64,'the visible default camera must use bounded decoded map memory');
+    console.log('PASS Visible-camera decoded map memory stays bounded');
+  }finally{await probe.close();}
+}
+
+async function checkCropRecovery(){
+  const probe=await browser.newPage({viewport:{width:1366,height:768}});
+  try{
+    await probe.addInitScript(()=>{
+      const decode=createImageBitmap;
+      window.rejectCrop=false;window.cropFailures=0;
+      window.createImageBitmap=(source,...args)=>{
+        if(rejectCrop&&(source instanceof ImageBitmap||source instanceof Blob&&typeof args[0]==='number')){
+          cropFailures++;return Promise.reject(new Error('Transient crop failure'));
+        }
+        return decode(source,...args);
+      };
+    });
+    await probe.goto(base,{waitUntil:'networkidle'});await closeDevelopmentNotice(probe);
+    await probe.evaluate(async()=>{
+      const {Renderer}=await import('/src/renderer.js'),render=Renderer.prototype.render;
+      Renderer.prototype.render=function(game,time){window.g=game;window.r=this;return render.call(this,game,time);};
+    });
+    await probe.locator('#start-game').click();await probe.waitForFunction(()=>window.g&&r.mapAsset.bitmaps.has(1));
+    await probe.evaluate(()=>{g.setPaused(true);window.oldCrop=r.mapAsset.bitmaps.get(1);window.rejectCrop=true;r.lookAt(10000,11000);});
+    await probe.waitForFunction(()=>cropFailures>0&&r.mapAsset.pending.size===0);
+    const failures=await probe.evaluate(()=>cropFailures);await probe.waitForTimeout(300);
+    assert.equal(await probe.evaluate(()=>cropFailures),failures,'failed crop work must wait before retrying');
+    await probe.evaluate(()=>window.rejectCrop=false);
+    await probe.waitForFunction(()=>r.mapAsset.bitmaps.get(1)!==oldCrop&&r.mapAsset.pending.size===0,{},{timeout:6000});
+    assert.equal(await probe.evaluate(()=>oldCrop.width),0,'recovery must release the superseded camera bitmap');
+    console.log('PASS Native camera detail recovers after a later crop failure');
+  }finally{await probe.close();}
+}
 
 async function checkLargeBattlefield(){
   const large=await browser.newPage({viewport:{width:2560,height:1340},deviceScaleFactor:1.5});
