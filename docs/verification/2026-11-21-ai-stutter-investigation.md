@@ -38,4 +38,25 @@ Node 自然对局中的保存测量中位数为 40.54ms，范围 35.07–84.40ms
 
 原始 CPU profile、逐场景报告和浏览器存档保存在本地忽略目录 `artifacts/`。主要记录为 `ai-stutter-user-4k-gpu-report.json`、`ai-stutter-user-4k-chrome-software-report.json`、`ai-stutter-natural-simulation.json`、`ai-stutter-browser-save.json`，同前缀 cpuprofile 保存调用采样。临时诊断脚本亦位于 `artifacts/`。
 
-本次交付为排查记录。发布前构建和静态依赖检查按项目约定执行，推送后按实际提交查询 GitHub Actions。
+初次排查记录已提交为 `67322b3`，该提交的 GitHub Actions 完成且结果为 success。
+
+## 后续修复与验证
+
+`src/renderer.js` 在正常 DPR 下开始绘制。大画布连续八帧绘制超过 20ms 后，将绘制预算设置为 150 万像素，下一帧开始时重新分配画布。每次窗口尺寸变化都重新计算密度并清空慢帧计数，较小视口可以恢复设备 DPR。回退预算随当前 Renderer 生命周期执行，新 Renderer 从设备 DPR 开始。
+
+高负载回退会降低战场绘制分辨率。这个修复依据实际绘制耗时触发，回退后约 2560×1340 CSS 视口对应 1693×886 绘制像素。坐标转换继续使用 CSS 视口尺寸，真实鼠标点地验证中目标世界坐标与实际移动指令一致。
+
+使用同一份本地存档、同一安装版本的 Chrome、同一 4K 视口重新测量，结果如下。
+
+| 软件绘制场景 | 修复前 FPS | 修复后 FPS | 修复前 render | 修复后 render |
+| --- | ---: | ---: | ---: | ---: |
+| 实际开局存档 | 12.0 | 45.6 | 34.21ms | 8.21ms |
+| 180 秒成熟场景 | 11.0 | 40.6 | 35.56ms | 7.51ms |
+
+显卡加速复测开局 59.2 FPS、成熟场景 58.8 FPS，两者的 Canvas 均为 3840×2010。原始报告为 `artifacts/ai-stutter-fixed-user-4k-software-report.json` 和 `artifacts/ai-stutter-fixed-user-4k-gpu-report.json`。
+
+`tests/browser-terrain.mjs` 新增大视口回归，可用 `node tests/browser-terrain.mjs --large-viewport-only` 单独运行，并接入原有地形浏览器检查。回归通过短时给 Canvas 绘制注入 25ms 延迟，在快速机器上也验证慢帧回退，恢复原始绘制方法后采集 FPS。成熟场景在已检查左右各 450 世界单位通路的区域交替按左右键，检查持续位移、存活状态、真实鼠标目标和窗口缩小时的清晰度恢复。
+
+修复前该回归开局 12.58 FPS、移动 11.46 FPS，因低帧率断言失败。最终源码检查开局 49.06 FPS、成熟移动 38.73 FPS，约 150 万绘制像素、持续移动、真实鼠标指令及 800×600 视口恢复 DPR 1.5 均通过。地形完整浏览器检查的六组原有行为和新回归通过，十二组像素对照最大解码差异为 0。五项 `terrain-resolution.test.mjs` 检查通过。
+
+生产构建前端版本为 `b32a2426b9228255bf73c9e695d23403f6fce215dbc480b45eaf6ac6d65b0db7`。构建与静态检查通过，编译 69 个 JS 模块、校验 371 个本地引用。生产构建的大视口回归开局 37.13 FPS、成熟移动 30.52 FPS，通过回退、持续位移、存活、真实鼠标指令和清晰度恢复检查。推送后按实际提交查询 GitHub Actions。

@@ -6,6 +6,9 @@ import { unitOpacity } from './combat-visuals.js';
 import {fountainAreaRadius} from './collision.js';
 
 const TAU = Math.PI * 2;
+const MAX_RENDER_PIXELS = 1500000;
+const SLOW_RENDER_MS = 20;
+const SLOW_RENDER_FRAMES = 8;
 const clamp = (n,a,b) => Math.max(a,Math.min(b,n));
 function random(seed=17) { return () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; }; }
 function circle(c,x,y,r,fill,stroke,width=1) { c.beginPath(); c.arc(x,y,r,0,TAU); if(fill){c.fillStyle=fill;c.fill();} if(stroke){c.strokeStyle=stroke;c.lineWidth=width;c.stroke();} }
@@ -86,10 +89,17 @@ export class Renderer {
     this.canvas=canvas;this.ctx=canvas.getContext('2d');this.camera={x:BASES[0].x,y:BASES[0].y};
     this.zoom=.45;this.pointer={x:0,y:0};this.marker=null;this.lookUntil=0;this.followPlayer=true;this.lobby=true;
     this.hoverId=null;this.showCampBounds=false;this.mapAsset=getMapAsset();
+    this.pixelBudget=Infinity;this.slowRenderFrames=0;
     this.terrain=this.createTerrain();this.frame=0;
     this.resizeObserver=new ResizeObserver(()=>this.resize());this.resizeObserver.observe(canvas);this.resize();
   }
-  resize(){const r=this.canvas.getBoundingClientRect();this.w=Math.max(1,r.width);this.h=Math.max(1,r.height);this.dpr=Math.min(window.devicePixelRatio||1,2);this.canvas.width=Math.round(this.w*this.dpr);this.canvas.height=Math.round(this.h*this.dpr);}
+  resize(){
+    this.slowRenderFrames=0;
+    const bounds=this.canvas.getBoundingClientRect();
+    this.w=Math.max(1,bounds.width);this.h=Math.max(1,bounds.height);
+    this.dpr=Math.min(window.devicePixelRatio||1,2,Math.sqrt(this.pixelBudget/(this.w*this.h)));
+    this.canvas.width=Math.round(this.w*this.dpr);this.canvas.height=Math.round(this.h*this.dpr);
+  }
   screenToWorld(x,y){return {x:(x-this.w/2)/this.zoom+this.camera.x,y:(y-this.h/2)/this.zoom+this.camera.y};}
   worldToScreen(x,y){return {x:(x-this.camera.x)*this.zoom+this.w/2,y:(y-this.camera.y)*this.zoom+this.h/2};}
   mark(x,y){this.marker={x,y,at:performance.now()};}
@@ -116,6 +126,12 @@ export class Renderer {
     c.restore();
   }
   render(game,time){
+    if(this.slowRenderFrames>=SLOW_RENDER_FRAMES){
+      this.pixelBudget=MAX_RENDER_PIXELS;
+      // Resize before painting so the completed frame is never cleared.
+      this.resize();
+    }
+    const startedAt=performance.now();
     game=game?.renderView?.()||game;
     this.frame++;const c=this.ctx;c.setTransform(this.dpr,0,0,this.dpr,0,0);c.clearRect(0,0,this.w,this.h);
     if(!game){this.renderLobby(c,time);return;}
@@ -167,6 +183,9 @@ export class Renderer {
     if(this.showCampBounds)for(const camp of camps){const screen=this.worldToScreen(camp.x,camp.y);if(screen.x<-100||screen.y<-50||screen.x>this.w+100||screen.y>this.h+50)continue;const name=this.zoom<.15?`${camp.campId} ${CAMP_NAMES[camp.type]||'野怪'}`:`${CAMP_NAMES[camp.type]||'野怪'}营地 · ${camp.campId}${camp.blocked?' · 封野':''}`;this.label(c,name,screen.x,screen.y-18,CAMP_COLORS[camp.type]||'#dfc58d',11);}
     if(p?.dead){c.fillStyle='rgba(17,23,24,.4)';c.fillRect(0,0,this.w,this.h);}
     if(!this.mapAsset.ready)this.label(c,this.mapAsset.failed?'地图图片加载失败':'正在载入战场地图…',this.w/2,this.h/2,'#e5ddc1',13);
+    if(this.pixelBudget===Infinity&&this.canvas.width*this.canvas.height>MAX_RENDER_PIXELS){
+      this.slowRenderFrames=performance.now()-startedAt>SLOW_RENDER_MS?this.slowRenderFrames+1:0;
+    }
   }
   label(c,text,x,y,color='#e6e5cf',size=11){
     c.save();c.font=`500 ${size}px "Segoe UI","Microsoft YaHei",sans-serif`;c.textAlign='center';c.textBaseline='middle';
