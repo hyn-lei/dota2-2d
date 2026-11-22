@@ -102,6 +102,7 @@ jobs:
           node tests/browser-ogre.mjs
           node tests/browser-drow.mjs
           node tests/browser-weaver.mjs
+          node tests/browser-hero-appearance.mjs
           node tests/browser-chen.mjs
           node tests/browser-chen-coop.mjs
           node tests/browser-notice.mjs

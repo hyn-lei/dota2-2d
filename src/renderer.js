@@ -6,6 +6,7 @@ import {drawWorldObjectives} from './world-controls.js';
 import { unitOpacity } from './combat-visuals.js';
 import {fountainAreaRadius} from './collision.js';
 import {drawWeaverBeetle} from './weaver-visuals.js';
+import {loadHeroSprites,drawHeroSprite} from './hero-sprites.js';
 
 const TAU = Math.PI * 2;
 const MAX_RENDER_PIXELS = 1500000;
@@ -140,6 +141,7 @@ export class Renderer {
     this.zoom=.45;this.pointer={x:0,y:0};this.marker=null;this.lookUntil=0;this.followPlayer=true;this.lobby=true;
     this.hoverId=null;this.showCampBounds=false;this.mapAsset=getMapAsset();
     this.pixelBudget=Infinity;this.slowRenderFrames=0;
+    loadHeroSprites();
     this.terrain=this.createTerrain();this.frame=0;
     this.resizeObserver=new ResizeObserver(()=>this.resize());this.resizeObserver.observe(canvas);this.resize();
   }
@@ -374,7 +376,9 @@ export class Renderer {
     c.save();const angle=e.angle??(e.team?2.3:-.7);c.rotate(angle+Math.PI/2);
     const bob=e.moving?Math.sin(t*14+Number(String(e.id).replace(/\D/g,'')))*2:Math.sin(t*2)*.6;c.translate(0,bob);
     if(hero){
-      if(e.heroId==='weaver'){
+      if(drawHeroSprite(c,e,angle)){
+        // Shared atlas has painted the character; overlays remain in this pass.
+      }else if(e.heroId==='weaver'){
         const image=getWeaverRender();
         if(image?.complete&&image.naturalWidth){
           c.save();c.rotate(-angle-Math.PI/2);if(Math.cos(angle)>0)c.scale(-1,1);
