@@ -27,6 +27,7 @@ export function attackVisualFields(source,target){
   else if(source.heroId==='kunkka'){visual='tideSlash';color='#81dfec';}
   else if(source.heroId==='ogre_magi'){visual='ogreSmash';color='#f2bd78';}
   else if(source.heroId==='chaos_knight'){visual='chaosSlash';color='#ee8759';}
+  else if(source.heroId==='weaver'){visual='weaverAttack';color='#cf83e2';speed=900;}
   else if(ranged){visual=source.kind==='neutral'?'neutralBolt':source.team?'direBolt':'radiantBolt';color=source.kind==='neutral'?'#cdb1ff':source.team?'#ff8055':'#c9eb91';}
   speed=ATTACK_PROFILES[source.heroId||source.sourceId]?.speed||speed;
   return {visual,color,sourceId:source.id,targetId:target.id,heroId:source.heroId,sourceKind:source.kind,

@@ -13,16 +13,22 @@ import tempfile
 parser = argparse.ArgumentParser()
 parser.add_argument('--vpk', required=True, type=pathlib.Path)
 parser.add_argument('--decoder', required=True, type=pathlib.Path)
+parser.add_argument('--hero', help='Extract one named hero portrait without replacing other HUD assets.')
 args = parser.parse_args()
 root = pathlib.Path(__file__).resolve().parent.parent
 heroes = {name: ('windrunner' if name == 'windranger' else name) for name in
-          ['juggernaut', 'crystal_maiden', 'windranger', 'axe', 'ogre_magi', 'kunkka', 'drow_ranger']}
+          ['juggernaut', 'crystal_maiden', 'windranger', 'axe', 'ogre_magi', 'kunkka', 'drow_ranger', 'chen', 'chaos_knight', 'weaver']}
+if args.hero:
+    if args.hero not in heroes:
+        parser.error(f'Unknown playable hero: {args.hero}')
+    heroes = {args.hero: heroes[args.hero]}
 textures = {'talent-tree': 'statbranch_button_bg_all_off_psd',
             'talent-frame': 'statbranch_button_bg_psd', 'talent-level': 'statbranch_levelbg_psd'}
 wanted = {f'panorama/images/heroes/selection/npc_dota_hero_{source}_png.vtex_c':
           f'portraits/{hero}.png' for hero, source in heroes.items()}
-wanted.update({f'panorama/images/hud/reborn/{source}.vtex_c': f'{name}.png'
-               for name, source in textures.items()})
+if not args.hero:
+    wanted.update({f'panorama/images/hud/reborn/{source}.vtex_c': f'{name}.png'
+                   for name, source in textures.items()})
 
 with args.vpk.open('rb') as stream:
     signature, version, tree_size = struct.unpack('<III', stream.read(12))

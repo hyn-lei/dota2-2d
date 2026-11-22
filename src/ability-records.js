@@ -3447,6 +3447,383 @@ export const ABILITIES={
       "description": "从其他维度召唤若干个混沌骑士的幻象。幻象继承60/80/100%攻击力，但是承受350%伤害。\n驱散类型：弱驱散",
       "damageType": "magical"
     }
+  ],
+  "weaver": [
+    {
+      "id": "weaver_the_swarm",
+      "sourceID": 5289,
+      "name": "虫群",
+      "key": "Q",
+      "icon": "aura",
+      "image": "assets/abilities/weaver_the_swarm.png",
+      "color": "#9dc0be",
+      "kind": "active",
+      "maxLevel": 4,
+      "requiredLevels": [
+        1,
+        3,
+        5,
+        7
+      ],
+      "cooldowns": [
+        44,
+        36,
+        28,
+        20
+      ],
+      "manaCosts": [
+        110,
+        105,
+        100,
+        95
+      ],
+      "castRanges": [
+        3000
+      ],
+      "castPoints": [
+        0.3,
+        0.3,
+        0.3,
+        0.3
+      ],
+      "channelTimes": [
+        0
+      ],
+      "durations": [
+        0
+      ],
+      "damages": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "values": {
+        "damage": [
+          18,
+          23,
+          28,
+          33
+        ],
+        "attack_rate": [
+          1.2,
+          1.05,
+          0.9,
+          0.75
+        ],
+        "count": [
+          12
+        ],
+        "armor_reduction": [
+          1
+        ],
+        "duration": [
+          16
+        ],
+        "destroy_attacks": [
+          3,
+          4,
+          4,
+          5
+        ],
+        "radius": [
+          100
+        ],
+        "speed": [
+          750
+        ],
+        "spawn_radius": [
+          300
+        ],
+        "shard_cooldown_reduction": [
+          0
+        ],
+        "AbilityCastRange": [
+          3000
+        ],
+        "AbilityCastPoint": [
+          0.3
+        ],
+        "AbilityManaCost": [
+          110,
+          105,
+          100,
+          95
+        ],
+        "AbilityCooldown": [
+          44,
+          36,
+          28,
+          20
+        ]
+      },
+      "scaling": {},
+      "description": "编织者放出12只编织者幼虫，每只幼虫都会紧紧缠住它遇到的敌人，攻击敌人并削弱他们的护甲，直到幼虫被杀死。",
+      "damageType": "physical",
+      "targetFlags": "",
+      "notes": [
+        "甲虫抓住目标后将一直留在目标身上，除非甲虫被击杀或持续时间结束。",
+        "甲虫免疫技能，拥有3/4/4/5格生命。非英雄单位和幻象对甲虫造成25%伤害。",
+        "幼虫提供视野。"
+      ],
+      "valuePercentages": {}
+    },
+    {
+      "id": "weaver_shukuchi",
+      "sourceID": 5290,
+      "name": "缩地",
+      "key": "W",
+      "icon": "wind",
+      "image": "assets/abilities/weaver_shukuchi.png",
+      "color": "#99bda0",
+      "kind": "active",
+      "maxLevel": 4,
+      "requiredLevels": [
+        1,
+        3,
+        5,
+        7
+      ],
+      "cooldowns": [
+        15,
+        12,
+        9,
+        6
+      ],
+      "manaCosts": [
+        65
+      ],
+      "castRanges": [
+        0
+      ],
+      "castPoints": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "channelTimes": [
+        0
+      ],
+      "durations": [
+        0
+      ],
+      "damages": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "values": {
+        "damage": [
+          100,
+          130,
+          160,
+          190
+        ],
+        "speed": [
+          200,
+          230,
+          260,
+          290
+        ],
+        "radius": [
+          175
+        ],
+        "fade_time": [
+          0.25
+        ],
+        "duration": [
+          4
+        ],
+        "geminate_attack_mark_duration": [
+          0
+        ],
+        "min_movespeed_override": [
+          550
+        ],
+        "shukuchi_attack_mark_radius": [
+          0
+        ],
+        "shukuchi_attack_delay": [
+          0
+        ],
+        "AbilityManaCost": [
+          65
+        ],
+        "AbilityCooldown": [
+          15,
+          12,
+          9,
+          6
+        ]
+      },
+      "scaling": {},
+      "description": "编织者进入隐身身，达到移动速度上限，在穿过敌方单位时还将造成伤害。",
+      "damageType": "magical",
+      "targetFlags": "",
+      "notes": [
+        "每次施放的技能只能对相同单位造成一次伤害。"
+      ],
+      "valuePercentages": {}
+    },
+    {
+      "id": "weaver_geminate_attack",
+      "sourceID": 5291,
+      "name": "连击",
+      "key": "E",
+      "icon": "swords",
+      "image": "assets/abilities/weaver_geminate_attack.png",
+      "color": "#d1b47e",
+      "kind": "autocast",
+      "maxLevel": 4,
+      "requiredLevels": [
+        1,
+        3,
+        5,
+        7
+      ],
+      "cooldowns": [
+        9,
+        7,
+        5,
+        3
+      ],
+      "manaCosts": [
+        0
+      ],
+      "castRanges": [
+        425
+      ],
+      "castPoints": [
+        0
+      ],
+      "channelTimes": [
+        0
+      ],
+      "durations": [
+        0
+      ],
+      "damages": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "values": {
+        "delay": [
+          0.25
+        ],
+        "extra_attack": [
+          1
+        ],
+        "bonus_damage": [
+          20,
+          35,
+          50,
+          65
+        ],
+        "bonus_potency": [
+          15
+        ],
+        "shard_beetle_search_range": [
+          0
+        ],
+        "AbilityCastRange": [
+          425
+        ],
+        "AbilityCooldown": [
+          9,
+          7,
+          5,
+          3
+        ]
+      },
+      "scaling": {},
+      "description": "允许编织者立刻发动额外攻击。额外攻击拥有额外伤害和物品威力。",
+      "damageType": "physical",
+      "targetTeam": "DOTA_UNIT_TARGET_TEAM_ENEMY",
+      "targetType": "DOTA_UNIT_TARGET_HERO | DOTA_UNIT_TARGET_BASIC | DOTA_UNIT_TARGET_BUILDING | DOTA_UNIT_TARGET_OTHER",
+      "targetFlags": "DOTA_UNIT_TARGET_FLAG_MAGIC_IMMUNE_ENEMIES",
+      "notes": [
+        "第二次攻击将在编织者第一次攻击的0.25秒后发出，并且没有距离限制。",
+        "额外伤害仅对连击的攻击有效，初始攻击没有额外伤害。"
+      ],
+      "valuePercentages": {
+        "bonus_potency": true
+      }
+    },
+    {
+      "id": "weaver_time_lapse",
+      "sourceID": 5292,
+      "name": "时光倒流",
+      "key": "R",
+      "icon": "xmark",
+      "image": "assets/abilities/weaver_time_lapse.png",
+      "color": "#8ebcca",
+      "kind": "active",
+      "maxLevel": 3,
+      "requiredLevels": [
+        6,
+        12,
+        18
+      ],
+      "cooldowns": [
+        70,
+        55,
+        40
+      ],
+      "manaCosts": [
+        150,
+        75,
+        0
+      ],
+      "castRanges": [
+        0
+      ],
+      "castPoints": [
+        0.3,
+        0.3,
+        0.3,
+        0.3
+      ],
+      "channelTimes": [
+        0
+      ],
+      "durations": [
+        0
+      ],
+      "damages": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "values": {
+        "AbilityCastPoint": [
+          0.3
+        ],
+        "AbilityManaCost": [
+          150,
+          75,
+          0
+        ],
+        "AbilityCooldown": [
+          70,
+          55,
+          40
+        ]
+      },
+      "scaling": {},
+      "description": "编织者回到五秒前的时间点，获得当时的生命值和魔法值。不影响冷却时间、金钱和经验。\n\n驱散类型：强驱散",
+      "damageType": "magical",
+      "targetFlags": "",
+      "notes": [
+        "能够移除编织者身上大部分的负面状态。",
+        "时光倒流可以躲避攻击和技能弹道。"
+      ],
+      "valuePercentages": {}
+    }
   ]
 };
 export const INNATES={
@@ -4068,6 +4445,87 @@ export const INNATES={
     },
     "description": "混沌骑士每持续移动一秒并且不停下或攻击，天劫就会获得移动速度加成。加成效果在停下时会逐渐消失，攻击则会失去加成。混沌骑士的混沌之军至少有一个存活时，天劫前进可以主动使用，跨越地形冲锋，在释放前提升至最大速度。混沌骑士及其幻象会攻击冲过的单位。",
     "damageType": "physical"
+  },
+  "weaver": {
+    "id": "weaver_threads_of_fate",
+    "sourceID": 1754,
+    "name": "命运之线",
+    "key": "",
+    "icon": "aura",
+    "image": "assets/abilities/weaver_threads_of_fate.png",
+    "color": "#b9c19a",
+    "kind": "innate",
+    "maxLevel": 1,
+    "requiredLevels": [
+      1,
+      3,
+      5,
+      7
+    ],
+    "cooldowns": [
+      0
+    ],
+    "manaCosts": [
+      0
+    ],
+    "castRanges": [
+      0
+    ],
+    "castPoints": [
+      0
+    ],
+    "channelTimes": [
+      0
+    ],
+    "durations": [
+      0
+    ],
+    "damages": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "values": {
+      "thread_setup_distance": [
+        700
+      ],
+      "thread_setup_time": [
+        1.25
+      ],
+      "established_thread_duration": [
+        6
+      ],
+      "established_thread_break_distance": [
+        890
+      ],
+      "damage_per_thread_hero": [
+        10
+      ],
+      "death_linger_duration": [
+        5
+      ],
+      "slow_duration": [
+        0.4
+      ],
+      "slow_percent": [
+        100
+      ],
+      "damage_per_thread_creep": [
+        0
+      ]
+    },
+    "scaling": {
+      "established_thread_break_distance": 10
+    },
+    "description": "每当编织者的攻击或技能对敌方英雄造成伤害后，如果编织者在他们700范围内停留达到1.25秒，他就会织出命运之线，短暂减速敌人并把他们与编织者相连。命运之线持续期间，敌人每6秒会被再次减速。每织出一条命运之线就会使编织者获得攻击力加成。",
+    "damageType": "magical",
+    "targetFlags": "",
+    "notes": [],
+    "valuePercentages": {
+      "damage_per_thread_hero": true,
+      "slow_percent": true
+    }
   }
 };
 export const TALENTS={
@@ -5217,6 +5675,128 @@ export const TALENTS={
           "field": "incoming_damage_tooltip",
           "value": 125,
           "operation": 2
+        }
+      ]
+    }
+  ],
+  "weaver": [
+    {
+      "id": "special_bonus_unique_weaver_shukuchi_movespeed",
+      "sourceID": 1817,
+      "index": 0,
+      "requiredLevel": 10,
+      "name": "+50 缩地移动速度",
+      "effects": [
+        {
+          "abilityId": "weaver_shukuchi",
+          "field": "min_movespeed_override",
+          "value": 50,
+          "operation": 0
+        }
+      ]
+    },
+    {
+      "id": "special_bonus_unique_weaver_threads_of_fate_damage",
+      "sourceID": 1929,
+      "index": 1,
+      "requiredLevel": 10,
+      "name": "+5% 命运之线每根伤害",
+      "effects": [
+        {
+          "abilityId": "weaver_threads_of_fate",
+          "field": "damage_per_thread_hero",
+          "value": 5,
+          "operation": 0
+        }
+      ]
+    },
+    {
+      "id": "special_bonus_unique_weaver_1",
+      "sourceID": 6200,
+      "index": 2,
+      "requiredLevel": 15,
+      "name": "+90 缩地伤害",
+      "effects": [
+        {
+          "abilityId": "weaver_shukuchi",
+          "field": "damage",
+          "value": 90,
+          "operation": 0
+        }
+      ]
+    },
+    {
+      "id": "special_bonus_unique_weaver_4",
+      "sourceID": 6989,
+      "index": 3,
+      "requiredLevel": 15,
+      "name": "+1 虫群生命格数",
+      "effects": [
+        {
+          "abilityId": "weaver_the_swarm",
+          "field": "destroy_attacks",
+          "value": 1,
+          "operation": 0
+        }
+      ]
+    },
+    {
+      "id": "special_bonus_unique_weaver_2",
+      "sourceID": 6131,
+      "index": 4,
+      "requiredLevel": 20,
+      "name": "+60 连击额外伤害",
+      "effects": [
+        {
+          "abilityId": "weaver_geminate_attack",
+          "field": "bonus_damage",
+          "value": 60,
+          "operation": 0
+        }
+      ]
+    },
+    {
+      "id": "special_bonus_unique_weaver_3",
+      "sourceID": 6988,
+      "index": 5,
+      "requiredLevel": 20,
+      "name": "+0.5 虫群削弱护甲",
+      "effects": [
+        {
+          "abilityId": "weaver_the_swarm",
+          "field": "armor_reduction",
+          "value": 0.5,
+          "operation": 0
+        }
+      ]
+    },
+    {
+      "id": "special_bonus_unique_weaver_6",
+      "sourceID": 796,
+      "index": 6,
+      "requiredLevel": 25,
+      "name": "-3秒 缩地冷却",
+      "effects": [
+        {
+          "abilityId": "weaver_shukuchi",
+          "field": "AbilityCooldown",
+          "value": 3,
+          "operation": 2
+        }
+      ]
+    },
+    {
+      "id": "special_bonus_unique_weaver_5",
+      "sourceID": 6990,
+      "index": 7,
+      "requiredLevel": 25,
+      "name": "+1 连击",
+      "effects": [
+        {
+          "abilityId": "weaver_geminate_attack",
+          "field": "extra_attack",
+          "value": 1,
+          "operation": 0
         }
       ]
     }

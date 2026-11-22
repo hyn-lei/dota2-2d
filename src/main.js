@@ -231,7 +231,7 @@ function controlledAction(action,args=[]){
  const results=units.map(e=>e.id===game.player.id?game[action](...args):game.unitCommand(e.id,action,args));
  if(results.length===1)return results[0];return Promise.all(results).then(values=>values.find(v=>v?.ok===false)||{ok:true});
 }
-async function cast(i,self=false){if(!game||modal)return;const unit=prepareControlledUnit(),activeGame=game,target=self?unit:renderer.screenToWorld(pointer.x||renderer.w/2,pointer.y||renderer.h/2);const r=await controlledAction('cast',[i,target]);if(game!==activeGame)return;if(r.ok){if(game.skill(i,unit).kind==='active'||unit.heroId==='ogre_magi')keys.clear();sound('cast');updateHud();}else toast(r.reason||'暂时无法施放技能');}
+async function cast(i,self=false){if(!game||modal)return;const unit=prepareControlledUnit(),activeGame=game,target=self?unit:renderer.screenToWorld(pointer.x||renderer.w/2,pointer.y||renderer.h/2);const r=await controlledAction('cast',[i,target]);if(game!==activeGame)return;if(r.ok){if(game.skill(i,unit).kind==='active'||unit.heroId==='ogre_magi'||unit.heroId==='weaver'&&i===2)keys.clear();sound('cast');updateHud();}else toast(r.reason||'暂时无法施放技能');}
 let pendingItem=null;
 function cancelItemUse(){pendingItem=null;$('#battlefield')?.classList.remove('item-targeting');$('#item-target-prompt')?.remove();}
 function beginItemUse(index,area='inventory'){

@@ -58,6 +58,7 @@ const decode = text => {
 };
 const object=value=>value!==null&&typeof value==='object'&&!Array.isArray(value);
 const timer=value=>typeof value==='number'&&value>=0;
+const validRewindHistory=unit=>unit.weaverTimeLapseHistory===undefined||Array.isArray(unit.weaverTimeLapseHistory)&&unit.weaverTimeLapseHistory.length<=64&&unit.weaverTimeLapseHistory.every((entry,index,entries)=>object(entry)&&['time','x','y','hp','mana'].every(key=>Number.isFinite(entry[key]))&&entry.hp>=0&&entry.mana>=0&&(!index||entry.time>=entries[index-1].time));
 function validHero(hero){
   return HEROES[hero.heroId]&&Number.isInteger(hero.level)&&hero.level>=1&&hero.level<=30&&
     ['gold','xp','mana'].every(key=>Number.isFinite(hero[key])&&hero[key]>=0)&&
@@ -89,7 +90,7 @@ function validate(record) {
   const ids = new Set();
   for (const unit of s.entities) {
     if (!unit || typeof unit.id !== 'string' || ids.has(unit.id) || !Number.isFinite(unit.x) || !Number.isFinite(unit.y) ||
-        !Number.isFinite(unit.hp) || !Number.isFinite(unit.maxHp) || unit.isHuman ||
+        !Number.isFinite(unit.hp) || !Number.isFinite(unit.maxHp) || unit.isHuman ||!validRewindHistory(unit)||
         (unit.kind==='droppedItem'? !ITEM_BY_ID[unit.itemId]||!object(unit.meta):!object(unit.buffs)||!object(unit.statuses)) ||
         unit.kind==='hero'&&!validHero(unit)) throw new Error('存档单位数据无效');
     ids.add(unit.id);

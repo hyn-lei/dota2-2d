@@ -1,6 +1,6 @@
 {
   "patch": "7.42",
-  "checkedAt": "2026-11-21",
+  "checkedAt": "2026-11-22",
   "trackingCommit": "76ab89451c1384c2e106b676258c6e9f72787e11",
   "roster": {
     "axe": 2,
@@ -9,6 +9,7 @@
     "juggernaut": 8,
     "windranger": 21,
     "kunkka": 23,
+    "weaver": 63,
     "chen": 66,
     "chaos_knight": 81,
     "ogre_magi": 84
@@ -105,6 +106,21 @@
       "sha256": "d1c1fb4f9223117b645fc3bbe9386b9df0248ff5c456c2fea5640e39be9b4e64"
     },
     {
+      "file": "docs/research/heroes/63.json",
+      "url": "https://www.dota2.com/datafeed/herodata?language=english&hero_id=63",
+      "sha256": "1fb15bea425cde0917d60994062b7c3bca05c823f5d793d530ae769b6fc8b88f"
+    },
+    {
+      "file": "docs/research/abilities/63-schinese.json",
+      "url": "https://www.dota2.com/datafeed/herodata?language=schinese&hero_id=63",
+      "sha256": "9e757cca2888f0a15b269bfcf190c81bd032d0cfdc98dbf43106b3827ff2b66c"
+    },
+    {
+      "file": "docs/research/heroes/npc_dota_hero_weaver.txt",
+      "url": "https://raw.githubusercontent.com/SteamTracking/GameTracking-Dota2/76ab89451c1384c2e106b676258c6e9f72787e11/game/dota/pak01_dir/scripts/npc/heroes/npc_dota_hero_weaver.txt",
+      "sha256": "c8002442ff3295ef775089d02dcd66bfc0f6917fb47a34dc6a1b59d6c8a6f229"
+    },
+    {
       "file": "docs/research/heroes/66.json",
       "url": "https://www.dota2.com/datafeed/herodata?language=english&hero_id=66",
       "sha256": "fbb2fe63047b1ef8faa155ef28510f90639a70ff86264828e1fd04cd747cb938"
@@ -178,6 +194,48 @@
       "file": "assets/chaos_knight_portrait.png",
       "url": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/heroes/chaos_knight.png",
       "sha256": "0ac22c4ce747c8286e8b1f597a6f1907b4b7284eec1b98b4b4f87b9020665246"
+    },
+    {
+      "file": "assets/abilities/weaver_the_swarm.png",
+      "url": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/abilities/weaver_the_swarm.png",
+      "sha256": "935cfe776c059b75fa92aced1781dba2dd18fd15cb5c1c903ae7b95f84e0a01e"
+    },
+    {
+      "file": "assets/abilities/weaver_shukuchi.png",
+      "url": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/abilities/weaver_shukuchi.png",
+      "sha256": "4876caa6e7c6c296cc71d81c5bcf55309abdd2bbb83bbb52a0420891b997ce75"
+    },
+    {
+      "file": "assets/abilities/weaver_geminate_attack.png",
+      "url": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/abilities/weaver_geminate_attack.png",
+      "sha256": "1d7feb89c1952d74ab2105220808f087b6e12a35854ce38371271b37ee068442"
+    },
+    {
+      "file": "assets/abilities/weaver_time_lapse.png",
+      "url": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/abilities/weaver_time_lapse.png",
+      "sha256": "3824a77b9d676740453aab8091563f9df90b27d370fb7df24a91691864ba2eea"
+    },
+    {
+      "file": "assets/abilities/weaver_time_lapse_ally.png",
+      "url": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/abilities/weaver_time_lapse_ally.png",
+      "sha256": "65b947972bb302216260083aaad0e76550cd347567a2b25a52d15cb2ab9d0f91"
+    },
+    {
+      "file": "assets/abilities/weaver_threads_of_fate.png",
+      "url": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/icons/innate_icon.png",
+      "sha256": "9fac9c18a33c52b2f30b362d815d5fb8191d8b67a44bac901af8798d5d5c3e01",
+      "note": "Official generic innate icon. The ability-specific weaver_threads_of_fate.png URL returned 404 on 2026-11-22."
+    },
+    {
+      "file": "assets/weaver_portrait.png",
+      "url": "https://cdn.akamai.steamstatic.com/apps/dota2/images/dota_react/heroes/weaver.png",
+      "sha256": "0dbe15dcaee8ce9aed3dec9d664a0c0a6b49e7b16bdd66786252ac01d4e50dcd"
+    },
+    {
+      "file": "docs/research/weaver/liquipedia-wikitext.json",
+      "url": "https://liquipedia.net/dota2/api.php?action=parse&page=Weaver&prop=wikitext&format=json",
+      "sha256": "3843672cd48aeb414af58924e2d4672b65898db49f8edb2fc3769a6e25ebf001",
+      "note": "Auxiliary mechanics reference, ctrlver=7.42; Valve KV and datafeed remain authoritative for numeric values."
     }
   ],
   "derivedAssets": [
@@ -187,6 +245,19 @@
       "sourceUrl": "https://cdn.akamai.steamstatic.com/apps/dota2/videos/dota_react/heroes/renders/chaos_knight.webm",
       "sourceSha256": "4ca5f7bdede8d34d513417646a69b4f324e967c2d8e10f0602c74a3f5345a1de",
       "method": "PNG still at 0.8 seconds, retaining original transparency; scripts/extract-hero-render.mjs."
+    },
+    {
+      "file": "assets/weaver.png",
+      "sha256": "f112ae82239b8dba038724f3dc1c22025f1f6ca5efd2d876a1e1c708ed7849d1",
+      "sourceUrl": "https://cdn.akamai.steamstatic.com/apps/dota2/videos/dota_react/heroes/renders/weaver.webm",
+      "sourceSha256": "051a0700d4a09c4df1fa6b8b670827514a8fbd1e5123c3df3a78015eb5404f0d",
+      "method": "PNG still at 0.8 seconds, retaining original transparency; scripts/extract-hero-render.mjs."
+    },
+    {
+      "file": "assets/hud/portraits/weaver.png",
+      "sha256": "12a47e6679fdb464395ddb669012c685b9731d3d7314781a99cd173bc00d0339",
+      "source": "Installed Valve 7.42 client, dota/pak01_dir.vpk: panorama/images/heroes/selection/npc_dota_hero_weaver_png.vtex_c",
+      "method": "Source 2 Viewer CLI decode through scripts/extract-client-hud.py --hero weaver, 2026-11-22."
     }
   ]
 }

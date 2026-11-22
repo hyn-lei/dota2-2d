@@ -1,10 +1,10 @@
-# 7.42 九位英雄的神杖与魔晶
+# 7.42 十位英雄的神杖与魔晶
 
-2026-11-21 核对最新 Valve 7.42。九位快照及全部改动的实际行为、来源差异和验证范围见 [7.42 英雄覆盖表](heroes-742-coverage.md)。升级中文说明由生成器解析对应数值，HUD 不显示原始 `%字段%` 占位符。
+2026-11-21 核对最新 Valve 7.42，2026-11-22 加入编织者。既有九位快照及改动见 [7.42 英雄覆盖表](heroes-742-coverage.md)，新增依赖与数值语义见 [编织者来源](weaver-runtime-sources.md)。升级中文说明由生成器解析对应数值，HUD 不显示原始 `%字段%` 占位符。
 
 基础等级、技能点与天赋机制保持不变，一级四项常规技能均未学习。神杖只在有效装备栏提供升级；魔晶和福佑送达后永久生效。移入背包、丢弃或消耗时会刷新英雄的升级标记与技能缓存。
 
-来源为 [Valve Hero Datafeed](https://www.dota2.com/datafeed/herodata?language=schinese&hero_id=23) 的当前技能阵容、升级说明与额外技能，以及客户端英雄 KV 的 `special_bonus_scepter` / `special_bonus_shard`。快照分别位于 `docs/research/abilities/{2,5,6,8,21,23,66,81,84}-schinese.json` 和 `docs/research/heroes/npc_dota_hero_*.txt`。
+来源为 [Valve Hero Datafeed](https://www.dota2.com/datafeed/herodata?language=schinese&hero_id=23) 的当前技能阵容、升级说明与额外技能，以及客户端英雄 KV 的 `special_bonus_scepter` / `special_bonus_shard`。快照分别位于 `docs/research/abilities/{2,5,6,8,21,23,63,66,81,84}-schinese.json` 和 `docs/research/heroes/npc_dota_hero_*.txt`。
 
 `scripts/extract-upgrades.mjs` 生成 `src/upgrade-records.js`。只使用当前 Datafeed 中的技能，避免把 KV 内保留的废弃技能加入游戏。`upgrade-data.js` 区分替换数值与增减数值，不污染未持有升级的基础技能。
 
@@ -19,9 +19,10 @@
 | 卓尔游侠 | 神杖低温叠层、额外冰箭伤害、恢复降低与爆炸；魔晶提供冰川，增加射程与伤害、推开敌人并阻挡前方通行，不打断多重射击。具体数值与二维高度/视野边界见 [Drow 说明](drow-runtime-sources.md)。 |
 | 陈 | 神杖令上帝之手持续施法，向附近其他友军提供减益免疫、魔抗及治疗增强；魔晶令神圣劝化按上帝之手等级获得远古名额，并提高受控生物的技能等级。数值和客户端证据缺口见 [陈说明](chen-runtime-sources.md)。 |
 | 混沌骑士 | 神杖给生成的混沌骑士幻象额外 50% 概率复制，并在混沌之军主动施放时生成全地图友方英雄幻象，归属混沌骑士。魔晶使混乱之箭命中生成六秒全伤害、25% 物品威力幻象；混沌之军幻象为 100% 物品威力。 |
+| 编织者 | 神杖使 R CD 减少 10 秒并授予独立友军 D，D 等级/耗魔/前摇/冷却随 R；魔晶缩地标记 4.6 秒，结束 0.2 秒后攻击 1200 范围内标记敌人，连击额外攻击原始目标 1200 范围内带甲虫附着的单位。虫群保留的 `shard_cooldown_reduction=2` 缺少当前行为证据，不据此启用减冷却。 |
 
 额外技能显示在技能栏，默认快捷键 D（有第二项时为 T）。基础技能说明和当前/下一级数值会读取实际升级状态，装备带来的施法距离、耗魔与冷却变化也显示在提示中。潮汐波官方中文快照的伤害与拖拽数字为空，本工程用同一快照里的 `damage` 和 `knockback_distance` 数值补齐说明。
 
 `tests/hero-upgrades.test.mjs` 检查升级数值、触发、移除、克隆爆炸、舰队/炮弹及额外技能。`tests/item-effects.test.mjs` 与浏览器检查验证有效装备、永久消耗与实际操作入口。
 
-范围限制：当前接入九位英雄；狂风之力目前以英雄到目标的方向作为矢量，冰川高度与飞行视野采用二维近似。受控单位已接入独立选择和编队指挥，完整中立能力隐藏时序仍未逐项完成客户端对照。此实现未声称涵盖所有 Dota 英雄或客户端隐藏交互。
+范围限制：当前接入十位英雄；狂风之力目前以英雄到目标的方向作为矢量，冰川高度与飞行视野采用二维近似。受控单位已接入独立选择和编队指挥，完整中立能力隐藏时序仍未逐项完成客户端对照。此实现未声称涵盖所有 Dota 英雄或客户端隐藏交互。

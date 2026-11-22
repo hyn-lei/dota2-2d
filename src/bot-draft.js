@@ -5,6 +5,7 @@ export const DRAFT_ROLES = Object.freeze(['carry', 'mid', 'offlane', 'roamer', '
 
 // Local AI heuristics, not Valve hero ratings. Fits follow the implemented kits.
 export const BOT_DRAFT_PROFILES = Object.freeze({
+  weaver:        { fits:[10,7,4,5,1], frontline:0, control:1, physical:3, spell:1, support:0 },
   chaos_knight:   { fits:[10,5,8,3,1], frontline:3, control:2, physical:3, spell:1, support:0 },
   juggernaut:     { fits:[10,6,4,2,1], frontline:1, control:0, physical:3, spell:1, support:1 },
   crystal_maiden:{ fits:[1,4,1,9,10], frontline:0, control:2, physical:0, spell:3, support:3 },

@@ -1,5 +1,6 @@
 import { effectPose, effectIsActive, unitVisuals } from './combat-visuals.js';
 import { abilityAt, talentStats } from './ability-data.js';
+import {drawWeaverState,drawWeaverEffect,weaverAuraRadius} from './weaver-visuals.js';
 
 const TAU=Math.PI*2;
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
@@ -57,6 +58,11 @@ function projectile(c,e,pose,zoom){
   }else if(v==='frostAttack'){
     c.save();c.rotate(Math.PI/2);crystal(c,0,0,29);c.restore();
     for(let i=0;i<5;i++){c.globalAlpha=.65*(1-i/5);crystal(c,-18-i*13,Math.sin(i*2.4)*8,7-i*.7,Math.PI/2);}
+  }else if(v==='weaverAttack'||v==='weaverGeminate'){
+    glow(c,0,0,v==='weaverGeminate'?38:28,'#ca86e960');
+    polygon(c,[[-27,0],[-7,-11],[15,-6],[24,0],[15,6],[-7,11]],v==='weaverGeminate'?'#ebb1f3':'#a49cea','#cff1fb',1.5);
+    stroke(c,[[-20,-6],[7,0],[-20,6]],'#81dce9',2);
+    for(let i=0;i<4;i++)circle(c,-24-i*13,Math.sin(i*2)*7,2.5,'#df86e8');
   }else if(v==='chaosBolt'){
     glow(c,0,0,28,'#e8613870');polygon(c,[[-30,0],[-5,-13],[16,-7],[24,0],[16,7],[-5,13]],'#e67240','#ffd797',1.5);
     stroke(c,[[-14,-6],[3,4],[15,-3]],'#fff1cf',2);circle(c,7,0,6,'#ffc57b');
@@ -118,6 +124,7 @@ export function drawCombatEffect(c,e,game,zoom=1){
   if(k<=0)return true;
   c.save();c.lineCap='round';c.lineJoin='round';c.globalAlpha=Math.min(1,k*3);
   const v=e.visual,r=e.radius||65,color=e.color||'#e4ce9f';
+  if(drawWeaverEffect(c,e,game,zoom,p)){c.restore();return true;}
   if(v==='shackleLink'){
     const target=game.entities.find(u=>u.id===e.targetId&&!u.dead),anchor=e.anchorId?game.entities.find(u=>u.id===e.anchorId&&!u.dead):null;
     if(target){
@@ -200,6 +207,7 @@ export function drawCombatEffect(c,e,game,zoom=1){
 
 /** Persistent world-space auras are derived from actual statuses, never independent timers. */
 export function drawUnitCombatEffects(c,e,game,zoom=1,layer='ground'){
+  drawWeaverState(c,e,game,zoom,layer);
   const visuals=unitVisuals(e,game.time);if(!visuals.length)return;
   const t=game.time;c.save();c.translate(e.x,e.y);
   for(const v of visuals){
@@ -261,5 +269,5 @@ export function unitAuraRadius(e,time){
   if(field?.kind==='freezing'&&field.until>time)return field.skill.values.radius+area;
   if(e.statuses?.spin?.until>time)return abilityAt(e.heroId,0,e.abilityLevels?.[0]||1,e.talents||[],e).values.blade_fury_radius+area;
   if(e.kind==='ward')return e.healRadius||0;
-  return 100;
+  return Math.max(100,weaverAuraRadius(e,time));
 }

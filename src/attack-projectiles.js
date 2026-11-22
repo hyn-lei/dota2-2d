@@ -8,7 +8,7 @@ export const isRangedAttack=e=>e.heroId?attackProfile(e).speed>0:e.range>200;
 /** The simulation owns the projectile; rendering reads this same moving position. */
 export function launchAttack(g,source,target,result,fields={}){
  const profile=attackProfile(source),visual=attackVisualFields(source,target);
- g._effect('projectile',source.x,source.y,{...visual,...fields,visual:result.frostArrow?'drowFrostArrow':visual.visual,tracked:true,life:60});
+ g._effect('projectile',source.x,source.y,{...visual,...fields,visual:result.frostArrow?'drowFrostArrow':result.weaverGeminate?'weaverGeminate':visual.visual,tracked:true,life:60});
  const effect=g.effects.at(-1);
  const shot={type:'attack',sourceId:source.id,targetId:target.id,result,x:source.x,y:source.y,origin:{x:source.x,y:source.y},
   speed:source.projectileSpeed||profile.speed||900,disjoint:target.projectileDisjoint||0,targetLife:target.deathTime??null,

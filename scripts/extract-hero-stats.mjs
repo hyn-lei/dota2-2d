@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 // The selected playable roster stays deliberately small. Base values inherit Valve's base hero KV.
-const roster={axe:2,crystal_maiden:5,drow_ranger:6,juggernaut:8,windranger:21,kunkka:23,chen:66,chaos_knight:81,ogre_magi:84};
+const roster={axe:2,crystal_maiden:5,drow_ranger:6,juggernaut:8,windranger:21,kunkka:23,weaver:63,chen:66,chaos_knight:81,ogre_magi:84};
 function parse(text){const tokens=[...text.replace(/\/\/[^\n]*/g,'').matchAll(/"((?:\\.|[^"\\])*)"|([{}])/g)].map(m=>m[2]||m[1]);let i=0;function obj(){const out={};while(i<tokens.length){const k=tokens[i++];if(k==='}')return out;const v=tokens[i++];out[k]=v==='{'?obj():v;}return out;}return obj();}
 const base=parse(fs.readFileSync('docs/research/heroes/npc_dota_hero_base.txt','utf8')).DOTAHeroes.npc_dota_hero_base;
 const stats={};

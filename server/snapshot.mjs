@@ -3,6 +3,8 @@
 const excluded = new Set([
   'navPath','navGoal','skillCache','innateCache','botState','botShop','botPlan',
   'navigation','grid','token','socket','session','sessions','controlledHeroId',
+  'weaverTimeLapseHistory','weaverNextHistoryAt','weaverDeathRewindAnchor',
+  'swarmSkill','swarmDir','weaverGeminateQueue','weaverManualGeminateTarget',
 ]);
 
 function project(value, seen = new WeakSet()) {

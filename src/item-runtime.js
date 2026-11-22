@@ -76,6 +76,7 @@ export function useItem(g,h,index,point,area='inventory',options={}){
  const cooldown=(travel?v(travel.item,'tp_cooldown'):item.id==='holy_locket'?v(item,'use_cooldown'):['armlet','berserkers_sabatons'].includes(item.id)?v(item,'toggle_cooldown'):item.cooldown)*(1-(h.cooldownReduction||0)/100);
  meta.cooldownRemaining=cooldown;h.itemCooldowns||={};h.itemCooldowns[item.sharedCooldown||item.id]=cooldown;
  if(item.abilityCharges&&item.id!=='holy_locket'){meta.charges--;meta.rechargeRemaining||=item.chargeRestoreTime*(1-(h.cooldownReduction||0)/100);}
+ if(!item.behaviors.includes('DOTA_ABILITY_BEHAVIOR_IGNORE_INVISIBLE'))Skills.breakHeroInvisibility(g,h);
  const outcome=resolveTargetItem(g,h,entry,selection.point,target,options);
  if(!options.reflected)Skills.ogreMulticastItem(g,h,entry,target,multicastMeta);
  meta.uses=(meta.uses||0)+1;return {ok:true,...outcome};
@@ -130,6 +131,7 @@ export function combatStats(g,h,base,target){
  result.range??=h.range;result.speed=Math.min(result.speed,maxMovementSpeed);return result;
 }
 function breakInvisibility(g,h,s){
+ if(s.id==='weaverShukuchiInvisible'&&h.weaverShukuchi&&g.time+1e-7<h.weaverShukuchi.fadeAt)return;
  if(s.glimmer){s.fadeStartedAt=g.time;s.fadeDuration=s.secondaryFade||.5;s.startedAt=g.time+s.fadeDuration;}
  else delete h.statuses[s.id];
 }
@@ -140,7 +142,7 @@ export function attackModifiers(g,h,target,result){
   if(e.id!=='revenants_brooch'&&v(i,'crit_chance')&&g._random()*100<v(i,'crit_chance'))critical=Math.max(critical,v(i,'crit_multiplier')/100);
  }
  if(critical>(result.criticalMultiplier||1)){result.damage*=critical/(result.criticalMultiplier||1);result.criticalMultiplier=critical;result.itemCritical=true;}
- for(const s of Object.values(h.statuses||{}))if(s.invisible){if(s.startedAt<=g.time){result.damage+=s.attackBonus||0;result.breakDuration=s.breakDuration||0;}breakInvisibility(g,h,s);}
+ for(const s of Object.values(h.statuses||{}))if(s.invisible&&!(result.weaverGeminate&&s.smoked)){if(s.startedAt<=g.time){result.damage+=s.attackBonus||0;result.breakDuration=s.breakDuration||0;}breakInvisibility(g,h,s);}
  NeutralItems.neutralAttackModifiers(g,h,target,result,entries);
  if(h.kind==='illusion')result.damage*=h.illusionOutgoing||0;
  const brooch=entries.find(e=>e.id==='revenants_brooch');if(brooch)result.broochDamage=g._random()*100<v(brooch.item,'crit_chance')?result.damage*v(brooch.item,'crit_multiplier')/100:0;

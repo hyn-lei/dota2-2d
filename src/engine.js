@@ -5,6 +5,7 @@ import { BUILDING_STATS, NEUTRAL_UNITS, CAMP_GROUPS, LANE_CREEPS, RULES, ROSHAN,
 import { Navigator } from './navigation.js';
 import * as Progression from './progression.js';
 import * as Skills from './hero-runtime.js';
+import * as Weaver from './weaver-runtime.js';
 import { talentStats } from './ability-data.js';
 import * as Inventory from './inventory.js';
 import * as ItemRuntime from './item-runtime.js';
@@ -102,6 +103,7 @@ export class Game {
     this.collisions.rebuild(this.entities,this.time);
     for(const h of this.entities)if(h.kind==='hero')this._placeHero(h);
     for(const h of [...this.entities])if(h.heroId==='chen')Chen.spawnZealot(this,h);
+    for(const h of this.entities)if(h.kind==='hero')Weaver.initializeHistory(this,h);
   }
 
   get player() { return this._commandActor||(this.controlledHeroId&&this.entities.find(e => e.id===this.controlledHeroId))||this.entities.find(e => e.isPlayer); }
@@ -164,6 +166,7 @@ export class Game {
     this._refreshHero(h);
     if(!isPlayer)Progression.autoLearn(h);
     this.entities.push(h);
+    Weaver.initializeHistory(this,h);
     return h;
   }
 
@@ -203,17 +206,18 @@ export class Game {
     if(unit.statuses?.hasteRune?.until>this.time)stats.speed=550;
     if(unit.kind==='creep'){const aura=flagbearerAura(this,unit,this._flagSources||this.entities);if(aura)stats.magicResistance=1-(1-(stats.magicResistance||0))*(1-aura.magicResistance);}
     if(unit.kind==='creep'&&unit.pulledAt!=null)stats.speed*=1-.25*clamp((this.time-unit.pulledAt)/10,0,1);
-    return Creatures.creatureCombatStats(this,unit,stats);
+    return Weaver.weaverMovementStats(this,unit,Creatures.creatureCombatStats(this,unit,stats));
   }
   extraAbilities(hero=this.player) { return Skills.extraAbilities(hero); }
   castExtra(id,point) { return Skills.castExtraAbility(this,this.player,id,point); }
   useItem(index,point,area='inventory') { const result=ItemRuntime.useItem(this,this.player,index,point,area);if(result?.ok)WorldRuntime.breakRuneInvisibility(this,this.player);return result; }
   itemState(index,area='inventory',unit=this.player) { return ItemRuntime.itemState(this,unit,index,area); }
   blockTargetSpell(caster,target,spell) { return ItemRuntime.blockTargetSpell(this,caster,target,spell); }
-  onSpellCast(hero,spell) { WorldRuntime.breakRuneInvisibility(this,hero);ItemRuntime.onSpellCast(this,hero,spell); }
+  onSpellCast(hero,spell) { Weaver.breakShukuchiInvisibility(this,hero);WorldRuntime.breakRuneInvisibility(this,hero);ItemRuntime.onSpellCast(this,hero,spell); }
   onSpellTarget(hero,target,spell) { ItemRuntime.onSpellTarget(this,hero,target,spell); }
-  onStatusExpired(unit,status) { ItemRuntime.expiredStatus(this,unit,status); }
-  canSee(viewer,target) { return viewer.team===target.team||!Skills.hasStatusFlag(this,target,'invisible')||!Skills.hasStatusFlag(this,target,'smoked')&&(Skills.hasStatusFlag(this,target,'revealed')||this.entities.some(e=>alive(e)&&e.team===viewer.team&&((e.trueSight||0)>distance(e,target)||e.kind==='hero'&&ItemRuntime.statItems(this,e).some(i=>i.id==='gem')&&distance(e,target)<=900))); }
+  onStatusExpired(unit,status) { Weaver.onWeaverStatusExpired(this,unit,status);ItemRuntime.expiredStatus(this,unit,status); }
+  hasTrueSight(viewer,target) { return Skills.hasStatusFlag(this,target,'revealed')||this.entities.some(e=>alive(e)&&e.team===viewer.team&&((e.trueSight||0)>distance(e,target)||e.kind==='hero'&&ItemRuntime.statItems(this,e).some(i=>i.id==='gem')&&distance(e,target)<=900)); }
+  canSee(viewer,target) { return viewer.team===target.team||!Skills.hasStatusFlag(this,target,'invisible')||!Skills.hasStatusFlag(this,target,'smoked')&&this.hasTrueSight(viewer,target); }
   isStunned(unit) { return Skills.isStunned(this,unit); }
   isRooted(unit) { return Skills.isRooted(this,unit); }
   canLearnAbility(index,hero=this.player) { return Progression.canLearnAbility(hero,index); }
@@ -336,10 +340,11 @@ export class Game {
     if (!target || !alive(target) || this.status !== 'playing' || !Number.isFinite(amount) || amount <= 0) return 0;
     if (source && source.team === target.team) return 0;
     if (this.isProtected(target)||target.kind==='droppedItem') return 0;
+    if(target.attackImmune&&options.attack)return 0;
     if(target.pipHealth||target.kind==='ward'||target.kind==='courier'){
       if(!options.attack||Skills.isInvulnerable(this,target))return 0;
       if(target.kind==='courier'&&!target.pipHealth){target.pipHealth=true;target.fragile=true;target.maxHp=2;target.hp=Math.min(2,target.hp);}
-      const full=source?.kind==='hero'||source?.isRoshan||['tower','fountain'].includes(source?.kind);
+      const full=target.kind==='weaverBeetle'?source?.kind==='hero':source?.kind==='hero'||source?.isRoshan||['tower','fountain'].includes(source?.kind);
       const hits=full?(target.fragile&&!isRangedAttack(source)?2:1):.25;
       const dealt=Math.min(target.hp,hits);target.hp=Math.max(0,target.hp-hits);target.hitsRemaining=target.hp;if(!target.hp)this._kill(target,source);return dealt;
     }
@@ -369,6 +374,7 @@ export class Game {
     WorldRuntime.runeDamage(this,target,value);
     if(!options.reflected)WorldRuntime.tormentorDamage(this,target,value);
     Chen.chenDamage(this,target,value,source);
+    Weaver.weaverDamage(this,target,value,source,type,options);
     ItemRuntime.afterDamage(this,target,value,source,type,options);
     if(target.kind==='neutral' && source && source.team!==2) this._aggroCamp(target.campId,source);
     if (target.kind === 'hero') {
@@ -423,6 +429,8 @@ export class Game {
       }
       this._feed(`${source?.name || (source?.kind === 'tower' ? '防御塔' : '军团')} 击败了 ${target.name}`, 1 - target.team);
       target.killStreak=0;
+    } else if(target.kind==='weaverBeetle'){
+      if(source?.kind==='hero')source.gold+=ItemRuntime.creepBounty(this,source,target);
     } else if (target.kind === 'creep' || target.kind==='neutral'||target.kind==='summon'||target.dominatedBy) {
       if (source?.kind === 'hero') {
         source.lastHits++;
@@ -458,7 +466,7 @@ export class Game {
       this._feed(`${target.team ? '夜魇' : '天辉'}远古遗迹已被摧毁`, this.winner);
     }
     WorldRuntime.campDeath(this,target,source);
-    if (fighter(target)) {
+    if (fighter(target)||target.kind==='weaverBeetle'&&source) {
       const nearby = this.entities.filter(h => h.kind === 'hero' && alive(h) && h.team !== target.team && distance(h, target) < 1500);
       const xp = (target.kind === 'hero' ? 100 + target.level * 40 : target.xpBounty||0) / Math.max(1, nearby.length);
       for (const h of nearby) this._addXp(h, xp);
@@ -716,8 +724,10 @@ export class Game {
     Courier.tickCouriers(this,dt);
     this._flagSources=null;
     // Keep persistent heroes/buildings for scoreboards; discarded creep corpses fade briefly.
-    this.entities = this.entities.filter(e => !['creep','neutral','ward','droppedItem','illusion','summon'].includes(e.kind) || !e.dead || this.time - e.deathTime < 1.1);
+    Weaver.tickWeaverWorld(this,dt);
+    this.entities = this.entities.filter(e => !['creep','neutral','ward','droppedItem','illusion','summon','weaverBeetle'].includes(e.kind) || !e.dead || this.time - e.deathTime < 1.1);
     tickDeveloperMode(this);
+    Weaver.recordHistories(this);
   }
 
   _index() {
@@ -759,9 +769,10 @@ export class Game {
   _chooseTarget(e, radius, heroPriority = false) {
     let target = null, score = Infinity;
     for (const unit of this._near(e,radius)) {
-      if (unit.team === e.team || this.isProtected(unit)||unit.kind==='droppedItem'||!this.canSee(e,unit)) continue;
+      if (unit.team === e.team || this.isProtected(unit)||unit.kind==='droppedItem'||unit.attackImmune||!this.canSee(e,unit)) continue;
       if(unit.kind==='neutral'&&unit.targetId!==e.id&&unit.id!==e.explicitTarget)continue;
       let value = distance(e,unit) - unit.radius;
+      if(unit.kind==='weaverBeetle')value-=5000;
       if (heroPriority && unit.kind === 'hero') value -= 125;
       if (e.kind === 'tower' && unit.kind === 'creep') value -= 500;
       if (building(unit)) value += unit.kind==='filler'?600:70;
@@ -774,7 +785,7 @@ export class Game {
     let target=null,nearest=Infinity;
     for(const unit of this._near(h,WEAK_ILLUSION_TARGET_RADIUS)){
       const d=distance(h,unit);
-      if(d>WEAK_ILLUSION_TARGET_RADIUS||unit.team===h.team||unit.kind==='droppedItem'||
+      if(d>WEAK_ILLUSION_TARGET_RADIUS||unit.team===h.team||unit.kind==='droppedItem'||unit.attackImmune||
         this.isProtected(unit)||!this.canSee(h,unit)||Skills.isInvulnerable(this,unit))continue;
       if(unit.id===h.targetId)return unit;
       if(d<nearest){target=unit;nearest=d;}
@@ -783,21 +794,23 @@ export class Game {
   }
 
   _attack(e,target,options={}) {
-    if(!target||!alive(target)||!alive(e)||!options.spinAttack&&(this.isStunned(e)||Skills.hasStatusFlag(this,e,'disarmed'))||!this.canSee(e,target)||
-      (e.castPhase||e.channel||e.omnislash||e.neutralCast||e.neutralChannel||e.creatureMotion)&&!options.omni&&!options.spinAttack||Skills.isInvulnerable(this,target)||
-      distance(e,target)>(options.chaosCharge?150+(e.spellAoE||0):(this.combatStats(e,target).range||e.range))+target.radius+8||e.attackCooldown>0&&!options.attackReleased)return false;
-    if((e.heroId==='ogre_magi'||e.heroId==='drow_ranger'||e.heroId==='chen'||e.heroId==='chaos_knight'||isControlledCreature(e))&&!options.attackReleased&&!options.omni&&!options.spinAttack&&!options.chaosCharge){
+    if(!target||!alive(target)&&!options.weaverGeminate||!alive(e)||!options.spinAttack&&(this.isStunned(e)||!options.weaverGeminate&&Skills.hasStatusFlag(this,e,'disarmed'))||!this.canSee(e,target)||target.attackImmune||
+      (e.castPhase||e.channel||e.omnislash||e.neutralCast||e.neutralChannel||e.creatureMotion)&&!options.omni&&!options.spinAttack&&!options.weaverGeminate||Skills.isInvulnerable(this,target)||
+      !options.weaverGeminate&&distance(e,target)>(options.chaosCharge?150+(e.spellAoE||0):(this.combatStats(e,target).range||e.range))+target.radius+8||e.attackCooldown>0&&!options.attackReleased)return false;
+    if((e.heroId==='weaver'||e.heroId==='ogre_magi'||e.heroId==='drow_ranger'||e.heroId==='chen'||e.heroId==='chaos_knight'||isControlledCreature(e))&&!options.attackReleased&&!options.omni&&!options.spinAttack&&!options.chaosCharge){
       const stats=this.combatStats(e,target),duration=(e.attackPoint||attackProfile(e).attackPoint)*100/stats.attackSpeed;
       e.angle=Math.atan2(target.y-e.y,target.x-e.x);e.attackFlash=duration+.1;e.targetId=target.id;
       e.attackPhase={targetId:target.id,startedAt:this.time,executeAt:this.time+duration,options};e.attackCooldown=stats.attackInterval;return true;
     }
     e.angle=Math.atan2(target.y-e.y,target.x-e.x);e.attackFlash=.24;e.targetId=target.id;
+    Weaver.breakShukuchiInvisibility(this,e);
     WorldRuntime.breakRuneInvisibility(this,e);
     const modifiers=Skills.attackModifiers(this,e,target,options);
     const trueStrike=ItemRuntime.trueStrike(this,e,target,modifiers);
     const result=ItemRuntime.attackModifiers(this,e,target,modifiers);e.attackCooldown=result.interval;
     Creatures.creatureAttackModifiers(this,e,target,result);
     result.trueStrike=trueStrike||result.marksmanship;result.itemAttackProcs=[...(e.itemAttackProcs||[])];
+    Weaver.triggerGeminate(this,e,target,options,result);
     if(isRangedAttack(e))launchAttack(this,e,target,result);
     else{this._hitAttack(e,target,result);this._effect('slash',e.x,e.y,attackVisualFields(e,target));}
     return true;

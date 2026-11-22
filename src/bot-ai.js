@@ -1,6 +1,7 @@
 import { BASES, TEAM_LANES } from './map-data.js';
 import * as Skills from './hero-runtime.js';
 import * as Chen from './chen-runtime.js';
+import {timeLapsePreview} from './weaver-runtime.js';
 import * as Progression from './progression.js';
 import * as Inventory from './inventory.js';
 import * as ItemRuntime from './item-runtime.js';
@@ -240,6 +241,27 @@ function castBotSkills(g,h,target,ctx,settings,retreating=false){
       if((nearby<3||target.hp/target.maxHp<.4)&&cast(3))return true;
     }
     if(target&&d<=skill(0).values.blade_fury_radius+35&&!has(g,h,'spin')&&(hero||ctx.enemies.filter(e=>fighter(e)&&distance(h,e)<260).length>=3||retreating)&&cast(0,h))return true;
+  }else if(h.heroId==='weaver'){
+    const worthRewinding=unit=>{
+      const past=timeLapsePreview(g,unit);if(!past)return false;
+      const restored=Math.min(unit.maxHp,past.hp)-unit.hp;
+      const disabled=g.isStunned(unit)||g.isRooted(unit)||Skills.hasStatusFlag(g,unit,'silenced');
+      return unit.hp/unit.maxHp<.6&&restored>=unit.maxHp*.2||disabled&&restored>=0;
+    };
+    if(worthRewinding(h)&&cast(3,h))return true;
+    if(h.hasScepter&&ready(3)){
+      const extra=Skills.extraSkillOf(h,'weaver_time_lapse_ally');
+      const ally=ctx.allies.filter(a=>a!==h&&alive(a)&&distance(h,a)<=(extra?.range||0)+(h.castRangeBonus||0)+a.radius&&worthRewinding(a))
+        .sort((a,b)=>a.hp/a.maxHp-b.hp/b.maxHp)[0];
+      if(ally&&Skills.castExtraAbility(g,h,'weaver_time_lapse_ally',ally).ok)return true;
+    }
+    const shukuchi=h.weaverShukuchi?.until>g.time;
+    if(retreating&&ctx.enemyHeroes.length&&!shukuchi&&cast(1,h))return true;
+    // Preserve active Shukuchi so movement can carry the bot through its target.
+    if(!retreating&&target&&!shukuchi){
+      if(hero&&d<=skill(0).range&&cast(0,predict(g,h,target,.3,settings)))return true;
+      if((hero&&d<1000||ctx.enemies.filter(e=>fighter(e)&&distance(h,e)<500).length>=3)&&cast(1,h))return true;
+    }
   }else if(h.heroId==='chaos_knight'){
     const army=g.entities.filter(e=>alive(e)&&e.kind==='illusion'&&e.ownerId===h.id);
     if(!retreating&&hero&&d<1200&&!army.some(e=>e.phantasmOwnerId===h.id)&&cast(3,h))return true;

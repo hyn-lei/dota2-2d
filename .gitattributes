@@ -2,5 +2,7 @@
 docs/research/heroes/npc_dota_hero_ogre_magi.txt -text -whitespace
 docs/research/heroes/npc_dota_hero_drow_ranger.txt -text -whitespace
 docs/research/heroes/npc_dota_hero_chen.txt -text -whitespace
+docs/research/heroes/npc_dota_hero_weaver.txt -text -whitespace
+docs/research/weaver/npc_dota_hero_weaver.txt -text -whitespace
 docs/research/attacks/npc_units.txt -text -whitespace
 docs/research/hud/shops-client.txt -text -whitespace

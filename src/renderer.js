@@ -5,6 +5,7 @@ import { drawCombatEffect, drawUnitCombatEffects, unitAuraRadius } from './comba
 import {drawWorldObjectives} from './world-controls.js';
 import { unitOpacity } from './combat-visuals.js';
 import {fountainAreaRadius} from './collision.js';
+import {drawWeaverBeetle} from './weaver-visuals.js';
 
 const TAU = Math.PI * 2;
 const MAX_RENDER_PIXELS = 1500000;
@@ -20,6 +21,11 @@ const CAMP_NAMES = {small:'小型',medium:'中型',large:'大型',ancient:'远�
 const CAMP_COLORS = {small:'#e0cc8e',medium:'#dbad6a',large:'#d18b60',ancient:'#d8acdf',flooded_small:'#8ecac6',flooded_medium:'#78b6bd'};
 const unitColor = e => TEAM_COLORS[e.team] || (e.ancient ? '#cfb0e0' : '#e4bd77');
 let sharedMapAsset;
+let weaverRender;
+function getWeaverRender(){
+  if(!weaverRender&&typeof Image!=='undefined'){weaverRender=new Image();weaverRender.decoding='async';weaverRender.src='/assets/weaver.png';}
+  return weaverRender;
+}
 
 // Share the overview and cropped camera images across renderer lifecycles.
 function getMapAsset() {
@@ -338,6 +344,7 @@ export class Renderer {
     const invisible=Object.values(e.statuses||{}).some(s=>s.invisible&&s.startedAt<=game.time&&s.until>game.time);
     const floor=(e.team===game.player?.team||(invisible&&game.canSee?.(game.player,e))) ? 0.24 : 0;
     c.save();c.translate(e.x,e.y);c.globalAlpha*=unitOpacity(e,game.time,floor);
+    if(e.kind==='weaverBeetle'){drawWeaverBeetle(c,e,t,this.zoom);c.restore();return;}
     if(e.creatureTornado){for(let i=0;i<5;i++){c.save();c.rotate(t*5+i);c.scale(1,.45);circle(c,0,-i*11,35-i*5,null,'#c4dcd0',3);c.restore();}c.restore();return;}
     if(neutral){this.drawNeutral(c,e,t);c.restore();return;}
     if(e.kind==='creep'||e.kind==='summon'&&e.nativeKind==='creep'){drawLaneCreep(c,e,t,e.statuses?.ogreBloodlust?.until>game.time?1+(e.statuses.ogreBloodlust.modelScale||0)/100:1);c.restore();return;}
@@ -367,7 +374,17 @@ export class Renderer {
     c.save();const angle=e.angle??(e.team?2.3:-.7);c.rotate(angle+Math.PI/2);
     const bob=e.moving?Math.sin(t*14+Number(String(e.id).replace(/\D/g,'')))*2:Math.sin(t*2)*.6;c.translate(0,bob);
     if(hero){
-      if(e.heroId==='chaos_knight'){
+      if(e.heroId==='weaver'){
+        const image=getWeaverRender();
+        if(image?.complete&&image.naturalWidth){
+          c.save();c.rotate(-angle-Math.PI/2);if(Math.cos(angle)>0)c.scale(-1,1);
+          c.drawImage(image,0,290,1440,860,-42,-56,84,50);c.restore();
+        }else{
+          poly(c,[[-18,-6],[-12,-22],[0,-31],[13,-22],[20,-5],[12,17],[-12,17]],'#299ac3','#99dcdf',2);
+          for(const side of [-1,1])for(let i=0;i<3;i++)line(c,[{x:side*12,y:(i-1)*12},{x:side*28,y:(i-1)*18},{x:side*35,y:(i-1)*23+10}],'#b876b0',2);
+          line(c,[{x:-8,y:-23},{x:-17,y:-43}],'#df80b2',2);line(c,[{x:8,y:-23},{x:17,y:-43}],'#df80b2',2);
+        }
+      }else if(e.heroId==='chaos_knight'){
         poly(c,[[-20,22],[-26,9],[-20,-10],[-9,-21],[9,-19],[22,-7],[22,15],[12,28]],'#382c2e','#bb714f',2);
         poly(c,[[-18,13],[-18,35],[-11,35],[-7,13],[5,13],[10,35],[17,35],[19,13]],'#35282a','#8b674d',1.5);
         poly(c,[[10,-17],[13,-36],[23,-43],[32,-35],[30,-18],[21,-7]],'#543932','#c88654',1.5);

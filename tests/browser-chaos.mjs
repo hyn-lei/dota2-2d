@@ -10,7 +10,7 @@ page.on('pageerror',e=>errors.push(e.message));page.on('dialog',d=>d.accept());
 try{
  await mkdir('artifacts',{recursive:true});
  await page.goto(base,{waitUntil:'networkidle'});await closeDevelopmentNotice(page);
- assert.equal(await page.locator('[data-hero]').count(),9);
+ assert.equal(await page.locator('[data-hero]').count(),10);
  await page.locator('[data-hero="chaos_knight"]').click();
  assert.equal(await page.locator('#lobby-hero-name').textContent(),'混沌骑士');
  assert.ok(await page.locator('#hero-render').evaluate(e=>e.complete&&e.naturalWidth>0));
@@ -25,7 +25,7 @@ try{
   assert.match(text,/混沌骑士/);assert.ok((await page.locator('.hero-upgrade-effects').textContent()).length>20);
   assert.doesNotMatch(text,/%[a-z_]+%/);
  }
- checks.push('9-hero roster, Chaos Knight assets, four abilities and current hero upgrade descriptions');
+ checks.push('10-hero roster, Chaos Knight assets, four abilities and current hero upgrade descriptions');
  await page.mouse.move(300,250);
  const cast=await page.evaluate(()=>{
   const g=window.chaosGame,p=g.player;g.nextWave=g.nextNeutralSpawn=g.roshanRespawnAt=Infinity;

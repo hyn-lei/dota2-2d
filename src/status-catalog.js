@@ -7,6 +7,7 @@ import {flagbearerAura} from './unit-auras.js';
 
 // Display metadata is separate from combat modifiers: these records never grant stats.
 export const STATUS_ABILITY_IDS={
+ weaverSwarm:'weaver_the_swarm',weaverShukuchi:'weaver_shukuchi',weaverShukuchiInvisible:'weaver_shukuchi',weaverShukuchiMark:'weaver_shukuchi',weaverThreads:'weaver_threads_of_fate',weaverThread:'weaver_threads_of_fate',weaverThreadSlow:'weaver_threads_of_fate',
  call:'axe_berserkers_call',taunt:'axe_berserkers_call',hunger:'axe_battle_hunger',helix:'axe_counter_helix',helixReduction:'axe_counter_helix',culling:'axe_culling_blade',cullingArmor:'axe_culling_blade',oneManArmy:'axe_one_man_army',
  nova:'crystal_maiden_crystal_nova',frostbite:'crystal_maiden_frostbite',barrier:'crystal_maiden_glacial_guard',freezingSlow:'crystal_maiden_freezing_field',freezingField:'crystal_maiden_freezing_field',arcaneAura:'crystal_maiden_brilliance_aura',
  spin:'juggernaut_blade_fury',bladeform:'juggernaut_bladeform',healingWard:'juggernaut_healing_ward',

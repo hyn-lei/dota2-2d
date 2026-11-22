@@ -4,6 +4,11 @@ export { WORLD, BASES, LANES } from './map-data.js';
 export { ITEMS } from './item-data.js';
 export const TEAM_COLORS = ['#8abb81', '#e47563', '#d3b77c'];
 export const HEROES = {
+  weaver: {
+    id:'weaver',name:'编织者',en:'WEAVER',title:'斯吉茨格尔',role:'远程 / 核心 / 逃生',attribute:'敏捷',
+    description:'让虫群削弱敌人的护甲，穿梭战场编织命运之线。以连击追击敌人，在时光倒流中重回生机。',
+    color:'#cc87bd',portrait:'assets/weaver_portrait.png',render:'assets/weaver.png'
+  },
   chaos_knight: {
     id:'chaos_knight',name:'混沌骑士',en:'CHAOS KNIGHT',title:'天劫骑士',role:'近战 / 核心 / 控制',attribute:'力量',
     description:'召集混沌之军，以实相裂隙聚拢敌人与幻象。混乱之箭打破敌人的阵线，天劫前进率领骑士跨越地形冲锋。',

@@ -475,6 +475,92 @@ export const UPGRADE_EFFECTS={
       "scepterDescription": "增加被动效果。混沌骑士产生幻象时都会有50%几率额外产生一个在其控制下的幻象。施放混沌之军时，会产生全地图上所有友方英雄的一个幻象。",
       "shardDescription": ""
     }
+  },
+  "weaver": {
+    "weaver_the_swarm": {
+      "scepter": [],
+      "shard": [
+        {
+          "field": "shard_cooldown_reduction",
+          "operation": "set",
+          "values": [
+            2
+          ]
+        }
+      ],
+      "scepterDescription": "",
+      "shardDescription": ""
+    },
+    "weaver_shukuchi": {
+      "scepter": [],
+      "shard": [
+        {
+          "field": "geminate_attack_mark_duration",
+          "operation": "add",
+          "values": [
+            4.6
+          ]
+        },
+        {
+          "field": "shukuchi_attack_mark_radius",
+          "operation": "add",
+          "values": [
+            1200
+          ]
+        },
+        {
+          "field": "shukuchi_attack_delay",
+          "operation": "add",
+          "values": [
+            0.2
+          ]
+        }
+      ],
+      "scepterDescription": "",
+      "shardDescription": "缩地在造成伤害的敌人身上留下一个标记，持续4.6秒。编织者脱离缩地状态0.2秒后，附近1200范围内拥有印记的敌人都会被连击的第二次攻击击中。"
+    },
+    "weaver_geminate_attack": {
+      "scepter": [],
+      "shard": [
+        {
+          "field": "shard_beetle_search_range",
+          "operation": "set",
+          "values": [
+            1200
+          ]
+        }
+      ],
+      "scepterDescription": "",
+      "shardDescription": "连击还会击中虫群附着目标1200范围内的单位。"
+    },
+    "weaver_time_lapse": {
+      "scepter": [
+        {
+          "field": "AbilityCooldown",
+          "operation": "add",
+          "values": [
+            -10
+          ]
+        }
+      ],
+      "shard": [],
+      "scepterDescription": "减少冷却时间。",
+      "shardDescription": ""
+    },
+    "weaver_time_lapse_ally": {
+      "scepter": [
+        {
+          "field": "AbilityCooldown",
+          "operation": "add",
+          "values": [
+            -10
+          ]
+        }
+      ],
+      "shard": [],
+      "scepterDescription": "",
+      "shardDescription": ""
+    }
   }
 };
 export const EXTRA_ABILITIES={
@@ -932,5 +1018,81 @@ export const EXTRA_ABILITIES={
     }
   ],
   "chen": [],
-  "chaos_knight": []
+  "chaos_knight": [],
+  "weaver": [
+    {
+      "id": "weaver_time_lapse_ally",
+      "sourceID": 1915,
+      "name": "时光倒流（友军）",
+      "key": "D",
+      "image": "assets/abilities/weaver_time_lapse_ally.png",
+      "icon": "xmark",
+      "color": "#a6ced4",
+      "kind": "active",
+      "maxLevel": 3,
+      "requiredLevels": [],
+      "upgrade": "scepter",
+      "cooldowns": [
+        70,
+        55,
+        40
+      ],
+      "manaCosts": [
+        150,
+        75,
+        0
+      ],
+      "castRanges": [
+        500
+      ],
+      "castPoints": [
+        0.3,
+        0.3,
+        0.3,
+        0.3
+      ],
+      "channelTimes": [
+        0
+      ],
+      "durations": [
+        0
+      ],
+      "damages": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "values": {
+        "AbilityCastRange": [
+          500
+        ],
+        "AbilityCastPoint": [
+          0.3
+        ],
+        "AbilityManaCost": [
+          150,
+          75,
+          0
+        ],
+        "AbilityCooldown": [
+          70,
+          55,
+          40
+        ]
+      },
+      "description": "编织者使友军回到五秒前的时间点，获得当时的生命值和魔法值。与时光倒流共享冷却时间。\n\n驱散类型：强驱散",
+      "damageType": "magical",
+      "dependentOnAbility": "weaver_time_lapse",
+      "sharedCooldownAbility": "weaver_time_lapse",
+      "targetTeam": "DOTA_UNIT_TARGET_TEAM_FRIENDLY",
+      "targetType": "DOTA_UNIT_TARGET_HERO",
+      "targetFlags": "DOTA_UNIT_TARGET_FLAG_NOT_CREEP_HERO",
+      "notes": [
+        "能够移除目标身上大部分的负面状态。",
+        "可以躲避弹道。",
+        "等级与时光倒流相同。"
+      ]
+    }
+  ]
 };

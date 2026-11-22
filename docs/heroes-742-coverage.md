@@ -1,10 +1,10 @@
 # 7.42 可玩英雄改动覆盖
 
-核对日期：2026-11-21。Valve 补丁为 **7.42**，发布时间戳 `1794988800`。本轮范围由用户明确为现有八位英雄和新增混沌骑士，共九位；全英雄补丁已保存，但其余英雄没有加入可玩阵容。
+2026-11-21 按 Valve **7.42**（发布时间戳 `1794988800`）核对现有八位英雄并新增混沌骑士，共九位。2026-11-22 按用户要求新增编织者（63），当前阵容为十位；编织者的数据、隐藏机制来源与边界见 [编织者说明](weaver-runtime-sources.md)。全英雄补丁已保存，但其余英雄没有加入可玩阵容。
 
-官方中英文补丁位于 `docs/research/patches/7.42/patchnotes-{schinese,english}.json`。九位英雄的英文 Datafeed、简体中文 Datafeed 和 Valve KV 分别保存在 `docs/research/heroes/{id}.json`、`docs/research/abilities/{id}-schinese.json`、`docs/research/heroes/npc_dota_hero_*.txt`。固定脚本提交为 [`76ab89451c1384c2e106b676258c6e9f72787e11`](https://github.com/SteamTracking/GameTracking-Dota2/tree/76ab89451c1384c2e106b676258c6e9f72787e11/game/dota/pak01_dir/scripts/npc/heroes)，文件与新增资产的 SHA-256 清单见 `docs/research/heroes/sources-7.42.json`。
+官方中英文补丁位于 `docs/research/patches/7.42/patchnotes-{schinese,english}.json`。十位英雄的英文 Datafeed、简体中文 Datafeed 和 Valve KV 分别保存在 `docs/research/heroes/{id}.json`、`docs/research/abilities/{id}-schinese.json`、`docs/research/heroes/npc_dota_hero_*.txt`。固定脚本提交为 [`76ab89451c1384c2e106b676258c6e9f72787e11`](https://github.com/SteamTracking/GameTracking-Dota2/tree/76ab89451c1384c2e106b676258c6e9f72787e11/game/dota/pak01_dir/scripts/npc/heroes)，文件与新增资产的 SHA-256 清单见 `docs/research/heroes/sources-7.42.json`。
 
-`scripts/extract-hero-stats.mjs`、`extract-abilities.mjs`、`extract-upgrades.mjs` 分别生成属性、36 项常规技能/9 项先天/72 项天赋、神杖和魔晶数据。`extract-chen-data.mjs` 只生成陈的受控单位资料；`extract-attack-profiles.mjs` 单独生成攻击点与弹道。运行时代码读取这些记录，数值改动不是只替换说明。
+`scripts/extract-hero-stats.mjs`、`extract-abilities.mjs`、`extract-upgrades.mjs` 分别生成属性、40 项常规技能/10 项先天/80 项天赋、神杖和魔晶数据。`extract-chen-data.mjs` 只生成陈的受控单位资料；`extract-attack-profiles.mjs` 单独生成攻击点与弹道。运行时代码读取这些记录，数值改动不是只替换说明。下表保留 2026-11-21 的九英雄补丁实施证据。
 
 | 英雄 | 7.42 补丁改动 | 运行时接入与证据 |
 | --- | --- | --- |

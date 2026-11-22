@@ -20,7 +20,7 @@ async function rightClick(point){
 }
 try{
  await page.goto(base,{waitUntil:'networkidle'});await closeDevelopmentNotice(page);
- assert.equal(await page.locator('[data-hero]').count(),9);await page.locator('[data-hero="chen"]').click();
+ assert.equal(await page.locator('[data-hero]').count(),10);await page.locator('[data-hero="chen"]').click();
  await page.evaluate(async()=>{const {Renderer}=await import('/src/renderer.js'),render=Renderer.prototype.render;Renderer.prototype.render=function(game,time){window.g=game;window.r=this;return render.call(this,game,time);};});
  await page.locator('#start-game').click();await page.waitForFunction(()=>window.g?.player?.heroId==='chen'&&g.time>.1);await page.locator('#control-hint button').click();
  await page.waitForFunction(()=>document.querySelector('.hud-portrait>img').naturalWidth>0);

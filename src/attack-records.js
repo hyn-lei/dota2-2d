@@ -181,6 +181,11 @@ export const ATTACK_PROFILES={
     "attackPoint": 0.4,
     "particle": ""
   },
+  "weaver": {
+    "speed": 900,
+    "attackPoint": 0.55,
+    "particle": "particles/units/heroes/hero_weaver/weaver_base_attack.vpcf"
+  },
   "chen": {
     "speed": 1100,
     "attackPoint": 0.5,
