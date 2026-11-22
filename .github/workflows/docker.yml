@@ -95,6 +95,7 @@ jobs:
           node tests/browser-shop.mjs
           node tests/browser-shop-recommendations.mjs
           node tests/browser-shop-recommendation-boundaries.mjs
+          node tests/browser-quickbuy-transit.mjs
           node tests/browser-shop-effects.mjs
           node tests/browser-items.mjs
           node tests/browser-vfx.mjs

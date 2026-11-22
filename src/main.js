@@ -8,7 +8,7 @@ import { auraManaRegen } from './hero-runtime.js';
 import { mountStatusBar, updateStatusBar } from './status-ui.js';
 import { mountSkills, updateSkills, toggleTalents } from './skills-ui.js';
 import {flagbearerAura} from './unit-auras.js';
-import {purchaseQuote} from './inventory.js';
+import {quickbuyPlan} from './inventory.js';
 import { icon, mark } from './icons.js';
 import { mountShop } from './shop-ui.js';
 import { mountCoop, exitCoopMatch } from './coop-ui.js';
@@ -280,7 +280,7 @@ function updateHud(){
   updateStatusBar(mountStatusBar($('.hud-vitals')),p,game.time,game);
   const healthRegen=Number(((p.hpRegen||0)+(p.itemAura?.hpRegen||0)+(flagbearerAura(game,p)?.hpRegen||0)-armletDrain(game,p)).toFixed(1));
   $('#hp-regen').textContent=`${healthRegen>=0?'+':''}${healthRegen}`;$('#mana-regen').textContent=`+${Number(((hero?auraManaRegen(game,p):(p.manaRegen||0))+(p.itemAura?.manaRegen||0)).toFixed(1))}`;
-  const queue=(actor.quickbuy||[]).flatMap(id=>purchaseQuote(game,actor,id).missing||[]).map(id=>ITEM_BY_ID[id]).filter(Boolean).slice(0,6),queueHtml=queue.map(item=>`<button data-hud-buy="${item.id}" aria-label="购买${item.name}" title="${item.name} · ${item.cost} 金币 · 左键或右键购买" class="${actor.gold<item.cost?'unaffordable':''}"><img src="/${item.image}" alt="${item.name}" draggable="false"/></button>`).join('');
+  const queue=quickbuyPlan(game,actor).missing.map(id=>ITEM_BY_ID[id]).filter(Boolean).slice(0,6),queueHtml=queue.map(item=>`<button data-hud-buy="${item.id}" aria-label="购买${item.name}" title="${item.name} · ${item.cost} 金币 · 左键或右键购买" class="${actor.gold<item.cost?'unaffordable':''}"><img src="/${item.image}" alt="${item.name}" draggable="false"/></button>`).join('');
   if($('#hud-quickbuy-items').innerHTML!==queueHtml)$('#hud-quickbuy-items').innerHTML=queueHtml;
   document.querySelectorAll('[data-inspect-hero]').forEach(button=>{const unit=game.entities.find(e=>e.id===button.dataset.inspectHero);button.setAttribute('aria-pressed',String(unit?.id===p.id));button.classList.toggle('hero-dead',!!unit?.dead);button.dataset.respawn=unit?.dead?Math.ceil(unit.respawnTimer):'';});
   const combat=game.combatStats(p);

@@ -2,10 +2,10 @@ import assert from 'node:assert/strict';
 import {chromium} from 'playwright';
 import {closeDevelopmentNotice} from './browser-helpers.mjs';
 const only=process.argv.includes('--scenario')?process.argv[process.argv.indexOf('--scenario')+1]:null;
-const browser=await chromium.launch(),page=await browser.newPage({viewport:{width:1366,height:900}}),errors=[];
-page.on('pageerror',e=>errors.push(e.message));
+const browser=await chromium.launch(),errors=[];let page;
 try{
  for(const scenario of only?[only]:['neutral','supplies']){
+  page=await browser.newPage({viewport:{width:1366,height:900}});page.on('pageerror',e=>errors.push(e.message));
   await page.goto(process.env.GAME_URL||'http://127.0.0.1:5184',{waitUntil:'networkidle'});await closeDevelopmentNotice(page);
   await page.evaluate(async()=>{const {Renderer}=await import('/src/renderer.js'),render=Renderer.prototype.render;Renderer.prototype.render=function(g,t){window.recBoundaryGame=g;return render.call(this,g,t);};});
   await page.locator(`[data-hero="${scenario==='supplies'?'crystal_maiden':'weaver'}"]`).click();await page.locator('#start-game').click();await page.waitForFunction(()=>window.recBoundaryGame?.time>.1);
@@ -24,6 +24,7 @@ try{
    await page.waitForTimeout(200);assert.doesNotMatch(await page.locator('[data-recommended-item="ward_observer"]').textContent(),/已拥有/,'using one ward updates the recommendation');
   }
   console.log('PASS recommendation '+scenario+' boundary');
+  await page.close();
  }
  assert.deepEqual(errors,[]);
 }finally{await browser.close();}

@@ -69,6 +69,18 @@ function recipeParts(id,pool,consumed,missing,root=false){
  }
  else missing.push(id);
 }
+export function quickbuyPlan(g,h){
+ ensureInventory(h);
+ if(!h.quickbuy.length)return {targets:[],missing:[]};
+ const couriers=(g.entities||[]).filter(e=>e.kind==='courier'&&e.ownerId===h.id);
+ const pool=[...itemEntries(h),...couriers.flatMap(c=>itemEntries(c,['cargo']))].filter(e=>e.meta.ownerId===h.id&&!e.meta.combineLocked);
+ const used=[],targets=h.quickbuy.map(id=>{
+  const start=used.length,missing=[];
+  if(ITEM_BY_ID[id])recipeParts(id,pool,used,missing,true);
+  return {id,missing,consumed:used.slice(start),cost:missing.reduce((sum,part)=>sum+ITEM_BY_ID[part].cost,0)};
+ });
+ return {targets,missing:targets.flatMap(target=>target.missing)};
+}
 export function purchaseQuote(g,h,id){
  ensureInventory(h);const item=ITEM_BY_ID[id];
  if(!item||!item.purchasable)return {ok:false,reason:'该物品不可购买',cost:0,missing:[],consumed:[]};
@@ -107,7 +119,10 @@ function spendStock(g,h,id){const item=ITEM_BY_ID[id];if(!item?.maxStock)return;
 function combinationMeta(h,id,parts,purchasedAt=Infinity){
  return createMeta(h,id,{purchasedAt:Math.min(purchasedAt,...parts.map(p=>p.meta.purchasedAt)),readyAt:Math.max(0,...parts.map(p=>p.meta.readyAt||0)),cooldownRemaining:Math.max(0,...parts.map(p=>p.meta.cooldownRemaining||0)),components:parts.map(p=>({id:p.id,meta:structuredClone(p.meta)}))});
 }
-function removeCompletedQueue(h,completed){if(completed.length)h.quickbuy=h.quickbuy.filter(id=>{const index=completed.indexOf(id);if(index<0)return true;completed.splice(index,1);return false;});}
+export function completeQuickbuyTargets(h,completed){
+ const pending=[...completed];h.quickbuy||=[];
+ if(pending.length)h.quickbuy=h.quickbuy.filter(id=>{const index=pending.indexOf(id);if(index<0)return true;pending.splice(index,1);return false;});
+}
 function assemble(g,h){
  const access=shopAccess(h),groups=access.base?[areas]:[['inventory','backpack'],['stash']],completed=[];
  for(const group of groups){
@@ -125,7 +140,7 @@ function assemble(g,h){
    }
   }
  }
- trim(h);removeCompletedQueue(h,[...completed]);return completed;
+ trim(h);completeQuickbuyTargets(h,completed);return completed;
 }
 export function refreshInventory(g,h){
  const healthRatio=h.maxHp?h.hp/h.maxHp:1,mana=manaState(h),armletBonus=h.armletHealthBonus||0;
@@ -145,7 +160,7 @@ export function buyItem(g,h,id){
  for(const id of quote.missing)spendStock(g,h,id);
  if(quote.stack){quote.stack.meta.charges+=quote.item.charges||1;quote.stack.meta.purchasedAt=Math.min(quote.stack.meta.purchasedAt,g.time);}
  else put(h,quote.slot.area,quote.slot.index,quote.resultItem.id,meta);
- const completed=assemble(g,h);removeCompletedQueue(h,[quote.item.id,...(quote.resultItem!==quote.item?[quote.resultItem.id]:[])]);refresh(g,h);
+ const completed=assemble(g,h);completeQuickbuyTargets(h,[quote.item.id,...(quote.resultItem!==quote.item?[quote.resultItem.id]:[])]);refresh(g,h);
  return {ok:true,itemId:quote.item.id,cost:quote.cost,area:quote.slot.area,completed};
 }
 export function moveItem(g,h,from,index,to,targetIndex){
@@ -205,10 +220,13 @@ export function queueItem(g,h,id,append=false){
 }
 export function buyQuick(g,h){
  ensureInventory(h);if(!h.quickbuy.length)return {ok:false,reason:'先将物品加入快捷购买'};
- const target=h.quickbuy[0],quote=purchaseQuote(g,h,target);
- if(quote.ok)return buyItem(g,h,target);
- for(const id of quote.missing||[])if(purchaseQuote(g,h,id).ok)return buyItem(g,h,id);
- return {ok:false,reason:quote.reason};
+ const allowed=gate(g);if(!allowed.ok)return allowed;
+ const target=quickbuyPlan(g,h).targets[0],quote=purchaseQuote(g,h,target.id);
+ const sameMissing=quote.missing.length===target.missing.length&&quote.missing.every(id=>quote.missing.filter(part=>part===id).length===target.missing.filter(part=>part===id).length);
+ const reserved=new Set(target.consumed.map(entry=>entry.meta.uid));
+ if(quote.ok&&sameMissing&&quote.consumed.every(entry=>reserved.has(entry.meta.uid)))return buyItem(g,h,target.id);
+ for(const id of target.missing)if(purchaseQuote(g,h,id).ok)return buyItem(g,h,id);
+ return {ok:false,reason:!target.missing.length&&quote.item?'所需组件已购齐，等待运送或合成':quote.reason};
 }
 
 export function setCombineLock(g,h,area,index,locked){

@@ -30,7 +30,8 @@ export function buyWithCourier(g,h,id){
  const proxy={...h,x:c.x,y:c.y,dead:false,inventory:[...c.cargo],inventoryMeta:structuredClone(c.cargoMeta),backpack:[],backpackMeta:[],stash:[],stashMeta:[],tp:[],tpMeta:[],quickbuy:[]};
  const quote=Inventory.purchaseQuote(g,proxy,id);if(!quote.ok)return quote;if(quote.slot.area!=='inventory')return {ok:false,reason:'信使物品栏已满'};
  const result=Inventory.buyItem(g,proxy,id);if(!result.ok)return result;
- h.gold=proxy.gold;h.itemSerial=proxy.itemSerial;c.cargo=proxy.inventory;c.cargoMeta=proxy.inventoryMeta;return {ok:true,area:'cargo',itemId:id,cost:result.cost};
+ h.gold=proxy.gold;h.itemSerial=proxy.itemSerial;c.cargo=proxy.inventory;c.cargoMeta=proxy.inventoryMeta;
+ Inventory.completeQuickbuyTargets(h,[id,...result.completed]);return {ok:true,area:'cargo',itemId:id,cost:result.cost};
 }
 export function courierDied(g,c,killer){
  const h=g.entities.find(e=>e.id===c.ownerId);c.dead=true;c.hp=0;c.deathTime=g.time;c.respawnAt=g.time+45+5*(h?.level||c.level||1);c.command='idle';c.navPath=null;
