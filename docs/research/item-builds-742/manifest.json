@@ -1,0 +1,158 @@
+{
+  "patch": "7.42",
+  "sourceCommit": "76ab89451c1384c2e106b676258c6e9f72787e11",
+  "sourceRoot": "https://github.com/SteamTracking/GameTracking-Dota2/blob/76ab89451c1384c2e106b676258c6e9f72787e11/game/dota/itembuilds",
+  "generator": "scripts/generate-hero-item-builds.mjs",
+  "scope": "Valve-authored default client item guides for the current playable roster; the 7.42 snapshot does not establish that every guide was retuned for 7.42.",
+  "files": [
+    {
+      "hero": "axe",
+      "sourceHero": "axe",
+      "file": "default_axe.txt",
+      "url": "https://github.com/SteamTracking/GameTracking-Dota2/blob/76ab89451c1384c2e106b676258c6e9f72787e11/game/dota/itembuilds/default_axe.txt",
+      "sha256": "8b4bc98a8841a0e3ba6766c453773282a09076b5b966487813d63eefa81ac75b",
+      "author": "Valve",
+      "title": "Recommended items for Axe",
+      "aliases": [
+        {
+          "stage": "situational",
+          "sourceName": "item_travel_boots_1",
+          "dotaName": "item_travel_boots",
+          "id": "travel_boots",
+          "quantity": 1
+        }
+      ],
+      "skippedItems": []
+    },
+    {
+      "hero": "chaos_knight",
+      "sourceHero": "chaos_knight",
+      "file": "default_chaos_knight.txt",
+      "url": "https://github.com/SteamTracking/GameTracking-Dota2/blob/76ab89451c1384c2e106b676258c6e9f72787e11/game/dota/itembuilds/default_chaos_knight.txt",
+      "sha256": "880332d35bba20f5bc2d144718a837563fc7f9df5412788bc21cfb302636ad64",
+      "author": "Valve",
+      "title": "Recommended items for Chaos Knight",
+      "aliases": [
+        {
+          "stage": "situational",
+          "sourceName": "Item_aghanims_shard",
+          "dotaName": "item_aghanims_shard",
+          "id": "aghanims_shard",
+          "quantity": 1
+        }
+      ],
+      "skippedItems": []
+    },
+    {
+      "hero": "chen",
+      "sourceHero": "chen",
+      "file": "default_chen.txt",
+      "url": "https://github.com/SteamTracking/GameTracking-Dota2/blob/76ab89451c1384c2e106b676258c6e9f72787e11/game/dota/itembuilds/default_chen.txt",
+      "sha256": "6a0e4a48bf838dc1ae49e14ca5ac4fa6741b0e6e96d728d4af152c0ae66986c5",
+      "author": "Valve",
+      "title": "Recommended items for Chen",
+      "aliases": [],
+      "skippedItems": [
+        {
+          "stage": "situational",
+          "dotaName": "item_necronomicon_3",
+          "reason": "not-in-current-item-data",
+          "quantity": 1
+        }
+      ]
+    },
+    {
+      "hero": "crystal_maiden",
+      "sourceHero": "crystal_maiden",
+      "file": "default_crystal_maiden.txt",
+      "url": "https://github.com/SteamTracking/GameTracking-Dota2/blob/76ab89451c1384c2e106b676258c6e9f72787e11/game/dota/itembuilds/default_crystal_maiden.txt",
+      "sha256": "e92790417c98b0edf1eb4a96b5e1025d9c8730ebf548450adadc4c03ae3eae41",
+      "author": "Valve",
+      "title": "Recommended items for Crystal Maiden",
+      "aliases": [
+        {
+          "stage": "situational",
+          "sourceName": "item_shadow_blade",
+          "dotaName": "item_invis_sword",
+          "id": "invis_sword",
+          "quantity": 1
+        }
+      ],
+      "skippedItems": []
+    },
+    {
+      "hero": "drow_ranger",
+      "sourceHero": "drow_ranger",
+      "file": "default_drow_ranger.txt",
+      "url": "https://github.com/SteamTracking/GameTracking-Dota2/blob/76ab89451c1384c2e106b676258c6e9f72787e11/game/dota/itembuilds/default_drow_ranger.txt",
+      "sha256": "2d4f24aa442f41ebfd9f522f97948c84fd863ec39d446abec01f651717ae4523",
+      "author": "Valve",
+      "title": "Recommended items for Drow Ranger",
+      "aliases": [],
+      "skippedItems": []
+    },
+    {
+      "hero": "juggernaut",
+      "sourceHero": "juggernaut",
+      "file": "default_juggernaut.txt",
+      "url": "https://github.com/SteamTracking/GameTracking-Dota2/blob/76ab89451c1384c2e106b676258c6e9f72787e11/game/dota/itembuilds/default_juggernaut.txt",
+      "sha256": "90bdbafeb1b003d1317809cad08b07f5639bb833df600c13092a806f4db2cbb3",
+      "author": "Valve",
+      "title": "Recommended items for Juggernaut",
+      "aliases": [],
+      "skippedItems": []
+    },
+    {
+      "hero": "kunkka",
+      "sourceHero": "kunkka",
+      "file": "default_kunkka.txt",
+      "url": "https://github.com/SteamTracking/GameTracking-Dota2/blob/76ab89451c1384c2e106b676258c6e9f72787e11/game/dota/itembuilds/default_kunkka.txt",
+      "sha256": "c9b440970555e70832a1820e463a77734b413af5f8ca2df6261acdab661c8d91",
+      "author": "Valve",
+      "title": "Recommended Items for Kunkka",
+      "aliases": [
+        {
+          "stage": "situational",
+          "sourceName": "Item_lotus_orb",
+          "dotaName": "item_lotus_orb",
+          "id": "lotus_orb",
+          "quantity": 1
+        }
+      ],
+      "skippedItems": []
+    },
+    {
+      "hero": "ogre_magi",
+      "sourceHero": "ogre_magi",
+      "file": "default_ogre_magi.txt",
+      "url": "https://github.com/SteamTracking/GameTracking-Dota2/blob/76ab89451c1384c2e106b676258c6e9f72787e11/game/dota/itembuilds/default_ogre_magi.txt",
+      "sha256": "eab7442c8c3db614d5bb68b897099cd29c769760f498568c81e8d69b4168b39c",
+      "author": "Valve",
+      "title": "Recommended items for Ogre Magi",
+      "aliases": [],
+      "skippedItems": []
+    },
+    {
+      "hero": "weaver",
+      "sourceHero": "weaver",
+      "file": "default_weaver.txt",
+      "url": "https://github.com/SteamTracking/GameTracking-Dota2/blob/76ab89451c1384c2e106b676258c6e9f72787e11/game/dota/itembuilds/default_weaver.txt",
+      "sha256": "759c1165315927e613cfe3b6a438868dfba2c26158a6e81a44a1895d9ffc2394",
+      "author": "Valve",
+      "title": "Recommended items for Weaver",
+      "aliases": [],
+      "skippedItems": []
+    },
+    {
+      "hero": "windranger",
+      "sourceHero": "windrunner",
+      "file": "default_windrunner.txt",
+      "url": "https://github.com/SteamTracking/GameTracking-Dota2/blob/76ab89451c1384c2e106b676258c6e9f72787e11/game/dota/itembuilds/default_windrunner.txt",
+      "sha256": "a3b7ec3cf4d4be015d0cdaf7e69852db01283b60d3d55bdeb6f9c60728c0e4ca",
+      "author": "Valve",
+      "title": "Recommended items for Windrunner",
+      "aliases": [],
+      "skippedItems": []
+    }
+  ]
+}

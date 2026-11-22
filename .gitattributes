@@ -1,8 +1,2 @@
-# Preserve this upstream Valve KV snapshot, including original line endings and whitespace.
-docs/research/heroes/npc_dota_hero_ogre_magi.txt -text -whitespace
-docs/research/heroes/npc_dota_hero_drow_ranger.txt -text -whitespace
-docs/research/heroes/npc_dota_hero_chen.txt -text -whitespace
-docs/research/heroes/npc_dota_hero_weaver.txt -text -whitespace
-docs/research/weaver/npc_dota_hero_weaver.txt -text -whitespace
-docs/research/attacks/npc_units.txt -text -whitespace
-docs/research/hud/shops-client.txt -text -whitespace
+# Valve source snapshots retain their original bytes, including trailing tabs.
+docs/research/item-builds-742/default_*.txt -text whitespace=-blank-at-eol

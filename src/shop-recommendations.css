@@ -1,0 +1,27 @@
+.shop-panel{--shop-base-width:810px;width:min(calc(var(--shop-base-width)*1.5),calc(100vw - 20px))}
+.shop-layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2fr);gap:14px;align-items:start}
+.shop-main{min-width:0}
+.shop-recommendations{position:sticky;top:42px;min-width:0;padding:9px 12px 12px 0;border-right:1px solid #384650}
+.recommendation-heading{display:flex;gap:10px;align-items:center;padding-bottom:12px}
+.recommendation-heading>img{width:42px;height:42px;object-fit:cover;border:1px solid #536574}
+.recommendation-heading h3{font-size:13px;color:#e1dbc3;margin:0 0 5px}
+.recommendation-heading strong{font-size:12px;font-weight:500;color:#a8bec9}
+.recommendation-stages{display:flex;gap:4px}
+.recommendation-stages button{flex:1;min-width:0;padding:7px 3px;border:1px solid #34434d;background:#171f27;color:#9cabb8;font-size:11px;cursor:pointer}
+.recommendation-stages button[aria-pressed="true"]{border-color:#a99965;background:#303b3d;color:#e4d6a7}
+.recommendation-hint{margin:8px 0 10px;font-size:10px;line-height:1.6;color:#7e94a3}
+.recommendation-items{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;max-height:calc(100dvh - 370px);overflow:auto;scrollbar-width:thin;padding-right:3px;align-content:start}
+.recommendation-item{display:grid;grid-template-columns:44px minmax(0,1fr);grid-template-rows:auto auto auto;gap:2px 6px;min-width:0;padding:7px 5px;border:1px solid #33454f;background:#151f28;color:#c9d3d9;text-align:left;cursor:pointer}
+.recommendation-item:hover{border-color:#99acb5;background:#1c2a34}
+.recommendation-item.selected{border-color:#d1b676}
+.recommendation-art{grid-row:1/3;align-self:start}
+.recommendation-art>img{display:block;width:44px;height:32px;object-fit:contain}
+.recommendation-name{font-size:11px;line-height:1.4;overflow-wrap:anywhere}
+.recommendation-name small{font-size:9px;color:#8595a0}
+.recommendation-price{font-size:10px;color:#d8ba79}
+.recommendation-item.owned .recommendation-price{color:#98c2a8}
+.recommendation-item.unaffordable .recommendation-price{color:#9c9290}
+.recommendation-reason{grid-column:1/-1;display:block;margin-top:3px;font-size:10px;line-height:1.5;color:#8fa6b5}
+@media(max-width:1500px) and (min-width:701px){.shop-panel{--shop-base-width:690px}}
+@media(max-width:1000px) and (min-width:701px){.recommendation-items{grid-template-columns:1fr}.shop-content .item-detail{grid-template-columns:110px minmax(0,1fr) 100px}}
+@media(max-width:700px){.shop-panel{width:auto}.shop-layout{display:block}.shop-recommendations{position:static;border-right:0;border-bottom:1px solid #384650;padding:0 0 9px;margin-bottom:9px}.recommendation-heading{padding-bottom:7px}.recommendation-heading>img{width:28px;height:28px}.recommendation-heading h3,.recommendation-heading strong{display:inline;font-size:11px;margin-right:8px}.recommendation-hint{display:none}.recommendation-items{max-height:130px;margin-top:7px;gap:5px}.recommendation-reason{font-size:9px}.recommendation-stages button{padding:5px}.recommendation-item{padding:5px}}
