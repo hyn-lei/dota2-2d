@@ -109,7 +109,9 @@ jobs:
           node tests/browser-drow.mjs
           node tests/browser-weaver.mjs
           node tests/browser-hero-appearance.mjs
+          node tests/browser-hero-attacks.mjs
           node tests/browser-hero-picking.mjs
+          node tests/browser-hero-picking.mjs --attacking
           node tests/browser-chen.mjs
           node tests/browser-chen-coop.mjs
           node tests/browser-notice.mjs

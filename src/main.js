@@ -194,7 +194,7 @@ function startGame(providedGame=null,resume=false){
   const hitTest=(p,itemsFirst=false)=>{
     const shown=game.renderView?.()||game;
     return shown.entities.filter(u=>!u.dead&&shown.canSee(shown.player,u)&&
-      (Math.hypot(u.x-p.x,u.y-p.y)<Math.max(u.radius||24,18/renderer.zoom)||renderer.zoom>=.15&&heroSpriteContainsPoint(u,p,shown.time)))
+      (Math.hypot(u.x-p.x,u.y-p.y)<Math.max(u.radius||24,18/renderer.zoom)||renderer.zoom>=.15&&heroSpriteContainsPoint(u,p,shown.time,renderer.heroAttacks.pose(u,shown.time))))
       .sort((a,b)=>(itemsFirst?Number(b.kind==='droppedItem')-Number(a.kind==='droppedItem'):0)||Math.hypot(a.x-p.x,a.y-p.y)-Math.hypot(b.x-p.x,b.y-p.y))[0];
   };
   let dragging=null;

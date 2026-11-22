@@ -6,7 +6,8 @@ import {drawWorldObjectives} from './world-controls.js';
 import { unitOpacity } from './combat-visuals.js';
 import {fountainAreaRadius} from './collision.js';
 import {drawWeaverBeetle} from './weaver-visuals.js';
-import {loadHeroSprites,drawHeroSprite} from './hero-sprites.js';
+import {loadHeroSprites,drawHeroSprite,heroSpriteScale,heroSpriteLabelHeight} from './hero-sprites.js';
+import {HeroAttackAnimations} from './hero-attack-animation.js';
 
 const TAU = Math.PI * 2;
 const MAX_RENDER_PIXELS = 1500000;
@@ -141,6 +142,7 @@ export class Renderer {
     this.zoom=.45;this.pointer={x:0,y:0};this.marker=null;this.lookUntil=0;this.followPlayer=true;this.lobby=true;
     this.hoverId=null;this.showCampBounds=false;this.mapAsset=getMapAsset();
     this.pixelBudget=Infinity;this.slowRenderFrames=0;
+    this.heroAttacks=new HeroAttackAnimations();
     loadHeroSprites();
     this.terrain=this.createTerrain();this.frame=0;
     this.resizeObserver=new ResizeObserver(()=>this.resize());this.resizeObserver.observe(canvas);this.resize();
@@ -184,9 +186,10 @@ export class Renderer {
       this.resize();
     }
     const startedAt=performance.now();
-    game=game?.renderView?.()||game;
+    const owner=game;game=game?.renderView?.()||game;
     this.frame++;const c=this.ctx;c.setTransform(this.dpr,0,0,this.dpr,0,0);c.clearRect(0,0,this.w,this.h);
     if(!game){this.renderLobby(c,time);return;}
+    this.heroAttacks.update(game,owner);
     const p=game.player;
     if(this.followPlayer&&p){this.camera.x+=(p.x-this.camera.x)*.08;this.camera.y+=(p.y-55/this.zoom-this.camera.y)*.08;}
     this.clampCamera();
@@ -263,7 +266,7 @@ export class Renderer {
       circle(c,p.x,p.y,Math.max(5,(e.radius||24)*this.zoom),null,selected?'rgba(241,232,171,.6)':'rgba(228,232,206,.4)',1);c.restore();
     }
     const roshan=e.isRoshan||e.neutralId==='roshan'||e.sourceId==='npc_dota_roshan'||e.name==='肉山';
-    const modelTop=hero?Math.max(26,55*2.05*this.zoom):neutral?Math.max(22,35*(roshan?5:e.ancient?3.3:2.5)*this.zoom):building?visualRadius:Math.max(14,22*2.3*this.zoom);
+    const modelTop=hero?Math.max(26,heroSpriteLabelHeight(e,game.time)*this.zoom):neutral?Math.max(22,35*(roshan?5:e.ancient?3.3:2.5)*this.zoom):building?visualRadius:Math.max(14,22*2.3*this.zoom);
     const y=p.y-modelTop-9,width=hero?62:building?(e.kind==='ancient'?84:58):neutral?46:30;
     if(!e.dead&&e.kind!=='filler'&&e.kind!=='fountain'){
       this.healthbar(c,p.x,y,e.hp/e.maxHp,width,color,hero||building?5:4);
@@ -335,6 +338,7 @@ export class Renderer {
   }
   healthbar(c,x,y,value,width,color,height=5){c.fillStyle='#1b2522';c.fillRect(x-width/2-1,y-1,width+2,height+2);c.fillStyle=color;c.fillRect(x-width/2,y,width*clamp(value,0,1),height);c.fillStyle='rgba(255,255,255,.16)';c.fillRect(x-width/2,y,width*clamp(value,0,1),1);}
   drawUnit(c,e,game,t){
+    if(game.paused)t=game.time;
     if(e.kind==='illusion'&&e.heroId){
       const canvas=this.illusionCanvas??=document.createElement('canvas');if(canvas.width!==384){canvas.width=canvas.height=384;}
       const buffer=canvas.getContext('2d');buffer.setTransform(1,0,0,1,0,0);buffer.clearRect(0,0,384,384);buffer.save();buffer.translate(192,192);
@@ -360,7 +364,7 @@ export class Renderer {
       c.fillStyle='#594d31';c.fillRect(-7,-30,14,55);poly(c,[[-24,-25],[0,-49],[24,-25],[0,-9]],'#91bc73','#dae3a2',3);
       circle(c,0,-28,7,'#e2eab1');circle(c,0,16,30,null,'rgba(146,204,121,.55)',2);c.restore();return;
     }
-    const scale=(hero?2.05:2.3)*(e.statuses?.ogreBloodlust?.until>game.time?1+(e.statuses.ogreBloodlust.modelScale||0)/100:1);c.scale(scale,scale);
+    const scale=hero?heroSpriteScale(e,game.time):2.3*(e.statuses?.ogreBloodlust?.until>game.time?1+(e.statuses.ogreBloodlust.modelScale||0)/100:1);c.scale(scale,scale);
     c.fillStyle='rgba(7,17,14,.34)';c.beginPath();c.ellipse(3,9,hero?22:12,hero?10:6,0,0,TAU);c.fill();
     if(e.isPlayer){circle(c,0,4,26,null,'#d8de99',2);circle(c,0,4,29,null,'rgba(212,223,156,.18)',3);}
     const buffs=e.buffs||{};
@@ -376,7 +380,7 @@ export class Renderer {
     c.save();const angle=e.angle??(e.team?2.3:-.7);c.rotate(angle+Math.PI/2);
     const bob=e.moving?Math.sin(t*14+Number(String(e.id).replace(/\D/g,'')))*2:Math.sin(t*2)*.6;c.translate(0,bob);
     if(hero){
-      if(drawHeroSprite(c,e,angle)){
+      if(drawHeroSprite(c,e,angle,this.heroAttacks.pose(e,game.time))){
         // Shared atlas has painted the character; overlays remain in this pass.
       }else if(e.heroId==='weaver'){
         const image=getWeaverRender();
