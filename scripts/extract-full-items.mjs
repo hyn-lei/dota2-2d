@@ -1,9 +1,11 @@
 // Rebuild the complete current shop from retained Valve item data and shipped KV.
 // node scripts/extract-full-items.mjs          deterministic, offline
 // node scripts/extract-full-items.mjs --fetch  refresh official Chinese responses and missing PNGs
+// node scripts/extract-full-items.mjs --hero-adjectives-only  update only playable hero traits
 import { readFile, writeFile, mkdir, access } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
+import { HERO_STATS } from '../src/hero-data.js';
 
 const root = new URL('../', import.meta.url);
 const research = new URL('docs/research/items/', root);
@@ -91,6 +93,14 @@ export function parseValveKV(raw) {
     return object;
   }
   return parseObject();
+}
+async function readHeroAdjectives(){
+ const base=parseValveKV(await readFile(new URL('docs/research/heroes/npc_dota_hero_base.txt',root),'utf8')).DOTAHeroes.npc_dota_hero_base;
+ return Object.fromEntries(await Promise.all(Object.keys(HERO_STATS).map(async hero=>{
+  const name=hero==='windranger'?'windrunner':hero,directory=hero==='weaver'?'weaver':'heroes';
+  const raw=parseValveKV(await readFile(new URL(`docs/research/${directory}/npc_dota_hero_${name}.txt`,root),'utf8')).DOTAHeroes[`npc_dota_hero_${name}`];
+  return [hero,Object.fromEntries(Object.entries({...base.Adjectives,...raw.Adjectives}).map(([key,value])=>[key,Number(value)]))];
+ })));
 }
 function numbers(value) {
   if (value && typeof value === 'object' && !Array.isArray(value)) value = value.value;
@@ -311,12 +321,7 @@ export async function generateFullItems({refresh = false} = {}) {
   const neutralKV=parseValveKV(await readFile(new URL('742/neutral_items.txt',research),'utf8')).neutral_items;
   const seconds=s=>String(s).split(':').reduce((n,v)=>n*60+Number(v),0);
   const craftRules=Object.fromEntries(Object.entries(neutralKV.neutral_tiers).map(([tier,rule])=>[tier,{startTime:seconds(rule.start_time),cost:Number(rule.craft_cost),recraftCost:Number(rule.recraft_cost??rule.craft_cost),enhancements:Object.fromEntries(Object.entries(rule.enhancements).map(([attribute,options])=>[attribute,Object.fromEntries(Object.entries(options).map(([name,rank])=>[name.replace(/^item_/,''),Number(rank)]))]))}]));
-  const heroBase=parseValveKV(await readFile(new URL('docs/research/heroes/npc_dota_hero_base.txt',root),'utf8')).DOTAHeroes.npc_dota_hero_base;
-  const adjectives={};
-  for(const hero of ['axe','crystal_maiden','drow_ranger','juggernaut','windranger','kunkka','chen','chaos_knight','ogre_magi']){
-    const name=hero==='windranger'?'windrunner':hero,raw=parseValveKV(await readFile(new URL(`docs/research/heroes/npc_dota_hero_${name}.txt`,root),'utf8')).DOTAHeroes[`npc_dota_hero_${name}`];
-    adjectives[hero]=Object.fromEntries(Object.entries({...heroBase.Adjectives,...raw.Adjectives}).map(([key,value])=>[key,Number(value)]));
-  }
+  const adjectives=await readHeroAdjectives();
   await writeFile(new URL('src/item-neutral-data.js',root),`// Generated from Valve 7.42 artifact pools, hero adjectives and item snapshots.\nexport const NEUTRAL_ARTIFACT_POOLS = ${JSON.stringify(pools)};\nexport const NEUTRAL_ENCHANTMENTS = ${JSON.stringify(selected.filter(i=>enchIds.has(i.id)).map(i=>stableId(i)))};\nexport const NEUTRAL_CRAFT_RULES = ${JSON.stringify(craftRules)};\nexport const NEUTRAL_HERO_ADJECTIVES = ${JSON.stringify(adjectives)};\n`);
   await writeFile(new URL('full-items-script.json',research),JSON.stringify(sourceRecords,null,2)+'\n');
   await writeFile(new URL('snapshots.json',full),JSON.stringify({retrieved:meta.retrieved,patch:meta.patch,kv:{source:'https://raw.githubusercontent.com/SteamTracking/GameTracking-Dota2/76ab89451c1384c2e106b676258c6e9f72787e11/game/dota/pak01_dir/scripts/npc/items.txt',sha256:createHash('sha256').update(await readFile(new URL('items.txt',research))).digest('hex')},items:await Promise.all(records.map(async item=>({id:item.dotaId,name:item.dotaName,source:apiURL(item.dotaId),sha256:createHash('sha256').update(await readFile(new URL(`${item.dotaId}-schinese.json`,full))).digest('hex')})))},null,2)+'\n');
@@ -326,5 +331,11 @@ export async function generateFullItems({refresh = false} = {}) {
 }
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === fileURLToPath(new URL(`file:///${process.argv[1].replaceAll('\\','/')}`))) {
-  await generateFullItems({refresh:process.argv.includes('--fetch')});
+  if(process.argv.includes('--hero-adjectives-only')){
+    const file=new URL('src/item-neutral-data.js',root),data=await readFile(file,'utf8'),adjectives=await readHeroAdjectives();
+    const pattern=/^export const NEUTRAL_HERO_ADJECTIVES = .*;$/m;
+    if(!pattern.test(data))throw new Error('Missing generated hero adjective export');
+    await writeFile(file,data.replace(pattern,`export const NEUTRAL_HERO_ADJECTIVES = ${JSON.stringify(adjectives)};`));
+    console.log(`Updated neutral item traits for ${Object.keys(adjectives).length} playable heroes.`);
+  }else await generateFullItems({refresh:process.argv.includes('--fetch')});
 }

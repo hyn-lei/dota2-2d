@@ -48,6 +48,19 @@ test('Buckler yields to stronger aura while Vladmir and Assault armor auras stac
 test('Red Ledger exposes a real shared-trait hit list and pays each bounty once before rerolling',()=>{
  const {g,p,e}=setup([]);p.neutralItem='red_ledger';const extra=g._makeHero('kunkka',e.team,1,false,1);extra.x=e.x;extra.y=e.y;g.entities.push(extra);Items.tickUnit(g,p,.1);const state=Items.itemState(g,p,0,'neutral');assert.ok(state.bountyTrait?.name);assert.equal(state.bountyTargets.length,2);assert.ok(e.statuses['redLedgerWanted:'+p.id]);const gold=p.gold,baseline=setup([]),baseGold=baseline.p.gold;baseline.g._kill(baseline.e,baseline.p);g._kill(e,p);assert.equal(p.gold-gold,baseline.p.gold-baseGold+50);assert.ok(p.neutralItemMeta.closed.includes(e.id));
 });
+test('Red Ledger can include Weaver in its real shared blue-hero bounty',()=>{
+ const {g,p}=setup([]),e=g._makeHero('axe',1,1,false,0),weaver=g._makeHero('weaver',1,1,false,1),maiden=g._makeHero('crystal_maiden',1,1,false,2);
+ g.entities=[p,e,weaver,maiden];p.neutralItem='red_ledger';g._index();
+ let state;
+ for(let i=0;i<200;i++){
+  g._random=()=>i/200;p.neutralItemMeta={};Items.tickUnit(g,p,.1);state=Items.itemState(g,p,0,'neutral');
+  if(state.bountyTrait?.id==='Blue')break;
+ }
+ assert.equal(state.bountyTrait?.id,'Blue','Weaver and Crystal Maiden must be eligible for a shared blue-hero bounty');
+ assert.deepEqual(new Set(state.bountyTargets.map(t=>t.id)),new Set([weaver.id,maiden.id]));
+ assert.ok(weaver.statuses['redLedgerWanted:'+p.id]);assert.ok(maiden.statuses['redLedgerWanted:'+p.id]);
+ assert.ok(!e.statuses['redLedgerWanted:'+p.id]);
+});
 test('Foragers Kit collects each actual consumable and their stacks grant and consume the correct bonuses',()=>{
  for(const [roll,id]of [[0,'foragers_stats'],[.25,'foragers_mana'],[.5,'foragers_health']]){const {g,p}=setup([]);p.neutralItem='foragers_kit';g._refreshHero(p);plantTree(g,p);const tree=g.plantedTrees[0];p.neutralItemMeta.forageTrees=[tree];p.neutralItemMeta.nextTreeAt=999;g._random=()=>roll;Items.tickUnit(g,p,.1);g.time=.75;Items.tickUnit(g,p,.75);assert.ok(p.inventory.includes(id),id);assert.equal(p.neutralItemMeta.procReadyAt,50.75);}
  const {g,p,e}=setup(['foragers_stats','foragers_mana','foragers_health']);const initial=p.intelligence;p.inventoryMeta[0].charges=2;g._refreshHero(p);assert.equal(g.useItem(0,p).ok,true);assert.equal(p.intelligence,initial+1);e.team=p.team;e.maxMana=1000;e.mana=0;assert.equal(g.useItem(1,e).ok,true);assert.equal(e.mana,100);e.maxHp=1000;e.hp=100;assert.equal(g.useItem(2,e).ok,true);g.time+=1;Items.tickUnit(g,e,1);assert.equal(e.hp,110);

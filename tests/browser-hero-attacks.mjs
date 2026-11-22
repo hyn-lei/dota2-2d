@@ -8,7 +8,7 @@ await mkdir('artifacts',{recursive:true});
 const browser=await chromium.launch(),page=await browser.newPage({viewport:{width:1366,height:900}}),errors=[];
 page.on('pageerror',e=>errors.push(e.message));
 try{
- await page.goto(process.env.GAME_URL||'http://127.0.0.1:5184',{waitUntil:'networkidle'});await closeDevelopmentNotice(page);
+ await page.goto(process.env.GAME_URL||'http://127.0.0.1:5184',{waitUntil:'domcontentloaded'});await closeDevelopmentNotice(page);
  await page.evaluate(async()=>{const {Renderer}=await import('/src/renderer.js'),render=Renderer.prototype.render;Renderer.prototype.render=function(g,t){window.attackScene=g;window.attackRenderer=this;return render.call(this,g,t);};});
  await page.locator('[data-hero="weaver"]').click();await page.locator('#start-game').click();await page.waitForFunction(()=>window.attackScene?.time>.1);
  await page.waitForFunction(async()=>{const {loadHeroSprites}=await import('/src/hero-sprites.js');const img=loadHeroSprites();return img?.complete&&img.naturalWidth>0;});
