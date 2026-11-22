@@ -3,7 +3,7 @@ import {UNIT_SKILL_UI} from './unit-skill-data.js';
 import {CREATURE_RULES,CREATURE_SUMMONS,MARTYRDOM} from './chen-data.js';
 import * as Skills from './hero-runtime.js';
 import {castMartyrdom,castAnoint} from './chen-runtime.js';
-import {heal,alive,fighter,building,distance} from './item-common.js';
+import {heal,alive,fighter,building,distance,forceMove} from './item-common.js';
 import {spendMana,restoreMana} from './mana-runtime.js';
 
 const rank=(unit,raw,fallback=0)=>{
@@ -150,7 +150,7 @@ function releaseCreature(g,unit){
   }
   case 'enraged_wildkin_hurricane':{
    const dir=point.direction||{x:Math.cos(unit.angle||0),y:Math.sin(unit.angle||0)},length=Math.hypot(dir.x,dir.y)||1;
-   target.forcedMotion={kind:'push',dx:dir.x/length,dy:dir.y/length,distance:v.distance,traveled:0,startedAt:g.time,until:g.time+.4};Skills.interruptCast(g,target,false);break;
+   forceMove(g,target,{x:target.x+dir.x/length*v.distance,y:target.y+dir.y/length*v.distance},.4,unit);break;
   }
   case 'harpy_scout_take_off':unit.flying=true;unit.creatureFlying={cost:v.cost_per_second};Skills.addStatus(g,unit,'creatureFlight',{name:skill.name,positive:true,icon:'wind',undispellable:true,duration:Infinity,movePercent:-v.move_speed_penalty});break;
   case 'dark_troll_warlord_raise_dead':{

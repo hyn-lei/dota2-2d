@@ -305,7 +305,16 @@ export function tickUnit(g,h,dt){
   if(e.id==='heart')heal(g,h,(h.maxHp*v(e.item,'hp_regen')+(h.maxHp-h.hp)*v(e.item,'missing_health_regen'))/100*dt,h,true);
  }
  const aura=h.itemAura||{};if(aura.hpRegen)heal(g,h,aura.hpRegen*dt,h,true);if(aura.manaRegen)restoreMana(h,aura.manaRegen*dt);
- if(h.forcedMotion){const m=h.forcedMotion,t=Math.min(1,(g.time-m.startedAt)/(m.until-m.startedAt));Object.assign(h,{x:m.from.x+(m.to.x-m.from.x)*t,y:m.from.y+(m.to.y-m.from.y)*t});h.moving=true;if(t>=1)h.forcedMotion=null;}
+ if(h.forcedMotion){
+  const m=h.forcedMotion;
+  // Earlier Hurricane saves used direction/distance instead of endpoint motion.
+  if(m.kind==='push'&&!m.from){
+   const remaining=Math.max(0,m.distance-(m.traveled||0));
+   m.from={x:h.x,y:h.y};m.to=g.navigation.nearestWalkable({x:h.x+m.dx*remaining,y:h.y+m.dy*remaining});
+   m.startedAt=g.time-dt;m.until=Math.max(m.until,g.time);
+  }
+  const t=Math.min(1,(g.time-m.startedAt)/(m.until-m.startedAt));Object.assign(h,{x:m.from.x+(m.to.x-m.from.x)*t,y:m.from.y+(m.to.y-m.from.y)*t});h.moving=true;if(t>=1)h.forcedMotion=null;
+ }
  if(h.itemChannel){
   const channel=h.itemChannel,target=g.entities.find(e=>e.id===channel.targetId),i=ITEM_BY_ID[channel.itemId];
   if(channel.kind==='teleport')h.recallTimer=Math.max(0,channel.until-g.time);
