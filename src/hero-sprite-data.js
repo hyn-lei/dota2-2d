@@ -7,7 +7,7 @@ export const HERO_SPRITES = {
     "height": 220,
     "worldWidth": 84,
     "worldHeight": 49.1983,
-    "top": -56
+    "top": -45.1983
   },
   "chaos_knight": {
     "x": 388,
@@ -16,7 +16,7 @@ export const HERO_SPRITES = {
     "height": 376,
     "worldWidth": 44.3156,
     "worldHeight": 54.0,
-    "top": -50
+    "top": -50.0
   },
   "juggernaut": {
     "x": 772,
@@ -25,7 +25,7 @@ export const HERO_SPRITES = {
     "height": 376,
     "worldWidth": 44.6769,
     "worldHeight": 54.0,
-    "top": -50
+    "top": -50.0
   },
   "crystal_maiden": {
     "x": 1156,
@@ -34,7 +34,7 @@ export const HERO_SPRITES = {
     "height": 376,
     "worldWidth": 52.2484,
     "worldHeight": 54.0,
-    "top": -50
+    "top": -50.0
   },
   "windranger": {
     "x": 1540,
@@ -43,7 +43,7 @@ export const HERO_SPRITES = {
     "height": 376,
     "worldWidth": 41.849,
     "worldHeight": 54.0,
-    "top": -50
+    "top": -50.0
   },
   "axe": {
     "x": 4,
@@ -52,7 +52,7 @@ export const HERO_SPRITES = {
     "height": 357,
     "worldWidth": 56.8212,
     "worldHeight": 54.0,
-    "top": -50
+    "top": -50.0
   },
   "ogre_magi": {
     "x": 388,
@@ -61,7 +61,7 @@ export const HERO_SPRITES = {
     "height": 376,
     "worldWidth": 50.2865,
     "worldHeight": 54.0,
-    "top": -50
+    "top": -50.0
   },
   "kunkka": {
     "x": 772,
@@ -70,7 +70,7 @@ export const HERO_SPRITES = {
     "height": 376,
     "worldWidth": 50.9427,
     "worldHeight": 54.0,
-    "top": -50
+    "top": -50.0
   },
   "chen": {
     "x": 1156,
@@ -79,7 +79,7 @@ export const HERO_SPRITES = {
     "height": 376,
     "worldWidth": 42.7187,
     "worldHeight": 54.0,
-    "top": -50
+    "top": -50.0
   },
   "drow_ranger": {
     "x": 1540,
@@ -88,6 +88,6 @@ export const HERO_SPRITES = {
     "height": 376,
     "worldWidth": 48.2943,
     "worldHeight": 54.0,
-    "top": -50
+    "top": -50.0
   }
 };

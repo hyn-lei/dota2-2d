@@ -88,23 +88,27 @@ test('nightmare supports a threatened teammate outside hard support range',()=>{
 
 test('nightmare sends enough nearby bots to defend pressure while preserving other lanes',()=>{
   const {g,bots,humans}=battlefield(),tower=g._unit('tower',1,13000,10400,{lane:2,range:700});
+  const homeLanes=bots.map(h=>h.lane);
   const quietTower=g._unit('tower',1,10400,13000,{lane:0,range:700});
   const creep=g._unit('creep',0,10400,13100,{lane:0});
   const human=humans[0];Object.assign(human,{x:13200,y:10400,targetId:tower.id});
   g.entities=[...bots,human,quietTower,creep,tower];g._index();for(const bot of bots)g._botTick(bot,0);
   const defenders=bots.filter(h=>h.botState.mode==='defend');
   assert.equal(defenders.length,2,'one hostile hero requests two remote defenders rather than all five');
-  assert.ok(defenders.every(h=>h.lane===2&&Math.hypot(h.botState.goal.x-tower.x,h.botState.goal.y-tower.y)<300));
+  assert.ok(defenders.every(h=>h.botState.objectiveId===tower.id&&Math.hypot(h.botState.goal.x-tower.x,h.botState.goal.y-tower.y)<300));
+  assert.deepEqual(bots.map(h=>h.lane),homeLanes,'a temporary defense must preserve home lane responsibilities');
   assert.ok(bots.filter(h=>h.botState.mode!=='defend').every(h=>h.botState.objectiveId!==quietTower.id));
 });
 
 test('nightmare groups on an unprotected push objective with an actual allied wave',()=>{
   const {g,bots}=battlefield(),tower=g._unit('tower',0,13300,10400,{lane:2,tier:1,range:700});
+  const homeLanes=bots.map(h=>h.lane);
   const creep=g._unit('creep',1,13100,10400,{lane:2});
   g.time=180;g.entities=[...bots,tower,creep];g._index();for(const bot of bots)g._botTick(bot,0);
   const pushers=bots.filter(h=>h.botState.objectiveId===tower.id);
   assert.equal(pushers.length,3,'a normal push leaves room for other lane objectives');
-  assert.ok(pushers.every(h=>h.botState.mode==='push'&&h.lane===2&&Math.hypot(h.botState.goal.x-tower.x,h.botState.goal.y-tower.y)<800));
+  assert.ok(pushers.every(h=>h.botState.mode==='push'&&Math.hypot(h.botState.goal.x-tower.x,h.botState.goal.y-tower.y)<800));
+  assert.deepEqual(bots.map(h=>h.lane),homeLanes,'a temporary push must preserve home lane responsibilities');
 });
 
 test('nightmare caches peaceful team decisions instead of scanning distant units every bot tick',()=>{
@@ -117,9 +121,10 @@ test('nightmare caches peaceful team decisions instead of scanning distant units
 });
 
 test('nightmare leaves the original profiles and natural hero economy unchanged',()=>{
-  assert.deepEqual(BOT_DIFFICULTY.easy,{reaction:.35,jitter:.06,awareness:1100,lead:.45,advantage:1.85});
-  assert.deepEqual(BOT_DIFFICULTY.normal,{reaction:.18,jitter:.035,awareness:1250,lead:.75,advantage:1.65});
-  assert.deepEqual(BOT_DIFFICULTY.hard,{reaction:.08,jitter:.015,awareness:1450,lead:1,advantage:1.5});
+  const legacy=({reaction,jitter,awareness,lead,advantage})=>({reaction,jitter,awareness,lead,advantage});
+  assert.deepEqual(legacy(BOT_DIFFICULTY.easy),{reaction:.35,jitter:.06,awareness:1100,lead:.45,advantage:1.85});
+  assert.deepEqual(legacy(BOT_DIFFICULTY.normal),{reaction:.18,jitter:.035,awareness:1250,lead:.75,advantage:1.65});
+  assert.deepEqual(legacy(BOT_DIFFICULTY.hard),{reaction:.08,jitter:.015,awareness:1450,lead:1,advantage:1.5});
   const hard=new Game({difficulty:'hard'}),nightmare=new Game({difficulty:'nightmare'});
   const stats=g=>g.entities.filter(e=>e.kind==='hero').map(h=>[h.heroId,h.team,h.maxHp,h.maxMana,h.damage,h.armor,h.gold]);
   assert.deepEqual(stats(nightmare),stats(hard));

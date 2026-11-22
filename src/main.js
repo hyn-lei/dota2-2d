@@ -1,5 +1,6 @@
 ﻿import { Game } from './engine.js';
 import { Renderer } from './renderer.js';
+import {heroSpriteContainsPoint} from './hero-sprites.js';
 import { HEROES, ITEMS, WORLD } from './data.js';
 import { ITEM_BY_ID } from './item-data.js';
 import { physicalDamageMultiplier } from './hero-stats.js';
@@ -23,13 +24,16 @@ import {hasExpiredMatchTime} from './match-clock.js';
 import {mountHeroUpgrades} from './hero-upgrades-ui.js';
 import {armletDrain} from './armlet-runtime.js';
 import {mountWorldControls,worldObjectiveAt,objectiveNames} from './world-controls.js';
+import {DIFFICULTIES,normalizeDifficulty} from './bot-difficulty.js';
 
 const $ = (s) => document.querySelector(s);
 const app = $('#app');
+const difficultyOptions=()=>DIFFICULTIES.map(d=>`<option value="${d.id}">${d.name}</option>`).join('');
 let preferences={sound:true,difficulty:'normal',hero:'juggernaut'};
 let history={matches:0,wins:0,bestKills:0};
 try{preferences={...preferences,...JSON.parse(localStorage.getItem('af-preferences')||'{}')};history={...history,...JSON.parse(localStorage.getItem('af-history')||'{}')};}catch{}
 if(!HEROES[preferences.hero])preferences.hero='juggernaut';
+preferences.difficulty=normalizeDifficulty(preferences.difficulty);
 let chosen=preferences.hero,view='lobby',game=null,renderer=null,modal=null,shopOpen=false,keys=new Set(),pointer={x:0,y:0},hudAt=0,lastFrame=0,lastStatus='playing',toastTimer,returnFocus;
 let audioContext,shopUI,heroUpgradesUI,worldControls;
 let bindingEditor=null;
@@ -43,7 +47,7 @@ function checkpointMatch(){
   if(matchTimeResetting||!game||game.isNetwork||game.status!=='playing')return;
   const result=storeMatch(browserStorage(),game);checkpointAt=performance.now();
   const label=$('#match-mode');
-  if(label){label.textContent=result.ok?'单机 · 已自动存档':'单机 · 存档失败';label.title=result.ok?`本地保存于 ${new Date(result.savedAt).toLocaleTimeString()}，关闭网页后可在大厅继续`:result.reason;label.classList.toggle('save-failed',!result.ok);}
+  if(label){const difficulty=DIFFICULTIES.find(d=>d.id===game.difficulty);label.textContent=`单机 · ${difficulty.name} · ${result.ok?'已自动存档':'存档失败'}`;label.title=result.ok?`${difficulty.description} 本地保存于 ${new Date(result.savedAt).toLocaleTimeString()}，关闭网页后可在大厅继续`:result.reason;label.classList.toggle('save-failed',!result.ok);}
   if(!result.ok&&!checkpointError)toast(result.reason);
   checkpointError=!result.ok;
 }
@@ -92,7 +96,7 @@ function renderLobby(){
       <div class="battle-note"><span class="tiny-diamond"></span><div>熟悉的战场，全新的视角。<small>三路争锋 · 英雄成长 · 远古之战</small></div></div>
     </section>
     <section class="selection-dock" aria-label="英雄与对局选项"><div class="roster-label"><span class="eyebrow">YOUR HERO</span><strong>选择英雄</strong><small>01 — ${String(Object.keys(HEROES).length).padStart(2,'0')}</small></div><div class="hero-roster" style="--hero-count:${Object.keys(HEROES).length}">${Object.values(HEROES).map((h,i)=>`<button class="hero-option ${h.id===chosen?'selected':''}" data-hero="${h.id}" aria-pressed="${h.id===chosen}"><span class="roster-art">${portrait(h)}<span class="hero-check">${icon('check')}</span></span><span class="roster-text"><strong>${h.name}</strong><small>${h.role}</small></span><span class="roster-number">0${i+1}</span></button>`).join('')}</div>
-      <div class="launch-area"><div class="match-settings"><span><i></i> 单人人机 <b>5 V 5</b></span><label class="difficulty-label" for="difficulty">难度 <select id="difficulty" aria-label="对局难度"><option value="easy">休闲</option><option value="normal">标准</option><option value="hard">挑战</option></select></label></div>${resume?`<button id="resume-game" class="resume-game"><strong>继续上次对局</strong><small>${HEROES[resume.state.heroChoice].name} · ${clock(resume.state.time)} · 等级 ${resume.state.entities.find(e=>e.isPlayer).level}</small></button>`:''}${saved.error?`<p class="save-warning" role="status">${escapeHtml(saved.error)}</p>`:''}<button id="start-game" class="primary-button"><span>${resume?'开始新对局':'进入战场'}<small>ENTER THE BATTLE</small></span>${icon('arrow')}</button></div>
+      <div class="launch-area"><div class="match-settings"><span><i></i> 单人人机 <b>5 V 5</b></span><label class="difficulty-label" for="difficulty">难度 <select id="difficulty" aria-label="对局难度">${difficultyOptions()}</select></label></div>${resume?`<button id="resume-game" class="resume-game"><strong>继续上次对局</strong><small>${HEROES[resume.state.heroChoice].name} · ${clock(resume.state.time)} · 等级 ${resume.state.entities.find(e=>e.isPlayer).level}</small></button>`:''}${saved.error?`<p class="save-warning" role="status">${escapeHtml(saved.error)}</p>`:''}<button id="start-game" class="primary-button"><span>${resume?'开始新对局':'进入战场'}<small>ENTER THE BATTLE</small></span>${icon('arrow')}</button></div>
     </section>
     <footer class="lobby-footer"><span>2D MOBA EXPERIENCE <i> / </i> 非官方同人原型</span><button class="history-button">${icon('flag')} 战绩 <strong>${history.wins}</strong> 胜 <span>·</span> ${history.matches} 场</button><span class="footer-version">LOCAL PLAY <i></i> V 1.0</span></footer>
     <div id="toast" role="status"></div><div id="modal-root"></div>
@@ -189,7 +193,9 @@ function startGame(providedGame=null,resume=false){
   const canvas=$('#battlefield');canvas.addEventListener('contextmenu',e=>e.preventDefault());
   const hitTest=(p,itemsFirst=false)=>{
     const shown=game.renderView?.()||game;
-    return shown.entities.filter(u=>!u.dead&&shown.canSee(shown.player,u)&&Math.hypot(u.x-p.x,u.y-p.y)<Math.max(u.radius||24,18/renderer.zoom)).sort((a,b)=>(itemsFirst?Number(b.kind==='droppedItem')-Number(a.kind==='droppedItem'):0)||Math.hypot(a.x-p.x,a.y-p.y)-Math.hypot(b.x-p.x,b.y-p.y))[0];
+    return shown.entities.filter(u=>!u.dead&&shown.canSee(shown.player,u)&&
+      (Math.hypot(u.x-p.x,u.y-p.y)<Math.max(u.radius||24,18/renderer.zoom)||renderer.zoom>=.15&&heroSpriteContainsPoint(u,p,shown.time)))
+      .sort((a,b)=>(itemsFirst?Number(b.kind==='droppedItem')-Number(a.kind==='droppedItem'):0)||Math.hypot(a.x-p.x,a.y-p.y)-Math.hypot(b.x-p.x,b.y-p.y))[0];
   };
   let dragging=null;
   canvas.addEventListener('pointermove',e=>{const r=canvas.getBoundingClientRect();pointer={x:e.clientX-r.left,y:e.clientY-r.top};if(dragging){renderer.pan(dragging.x-e.clientX,dragging.y-e.clientY);dragging={x:e.clientX,y:e.clientY};}renderer.hoverId=hitTest(renderer.screenToWorld(pointer.x,pointer.y))?.id;});
@@ -325,7 +331,7 @@ function openModal(type){
     const h=HEROES[chosen];title=h.name;eyebrow=h.en;
     body=`<div class="hero-modal-intro">${portrait(h)}<div><strong>${h.title}</strong><p>${h.description}</p></div></div><div class="skill-details">${h.skills.map((s,i)=>`<div class="skill-detail"><span class="item-art" style="--item-color:${s.color}">${icon(s.icon)}<kbd>${skillKey(i)}</kbd></span><div><strong>${s.name}</strong><p>${s.description}</p><small>${s.mana} 魔法 · ${s.cooldown} 秒冷却</small></div></div>`).join('')}</div>`;footer='<button class="primary-button modal-primary" data-close>了解，准备出战</button>';
   }else if(type==='settings'){
-    title='游戏设置';eyebrow='YOUR BATTLE, YOUR WAY';body=`<div class="setting-row"><div><strong>战斗音效</strong><p>技能、购买与界面交互音效</p></div><button id="sound-setting" class="toggle ${preferences.sound?'on':''}" aria-pressed="${preferences.sound}" aria-label="开启或关闭音效"><i></i></button></div><div class="setting-row"><div><strong>对局难度</strong><p>修改将在下一局生效</p></div><select id="setting-difficulty"><option value="easy">休闲</option><option value="normal">标准</option><option value="hard">挑战</option></select></div><div class="guide-tip"><strong>轻量运行，无需下载客户端。</strong><p>游戏与美术资源均在本地运行。偏好和历史战绩保存在当前浏览器中。</p></div>`;footer='<button class="primary-button modal-primary" data-close>保存并返回</button>';
+    title='游戏设置';eyebrow='YOUR BATTLE, YOUR WAY';body=`<div class="setting-row"><div><strong>战斗音效</strong><p>技能、购买与界面交互音效</p></div><button id="sound-setting" class="toggle ${preferences.sound?'on':''}" aria-pressed="${preferences.sound}" aria-label="开启或关闭音效"><i></i></button></div><div class="setting-row"><div><strong>对局难度</strong><p>修改将在下一局生效</p></div><select id="setting-difficulty">${difficultyOptions()}</select></div><div class="guide-tip"><strong>轻量运行，无需下载客户端。</strong><p>游戏与美术资源均在本地运行。偏好和历史战绩保存在当前浏览器中。</p></div>`;footer='<button class="primary-button modal-primary" data-close>保存并返回</button>';
   }else if(type==='history'){
     title='你的远古征途';eyebrow='BATTLE RECORD';body=`<div class="record-stats"><div><strong>${history.matches}</strong><span>累计对局</span></div><div><strong>${history.wins}</strong><span>天辉胜利</span></div><div><strong>${history.bestKills}</strong><span>单局最高击杀</span></div></div><p class="record-caption">${history.matches?'每一场战斗，都是新的故事。':'战场尚未留下你的名字。选择一位英雄，开始第一场对局。'}</p>`;footer='<button class="primary-button modal-primary" data-close>返回战场</button>';
   }else if(type==='pause'||type==='restored'){

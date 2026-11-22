@@ -97,12 +97,16 @@ jobs:
           node tests/browser-items.mjs
           node tests/browser-vfx.mjs
           node tests/browser-ai.mjs
+          node tests/browser-ai-difficulty.mjs
+          node tests/browser-ai-stealth.mjs
+          node tests/browser-ai-performance.mjs
           node tests/browser-ai-draft.mjs
           node tests/browser-ai-tactics.mjs
           node tests/browser-ogre.mjs
           node tests/browser-drow.mjs
           node tests/browser-weaver.mjs
           node tests/browser-hero-appearance.mjs
+          node tests/browser-hero-picking.mjs
           node tests/browser-chen.mjs
           node tests/browser-chen-coop.mjs
           node tests/browser-notice.mjs

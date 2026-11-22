@@ -1,6 +1,8 @@
 import {BASES} from './map-data.js';
 import * as Items from './item-runtime.js';
 import * as Skills from './hero-runtime.js';
+import {botProfile} from './bot-difficulty.js';
+import {BOT_DRAFT_PROFILES} from './bot-draft.js';
 
 const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
 const alive=e=>e&&!e.dead&&e.hp>0;
@@ -10,13 +12,27 @@ const automated=h=>!h.isPlayer&&!h.isHuman&&h.aiTimer!==Infinity;
 const worlds=new WeakMap();
 export function resetTacticalWorld(game){worlds.delete(game);}
 
-export function fightingPower(g,h){
-  const s=g.combatStats(h);
+export function fightingPower(g,h,s=g.combatStats(h)){
   return (s.damage/Math.max(.25,s.attackInterval)+(h.level||1)*5)*(h.hp/h.maxHp+.25);
 }
+function combatSnapshot(g,world,h){
+  if(!world.combat.has(h.id))world.combat.set(h.id,g.combatStats(h));
+  return world.combat.get(h.id);
+}
+const tacticalPower=(g,world,h)=>fightingPower(g,h,combatSnapshot(g,world,h));
 function sight(g,e){
   const night=g.time%600>=300;
   return night?(e.visionNight??e.nightVision??800):(e.visionDay??e.dayVision??1800);
+}
+function observeHero(g,world,e,observers){
+  // Keep the attributes and position from this observation. A hidden hero's
+  // live coordinates or health must not leak through the shared cached view.
+  combatSnapshot(g,world,e);
+  const channel=e.itemChannel;
+  const publicLanding=channel?.kind==='teleport'&&channel.point&&
+    observers.some(a=>alive(a)&&distance(a,channel.point)<=sight(g,a));
+  return {...e,itemChannel:channel?.kind==='teleport'?(publicLanding?
+    {...channel,point:{...channel.point},origin:{...channel.origin}}:undefined):channel};
 }
 function teleportEntry(g,h){
   const index=h.tp?.indexOf('tpscroll')??-1;
@@ -32,7 +48,7 @@ function landingTargets(g,h,world,goal){
     .sort((a,b)=>distance(a,goal)-distance(b,goal));
 }
 function routeCost(g,h,world,goal){
-  const speed=Math.max(100,g.combatStats(h).speed),walk=distance(h,goal)/speed;
+  const speed=Math.max(100,combatSnapshot(g,world,h).speed),walk=distance(h,goal)/speed;
   if(!teleportEntry(g,h))return walk;
   const target=landingTargets(g,h,world,goal)[0];
   return target?Math.min(walk,3+distance(target,goal)/speed):walk;
@@ -43,53 +59,99 @@ function defensePoint(t){
 }
 function requests(g,world,team){
   const view=world.teams[team],enemies=view.visibleFighters,enemyHeroes=view.visibleHeroes,objectives=[];
+  const master=view.bots.some(h=>botProfile(g,h).master);
+  const approaching=(e,t,radius)=>distance(e,t)<radius||master&&e.itemChannel?.kind==='teleport'&&
+    e.itemChannel.until>g.time&&distance(e.itemChannel.point,t)<radius;
   for(const t of view.buildings)if(['tower','barracks','ancient'].includes(t.kind)){
-    const threats=enemies.filter(e=>distance(e,t)<Math.max(800,(t.range||0)+180));
+    const threats=enemies.filter(e=>approaching(e,t,Math.max(800,(t.range||0)+180)));
     const heroes=threats.filter(e=>e.kind==='hero');
     if(!heroes.length&&threats.length<3)continue;
     const base=t.kind==='ancient'||t.kind==='barracks'||t.tier>=3;
     objectives.push({key:`defend:${t.id}`,mode:'defend',objectiveId:t.id,lane:t.lane,goal:defensePoint(t),
       score:(base?8500:5000)+heroes.length*300+(1-t.hp/t.maxHp)*650+threats.length*35,
-      demand:base?Math.min(5,Math.max(3,heroes.length+1)):Math.min(4,Math.max(1,heroes.length+1)),
+      demand:base?(t.hp/t.maxHp<.35||heroes.length>=3||threats.length>=7?5:Math.min(5,Math.max(3,heroes.length+1))):Math.min(4,Math.max(1,heroes.length+1)),
       critical:base,threats});
   }
-  const engaged=new Set();
+  // Combat around an already defended structure is the same task, not a
+  // second opportunity to recruit another group of helpers.
+  const engaged=new Set(objectives.flatMap(o=>o.threats.filter(e=>e.kind==='hero').map(e=>e.id)));
   for(const ally of view.heroes){
     const enemy=enemyHeroes.find(e=>distance(e,ally)<1400&&
       (ally.targetId===e.id||e.targetId===ally.id||(ally.lastDamageAt??-Infinity)>g.time-3&&distance(e,ally)<900));
     if(!enemy||engaged.has(enemy.id))continue;
-    engaged.add(enemy.id);
     const opponents=enemyHeroes.filter(e=>distance(e,enemy)<1500);
-    const participants=view.heroes.filter(h=>distance(h,enemy)<1600&&h.hp/h.maxHp>.3);
+    for(const e of opponents)engaged.add(e.id);
     // Support real or forming fights, but do not drag a team into the enemy fountain.
     if(world.teams[1-team].buildings.some(t=>t.kind==='fountain'&&distance(t,enemy)<1200))continue;
     objectives.push({key:`assist:${enemy.id}`,mode:'assist',objectiveId:enemy.id,goal:{x:enemy.x,y:enemy.y},
       score:3500+opponents.length*170+(1-ally.hp/ally.maxHp)*250,
-      demand:Math.min(5,Math.max(2,opponents.length+1,participants.length)),critical:false,threats:opponents});
+      demand:Math.min(4,Math.max(2,opponents.length+1)),critical:false,threats:opponents});
   }
   if(g.time>120)for(const t of world.teams[1-team].buildings)if(['tower','barracks','ancient'].includes(t.kind)&&!g.isProtected(t)&&
     view.units.some(c=>c.kind==='creep'&&distance(c,t)<850)){
+    const wave=view.units.filter(c=>c.kind==='creep'&&distance(c,t)<850);
+    if(master&&wave.reduce((n,c)=>n+c.hp,0)<Math.max(250,combatSnapshot(g,world,t).damage*3))continue;
+    const defenders=master?enemyHeroes.filter(e=>approaching(e,t,1800)):[];
+    const demand=master?Math.min(3,Math.max(2,defenders.length+1)):3;
+    if(master&&defenders.length){
+      const force=view.heroes.filter(h=>!h.retreating&&h.hp/h.maxHp>.42&&distance(h,t)<4800)
+        .map(h=>tacticalPower(g,world,h)).sort((a,b)=>b-a).slice(0,demand).reduce((n,p)=>n+p,0);
+      if(force<defenders.reduce((n,e)=>n+tacticalPower(g,world,e),0)*1.25)continue;
+    }
     objectives.push({key:`push:${t.id}`,mode:'push',objectiveId:t.id,lane:t.lane,goal:{x:t.x,y:t.y},
-      score:1600+(1-t.hp/t.maxHp)*250-(t.tier||0)*80,demand:3,critical:false,threats:[]});
+      score:1600+(1-t.hp/t.maxHp)*250-(t.tier||0)*80-defenders.length*180,demand,critical:false,threats:defenders});
   }
   return objectives.sort((a,b)=>b.score-a.score||a.key.localeCompare(b.key));
 }
 function allocate(g,world,team,previous){
   const view=world.teams[team],available=new Set(view.bots),plans=new Map();
-  for(const request of requests(g,world,team)){
+  const advanced=view.bots.some(h=>botProfile(g,h).advanced);
+  const orders=requests(g,world,team),laneGuards=new Map();
+  for(const request of orders)if(request.mode==='defend'&&!request.critical&&request.lane!=null){
+    const guards=view.bots.filter(h=>h.lane===request.lane&&!laneGuards.has(h.id)&&!h.retreating&&h.hp/h.maxHp>.42&&
+      !(h.itemChannel?.kind==='teleport'&&h.botState?.supportArrival?.key!==request.key))
+      .map(h=>({h,eta:routeCost(g,h,world,request.goal)})).filter(c=>c.eta<28)
+      .sort((a,b)=>a.eta-b.eta||a.h.id.localeCompare(b.h.id));
+    if(guards.length)laneGuards.set(guards[0].h.id,request.key);
+  }
+  const canLeaveLane=(h,request)=>request.critical||!laneGuards.has(h.id)||laneGuards.get(h.id)===request.key;
+  for(const request of orders){
     const participants=view.heroes.filter(h=>h.hp/h.maxHp>.3&&!h.retreating&&
       (distance(h,request.goal)<1500||h.botState?.supportArrival?.key===request.key&&h.botState.supportArrival.until>g.time));
-    // Heroes already at the objective help together; only the missing support is recruited remotely.
-    for(const h of participants)if(available.has(h)&&!h.retreating){plans.set(h.id,request);available.delete(h);}
-    let needed=Math.max(0,request.demand-participants.length);
-    const candidates=[...available].filter(h=>!h.retreating&&h.hp/h.maxHp>.42&&!h.itemChannel&&!h.channel&&!h.castPhase&&
+    // Actual human participants occupy the same finite support budget. Being
+    // nearby alone must not bind every automated hero to a temporary task.
+    const humans=participants.filter(h=>!automated(h));
+    const recruited=[];
+    let used=humans.length,power=humans.reduce((n,h)=>n+tacticalPower(g,world,h),0);
+    let needed=Math.max(0,request.demand-used);
+    for(const h of participants)if(available.has(h)&&needed>0&&canLeaveLane(h,request)&&
+      h.botState?.supportArrival?.key===request.key&&h.botState.supportArrival.until>g.time){
+      plans.set(h.id,request);available.delete(h);recruited.push(h);needed--;used++;power+=tacticalPower(g,world,h);
+    }
+    const enemyPower=request.threats.filter(e=>e.kind==='hero').reduce((n,e)=>n+tacticalPower(g,world,e),0);
+    const candidates=[...available].filter(h=>canLeaveLane(h,request)&&!h.retreating&&
+      h.hp/h.maxHp>(distance(h,request.goal)<1500?.3:.42)&&
+      (!h.itemChannel&&!h.channel&&!h.castPhase||distance(h,request.goal)<1500&&!h.itemChannel)&&
       (request.mode!=='push'||distance(h,request.goal)<4800)&&
-      (request.critical||!view.visibleHeroes.some(e=>e.targetId===h.id&&distance(h,e)<900)))
-      .map(h=>{const eta=routeCost(g,h,world,request.goal);return {h,eta,cost:eta-
-        (previous.get(h.id)?.key===request.key?3:0)+(h.botShop?.needsShop?4:0)};})
+      (request.critical||distance(h,request.goal)<1500||!view.visibleHeroes.some(e=>e.targetId===h.id&&distance(h,e)<900)))
+      .map(h=>{const eta=routeCost(g,h,world,request.goal),role=botProfile(g,h).advanced&&request.mode==='assist'?
+        (['roamer','support'].includes(h.draftRole)?-3:h.draftRole==='carry'?3:0):0;
+        const capable=botProfile(g,h).advanced&&request.mode==='defend'?
+          Math.min(2,tacticalPower(g,world,h)/Math.max(1,enemyPower))*5+(BOT_DRAFT_PROFILES[h.heroId]?.frontline||0)*.6:0;
+        return {h,eta,cost:eta+role-capable-(previous.get(h.id)?.key===request.key?3:0)+(h.botShop?.needsShop?4:0)};})
       .filter(c=>c.eta<(request.critical?38:request.mode==='assist'?20:28))
       .sort((a,b)=>a.cost-b.cost||a.h.id.localeCompare(b.h.id));
-    for(const {h} of candidates){if(needed--<=0)break;plans.set(h.id,request);available.delete(h);}
+    const requiredPower=advanced?enemyPower*(request.mode==='push'?1.25:1.2):0;
+    const budget=request.critical?5:advanced?4:request.demand;
+    for(const {h} of candidates){
+      if(used>=budget||needed<=0&&power>=requiredPower)break;
+      plans.set(h.id,request);available.delete(h);recruited.push(h);needed--;used++;power+=tacticalPower(g,world,h);
+    }
+    // A higher-priority task may have consumed the heroes used by the initial
+    // opportunity estimate. Commit a defended push only with its actual squad.
+    if(request.mode==='push'&&power<requiredPower){
+      for(const h of recruited){plans.delete(h.id);available.add(h);}
+    }
   }
   return plans;
 }
@@ -100,7 +162,7 @@ export function tacticalWorld(g){
   let world=worlds.get(g);
   if(world&&g.time>=world.at&&g.time<world.nextAt)return world;
   const previous=world;
-  world={at:g.time,nextAt:g.time+.2,entities:new Map(),fighters:[],structures:[],teams:[0,1].map(()=>({heroes:[],bots:[],units:[],buildings:[]}))};
+  world={at:g.time,nextAt:g.time+.2,entities:new Map(),combat:new Map(),fighters:[],structures:[],teams:[0,1].map(()=>({heroes:[],bots:[],units:[],buildings:[]}))};
   for(const e of g.entities)if(alive(e)){
     world.entities.set(e.id,e);const kind=e.kind,view=world.teams[e.team];
     if(fighter(kind)){world.fighters.push(e);if(view)view.units.push(e);}
@@ -109,7 +171,8 @@ export function tacticalWorld(g){
   }
   for(const team of [0,1]){
     const view=world.teams[team],observers=[...view.units,...view.buildings];
-    view.visibleFighters=world.teams[1-team].units.filter(e=>observers.some(a=>distance(a,e)<=sight(g,a)&&g.canSee(a,e)));
+    view.visibleFighters=world.teams[1-team].units.filter(e=>observers.some(a=>distance(a,e)<=sight(g,a)&&g.canSee(a,e)))
+      .map(e=>e.kind==='hero'?observeHero(g,world,e,observers):e);
     view.visibleHeroes=view.visibleFighters.filter(e=>e.kind==='hero'&&!Skills.isInvulnerable(g,e));
     view.plans=allocate(g,world,team,previous?.teams[team].plans||new Map());
   }
@@ -133,7 +196,7 @@ export function trySupportTeleport(g,h,plan,ctx){
     const allies=world.teams[h.team].heroes.filter(a=>distance(a,landing)<1500||
       a.itemChannel?.kind==='teleport'&&distance(a.itemChannel.point,landing)<1000);
     const alliedPower=allies.reduce((n,a)=>n+fightingPower(g,a),fightingPower(g,h));
-    if(enemies.some(e=>distance(e,landing)<500)&&enemies.reduce((n,e)=>n+fightingPower(g,e),0)>alliedPower*1.4)continue;
+    if(enemies.some(e=>distance(e,landing)<500)&&enemies.reduce((n,e)=>n+tacticalPower(g,world,e),0)>alliedPower*1.4)continue;
     if(Items.useItem(g,h,entry.index,target,'tp').ok){
       h.botState.supportArrival={key:plan.key,objectiveId:plan.objectiveId,until:g.time+duration+5};
       h.botState.mode=plan.mode;h.targetId=null;h.botState.targetId=null;return true;

@@ -1,6 +1,8 @@
 import { ITEM_BY_ID } from './item-data.js';
 import * as Inventory from './inventory.js';
 import * as Courier from './courier.js';
+import {botDetectionSupply,botDetectionNeeded,botDetectionReserved} from './bot-stealth.js';
+import {botProfile} from './bot-difficulty.js';
 
 // Milestones survive assembly and sale: slot count is never a purchase limit.
 export const BOT_BUILDS=Object.freeze({
@@ -19,7 +21,7 @@ const starterItems=new Set(['bracer','wraith_band','null_talisman','magic_stick'
 const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
 
 function resolveGoal(g,h,id){
-  const enemies=g.entities.filter(e=>e.kind==='hero'&&e.team!==h.team);
+  const enemies=g._near(h,botProfile(g,h).awareness).filter(e=>e.kind==='hero'&&e.team!==h.team&&g.canSee(h,e));
   if(id==='carry_counter')return enemies.some(e=>e.heroId==='windranger'||e.inventory?.includes('butterfly'))?'monkey_king_bar':h.heroId==='windranger'?'satanic':'butterfly';
   if(id==='support_counter')return h.deaths>=5?'aeon_disk':'sheepstick';
   if(id==='tank_counter')return enemies.filter(e=>['crystal_maiden','kunkka'].includes(e.heroId)).length>=3?'pipe':'assault';
@@ -57,19 +59,21 @@ function equipmentValue(entry,entries){
 }
 export function organizeBotInventory(g,h,goal){
   let entries=Inventory.itemEntries(h,['inventory','backpack']);
+  const detectionNeeded=botDetectionNeeded(g,h),reserved=botDetectionReserved(g,h);
+  const value=(entry,pool)=>equipmentValue(entry,pool)+(detectionNeeded&&['dust','ward_sentry','gem'].includes(entry.id)?25000:0);
   const access=Inventory.shopAccess(h),protectedParts=goal?materialIds(goal):new Set();
   // Sell obsolete early items before the backpack fills and blocks later components.
   if(access.shop&&entries.length>=6){
-    const obsolete=entries.filter(e=>starterItems.has(e.id)&&!protectedParts.has(e.id)).sort((a,b)=>equipmentValue(a,entries)-equipmentValue(b,entries))[0]||
-      (goal&&entries.length>=9?entries.filter(e=>!protectedParts.has(e.id)&&ITEM_BY_ID[e.id].movementGroup!=='boots').sort((a,b)=>equipmentValue(a,entries)-equipmentValue(b,entries))[0]:null);
+    const obsolete=entries.filter(e=>starterItems.has(e.id)&&!protectedParts.has(e.id)).sort((a,b)=>value(a,entries)-value(b,entries))[0]||
+      (goal&&entries.length>=9?entries.filter(e=>!protectedParts.has(e.id)&&ITEM_BY_ID[e.id].movementGroup!=='boots').sort((a,b)=>value(a,entries)-value(b,entries))[0]:null);
     if(obsolete)Inventory.sellItem(g,h,obsolete.area,obsolete.index);
   }
   entries=Inventory.itemEntries(h,['inventory','backpack']);
-  for(const carried of entries.filter(e=>e.area==='backpack').sort((a,b)=>equipmentValue(b,entries)-equipmentValue(a,entries))){
+  for(const carried of entries.filter(e=>e.area==='backpack').sort((a,b)=>value(b,entries)-value(a,entries))){
     const inv=Inventory.itemEntries(h,['inventory']),empty=Array.from({length:6},(_,i)=>i).find(i=>!h.inventory[i]);
-    if(empty!==undefined){Inventory.moveItem(g,h,'backpack',carried.index,'inventory',empty);continue;}
-    const worst=inv.sort((a,b)=>equipmentValue(a,entries)-equipmentValue(b,entries))[0];
-    if(worst&&equipmentValue(carried,entries)>equipmentValue(worst,entries)+200)Inventory.moveItem(g,h,'backpack',carried.index,'inventory',worst.index);
+    if(empty!==undefined){if(!reserved||['dust','ward_sentry','gem'].includes(carried.id))Inventory.moveItem(g,h,'backpack',carried.index,'inventory',empty);continue;}
+    const worst=inv.sort((a,b)=>value(a,entries)-value(b,entries))[0];
+    if(worst&&value(carried,entries)>value(worst,entries)+200)Inventory.moveItem(g,h,'backpack',carried.index,'inventory',worst.index);
   }
   return Inventory.itemEntries(h,['inventory','backpack']).length>=9&&!access.shop;
 }
@@ -80,6 +84,14 @@ export function tickBotShopping(g,h){
   if(g.time<state.nextAt)return;state.nextAt=g.time+.45;
   const c=Courier.ensureCourier(g,h),assemblyKey=h.inventory.join('|')+':'+h.backpack.join('|')+':'+h.stash.join('|')+':'+Inventory.shopAccess(h).base;
   if(state.assemblyKey!==assemblyKey){Inventory.combineItems(g,h);state.assemblyKey=h.inventory.join('|')+':'+h.backpack.join('|')+':'+h.stash.join('|')+':'+Inventory.shopAccess(h).base;}
+  const detection=botDetectionSupply(g,h,c);
+  if(detection){
+    const result=Inventory.buyItem(g,h,detection);
+    if(result.ok){state.purchases++;state.spent+=result.cost;state.detectionGoal=detection;
+      if(h.stash.some(Boolean)&&c.command==='idle')Courier.courierCommand(g,h,'deliver');
+      return;
+    }
+  }
   if(!owns(h,c,'tpscroll')&&h.gold>=ITEM_BY_ID.tpscroll.cost){
     const supply=Inventory.buyItem(g,h,'tpscroll');if(supply.ok){state.purchases++;state.spent+=supply.cost;}
   }

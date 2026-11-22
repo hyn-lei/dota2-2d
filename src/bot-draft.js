@@ -116,7 +116,7 @@ function compositionScore(ids, roles, opponents) {
   return score;
 }
 
-function laneFor(role, team) {
+export function laneFor(role, team) {
   if (role === 'mid') return 1;
   return ['carry','support'].includes(role) ? (team?0:2) : (team?2:0);
 }

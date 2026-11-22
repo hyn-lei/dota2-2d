@@ -13,6 +13,7 @@ import * as Courier from './courier.js';
 import { attackVisualFields } from './combat-visuals.js';
 import { launchAttack, tickAttacks, attackProfile, isRangedAttack } from './attack-projectiles.js';
 import * as Bots from './bot-ai.js';
+import {normalizeDifficulty} from './bot-difficulty.js';
 import {draftMatch,validateMatchDraft} from './bot-draft.js';
 import {flagbearerAura} from './unit-auras.js';
 import {armletHealthBonus} from './armlet-runtime.js';
@@ -55,7 +56,7 @@ export class Game {
     this.feed = [];
     this.wave = 0;
     this.nextWave = 0;
-    this.difficulty = difficulty;
+    this.difficulty = normalizeDifficulty(difficulty);
     this.seed = seed >>> 0;
     this.serial = 0;
     this.keyboard = { x:0, y:0 };
@@ -154,7 +155,7 @@ export class Game {
   _makeHero(heroId, team, lane, isPlayer, index) {
     const data = HEROES[heroId], base = BASES[team], stats=calculateHeroStats(heroId,1,[]);
     const h = this._unit('hero', team, base.x + (index % 3 - 1) * 80, base.y + Math.floor(index / 3) * 80, {
-      ...stats, heroId, name:data.name, isPlayer, controller:isPlayer?'human':'ai', lane, mana:stats.maxMana, radius:24,
+      ...stats, heroId, name:data.name, isPlayer, controller:isPlayer?'human':'ai', lane, homeLane:lane, mana:stats.maxMana, radius:24,
       level:1, xp:0, xpNext:XP_TO_NEXT[1] || 230, gold:600, inventory:[], kills:0, deaths:0,
       assists:0, lastHits:0, cooldowns:[0,0,0,0], respawnTimer:0, recallTimer:0,
       buffs:{}, xMark:null, pathIndex:1, aiTimer:index * .05, retreating:false, lastDamagers:{}

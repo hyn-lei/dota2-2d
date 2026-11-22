@@ -227,9 +227,12 @@ async function checkLargeBattlefield(){
       const drawImage=CanvasRenderingContext2D.prototype.drawImage;
       window.largeOriginalDrawImage=drawImage;
       const until=performance.now()+1200;
+      let slowedFrame=-1;
       CanvasRenderingContext2D.prototype.drawImage=function(...args){
         const result=drawImage.apply(this,args);
-        if(this.canvas===largeRenderer.canvas&&performance.now()<until){
+        // Multiple sprite draws in one frame must share the injected paint delay.
+        if(this.canvas===largeRenderer.canvas&&slowedFrame!==largeRenderer.frame&&performance.now()<until){
+          slowedFrame=largeRenderer.frame;
           const finish=performance.now()+25;
           while(performance.now()<finish){}
         }

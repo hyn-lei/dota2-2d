@@ -51,7 +51,7 @@ define('ward_observer ward_sentry ward_dispenser','point',(g,h,e,p)=>{
  const ward=g._unit('ward',h.team,p.x,p.y,{name:mode==='sentry'?'岗哨守卫':'侦查守卫',ownerId:h.id,wardType:mode,range:0,speed:0,maxHp:2,hitsRemaining:2,radius:16,visionDay:v(data,'vision_range',mode==='observer'?1600:0),visionNight:v(data,'vision_range',mode==='observer'?1600:0),trueSight:mode==='sentry'?v(data,'true_sight_range',1000):0,expiresAt:g.time+v(data,'duration',mode==='observer'?360:420),statuses:{}});status(g,ward,'wardHidden',data,{positive:true,invisible:true,undispellable:true,duration:ward.expiresAt-g.time});g.entities.push(ward);consume(g,h,e);
 });
 define('dust gem','pointOptional',(g,h,e,p)=>{
- const i=e.item,center=e.id==='dust'?h:p,radius=v(i,['radius','active_radius','reveal_radius'],1050),duration=v(i,['duration','active_duration'],12);
+ const i=e.item,center=e.id==='dust'?h:p,radius=v(i,e.id==='gem'?['active_radius','reveal_radius']:['radius','reveal_radius'],1050),duration=v(i,['duration','active_duration'],12);
  g.itemZones||=[];g.itemZones.push({id:g._id('reveal'),type:'reveal',sourceId:h.id,team:h.team,x:center.x,y:center.y,radius,until:g.time+duration,itemId:i.id});
  for(const target of enemies(g,h,center,radius)){const invisible=C.hasFlag(g,target,'invisible');status(g,target,'revealed',i,{duration:duration+v(i,'linger_duration'),revealed:true,slowPct:invisible?Math.abs(v(i,'movespeed')):0});if(invisible)g.damage(target,v(i,'damage'),h,'magical');}
  if(e.id==='dust')consume(g,h,e);pulse(g,center,i,radius);

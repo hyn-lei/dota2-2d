@@ -382,7 +382,7 @@ export class Renderer {
         const image=getWeaverRender();
         if(image?.complete&&image.naturalWidth){
           c.save();c.rotate(-angle-Math.PI/2);if(Math.cos(angle)>0)c.scale(-1,1);
-          c.drawImage(image,0,290,1440,860,-42,-56,84,50);c.restore();
+          c.drawImage(image,0,290,1440,860,-42,-46,84,50);c.restore();
         }else{
           poly(c,[[-18,-6],[-12,-22],[0,-31],[13,-22],[20,-5],[12,17],[-12,17]],'#299ac3','#99dcdf',2);
           for(const side of [-1,1])for(let i=0;i<3;i++)line(c,[{x:side*12,y:(i-1)*12},{x:side*28,y:(i-1)*18},{x:side*35,y:(i-1)*23+10}],'#b876b0',2);

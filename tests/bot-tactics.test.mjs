@@ -28,7 +28,7 @@ for(const team of [0,1])test(`team ${team} can defend by TP after consuming Moon
 });
 
 const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
-for(const team of [0,1])for(const difficulty of ['easy','normal','hard','nightmare']){
+for(const team of [0,1])for(const difficulty of ['easy','normal','hard','nightmare','hell']){
   test(`team ${team} / ${difficulty} uses a real TP to defend a distant tower`,()=>{
     const {g,bot,enemy}=tacticalArena(team,difficulty);
     const own=tower(g,team,15000);Object.assign(enemy,{x:15400,targetId:own.id});g._index();
@@ -59,6 +59,47 @@ test('a support request recruits missing defenders and preserves other lanes',()
   assert.equal(bots.filter(h=>!plans.has(h.id)).length,3);
 });
 
+test('ordinary tower defense releases excess nearby bots instead of binding the whole team',()=>{
+  const {g,bots,enemy}=tacticalArena(0,'normal',5),own=tower(g,0,15000);
+  for(const [i,h] of bots.entries())Object.assign(h,{x:14600+i*50,lane:i%3});
+  Object.assign(enemy,{x:15500,targetId:own.id});g._index();
+  const plans=tacticalWorld(g).teams[0].plans;
+  assert.equal([...plans.values()].filter(p=>p.objectiveId===own.id).length,2);
+  assert.equal(bots.filter(h=>!plans.has(h.id)).length,3,'nearby heroes must retain their normal lane duties');
+});
+
+test('fighting a tower intruder does not create a second support budget for the same defense',()=>{
+  const {g,bots,enemy}=tacticalArena(0,'normal',5),own=tower(g,0,15000);
+  for(const [i,h] of bots.entries())Object.assign(h,{x:14600+i*40,targetId:enemy.id});
+  Object.assign(enemy,{x:15500,targetId:own.id});g._index();
+  const plans=tacticalWorld(g).teams[0].plans;
+  assert.equal(plans.size,2,'defense and combat assistance must share one allocation for the same enemy group');
+  assert.ok([...plans.values()].every(p=>p.objectiveId===own.id));
+});
+
+test('a human already fighting uses a support slot without expanding the fight to five bots',()=>{
+  const {g,bots,enemy}=tacticalArena(0,'normal',5);
+  const human=g._makeHero('juggernaut',0,1,true,6);
+  Object.assign(human,{x:15000,y:10400,targetId:enemy.id,isHuman:true,aiTimer:Infinity});
+  for(const [i,h] of bots.entries())Object.assign(h,{x:14800+i*40});
+  Object.assign(enemy,{x:15400,targetId:human.id});g._index();
+  const plans=tacticalWorld(g).teams[0].plans;
+  assert.equal([...plans.values()].filter(p=>p.mode==='assist').length,1);
+  assert.ok(!plans.has(human.id));
+});
+
+test('mid defense cannot take the only assigned defender of another pressured lane',()=>{
+  const {g,bots,enemy}=tacticalArena(0,'normal',5);
+  const mid=tower(g,0,15000,10400,{lane:1}),side=tower(g,0,15000,14500,{lane:0});
+  for(const h of bots)h.lane=1;
+  Object.assign(bots[0],{x:14600,lane:0});Object.assign(bots[1],{x:14550});
+  Object.assign(enemy,{x:15500,targetId:mid.id});
+  for(let i=0;i<3;i++)g.entities.push(g._unit('creep',1,side.x+100+i*30,side.y,{maxHp:500,lane:0}));
+  g._index();const plans=tacticalWorld(g).teams[0].plans;
+  assert.equal(plans.get(bots[0].id)?.objectiveId,side.id,'the home-lane defender must answer its own simultaneous pressure');
+  assert.equal([...plans.values()].filter(p=>p.objectiveId===mid.id).length,2);
+});
+
 test('base defense overrides an unrelated fight and recruits extra support',()=>{
   const {g,bots,enemy}=tacticalArena(0,'hard',5);
   const ancient=g._unit('ancient',0,15000,10400,{maxHp:4500});g.entities.push(ancient);
@@ -67,6 +108,16 @@ test('base defense overrides an unrelated fight and recruits extra support',()=>
   g._index();const plans=tacticalWorld(g).teams[0].plans;
   assert.ok(plans.size>=3);assert.ok([...plans.values()].every(p=>p.objectiveId===ancient.id));
   assert.ok(bots.some(h=>plans.has(h.id)));
+});
+
+test('a critical low-health ancient can recall every available lane defender',()=>{
+  const {g,bots,enemy}=tacticalArena(0,'normal',5);
+  const ancient=g._unit('ancient',0,15000,10400,{maxHp:4500});ancient.hp=1000;g.entities.push(ancient);
+  for(const [i,h] of bots.entries())h.lane=i%3;
+  Object.assign(enemy,{x:15300,targetId:ancient.id});g._index();
+  const plans=tacticalWorld(g).teams[0].plans;
+  assert.equal(plans.size,5,'losing the ancient must override ordinary lane reservations');
+  assert.ok([...plans.values()].every(p=>p.objectiveId===ancient.id));
 });
 
 test('team tasks remain assigned when helpers swap their nearest distance slightly',()=>{
@@ -82,6 +133,22 @@ test('helpers already teleporting remain reserved rather than recruiting replace
   for(const h of bots)if(ids.includes(h.id))g._botTick(h,.05);
   assert.ok(bots.filter(h=>ids.includes(h.id)).every(h=>h.itemChannel?.kind==='teleport'));
   g.time=.4;g._index();assert.deepEqual([...tacticalWorld(g).teams[0].plans.keys()],ids);
+});
+
+test('new side-lane pressure cannot reassign a helper whose real support teleport is still channeling',()=>{
+  const {g,bots,enemy}=tacticalArena(0,'normal',5),mid=tower(g,0,15000,10400,{lane:1});
+  Object.assign(enemy,{x:15400,targetId:mid.id});g._index();
+  const initial=tacticalWorld(g).teams[0].plans,helpers=bots.filter(h=>initial.has(h.id));
+  for(const h of bots)h.lane=1;
+  const committed=helpers[0];committed.lane=0;
+  for(const h of helpers)g._botTick(h,.05);
+  assert.equal(committed.itemChannel?.kind,'teleport');
+  const side=tower(g,0,15000,14500,{lane:0});
+  for(let i=0;i<3;i++)g.entities.push(g._unit('creep',1,side.x+100+i*40,side.y,{lane:0}));
+  g.time=.4;g._index();const plans=tacticalWorld(g).teams[0].plans;
+  assert.equal(plans.get(committed.id)?.objectiveId,mid.id,'a TP already in flight is committed support, not an idle home-lane guard');
+  assert.equal([...plans.values()].filter(p=>p.objectiveId===mid.id).length,2);
+  assert.ok([...plans.values()].some(p=>p.objectiveId===side.id));
 });
 
 test('support does not teleport while enemies can interrupt the caster',()=>{
@@ -126,7 +193,7 @@ test('a destroyed objective releases its support assignment',()=>{
   assert.equal(tacticalPlan(g,bot),undefined);
 });
 
-for(const difficulty of ['easy','normal','hard','nightmare']){
+for(const difficulty of ['easy','normal','hard','nightmare','hell']){
   test(`${difficulty} holds a stable safe position against a higher-level hero`,()=>{
     const {g,bot,enemy}=tacticalArena(1,difficulty);enemy.x=bot.x+450;enemy.level=12;g._refreshHero(enemy);enemy.hp=enemy.maxHp;
     bot.tp=[];bot.tpMeta=[];g._index();const before=distance(bot,enemy);

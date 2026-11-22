@@ -1,9 +1,11 @@
 import { Game } from './engine.js';
+import {DIFFICULTIES} from './bot-difficulty.js';
 import { HEROES } from './data.js';
 import { ITEM_BY_ID } from './item-data.js';
 import { rebuildTrees } from './item-common.js';
 import {createIllusions} from './illusions.js';
 import {hasExpiredMatchTime,MAX_MATCH_MINUTES} from './match-clock.js';
+import {DRAFT_ROLES,laneFor} from './bot-draft.js';
 
 export const SAVE_KEY = 'af-single-match-v1';
 const VERSION = 1;
@@ -80,7 +82,7 @@ function validate(record) {
   const s = record.state;
   if (!Number.isFinite(record.savedAt) || !s || Object.keys(s).some(key => !stateFields.has(key)) ||
       s.status !== 'playing' || s.winner !== null || typeof s.paused !== 'boolean' ||
-      !HEROES[s.heroChoice] || !['easy', 'normal', 'hard', 'nightmare'].includes(s.difficulty) ||
+      !HEROES[s.heroChoice] || !DIFFICULTIES.some(d=>d.id===s.difficulty) ||
       !Number.isFinite(s.time) || s.time < 0 || !Number.isInteger(s.seed) || s.seed < 0 || s.seed > 0xffffffff ||
       !Number.isInteger(s.serial) || s.serial < 0 || !Number.isInteger(s.wave) || s.wave < 0 ||
       ![1, 2].includes(s.roshanPit) || !Array.isArray(s.score) || s.score.length !== 2 || !s.score.every(Number.isFinite) ||
@@ -123,6 +125,13 @@ export function restoreMatch(record) {
   if(hasExpiredMatchTime(state))throw new Error(`对局已超过 ${MAX_MATCH_MINUTES} 分钟，不能恢复`);
   const game = new Game({ hero: state.heroChoice, difficulty: state.difficulty, seed: state.seed });
   Object.assign(game, state);
+  // Earlier support rotations overwrote the drafted lane in saved AI state.
+  for(const unit of game.entities)if(unit.kind==='hero'&&!unit.isPlayer&&!unit.isHuman&&unit.homeLane===undefined){
+    if(DRAFT_ROLES.includes(unit.draftRole)){
+      unit.lane=laneFor(unit.draftRole,unit.team);unit.botState=null;unit.navPath=null;unit.pathIndex=0;
+    }
+    unit.homeLane=unit.lane;
+  }
   // Resume aura cleanup even when its last source died just before the checkpoint.
   game._hadCreatureAuras=game.entities.some(e=>e.creatureHpBonus||Object.values(e.statuses||{}).some(s=>s.creatureAura));
   for(const unit of [...game.entities])if(unit.kind==='illusion'){
