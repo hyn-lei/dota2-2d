@@ -13,7 +13,7 @@ const roundTripMs=Number(argument('--rtt-ms')??300),stallMs=Number(argument('--s
 if(!Number.isFinite(roundTripMs)||roundTripMs<0||roundTripMs>4000||!Number.isFinite(stallMs)||stallMs<0||stallMs>2000||!Number.isInteger(stallEvery)||stallEvery<2)throw Error('Use finite RTT/stall values and a stall interval of at least two snapshots');
 const source=resolve(argument('--source')||process.cwd()),root=resolve(argument('--root')||process.env.STATIC_ROOT||source);
 const {createCoopServer}=await import(pathToFileURL(resolve(source,'server/coop-server.mjs'))),{CoopGame}=await import(pathToFileURL(resolve(source,'server/coop-game.mjs')));
-const testGround={x:10000,y:11000};
+const testGround={x:10000,y:10880};
 const timings={step:[],snapshot:[]};
 const service=createCoopServer({root,host:'127.0.0.1',port:0,gameFactory(roster,options){
  const game=new CoopGame(roster,{...options,seed:42});
