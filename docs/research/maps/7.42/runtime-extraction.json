@@ -7,6 +7,6 @@
     "trees": 2394,
     "laneSpawns": 6
   },
-  "navigation": "Retains the separately documented 7.41 navigation snapshot",
+  "navigation": "Valve 7.42 shipped GridNav converted at exact existing world centers",
   "updates": []
 }

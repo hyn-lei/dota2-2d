@@ -166,7 +166,7 @@ test('Shiva expands at 400 units per second, follows its caster and damages each
 });
 test('Harpoon waits for its projectile, pulls ranged units by 35%, brings melee targets into range and supports trees',()=>{
  for(const hero of ['crystal_maiden','ogre_magi']){
-  const {g,p,e}=equipped('harpoon',hero);e.x=p.x+600;const start=p.x;assert.equal(g.useItem(0,e).ok,true);g.time=.29;tickWorld(g,.29);assert.equal(p.forcedMotion,undefined);
+  const {g,p,e}=equipped('harpoon',hero);for(const unit of g.entities)unit.y=10336;g._index();e.x=p.x+600;const start=p.x;assert.equal(g.useItem(0,e).ok,true);g.time=.29;tickWorld(g,.29);assert.equal(p.forcedMotion,undefined);
   g.time=.3;tickWorld(g,.01);assert.equal(e.statuses['itemSlow:harpoon'],undefined,'the slow belongs to Echo Strike, not Draw Forth');
   const endGap=e.forcedMotion.to.x-p.forcedMotion.to.x;assert.ok(Math.abs(p.forcedMotion.to.x-start-210)<1e-6);assert.ok(Math.abs(endGap-(p.range<=300?Math.max(100,p.range):180))<1e-6);
  }

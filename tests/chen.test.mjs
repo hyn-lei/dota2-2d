@@ -115,7 +115,7 @@ test('Martyrdom consumes the Zealot after its cast point and resolves a travelin
  }
 });
 test('controlled neutral casts use cast points, mana, projectile timing and independent movement; opponent units remain read only',()=>{
- const {g,p}=fixture(),unit=convert(g,p,neutral(g,'centaur_khan'));const target=foe(g,unit.x+100,unit.y),mana=unit.mana;
+ const {g,p}=fixture(),unit=convert(g,p,neutral(g,'centaur_khan',10200,10880));const target=foe(g,unit.x+100,unit.y),mana=unit.mana;
  assert.equal(g.unitCommand(unit.id,'cast',[0,target]).ok,true);g.step(.2);assert.equal(target.hp,10000);g.step(.3);assert.equal(target.hp,9973.25);assert.equal(unit.mana,mana-50);assert.ok(g.isStunned(target));
  const before={x:unit.x,y:unit.y},heroX=p.x;g.unitCommand(unit.id,'setMovement',[1,0]);g.step(.1);assert.ok(unit.x>before.x);assert.equal(p.x,heroX);assert.equal(g.unitCommand(target.id,'setMovement',[1,0]).ok,false);
  assert.equal(g.unitCommand(unit.id,'useItem',[0]).ok,false);assert.equal(g.unitCommand(unit.id,'recall',[]).ok,false);

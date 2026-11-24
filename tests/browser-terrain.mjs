@@ -145,7 +145,7 @@ try{
   checks.push('Browsers without bitmap support or with a decode failure retain a usable original-image fallback');
   assert.deepEqual(errors,[]);await writeFile('artifacts/terrain-browser-report.json',JSON.stringify({checks,pixels,reuse,errors},null,2)+'\n');
   for(const check of checks)console.log('PASS '+check);
-  await page.close();await checkTerrainMemory();await checkCropRecovery();await checkLargeBattlefield();
+  await page.close();if(!process.argv.includes('--painting-only')){await checkTerrainMemory();await checkCropRecovery();await checkLargeBattlefield();}
 }finally{await browser.close();await service?.close();}
 
 async function waitForTerrain(divisor){

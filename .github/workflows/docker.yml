@@ -86,6 +86,7 @@ jobs:
           node tests/browser-developer-time.mjs
           node tests/browser-developer-stability.mjs
           node tests/browser-collision.mjs
+          node tests/browser-map-742.mjs
           node tests/browser-terrain.mjs
           node tests/browser-illusions.mjs
           node tests/browser-illusion-coop.mjs

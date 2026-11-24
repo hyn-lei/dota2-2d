@@ -2,13 +2,17 @@
 
 Current entity update, **2026-11-21**: Valve's installed **7.42**, Steam build **26825343**, Client/Server **6989**, SourceRevision **11264029**, has now supplied all **52 building entities**, **28 neutral spawners and original PHYS spawn hulls**, **6 lane spawners and their path-corner chains**, **2,394 trees**, and map objectives. The source is `game/dota/maps/dota.vpk`; `scripts/extract-client-map.py` retains selected original binary resources, hashes and decoded gameplay fields in `maps/7.42/`. `generate-map-742.mjs` overlays these actual coordinates while preserving existing building/camp IDs. The Twin Gates are now at Source `(-2828.644775,8462.505859)` and `(2802.046143,-8448.815430)`, and the Dire fountain at `(7152,6592)`.
 
-The navigation/elevation samples, river outline and terrain image remain the separately documented **7.41** export. Compiled world rendering meshes do not provide the runtime navigation grid, so this update does not certify all 7.42 cliff traversal or vision changes. Existing viewport texture cropping and the terrain asset are retained. The historical source discussion below explains that remaining raster and navigation boundary.
+Navigation update, **2026-11-24**: the shipped `maps/dota.gnv` was located and decoded directly. All 58,965 traversable cells are retained in the existing 327 × 327, 64-unit contract; the runtime has 47,964 blocked cells. Current Steam build **26880867**, Client/Server **6993**, SourceRevision **11269454** still ships the identical map VPK SHA-256. Original binary records, exact centers and reproduction are described in [7.42 navigation sources](maps/7.42/navigation-sources.md).
+
+The user explicitly chose to keep the **7.41 high resolution photographic image** while using **7.42 navigation**. Original image bytes and projection remain unchanged. Current native overview art and exact minimap bounds are retained as research. The historical river-analysis polygon is retained but has no renderer consumer. A discrete terrain grid does not certify continuous hull geometry or complete client vision/height behavior.
 
 Verified on **2026-10-24**. Gameplay target: **7.41f**. Geometry snapshot: **7.41**.
 
 The implementation uses actual exported entity coordinates, lane paths, neutral spawn triggers, tree positions and traversal samples. It does not invent a symmetric layout. The available map export is not sufficient to certify that every collision cell is identical to the current 7.41f game binary.
 
-## Current version and changes since the geometry export
+## Historical 7.41 export context
+
+This section preserves the 2026-10-24 source investigation. It describes the previous export, not the current navigation version.
 
 Valve's [patch list JSON](https://www.dota2.com/datafeed/patchnoteslist?language=english) ends at 7.41f, released September 15, 2026. The [official 7.41f announcement](https://www.dota2.com/newsentry/677383425371407609?l=english) also explicitly mentions a geometry fix near the upper Roshan cave. Therefore the April geometry dump cannot honestly be described as a verified exact 7.41f navigation mesh.
 
@@ -101,7 +105,9 @@ Lane sources are [path_corner.json](https://github.com/leamare/dota-interactive-
 
 `MAP_OBJECTIVES` additionally exports exact positions for outposts, watchers, gates, wisdom shrines, lotus pools, Roshan points, Tormentor points, runes, and shops. `RIVER_OUTLINE` is a traced analysis polygon from gem's actual image, rather than game collision geometry.
 
-## Navigation data
+## Historical 7.41 navigation data
+
+The layout below describes the superseded source. The current module keeps this indexing contract and dimensions but uses native 7.42 traversal values.
 
 `src/nav-data.js` exports `NAV_GRID` synchronously:
 
@@ -120,11 +126,11 @@ For reference, `leamare-map_data_741.png` contains five adjacent 327 × 327 pane
 
 ## Reproduction and validation
 
-Run `node docs/research/generate-map-data.mjs` to regenerate the two source modules, building reference JSON and the unchanged asset copy. It validates all 28 camp matches and required building counts. `map-validation.json` records output counts and the image rectangle.
+Run `node docs/research/generate-map-742.mjs` for current entity/navigation output. It invokes `generate-map-terrain-742.mjs`, validates source hashes and retains the user's photographic image choice. `generate-map-data.mjs` is the historical 7.41 baseline generator and must not be used alone for the current release. `terrain-validation.json` records the native-to-runtime conversion and selected image.
 
 Additional local checks confirmed unique building names, in-bounds buildings/camps, six nonempty lane routes, the full navigation string length, and the image SHA-256. These validate transcription and projection consistency; they are not a fresh extraction from an installed 7.41f client.
 
-For a strict latest-binary collision claim, rerun the original extractor in the current Dota 2 Workshop Tools/client and replace the dump. The remaining known version risk is small geometry fixes such as the upper Roshan cave; its cells cannot safely be guessed from the announcement.
+Current traversal no longer depends on the historical Lua dump. It comes from shipped 7.42 GridNav bytes. Source height/water data were also located and retained separately; continuous collision, dynamic blockers and complete client vision behavior require their own verification.
 
 ## Attribution
 

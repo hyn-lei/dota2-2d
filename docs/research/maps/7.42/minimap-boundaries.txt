@@ -1,0 +1,21 @@
+_dotatilegrid_fogbounds_max    "9472.000000 9472.000000 0.000000"
+_dotatilegrid_fogbounds_min    "-9472.000000 -9472.000000 0.000000"
+classname                      "worldspawn"
+
+targetname                     ""
+vscripts                       ""
+classname                      "dota_minimap_boundary"
+compile_source_id              4771
+origin                         [ -9472.0, -9472.0, -512.0 ]
+angles                         [ 0.0, 0.0, 0.0 ]
+scales                         [ 1.0, 1.0, 1.0 ]
+hammeruniqueid                 "41314"
+
+targetname                     ""
+vscripts                       ""
+classname                      "dota_minimap_boundary"
+compile_source_id              4772
+origin                         [ 9472.0, 9472.0, 1536.0 ]
+angles                         [ 0.0, 0.0, 0.0 ]
+scales                         [ 1.0, 1.0, 1.0 ]
+hammeruniqueid                 "41315"

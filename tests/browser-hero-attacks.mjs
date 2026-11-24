@@ -11,7 +11,7 @@ try{
  await page.goto(process.env.GAME_URL||'http://127.0.0.1:5184',{waitUntil:'domcontentloaded'});await closeDevelopmentNotice(page);
  await page.evaluate(async()=>{const {Renderer}=await import('/src/renderer.js'),render=Renderer.prototype.render;Renderer.prototype.render=function(g,t){window.attackScene=g;window.attackRenderer=this;return render.call(this,g,t);};});
  await page.locator('[data-hero="weaver"]').click();await page.locator('#start-game').click();await page.waitForFunction(()=>window.attackScene?.time>.1);
- await page.waitForFunction(async()=>{const {loadHeroSprites}=await import('/src/hero-sprites.js');const img=loadHeroSprites();return img?.complete&&img.naturalWidth>0;});
+ await page.evaluate(async()=>{const {loadHeroSprites}=await import('/src/hero-sprites.js');const img=loadHeroSprites();await img.decode();if(!img.naturalWidth)throw Error('The actual game atlas must be decoded before capturing attack frames');});
  for(const scenario of scenarios){
  if(scenario==='melee'||scenario==='heroes'){
   const checks=await page.evaluate(async scenario=>{

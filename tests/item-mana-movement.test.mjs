@@ -50,7 +50,7 @@ test('Glimmer gives flat +20 speed after fade, keeps its shield, and expires wit
  assert.equal(p.statuses['itemBarrier:glimmer_cape'].barrier,375);g.time=6;tickStatuses(g,p,0);close(g.combatStats(p).speed,speed);
 });
 test('Wind Waker permits steering only on self; allied and enemy cyclones remain immobilized',()=>{
- const {g,p,e}=equipped('wind_waker');p.speed=300;g.useItem(0,p);assert.equal(g.isStunned(p),false);close(g.combatStats(p).speed,300);const x=p.x;g._move(p,{x:x+400,y:p.y},.1);close(p.x,x+30);
+ const {g,p,e}=equipped('wind_waker');for(const unit of g.entities)unit.y=10336;g._index();p.speed=300;g.useItem(0,p);assert.equal(g.isStunned(p),false);close(g.combatStats(p).speed,300);const x=p.x;g._move(p,{x:x+400,y:p.y},.1);close(p.x,x+30);
  const ally=g._makeHero('juggernaut',p.team,1,false,5);Object.assign(ally,{x:p.x+100,y:p.y});p.inventoryMeta[0].cooldownRemaining=0;p.itemCooldowns={};assert.equal(useItem(g,p,0,ally).ok,true);
  for(const unit of [ally,e]){if(unit===e){p.inventoryMeta[0].cooldownRemaining=0;p.itemCooldowns={};assert.equal(useItem(g,p,0,e).ok,true);}assert.equal(g.isStunned(unit),true);const position={x:unit.x,y:unit.y};g._move(unit,{x:unit.x+400,y:unit.y},.1);assert.deepEqual({x:unit.x,y:unit.y},position);}
 });

@@ -1,0 +1,25 @@
+{
+  "steamBuild": 26825343,
+  "clientVersion": 6989,
+  "sourceRevision": 11264029,
+  "steamFilesReadOnly": true,
+  "noDotaSteamProcessesLaunched": true,
+  "vrfSourceTreeRevision": "5977db6fb057d69b96b4d14d8bcc4827926e415b",
+  "binaryInputs": [
+    {
+      "path": "E:\\SteamLibrary\\steamapps\\common\\dota 2 beta\\game\\dota\\maps\\dota.vpk",
+      "sha256": "7fc24ff13fcbe6840e5b9d76beb23f681368ecd2aa8b32a1e31e3cda959bd304",
+      "bytes": 28915376
+    },
+    {
+      "path": "E:\\SteamLibrary\\steamapps\\common\\dota 2 beta\\game\\dota\\bin\\win64\\server.dll",
+      "sha256": "914f72d25d39a24e3279c1ca8de5057fa34aaec7b0a9f3d305e0616fe8bda869",
+      "bytes": 90155672
+    },
+    {
+      "path": "E:\\SteamLibrary\\steamapps\\common\\dota 2 beta\\game\\dota\\bin\\win64\\host.dll",
+      "sha256": "f0946788c68c0d368fbd2747b8fc2d3c71d83d80c3a3c1b78fd8f49f38f41367",
+      "bytes": 1419416
+    }
+  ]
+}

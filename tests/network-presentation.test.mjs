@@ -88,7 +88,8 @@ for(const action of ['keyboard','click'])test(`a snapshot arriving at a fresh ${
 });
 
 test('remote units move continuously between snapshots and all gameplay queries retain current server values',()=>{
-  const {client,state,tick,snapshot}=setup({legacy:true});client.renderView();tick(100);
+  const match=structuredClone(fixture);for(const entity of match.entities)entity.y=10336;
+  const {client,state,tick,snapshot}=setup({legacy:true,match});client.renderView();tick(100);
   const next=structuredClone(state);next.time=1.1;next.entities[1].x+=30;next.entities[1].hp-=10;snapshot(next);
   const first=client.renderView().entities[1];tick(50);const middle=client.renderView().entities[1];tick(30);const later=client.renderView().entities[1];
   assert.ok(first.x<middle.x&&middle.x<later.x&&later.x<next.entities[1].x);
@@ -128,9 +129,9 @@ test('remote extrapolation stops at known footprints and control interruptions',
 test('approaching remote heroes cannot overlap or cross each other during a receive gap',()=>{
   for(const warmup of [true,false]){
   const match=structuredClone(fixture),first=match.entities[1],second=structuredClone(enemy);
-  Object.assign(match.entities[0],{x:9600,y:11000});
-  Object.assign(first,{x:10000,y:11000,speed:300,radius:24,collisionRadius:24,moving:true});
-  Object.assign(second,{id:'approaching-remote',x:10300,y:11000,speed:300,radius:24,collisionRadius:24,moving:true});
+  Object.assign(match.entities[0],{x:9600,y:10336});
+  Object.assign(first,{x:10000,y:10336,speed:300,radius:24,collisionRadius:24,moving:true});
+  Object.assign(second,{id:'approaching-remote',x:10300,y:10336,speed:300,radius:24,collisionRadius:24,moving:true});
   match.entities.push(second);
   const {client,state,tick,snapshot}=setup({match,rttMs:700});if(warmup)client.renderView();tick(100);
   const next=structuredClone(state);next.time=1.1;next.entities[1].x=10030;next.entities[2].x=10270;snapshot(next);

@@ -127,6 +127,7 @@ test('hell ranged bots make space before an observed approaching melee hero reac
 
 test('hell aims a newly ready Multishot ahead of motion observed before the skill was available',()=>{
   const {g,bot,opponents:[enemy]}=arena('hell','drow_ranger');
+  bot.y=enemy.y=10272;
   enemy.x=bot.x+250;g._index();g._botTick(bot,0);
   g.time=1.2;g._move(enemy,{x:enemy.x+400,y:enemy.y+200},1.2,0);g._index();
   Object.assign(bot,{abilityLevels:[0,0,1,0],mana:1000});g._botTick(bot,1.2);

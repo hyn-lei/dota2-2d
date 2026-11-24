@@ -1,0 +1,152 @@
+{
+  "patch": "7.42",
+  "retrieved": "2026-11-22",
+  "steamBuild": 26825343,
+  "clientVersion": 6989,
+  "sourceRevision": 11264029,
+  "vpk": "game/dota/maps/dota.vpk",
+  "vpkSha256": "7fc24ff13fcbe6840e5b9d76beb23f681368ecd2aa8b32a1e31e3cda959bd304",
+  "resources": [
+    {
+      "file": "docs/research/maps/7.42/raw/maps/dota.gnv",
+      "vpkPath": "maps/dota.gnv",
+      "bytes": 104992,
+      "sha256": "5451e230fb49372a3dde42588cc3a330caaad8ceef280d0c4093ae73cae64588"
+    },
+    {
+      "file": "docs/research/maps/7.42/raw/maps/dota.trm",
+      "vpkPath": "maps/dota.trm",
+      "bytes": 28948,
+      "sha256": "c7cddfcdd891634dbbb32939f18c4251f3ed74a398c00b27e7c4018362984701"
+    },
+    {
+      "file": "docs/research/maps/7.42/raw/maps/dota.vhcg",
+      "vpkPath": "maps/dota.vhcg",
+      "bytes": 2370858,
+      "sha256": "24fa251fe3d972060eb25ee5101dfce5108eb2d59224df8eee7e8f7d2783de76"
+    },
+    {
+      "file": "docs/research/maps/7.42/raw/materials/overviews/dota_psd.vtex_c",
+      "vpkPath": "materials/overviews/dota_psd.vtex_c",
+      "bytes": 4196388,
+      "sha256": "deed5d6dd1035cc9547c2ee0edd9336abd0ca4cbf46bead45e52105a5c677352"
+    },
+    {
+      "file": "docs/research/maps/7.42/raw/materials/overviews/dota.vmat_c",
+      "vpkPath": "materials/overviews/dota.vmat_c",
+      "bytes": 2153,
+      "sha256": "9cc8b8330f01c223e22fa961ad11c7025a751d1711f2fac11050ad324bcc3e42"
+    },
+    {
+      "file": "docs/research/maps/7.42/raw/materials/overviews/dota_tga_d8178876.vtex_c",
+      "vpkPath": "materials/overviews/dota_tga_d8178876.vtex_c",
+      "bytes": 1050628,
+      "sha256": "6bd12841e16c747578faaee8aafdacea805a6cc8bfc5367eb08ad8fd58336196"
+    },
+    {
+      "file": "docs/research/maps/7.42/raw/resource/overviews/dota.txt",
+      "vpkPath": "resource/overviews/dota.txt",
+      "bytes": 153,
+      "sha256": "fc31a7979950863f262afd2f0c8d7a8bf5ec6ffbdc48c465aa5495cd41d4cc1d"
+    }
+  ],
+  "coordinateContract": {
+    "gameX": "sourceX+10464",
+    "gameY": "10400-sourceY",
+    "cellCenter": "gridIndex*edgeSize+offset"
+  },
+  "navigationSemantics": "GridNav:IsTraversable tests bit 0; other flags and dynamic obstacles are separate.",
+  "heightSemantics": "Raw trm/vhcg retained. Vhcg first float/detail grid is solid ground; second float is separate water. Script GetGroundHeight(nil) uses mask0x3021. No additional runtime height array is introduced.",
+  "minimapBounds": {
+    "sourceMinX": -9472,
+    "sourceMaxX": 9472,
+    "sourceMinY": -9472,
+    "sourceMaxY": 9472,
+    "worldRect": {
+      "x": 992,
+      "y": 928,
+      "width": 18944,
+      "height": 18944
+    },
+    "evidence": [
+      "maps/dota/entities/default_ents.vents_c: dota_minimap_boundary entities",
+      "resource/overviews/dota.txt"
+    ]
+  },
+  "image": {
+    "file": "docs/research/maps/7.42/decoded/dota-overview.png",
+    "sha256": "87cf09af0a313b385259360d88d9cad0b9273f45156e8064217751759eaf27b1",
+    "explicitRuntimeMaterialReferenceProven": false,
+    "runtime": {
+      "url": "assets/map-7.42-native.png",
+      "imageWidth": 1024,
+      "imageHeight": 1024,
+      "x": 992,
+      "y": 928,
+      "width": 18944,
+      "height": 18944,
+      "worldRect": {
+        "x": 992,
+        "y": 928,
+        "width": 18944,
+        "height": 18944
+      },
+      "unitsPerPixel": 18.5,
+      "source": "Valve installed 7.42 materials/overviews/dota_psd.vtex_c",
+      "sourceSha256": "deed5d6dd1035cc9547c2ee0edd9336abd0ca4cbf46bead45e52105a5c677352",
+      "projection": "Current client minimap entity bounds; full source image",
+      "explicitRuntimeMaterialReferenceProven": false
+    },
+    "geometryVersion": "7.42",
+    "extractedAt": "2026-11-22"
+  },
+  "overviewReferenceChain": [
+    "resource/overviews/dota.txt",
+    "materials/overviews/dota.vmat_c",
+    "materials/overviews/dota_tga_d8178876.vtex_c"
+  ],
+  "imageScope": "Current shipped high resolution native overview art. Runtime overview material explicitly references the 512px TGA resource; the 1024px PSD resource is retained as the high resolution variant.",
+  "imageMode": "historical",
+  "historicalImage": {
+    "file": "docs/research/Game_map_7.41.jpg",
+    "sha256": "9fb56fc131acc161fb904f6c7189c6f37c57705bac752ccf9a47e01b1b079764",
+    "geometryVersion": "7.41",
+    "extractedAt": "2026-04-03",
+    "explicitRuntimeMaterialReferenceProven": false,
+    "runtime": {
+      "url": "assets/map-7.41.jpg",
+      "imageWidth": 8878,
+      "imageHeight": 8356,
+      "x": 994.7115844901873,
+      "y": 769,
+      "width": 19466.576831019625,
+      "height": 18322,
+      "worldRect": {
+        "x": 994.7115844901873,
+        "y": 769,
+        "width": 19466.576831019625,
+        "height": 18322
+      },
+      "unitsPerPixel": 2.1926759214935374,
+      "calibrationMaxErrorWorldUnits": 66,
+      "calibrationRmsPixels": 9,
+      "squareCropPixels": {
+        "x": 261,
+        "y": 0,
+        "width": 8356,
+        "height": 8356
+      },
+      "source": "https://github.com/whanyu1212/gem-dota/blob/main/assets/maps/Game_map_7.41.jpg"
+    }
+  },
+  "verifiedAt": "2026-11-24",
+  "verifiedClient": {
+    "steamBuild": 26880867,
+    "clientVersion": 6993,
+    "sourceRevision": 11269454,
+    "versionDate": "2026-11-23",
+    "mapVpkSha256": "7fc24ff13fcbe6840e5b9d76beb23f681368ecd2aa8b32a1e31e3cda959bd304",
+    "mapUnchanged": true
+  },
+  "userImageChoice": "Keep the existing high resolution 7.41 photographic image while using current 7.42 navigation."
+}

@@ -8,3 +8,4 @@ docs/research/attacks/npc_units.txt -text -whitespace
 docs/research/hud/shops-client.txt -text -whitespace
 # Preserve the item guide snapshots with the same raw-source rules.
 docs/research/item-builds-742/default_*.txt -text -whitespace
+docs/research/maps/7.42/raw/** -text -whitespace

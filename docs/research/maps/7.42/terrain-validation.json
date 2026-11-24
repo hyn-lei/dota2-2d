@@ -1,0 +1,44 @@
+{
+  "patch": "7.42",
+  "steamBuild": 26880867,
+  "sourceSteamBuild": 26825343,
+  "nativeGrid": {
+    "edge": 64,
+    "offsetX": 32,
+    "offsetY": 32,
+    "width": 320,
+    "height": 328,
+    "minX": -160,
+    "minY": -168
+  },
+  "runtimeGrid": {
+    "cellSize": 64,
+    "cols": 327,
+    "rows": 327,
+    "origin": {
+      "x": 0,
+      "y": 0
+    },
+    "originX": 0,
+    "originY": 0,
+    "terrainOnly": true,
+    "geometryVersion": "7.42",
+    "blockedCount": 47964,
+    "source": "maps/dota.gnv",
+    "sourceSha256": "5451e230fb49372a3dde42588cc3a330caaad8ceef280d0c4093ae73cae64588",
+    "steamBuild": 26880867,
+    "sourceSteamBuild": 26825343
+  },
+  "outsideSourceGridCount": 3249,
+  "image": {
+    "file": "assets/map-7.41.jpg",
+    "sha256": "9fb56fc131acc161fb904f6c7189c6f37c57705bac752ccf9a47e01b1b079764",
+    "worldRect": {
+      "x": 994.7115844901873,
+      "y": 769,
+      "width": 19466.576831019625,
+      "height": 18322
+    },
+    "geometryVersion": "7.41"
+  }
+}
