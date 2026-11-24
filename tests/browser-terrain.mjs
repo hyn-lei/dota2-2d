@@ -264,7 +264,7 @@ async function checkLargeBattlefield(){
     const corridor=await large.evaluate(()=>{
       const game=largeGame;
       game.time=180;game.nextWave=210;game.nextNeutralSpawn=240;game._spawnCamps();for(let i=0;i<4;i++)game._spawnWave();
-      Object.assign(game.player,game.navigation.nearestWalkable({x:10000,y:11000}));game._index();largeRenderer.center(game.player);
+      Object.assign(game.player,game.navigation.nearestWalkable({x:10000,y:10880}));game._index();largeRenderer.center(game.player);
       return game.navigation.lineClear(game.player,{x:game.player.x+450,y:game.player.y})&&game.navigation.lineClear(game.player,{x:game.player.x-450,y:game.player.y});
     });
     assert.ok(corridor,'the movement probe needs a clear corridor');
