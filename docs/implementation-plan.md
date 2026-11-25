@@ -2,6 +2,8 @@
 
 This completed plan records the original three-hero baseline. Subsequent user requests added Axe and Kunkka; `docs/axe-plan.md` and `docs/kunkka-plan.md` extend and supersede the original roster count. Current behavior is documented in `docs/design.md` and README.
 
+Current unfinished user requests and the recurring development-session workflow are tracked in [the ongoing parity backlog](superpowers/plans/2026-11-25-parity-backlog.md) and AGENTS.md. This historical plan's original roster, publishing and delegation instructions do not define the current project workflow.
+
 > For agentic workers: apply superpowers:subagent-driven-development for bounded simulation work; the owner integrates UI and renderer.
 
 **Goal:** Deliver a playable local 2D MOBA with a finished lobby, three hero styles, bot combat and a complete win/loss flow.
