@@ -83,7 +83,7 @@ export function executeCommand(game, actorId, message) {
     }
     if(action==='attackTarget') {
       const target=game.entities.find(e=>e.id===a[0]);
-      if(!target||target.dead||target.hp<=0||target.team===actor.team) return fail('无效的攻击目标');
+      if(!game.canAttackTarget(actor,target)) return fail('无效的攻击目标');
     }
     if(action==='pickupItem') return game.pickupOrApproach(a[0]);
     const result=game[action](...a);

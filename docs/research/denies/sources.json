@@ -1,0 +1,33 @@
+{
+    "retrieved":  "2026-11-25",
+    "baseline":  "7.42",
+    "latestOfficialPatch":  "7.42a",
+    "tutorial":  {
+                     "url":  "https://raw.githubusercontent.com/SteamTracking/GameTracking-Dota2/76ab89451c1384c2e106b676258c6e9f72787e11/game/dota/pak01_dir/resource/localization/dota_english.txt",
+                     "commit":  "76ab89451c1384c2e106b676258c6e9f72787e11",
+                     "upstreamSha256":  "100470a63af4e1118e07654aa9ce9fa11250b232ed6af0751482c5bc83cbc2d0",
+                     "file":  "tutorial-deny-tokens.txt",
+                     "sha256":  "4111d584cfe245ba95a4823dcda1011af61c86537d840215f67df69f3042d32a",
+                     "normalization":  "Extracted original DOTA_Tutorial_LastHit_DenyExplanation1/2/3 token lines; UTF-8 without BOM; LF endings."
+                 },
+    "officialSnapshots":  [
+                              {
+                                  "file":  "patch-7.26b.json",
+                                  "url":  "https://www.dota2.com/datafeed/patchnotes?version=7.26b\u0026language=english",
+                                  "sha256":  "50b7e9130e55f57f1537866c1591c69c91d8c308a8d0e9de50836c41a2484673",
+                                  "normalization":  "None; HTTP response bytes retained."
+                              },
+                              {
+                                  "file":  "patch-7.42a.json",
+                                  "url":  "https://www.dota2.com/datafeed/patchnotes?version=7.42a\u0026language=english",
+                                  "sha256":  "e0a08c6ceca0fa3d7900d9644f1db0d76a970ae07feeb53b518c30cda13d3770",
+                                  "normalization":  "None; HTTP response bytes retained."
+                              },
+                              {
+                                  "file":  "patch-list-2026-11-25.json",
+                                  "url":  "https://www.dota2.com/datafeed/patchnoteslist?language=english",
+                                  "sha256":  "5e330517771f89b44c080e643bc9ea1bcd515053dbbe2a243d47f559e4de4218",
+                                  "normalization":  "None; HTTP response bytes retained."
+                              }
+                          ]
+}

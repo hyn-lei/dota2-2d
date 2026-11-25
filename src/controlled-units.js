@@ -19,11 +19,12 @@ function zealotTick(game,unit,owner,dt){
   return;
  }
  const valid=target=>target&&!target.dead&&target.hp>0&&target.team!==unit.team&&game.canSee(unit,target)&&!Skills.isInvulnerable(game,target)&&!game.isProtected(target);
+ const validOrder=target=>valid(target)||game.canDenyTarget(unit,target)&&game.canSee(unit,target)&&!Skills.isInvulnerable(game,target)&&!game.isProtected(target);
  let target;
  if(mode==='follow'&&owner?.explicitTarget){const enemy=game.entities.find(e=>e.id===owner.explicitTarget);if(valid(enemy)){unit.explicitTarget=enemy.id;unit.creatureOrder=mode='attack';}}
  if(mode==='attack'){
   target=game.entities.find(e=>e.id===unit.explicitTarget);
-  if(!valid(target)){unit.explicitTarget=null;unit.targetId=null;unit.creatureOrder=mode='hunt';target=null;}
+  if(!validOrder(target)){unit.explicitTarget=null;unit.targetId=null;unit.creatureOrder=mode='hunt';target=null;}
  }
  if(mode==='hunt'){
   target=game.entities.find(e=>e.id===unit.huntTargetId);
@@ -35,7 +36,7 @@ function zealotTick(game,unit,owner,dt){
   if(!target){unit.creatureOrder=mode='follow';unit.targetId=null;}
  }
  if(target){
-  unit.targetId=target.id;game._controlledAbility(unit,target);
+  unit.targetId=target.id;if(target.team!==unit.team)game._controlledAbility(unit,target);
   if(!unit.neutralCast&&!game._attack(unit,target))game._move(unit,target,dt,unit.range+(target.radius||0)-3);
  }else if(owner&&!owner.dead&&owner.hp>0&&Math.hypot(unit.x-owner.x,unit.y-owner.y)>130)game._move(unit,owner,dt,110);
 }

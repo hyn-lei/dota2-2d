@@ -216,7 +216,7 @@ function startGame(providedGame=null,resume=false){
     if(target?.kind==='droppedItem'&&e.button===2){const result=await game.pickupOrApproach(target.id);if(result.approaching)toast('靠近后拾取物品');else if(!result.ok)toast(result.reason);updateHud();return;}
     if(e.button===0){game.selectEntity(target?.id||game.player.id);updateHud();return;}
     if(e.button!==2||game.paused||game.controlledUnit.dead)return;
-    if(target&&target.team!==game.player.team){controlledAction('attackTarget',[target.id]);renderer.mark(target.x,target.y);}else{controlledAction('moveTo',[p.x,p.y]);renderer.mark(p.x,p.y);}
+    if(game.canAttackTarget(game.controlledUnit,target)){controlledAction('attackTarget',[target.id]);renderer.mark(target.x,target.y);}else{controlledAction('moveTo',[p.x,p.y]);renderer.mark(p.x,p.y);}
   });
   refreshBindingHints();
   $('#pause-button').onclick=()=>openModal('pause');$('.match-brand').onclick=()=>openModal('pause');$('#guide-button').onclick=()=>openModal('guide');

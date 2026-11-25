@@ -81,6 +81,7 @@ jobs:
           node tests/browser-selected-hud.mjs
           node tests/browser-unit-skills.mjs
           node tests/browser-economy.mjs
+          node tests/browser-denies.mjs
           node tests/browser-keybindings.mjs
           node tests/browser-developer-mode.mjs
           node tests/browser-developer-time.mjs

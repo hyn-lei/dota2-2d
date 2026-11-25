@@ -139,7 +139,9 @@ npm run dev
 
 线上生产构建为入口脚本、全部 ES 模块和样式添加统一的内容版本，刷新网页后可以绕过此前缓存的旧 AI 代码。线上单人新局、旧存档恢复和四小时旧缓存回归见 [线上验证记录](docs/verification/2026-11-12-online-single-player-cache.md)。
 
-本项目采用 Canvas 二维形象、移动和技能表现。实体、树木与导航使用 7.42 客户端数据；2026-11-24 核对的新客户端仍提供相同地图包。按用户选择保留 7.41 高清实景底图，实际寻路已使用原始 7.42 通行格。战争迷雾、反补、连续原生碰撞、隐藏技能时序与全部英雄型单位例外尚未达到客户端等价。狂热者的跟随、待命、索敌和成长沿用用户指定规则；砍树会更新通路并留下树桩。当前已核实行为和逐项边界见[英雄覆盖](docs/heroes-742-coverage.md)、[物品覆盖](docs/item-742-coverage.md)、[世界覆盖](docs/research/world-7.42-coverage.md)。其他来源：[地图](docs/research/map-sources.md)、[属性](docs/research/attributes-sources.md)、[单位](docs/research/units-sources.md)、[技能](docs/research/abilities-sources.md)、[加点](docs/research/progression-sources.md)。
+右键生命低于半血的友方兵线小兵可发出普通攻击进行反补；反补无金币，敌方附近存活英雄平分正常经验的 50%，幻象和受控单位的反补计给英雄所有者。建筑/英雄反补、恰好半血与特殊攻击触发仍待核验，详见[反补来源与边界](docs/deny-runtime-sources.md)。
+
+本项目采用 Canvas 二维形象、移动和技能表现。实体、树木与导航使用 7.42 客户端数据；2026-11-24 核对的新客户端仍提供相同地图包。按用户选择保留 7.41 高清实景底图，实际寻路已使用原始 7.42 通行格。战争迷雾、反补的剩余边界、连续原生碰撞、隐藏技能时序与全部英雄型单位例外尚未达到客户端等价。狂热者的跟随、待命、索敌和成长沿用用户指定规则；砍树会更新通路并留下树桩。当前已核实行为和逐项边界见[英雄覆盖](docs/heroes-742-coverage.md)、[物品覆盖](docs/item-742-coverage.md)、[世界覆盖](docs/research/world-7.42-coverage.md)。其他来源：[地图](docs/research/map-sources.md)、[属性](docs/research/attributes-sources.md)、[单位](docs/research/units-sources.md)、[技能](docs/research/abilities-sources.md)、[加点](docs/research/progression-sources.md)。
 
 ## 检查与构建
 

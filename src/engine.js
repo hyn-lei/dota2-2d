@@ -25,6 +25,7 @@ import {disableDeveloperMode,tickDeveloperMode} from './developer-mode.js';
 import * as Chen from './chen-runtime.js';
 import * as Creatures from './neutral-runtime.js';
 import * as WorldRuntime from './world-runtime.js';
+import * as Denies from './deny-runtime.js';
 import {illusion as createItemIllusions} from './item-common.js';
 import {ownsControlledUnit,isControlledCreature,controlUnit,setCreatureOrder} from './controlled-units.js';
 
@@ -275,7 +276,7 @@ export class Game {
   attackTarget(id) {
     if (!this._canAct().ok || this._tauntSource(this.player)) return;
     const target = this.entities.find(e => e.id === id);
-    if (!target || !alive(target) || target.team === this.player.team) return;
+    if (!this.canAttackTarget(this.player,target)) return {ok:false,reason:'无效的攻击目标'};
     Skills.interruptCast(this,this.player,true);
     this.player.recallTimer = 0;
     this.player.destination = null;
@@ -285,6 +286,9 @@ export class Game {
     if(this.player.zealot)this.player.movementInput={x:0,y:0};
     this.player.navPath=null;
   }
+
+  canDenyTarget(source,target) { return Denies.canDenyTarget(source,target,this._combatOwner(source)); }
+  canAttackTarget(source,target) { return Denies.canAttackTarget(source,target,this._combatOwner(source)); }
 
   _point(x, y) { return {x:clamp(x, 25, WORLD.width - 25), y:clamp(y, 25, WORLD.height - 25)}; }
 
@@ -338,8 +342,9 @@ export class Game {
   }
 
   damage(target, amount, source, type='physical', options={}) {
+    if(options.attack&&(options.deny||source&&source.team===target?.team)&&(!options.deny||!this.canDenyTarget(source,target)))return 0;
     if (!target || !alive(target) || this.status !== 'playing' || !Number.isFinite(amount) || amount <= 0) return 0;
-    if (source && source.team === target.team) return 0;
+    if (source && source.team === target.team && !options.deny) return 0;
     if (this.isProtected(target)||target.kind==='droppedItem') return 0;
     if(target.attackImmune&&options.attack)return 0;
     if(target.pipHealth||target.kind==='ward'||target.kind==='courier'){
@@ -391,6 +396,7 @@ export class Game {
 
   _kill(target, source) {
     if(target.dead)return;
+    const denied=Denies.isLaneCreep(target)&&source?.team===target.team;
     if(target.kind==='courier'){Courier.courierDied(this,target,source);return;}
     target.dead = true;
     target.hp = 0;
@@ -433,7 +439,10 @@ export class Game {
     } else if(target.kind==='weaverBeetle'){
       if(source?.kind==='hero')source.gold+=ItemRuntime.creepBounty(this,source,target);
     } else if (target.kind === 'creep' || target.kind==='neutral'||target.kind==='summon'||target.dominatedBy) {
-      if (source?.kind === 'hero') {
+      if (denied&&source?.kind==='hero') {
+        source.denies=(source.denies||0)+1;
+        this._effect('text',target.x,target.y-60,{text:'反补',color:TEAM_COLORS[target.team],life:.8});
+      } else if (source?.kind === 'hero') {
         source.lastHits++;
         const gold=ItemRuntime.creepBounty(this,source,target);
         source.gold += gold;
@@ -469,7 +478,7 @@ export class Game {
     WorldRuntime.campDeath(this,target,source);
     if (fighter(target)||target.kind==='weaverBeetle'&&source) {
       const nearby = this.entities.filter(h => h.kind === 'hero' && alive(h) && h.team !== target.team && distance(h, target) < 1500);
-      const xp = (target.kind === 'hero' ? 100 + target.level * 40 : target.xpBounty||0) / Math.max(1, nearby.length);
+      const xp = (target.kind === 'hero' ? 100 + target.level * 40 : (target.xpBounty||0)*(denied?.5:1)) / Math.max(1, nearby.length);
       for (const h of nearby) this._addXp(h, xp);
     }
   }
@@ -795,23 +804,31 @@ export class Game {
   }
 
   _attack(e,target,options={}) {
+    if(target?.team===e.team&&!this.canDenyTarget(e,target))return false;
     if(!target||!alive(target)&&!options.weaverGeminate||!alive(e)||!options.spinAttack&&(this.isStunned(e)||!options.weaverGeminate&&Skills.hasStatusFlag(this,e,'disarmed'))||!this.canSee(e,target)||target.attackImmune||
       (e.castPhase||e.channel||e.omnislash||e.neutralCast||e.neutralChannel||e.creatureMotion)&&!options.omni&&!options.spinAttack&&!options.weaverGeminate||Skills.isInvulnerable(this,target)||
       !options.weaverGeminate&&distance(e,target)>(options.chaosCharge?150+(e.spellAoE||0):(this.combatStats(e,target).range||e.range))+target.radius+8||e.attackCooldown>0&&!options.attackReleased)return false;
     if((e.heroId==='weaver'||e.heroId==='ogre_magi'||e.heroId==='drow_ranger'||e.heroId==='chen'||e.heroId==='chaos_knight'||isControlledCreature(e))&&!options.attackReleased&&!options.omni&&!options.spinAttack&&!options.chaosCharge){
       const stats=this.combatStats(e,target),duration=(e.attackPoint||attackProfile(e).attackPoint)*100/stats.attackSpeed;
       e.angle=Math.atan2(target.y-e.y,target.x-e.x);e.attackFlash=duration+.1;e.targetId=target.id;
-      e.attackPhase={targetId:target.id,startedAt:this.time,executeAt:this.time+duration,options};e.attackCooldown=stats.attackInterval;return true;
+      e.attackPhase={targetId:target.id,targetTeam:target.team,startedAt:this.time,executeAt:this.time+duration,options};e.attackCooldown=stats.attackInterval;return true;
     }
     e.angle=Math.atan2(target.y-e.y,target.x-e.x);e.attackFlash=.24;e.targetId=target.id;
     Weaver.breakShukuchiInvisibility(this,e);
     WorldRuntime.breakRuneInvisibility(this,e);
-    const modifiers=Skills.attackModifiers(this,e,target,options);
-    const trueStrike=ItemRuntime.trueStrike(this,e,target,modifiers);
-    const result=ItemRuntime.attackModifiers(this,e,target,modifiers);e.attackCooldown=result.interval;
-    Creatures.creatureAttackModifiers(this,e,target,result);
-    result.trueStrike=trueStrike||result.marksmanship;result.itemAttackProcs=[...(e.itemAttackProcs||[])];
-    Weaver.triggerGeminate(this,e,target,options,result);
+    let result;
+    if(e.team===target.team){
+      const stats=this.combatStats(e);
+      result={damage:stats.damage*(e.kind==='illusion'?(e.illusionOutgoing||0):1),interval:stats.attackInterval,deny:true,trueStrike:true};
+    }else{
+      const modifiers=Skills.attackModifiers(this,e,target,options);
+      const trueStrike=ItemRuntime.trueStrike(this,e,target,modifiers);
+      result=ItemRuntime.attackModifiers(this,e,target,modifiers);
+      Creatures.creatureAttackModifiers(this,e,target,result);
+      result.trueStrike=trueStrike||result.marksmanship;result.itemAttackProcs=[...(e.itemAttackProcs||[])];
+      Weaver.triggerGeminate(this,e,target,options,result);
+    }
+    e.attackCooldown=result.interval;
     if(isRangedAttack(e))launchAttack(this,e,target,result);
     else{this._hitAttack(e,target,result);this._effect('slash',e.x,e.y,attackVisualFields(e,target));}
     return true;
@@ -819,20 +836,23 @@ export class Game {
 
   _hitAttack(e,target,result){
     if(!alive(target)||Skills.isInvulnerable(this,target))return;
+    if(result.deny?!this.canDenyTarget(e,target):e.team===target.team)return;
     const evasion=this.combatStats(target).evasion;
     if(!result.trueStrike&&evasion&&this._random()*100<evasion){Skills.onAttackMiss?.(this,e,target);this._effect('text',target.x,target.y-40,{text:'MISS',life:.5,color:'#bfcdb1'});return;}
-    result.damage=Skills.attackImpactDamage(this,target,result);
+    if(!result.deny)result.damage=Skills.attackImpactDamage(this,target,result);
     let dealt=0;
-    dealt=this.damage(target,result.damage,e,'physical',{attack:true,itemPotency:result.itemPotency,ignoreBaseArmor:result.marksmanship,armorIgnorePct:result.cleave?.values.pierces_armor||0});
-    Skills.afterAttack(this,e,target,result,dealt);
-    ItemRuntime.afterAttack(this,e,target,result,dealt);
-    Creatures.creatureAfterAttack(this,e,target,result,dealt);
+    dealt=this.damage(target,result.damage,e,'physical',{attack:true,deny:result.deny,itemPotency:result.itemPotency,ignoreBaseArmor:result.marksmanship,armorIgnorePct:result.cleave?.values.pierces_armor||0});
+    if(!result.deny){
+      Skills.afterAttack(this,e,target,result,dealt);
+      ItemRuntime.afterAttack(this,e,target,result,dealt);
+      Creatures.creatureAfterAttack(this,e,target,result,dealt);
+    }
     if(isRangedAttack(e))this._effect('burst',target.x,target.y,{visual:'attackImpact',radius:e.kind==='tower'?70:45,life:.28,color:attackVisualFields(e,target).color});
   }
 
   _resolveOgreAttack(e){
     const phase=e.attackPhase,target=this.entities.find(t=>t.id===phase.targetId&&alive(t)),taunt=this._tauntSource(e);
-    if(!alive(e)||!target||this.isStunned(e)||Skills.hasStatusFlag(this,e,'disarmed')||e.castPhase||e.channel||e.neutralCast||e.neutralChannel||e.forcedMotion||taunt&&taunt.id!==target.id){e.attackPhase=null;e.attackCooldown=0;return;}
+    if(!alive(e)||!target||phase.targetTeam!==undefined&&phase.targetTeam!==target.team||this.isStunned(e)||Skills.hasStatusFlag(this,e,'disarmed')||e.castPhase||e.channel||e.neutralCast||e.neutralChannel||e.forcedMotion||taunt&&taunt.id!==target.id){e.attackPhase=null;e.attackCooldown=0;return;}
     if(phase.executeAt>this.time+1e-7)return;e.attackPhase=null;
     const elapsed=this.time-phase.startedAt;
     if(this._attack(e,target,{...phase.options,attackReleased:true}))e.attackCooldown=Math.max(0,e.attackCooldown-elapsed);else e.attackCooldown=0;
@@ -958,7 +978,7 @@ export class Game {
       if(!item)h.pickupTargetId=null;
       else if(distance(h,item)<=250){Inventory.pickupItem(this,h,item);h.pickupTargetId=null;h.destination=null;h.navPath=null;}
     }
-    let target = h.explicitTarget ? this.entities.find(e => e.id === h.explicitTarget && alive(e)) : null;
+    let target = h.explicitTarget ? this.entities.find(e => e.id === h.explicitTarget && this.canAttackTarget(h,e)) : null;
     if (h.explicitTarget && !target) { h.explicitTarget = null; h.targetId = null; }
     const input=h.movementInput||this.keyboard;
     if(!target&&weakIllusion(h)&&!input.x&&!input.y&&!h.destination)target=this._chooseIllusionTarget(h);
