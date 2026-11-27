@@ -289,7 +289,7 @@ export class Game {
 
   canDenyTarget(source,target) {
     if(!Denies.canDenyTarget(source,target,this._combatOwner(source)))return false;
-    return target.kind!=='tower'||!(target.attackImmune||this.isProtected(target)||Skills.isInvulnerable(this,target));
+    return !building(target)||!(target.attackImmune||this.isProtected(target)||Skills.isInvulnerable(this,target));
   }
   canAttackTarget(source,target) {
     return !!(source&&target&&alive(source)&&alive(target)&&(source.team!==target.team||this.canDenyTarget(source,target)));
@@ -382,7 +382,7 @@ export class Game {
     value=ItemRuntime.incomingDamage(this,target,value,source,type,options);
     value*=Math.max(0,1+(target.incomingDamagePct||0)/100);
     value=Math.min(target.hp,value);
-    if(options.deny&&target.backdoorActive&&target.kind==='tower'){
+    if(options.deny&&target.backdoorActive&&building(target)){
       target.backdoorHealth=Math.max(target.hp,target.backdoorHealth??target.hp)-value;
     }
     target.hp = Math.max(0, target.hp - value);
@@ -479,10 +479,13 @@ export class Game {
         this._feed(`${target.name}已被摧毁`,1-target.team);
       }
     } else if(target.kind==='barracks') {
-      for(const h of this.entities)if(h.kind==='hero'&&h.team!==target.team)h.gold+=target.barracksType==='melee'?125:100;
-      if(source?.kind==='hero')source.gold+=100;
+      const denied=source?.team===target.team;
+      const teamBounty=target.barracksType==='melee'?125:100;
+      for(const h of this.entities)if(h.kind==='hero'&&h.team!==target.team)h.gold+=teamBounty;
+      if(!denied&&source?.kind==='hero')source.gold+=100;
       this._buildingArmor();
-      this._feed(`${target.team?'夜魇':'天辉'} ${['上路','中路','下路'][target.lane]}${target.barracksType==='melee'?'近战':'远程'}兵营已摧毁，该路兵线升级`,1-target.team);
+      const result=denied?'已被反补':'已摧毁';
+      this._feed(`${target.team?'夜魇':'天辉'} ${['上路','中路','下路'][target.lane]}${target.barracksType==='melee'?'近战':'远程'}兵营${result}，该路兵线升级`,denied?target.team:1-target.team);
     } else if(target.kind==='filler') {
       if(source?.kind==='hero')source.gold+=target.bounty;
     } else if (target.kind === 'ancient') {

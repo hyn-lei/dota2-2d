@@ -25,7 +25,7 @@ test('friendly lane deny rejects half-health and ineligible allies without chang
  const {g,p,c}=scene();p.explicitTarget='previous';c.hp=150;
  g.attackTarget(c.id);assert.equal(p.explicitTarget,'previous');assert.equal(g._attack(p,c),false);
  c.hp=149;g.attackTarget(c.id);assert.equal(p.explicitTarget,c.id);
- for(const kind of ['hero','barracks','filler','ancient','fountain','summon','neutral']){
+ for(const kind of ['hero','filler','ancient','fountain','summon','neutral']){
   const ally=g._unit(kind,p.team,p.x+60,p.y,{hp:1,maxHp:300,lane:1});g.entities.push(ally);
   p.explicitTarget='previous';g.attackTarget(ally.id);assert.equal(p.explicitTarget,'previous',kind);assert.equal(g._attack(p,ally),false,kind);
  }
@@ -116,15 +116,22 @@ test('authority and network use the same lane deny eligibility and settlement',a
  client.applySnapshot(snapshotState(g));assert.equal(client.player.denies,1);
 });
 
-function towerScene(game=new Game(),tier=1){
- const tower=game.entities.find(e=>e.kind==='tower'&&e.team===game.player.team&&e.tier===tier&&e.lane===1);
+function buildingScene(game,building){
  const ally=game.entities.find(e=>e.kind==='hero'&&e.team===game.player.team&&e!==game.player);
  const {g,p,enemy}=scene(game.player.heroId,game);
- Object.assign(tower,{x:p.x+150,y:p.y,armor:0,baseArmor:0});
+ Object.assign(building,{x:p.x+150,y:p.y,armor:0,baseArmor:0});
  Object.assign(ally,{x:4000,y:4000});
  Object.assign(enemy,{x:17000,y:17000,dead:true,hp:0,respawnTimer:60});
- g.entities=[p,ally,tower,enemy];g._index();
- return {g,p,ally,tower,enemy};
+ g.entities=[p,ally,building,enemy];g._index();
+ return {g,p,ally,enemy};
+}
+function towerScene(game=new Game(),tier=1){
+ const tower=game.entities.find(e=>e.kind==='tower'&&e.team===game.player.team&&e.tier===tier&&e.lane===1);
+ return {...buildingScene(game,tower),tower};
+}
+function barracksScene(game=new Game(),type='melee'){
+ const barracks=game.entities.find(e=>e.kind==='barracks'&&e.team===game.player.team&&e.barracksType===type&&e.lane===1);
+ return {...buildingScene(game,barracks),barracks};
 }
 
 test('tower deny requires below ten percent and splits gold without a last-hit bonus',()=>{
@@ -187,4 +194,65 @@ test('destroying an enemy tower still grants team gold and the last hitter bonus
  attack(g,p,tower);
  assert.equal(tower.dead,true);
  assert.equal(p.gold-gold,175);assert.equal(ally.gold-allyGold,75);assert.equal(enemy.gold,enemyGold);
+});
+
+test('melee barracks deny grants only the enemy team bounty and upgrades its melee wave',()=>{
+ const game=new Game(),baseTower=game.entities.find(e=>e.kind==='tower'&&e.team===game.player.team&&e.tier===4);
+ const {g,p,ally,enemy,barracks}=barracksScene(game);
+ g.entities.push(baseTower);
+ g._buildingArmor();
+ const heroes=[p,ally,enemy],gold=heroes.map(h=>h.gold),xp=heroes.map(h=>h.xp);
+ const protectedArmor=baseTower.armor;
+ barracks.hp=barracks.maxHp*.1;
+ assert.equal(g.attackTarget(barracks.id).ok,false);
+ barracks.hp=1;
+ attack(g,p,barracks);
+ assert.equal(barracks.dead,true);
+ assert.deepEqual(heroes.map((h,i)=>h.gold-gold[i]),[0,0,125]);
+ assert.deepEqual(heroes.map(h=>h.xp),xp);
+ assert.equal(baseTower.armor,protectedArmor-4);
+ g._spawnWave();
+ const lane=g.entities.filter(e=>e.kind==='creep'&&e.team===enemy.team&&e.lane===barracks.lane);
+ assert.ok(lane.some(e=>!e.ranged&&e.upgrade==='super'));
+ assert.ok(lane.some(e=>e.ranged&&e.upgrade==='normal'));
+});
+
+test('authority denies exposed ranged barracks on projectile impact and grants full opposing team gold',async()=>{
+ const game=new CoopGame([{heroId:'windranger',name:'Player',clientId:'deny:barracks'}],{fillWithAI:true});
+ const guard=game.entities.find(e=>e.kind==='tower'&&e.team===game.player.team&&e.tier===3&&e.lane===1);
+ const {g,p,barracks,enemy}=barracksScene(game,'ranged');
+ const client=new NetworkGame({state:snapshotState(g),playerId:p.id,request:(action,args)=>Promise.resolve(executeCommand(g,p.id,command(action,args)))});
+ barracks.hp=1;
+ g.entities.push(guard);
+ assert.equal((await client.attackTarget(barracks.id)).ok,false);
+ g.entities.pop();
+ assert.equal(executeCommand(g,p.id,command('useGlyph',[])).ok,true);
+ assert.equal((await client.attackTarget(barracks.id)).ok,false);
+ g.time+=8;
+ const gold=p.gold,enemyGold=enemy.gold;
+ client.applySnapshot(snapshotState(g));
+ assert.equal(client.canAttackTarget(client.player,client.entities.find(e=>e.id===barracks.id)),true);
+ assert.equal((await client.attackTarget(barracks.id)).ok,true);
+ g._playerTick(p,.01);
+ assert.equal(barracks.dead,false);
+ assert.equal(enemy.gold,enemyGold);
+ g.time+=1;tickAttacks(g);
+ assert.equal(barracks.dead,true);
+ assert.equal(p.gold,gold);
+ assert.equal(enemy.gold-enemyGold,100);
+ client.applySnapshot(snapshotState(g));
+ assert.equal(client.entities.find(e=>e.id===barracks.id).dead,true);
+});
+
+test('backdoor repairs enemy damage without undoing barracks deny damage',()=>{
+ const {g,p,barracks,enemy}=barracksScene();
+ Object.assign(barracks,{hp:100,hpRegen:0});
+ g._updateBackdoor();
+ g.damage(barracks,20,enemy,'pure');
+ assert.equal(barracks.hp,90);
+ attack(g,p,barracks);
+ const deniedDamage=90-barracks.hp;
+ assert.ok(deniedDamage>0&&barracks.hp>0);
+ g.step(.2);
+ assert.equal(barracks.hp,100-deniedDamage);
 });
