@@ -1,12 +1,14 @@
-# 兵线反补规则与边界
+# 反补规则与边界
 
-核对日期：2026-11-25。本项目验收基线为 7.42；Valve 官方补丁列表目前最新为 **7.42a**，本次只核对与反补有关的资料，不将全项目旧快照改称 7.42a。
+核对日期为 2026-11-27。项目以 7.42 验收，当天 Valve 最新补丁为 **7.42a**，其中没有反补或防御塔赏金变更。[官方补丁列表](https://www.dota2.com/datafeed/patchnoteslist?language=english) · [7.42a](https://www.dota2.com/patches/7.42a)
 
 ## 可追溯依据
 
 - Valve 客户端教程 `DOTA_Tutorial_LastHit_DenyExplanation1/2`：对友方小兵打出致命一击称为反补；可以强制攻击生命低于一半的友方小兵。通过 SteamTracking/GameTracking-Dota2 固定提交 `76ab89451c1384c2e106b676258c6e9f72787e11` 的 `game/dota/pak01_dir/resource/localization/dota_english.txt` 获取，原始三条教程字符串保存在 [tutorial-deny-tokens.txt](research/denies/tutorial-deny-tokens.txt)。这是官方文本镜像，不是本次客户端实测。
 - [Valve 7.26b](https://www.dota2.com/patches/7.26b)：`Denies no longer grant gold`、`Deny XP given to enemies increased from 40% to 50%`。原始接口响应保存在 [patch-7.26b.json](research/denies/patch-7.26b.json)。本次采用这两条明确规则；7.42 与 [7.42a](https://www.dota2.com/patches/7.42a) 的补丁条目没有新的反补修改。
 - [sources.json](research/denies/sources.json) 保存获取地址、固定版本和 SHA256；官方列表与 7.42a 原始响应分别保存，来源快照与运行时代码分开维护。
+- Valve 客户端术语表写明防御塔血量低于指定百分比时可反补。原始文本保留百分比变量，10% 数值和双方各获原团队赏金一半的规则取自社区资料，防御塔末击赏金的排除也有术语表支持。边界取术语表的 “below” 和社区建筑条目的 “less than”。[术语表原文](research/denies/glossary-deny-tokens.txt) · [社区反补资料](https://dota2.fandom.com/wiki/Deny#Denying_towers) · [社区建筑赏金资料](https://dota2.fandom.com/wiki/Buildings#Tower_Bounty)
+- Valve 7.42 修改了一、二、四塔的每人团队赏金和各级塔末击赏金。6.82 官方补丁已注明反补塔赏金为 50%，当前双方的具体分配用上方社区资料补足。偷塔保护只修复敌方伤害也见社区建筑条目。[Valve 7.42](https://www.dota2.com/patches/7.42) · [Valve 6.82](https://www.dota2.com/rekindlingsoul) · [社区偷塔保护资料](https://dota2.fandom.com/wiki/Buildings#Backdoor_Protection)
 
 ## 当前可用行为（B1.1）
 
@@ -16,11 +18,19 @@
 
 `deny-runtime.js` 的判定由本地攻击、权威服务器命令和界面查询共用。收益在共享 `Game._kill` 结算；`denies` 与在途攻击结果随实体存档/联机快照传递，旧存档没有计数时从零累加。已释放弹道保留原攻击者阵亡后仍可命中的行为。
 
+## 防御塔反补（B1.2）
+
+右键生命低于 10% 的友方防御塔发出普通攻击指令。前置建筑保护、塔的攻击免疫和防御符文无敌会阻止反补。近战及远程命中按共享攻击结算处理；偷塔保护保留普通减伤，修复上限扣除本次友方反补造成的伤害。
+
+塔被反补时，双方每位英雄各得该级塔正常团队赏金的一半，包含已阵亡的英雄。项目沿用 75 / 100 / 125 / 150 的各级团队赏金，向下取整后为 37 / 50 / 62 / 75。防御塔反补没有末击额外金币，也不增加小兵的补刀和反补计数。常规敌方摧塔的团队金币和末击金币沿用现有结算。
+
 ## 待核验与下一步
 
 - **恰好 50% 的边界**：官方教程只写“below half”。当前严格使用 `< 50%`；未经当前客户端整数/浮点边界采样，不能声称已核实 `<=` 或精确客户端行为。
 - **治疗与阵营变化时序**：当前在指令执行、攻击释放、命中时防御性校验；目标恢复到不合法血量或换阵营时，原友军攻击不造成伤害。客户端是否允许已经释放的弹道继续伤害恢复到半血以上的友军，仍需采样。
 - **攻击修饰例外**：当前反补不调用敌方攻击技能/物品触发，不消耗潮汐使者，不触发吸血、连击、霜箭或法球。暴击、必中、额外攻击及其客户端例外尚未取得逐项证据；当前采用保守普通攻击，不将全部修饰行为列为已对齐。
-- **单位范围与收益**：建筑、英雄、召唤物、被劝化单位、特殊所有权和经验距离的精确边界继续留在 B1；本次只开放实际兵线单位，拒绝其余友军目标。B1 整体未验收，A1 的依赖尚未解除。
+- **塔的客户端边界**仍需采样 7.42 客户端恰好 10% 的生命判定、奇数赏金取整、前摇/弹道中回血和工程右键与客户端强制攻击的输入差异。
+- **英雄反补**需要可反补的持续伤害状态及低血量，另有技能自杀等路径。术语表概述击杀收益规则，Valve 7.36 明确注明反补经验归施加可反补减益的英雄；当前十英雄阵容中仍需逐项确认适用状态与击杀归属。[术语表原文](research/denies/glossary-deny-tokens.txt) · [Valve 7.36](https://www.dota2.com/patches/7.36)
+- **其它单位范围**待确认兵营及基地附属建筑的资格与赏金，召唤物、被劝化单位、守卫的门槛和归属也需逐项核对。社区建筑条目记载兵营反补的团队收益规则与防御塔有别。B1 整体尚未验收，A1 仍依赖余项。[社区兵营赏金资料](https://dota2.fandom.com/wiki/Buildings#Barracks_Bounty) · [Valve 7.29 守卫例外](https://www.dota2.com/patches/7.29)
 
-直接行为检查见 `tests/deny-runtime.test.mjs`；实际鼠标输入检查见 `tests/browser-denies.mjs`。未运行客户端对照或全套规则审计。
+直接行为检查见 `tests/deny-runtime.test.mjs`，实际鼠标输入检查见 `tests/browser-denies.mjs`。当前验证来自项目本地与权威联机场景，Valve 客户端对照仍待采样。

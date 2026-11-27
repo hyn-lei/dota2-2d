@@ -1,0 +1,3 @@
+"DOTA_Glossary_LastHits_DenyTowers"		"Allied Towers may be Denied when they are below {d:DOTA_TOWER_DENIABLE_PERCENT}% of their hit points."
+"DOTA_Glossary_LastHits_DenyHeroes"		"Allied Heroes can be Denied by allies when they are under the Effect of certain Damage over Time Effects, and some Heroes have the ability to Deny themselves with Abilities that deal Damage to themselves. Denying Heroes prevents enemies from gaining Gold or Experience, but doesn't prevent the loss of Gold from the Hero being Denied."
+"DOTA_Glossary_Map_Structures_Towers_Gold"	 "Towers reward players that perform a Last Hit with a Bounty of {d:DOTA_TOWER_BOUNTY_GOLD_MIN}-{DOTA_TOWER_BOUNTY_GOLD_MAX} Gold. Gold is awarded on a per player basis, so long as they are not Denied."

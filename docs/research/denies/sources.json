@@ -10,6 +10,14 @@
                      "sha256":  "4111d584cfe245ba95a4823dcda1011af61c86537d840215f67df69f3042d32a",
                      "normalization":  "Extracted original DOTA_Tutorial_LastHit_DenyExplanation1/2/3 token lines; UTF-8 without BOM; LF endings."
                  },
+    "glossary":  {
+                     "url":  "https://raw.githubusercontent.com/SteamTracking/GameTracking-Dota2/76ab89451c1384c2e106b676258c6e9f72787e11/game/dota/pak01_dir/resource/localization/dota_english.txt",
+                     "commit":  "76ab89451c1384c2e106b676258c6e9f72787e11",
+                     "upstreamSha256":  "100470a63af4e1118e07654aa9ce9fa11250b232ed6af0751482c5bc83cbc2d0",
+                     "file":  "glossary-deny-tokens.txt",
+                     "sha256":  "ee50519e3d418198b0a6def3ee41dc3d26d4201363cf7f1a21e218eb2dd1b795",
+                     "normalization":  "Extracted three glossary token lines, stripped leading/trailing whitespace; UTF-8 without BOM; LF endings."
+                 },
     "officialSnapshots":  [
                               {
                                   "file":  "patch-7.26b.json",

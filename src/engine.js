@@ -287,8 +287,13 @@ export class Game {
     this.player.navPath=null;
   }
 
-  canDenyTarget(source,target) { return Denies.canDenyTarget(source,target,this._combatOwner(source)); }
-  canAttackTarget(source,target) { return Denies.canAttackTarget(source,target,this._combatOwner(source)); }
+  canDenyTarget(source,target) {
+    if(!Denies.canDenyTarget(source,target,this._combatOwner(source)))return false;
+    return target.kind!=='tower'||!(target.attackImmune||this.isProtected(target)||Skills.isInvulnerable(this,target));
+  }
+  canAttackTarget(source,target) {
+    return !!(alive(source)&&alive(target)&&(source.team!==target.team||this.canDenyTarget(source,target)));
+  }
 
   _point(x, y) { return {x:clamp(x, 25, WORLD.width - 25), y:clamp(y, 25, WORLD.height - 25)}; }
 
@@ -342,9 +347,10 @@ export class Game {
   }
 
   damage(target, amount, source, type='physical', options={}) {
-    if(options.attack&&(options.deny||source&&source.team===target?.team)&&(!options.deny||!this.canDenyTarget(source,target)))return 0;
     if (!target || !alive(target) || this.status !== 'playing' || !Number.isFinite(amount) || amount <= 0) return 0;
-    if (source && source.team === target.team && !options.deny) return 0;
+    if(options.deny||source?.team===target.team){
+      if(!options.attack||!options.deny||!this.canDenyTarget(source,target))return 0;
+    }
     if (this.isProtected(target)||target.kind==='droppedItem') return 0;
     if(target.attackImmune&&options.attack)return 0;
     if(target.pipHealth||target.kind==='ward'||target.kind==='courier'){
@@ -376,6 +382,9 @@ export class Game {
     value=ItemRuntime.incomingDamage(this,target,value,source,type,options);
     value*=Math.max(0,1+(target.incomingDamagePct||0)/100);
     value=Math.min(target.hp,value);
+    if(options.deny&&target.backdoorActive&&target.kind==='tower'){
+      target.backdoorHealth=Math.max(target.hp,target.backdoorHealth??target.hp)-value;
+    }
     target.hp = Math.max(0, target.hp - value);
     WorldRuntime.runeDamage(this,target,value);
     if(!options.reflected)WorldRuntime.tormentorDamage(this,target,value);
@@ -460,9 +469,15 @@ export class Game {
         for(const dx of [-35,35])this._makeNeutral('mud_golem_split',{x:target.x+dx,y:target.y},camp);
       }
     } else if (target.kind === 'tower') {
-      for (const h of this.entities) if (h.kind === 'hero' && h.team !== target.team) h.gold += [0,75,100,125,150][target.tier];
-      if(source?.kind==='hero')source.gold+=[0,100,125,150,175][target.tier];
-      this._feed(`${target.name}已被摧毁`,1-target.team);
+      const teamBounty=[0,75,100,125,150][target.tier];
+      if(source?.team===target.team){
+        for(const h of this.entities)if(h.kind==='hero')h.gold+=Math.floor(teamBounty/2);
+        this._feed(`${target.name}已被反补`,target.team);
+      }else{
+        for(const h of this.entities)if(h.kind==='hero'&&h.team!==target.team)h.gold+=teamBounty;
+        if(source?.kind==='hero')source.gold+=[0,100,125,150,175][target.tier];
+        this._feed(`${target.name}已被摧毁`,1-target.team);
+      }
     } else if(target.kind==='barracks') {
       for(const h of this.entities)if(h.kind==='hero'&&h.team!==target.team)h.gold+=target.barracksType==='melee'?125:100;
       if(source?.kind==='hero')source.gold+=100;
