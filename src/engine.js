@@ -292,7 +292,7 @@ export class Game {
     return target.kind!=='tower'||!(target.attackImmune||this.isProtected(target)||Skills.isInvulnerable(this,target));
   }
   canAttackTarget(source,target) {
-    return !!(alive(source)&&alive(target)&&(source.team!==target.team||this.canDenyTarget(source,target)));
+    return !!(source&&target&&alive(source)&&alive(target)&&(source.team!==target.team||this.canDenyTarget(source,target)));
   }
 
   _point(x, y) { return {x:clamp(x, 25, WORLD.width - 25), y:clamp(y, 25, WORLD.height - 25)}; }
