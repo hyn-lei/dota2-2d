@@ -1,0 +1,180 @@
+{
+  "source": "Steam Workshop",
+  "authorSteamId": "76561198601407024",
+  "capturedDate": "2026-11-27",
+  "itemBuilds": [
+    {
+      "id": "3845980192",
+      "hero": "weaver",
+      "title": "Carry WR 52% 7k+",
+      "steamRole": "#DOTA_HeroGuide_Role_Core",
+      "patch": "7.42a",
+      "timeUpdated": 1795781980,
+      "subscriptions": 65,
+      "votes": 0,
+      "file": "https://cdn.steamusercontent.com/ugc/14109185335933968554/5C608E5E0D02149A73DC5440AEF3515690D9462F/",
+      "sha256": "64196144821414b89e5738908e7d02b6428a6ff83be7c946340c9764807438f2",
+      "url": "https://steamcommunity.com/sharedfiles/filedetails/?id=3845980192",
+      "sourceReports": {
+        "rankedGamesAt7000MMR": 96,
+        "MMREstimatedFromLeaderboard": 57,
+        "professionalGames": 4,
+        "currentPatchGames": 40,
+        "from": "2026-11-21",
+        "to": "2026-11-27"
+      },
+      "groups": [
+        [
+          "Early Game Core",
+          [
+            "item_magic_wand",
+            "item_falcon_blade",
+            "item_power_treads"
+          ]
+        ],
+        [
+          "Core",
+          [
+            "item_maelstrom",
+            "item_desolator",
+            "item_aghanims_shard",
+            "item_dragon_lance",
+            "item_lesser_crit"
+          ]
+        ],
+        [
+          "Late Core",
+          [
+            "item_greater_crit"
+          ]
+        ],
+        [
+          "Situational",
+          [
+            "item_mjollnir",
+            "item_yasha",
+            "item_manta",
+            "item_sphere",
+            "item_hurricane_pike",
+            "item_black_king_bar",
+            "item_monkey_king_bar",
+            "item_specialists_array",
+            "item_hydras_breath",
+            "item_skadi",
+            "item_satanic"
+          ]
+        ]
+      ]
+    },
+    {
+      "id": "3844536358",
+      "hero": "juggernaut",
+      "title": "Carry 7k+",
+      "steamRole": "#DOTA_HeroGuide_Role_Core",
+      "patch": "7.42a",
+      "timeUpdated": 1795781745,
+      "subscriptions": 1271,
+      "votes": 5,
+      "file": "https://cdn.steamusercontent.com/ugc/16725628875281030218/08ECC0C068D6D5D5EE7137D5E48688D71B550C2E/",
+      "sha256": "b4d6434322211d326bc6ef00bf616ad56a06f1d24c0390442aefb1c89ea5ffb2",
+      "url": "https://steamcommunity.com/sharedfiles/filedetails/?id=3844536358",
+      "sourceReports": {
+        "rankedGamesAt7000MMR": 100,
+        "MMREstimatedFromLeaderboard": 73,
+        "professionalGames": 0,
+        "currentPatchGames": 91,
+        "from": "2026-11-24",
+        "to": "2026-11-27"
+      },
+      "groups": [
+        [
+          "Early Game Core",
+          [
+            "item_power_treads",
+            "item_magic_wand"
+          ]
+        ],
+        [
+          "Core",
+          [
+            "item_wind_lace",
+            "item_bfury",
+            "item_yasha",
+            "item_manta",
+            "item_blink"
+          ]
+        ],
+        [
+          "Situational",
+          [
+            "item_maelstrom",
+            "item_mjollnir",
+            "item_butterfly",
+            "item_ultimate_scepter",
+            "item_monkey_king_bar",
+            "item_skadi",
+            "item_dragon_lance",
+            "item_basher",
+            "item_abyssal_blade",
+            "item_swift_blink",
+            "item_ultimate_scepter_2"
+          ]
+        ]
+      ]
+    },
+    {
+      "id": "3844536318",
+      "hero": "chen",
+      "title": "Hard Support WR 57% 7k+",
+      "steamRole": "#DOTA_HeroGuide_Role_Support",
+      "patch": "7.42a",
+      "timeUpdated": 1795781470,
+      "subscriptions": 160,
+      "votes": 1,
+      "file": "https://cdn.steamusercontent.com/ugc/18239244956616357082/985B3297B3F6BEFAEC18444DEDB9C8DE832820A8/",
+      "sha256": "33ff382dfcf2f95ccf71c932c28ef714c246b96d0c7a29033e1a20ececdca619",
+      "url": "https://steamcommunity.com/sharedfiles/filedetails/?id=3844536318",
+      "sourceReports": {
+        "rankedGamesAt7000MMR": 177,
+        "MMREstimatedFromLeaderboard": 112,
+        "professionalGames": 1,
+        "currentPatchGames": 178,
+        "from": "2026-11-25",
+        "to": "2026-11-27"
+      },
+      "groups": [
+        [
+          "Early Game Core",
+          [
+            "item_bloodslinger",
+            "item_magic_wand",
+            "item_ring_of_basilius",
+            "item_headdress",
+            "item_arcane_boots"
+          ]
+        ],
+        [
+          "Core",
+          [
+            "item_mekansm",
+            "item_buckler",
+            "item_aghanims_shard",
+            "item_vladmir"
+          ]
+        ],
+        [
+          "Situational",
+          [
+            "item_pavise",
+            "item_solar_crest",
+            "item_guardian_greaves",
+            "item_pipe",
+            "item_ghost",
+            "item_ristuls_devotion",
+            "item_ultimate_scepter"
+          ]
+        ]
+      ]
+    }
+  ]
+}

@@ -18,7 +18,28 @@
 
 基地位置同步由最新泉水建筑派生。旧实体更新流程漏写 `BASES` 的问题已经修正，避免夜魇治疗/商店中心继续使用旧坐标。
 
-原始 `dota.vhcg` 和 `dota.trm` 分开留存。原生查询核对表明 `GetGroundHeight(nil)` 的 mask 为 `0x3021`，地面取第一浮点层，水面单独保存，不能简单取二者最大值。所有可通行格都有有效地面高度。树的 authored Z 在部分点与地面查询不同，不能用树坐标替代高度导出。本次未增加未经消费验证的运行时高度数组，也未称为完整连续碰撞或视野复刻。
+原始 `dota.vhcg` 与 `dota.trm` 分开留存。`dota.trm` 的树源记录只含 X/Y 与图层索引。原始提取 build 26825343 的 `server.dll` 中，`GetGroundHeight(pos,nil)` 经 RVA `0x19ae750 → 0x2500340 → 0x1c2ba60` 调用 `host.dll` 的 `CDotaMapUtils001` 地图查询（RVA `0x17a90`）。该路径传入内容掩码 `0x3021`，水面需要单独的 `0x8000`。宿主反序列化（`0xc8b10`）读取两个 float32 与一个细节标志。第一层由地面查询（`0xc8560`）读取，带标志的格内使用 5 × 5 细节补丁。独立的水面查询（`0xc8750`）读取第二层。2026-11-27 核对本机 7.42a build 26936712、Client/Server 6997、SourceRevision 11278692，地图 VPK SHA-256 仍与 7.42 提取版本一致。
+
+`node docs/research/generate-map-height-742.mjs` 校验原始 VHCG 的 SHA-256、头部和记录结构，再以导航原有的 327 × 327 中心采样。每个进入细节补丁的采样坐标都恰好落在原始 32 单位的顶点。输出按行游程编码，保留原始 float32。共取得 90,456 个地面样本、14,168 个水面样本，58,965 个可通行中心均有地面值。使用独立 Python 解码逐格比对后，将两层以缺值 `-16384` 填入、按行序列化为小端 float32，SHA-256 分别为 `9798eccc9ab8994ac12e7ab8ddc585b70e8fa464cac2c814287feed6533d6113` 和 `9e89d6283fb60c8309bf5ca920b5c88b3091fc6b26178bef61d2ee526da2bbd2`。
+
+运行时 `terrainHeightAt(point)` 和 `terrainWaterHeightAt(point)` 分别查询地面与水面，共用现有导航中心的取整。缺值和网格外查询返回 `null`。客户端在缺地面记录时可回退到实时物理追踪。任意坐标的连续插值、动态预制件覆盖和实时物理回退仍待客户端对照。部分树的作者 Z 与实际地面不同，例如 Source 坐标 `(-448,-8448)` 的树 Z 为 128，编译地面为 134，水面为 144。
+
+| 位置 | 游戏 X/Y | Source X/Y | 地面 Z | 水面 Z |
+| --- | --- | --- | ---: | ---: |
+| 中路坡顶 | (9856, 9600) | (-608, 800) | 128 | — |
+| 中路坡脚 | (9856, 9728) | (-608, 672) | 23.158203125 | 16 |
+| 中路河床 | (9856, 9792) | (-608, 608) | 0 | 16 |
+| 天辉泉水高台 | (3008, 17344) | (-7456, -6944) | 384 | — |
+
+同一天在本机专用服务加载 `dota` 地图并通过 VScript 运行下列探针。上表四个位置与 `GetGroundHeight` 实时结果完全匹配，夜魇泉水高台也为 384。网格外的 Source `(10272,-352)` 返回 `-16384`，游戏 API 将它表示为缺值 `null`。中路河床通过原生 `GridNav:IsTraversable`，地面查询为 0，第二层的水面高度 16 仍取自编译数据。
+
+```lua
+local points = {{-608,800},{-608,672},{-608,608},{-7456,-6944},{7136,6560},{10272,-352}}
+for _, p in ipairs(points) do
+  local point = Vector(p[1], p[2], 0)
+  print(p[1], p[2], GetGroundHeight(point, nil), GridNav:IsTraversable(point))
+end
+```
 
 客户端确有 1024 × 1024 原生 overview 图，`decoded/dota-overview.png` 来自 `materials/overviews/dota_psd.vtex_c`。本机现役材质引用链明确指向 512 × 512 TGA；1024 PSD 为同一客户端提供的高分辨率资源，其明确材质引用未证实。两个 `dota_minimap_boundary` 实体与 overview 配置共同给出 Source ±9472，游戏绘图范围为 `{x:992,y:928,width:18944,height:18944}`。
 

@@ -1,0 +1,928 @@
+{
+  "source": "Steam Workshop",
+  "author": "ImmortalFaith",
+  "authorSteamId": "76561198064078512",
+  "capturedDate": "2026-11-27",
+  "itemBuilds": [
+    {
+      "id": "1468038788",
+      "hero": "axe",
+      "title": "7.42a (Offlane) MOUZ Guides  | Axe",
+      "steamRole": "#DOTA_HeroGuide_Role_OffLane",
+      "patch": "7.42a",
+      "timeUpdated": 1795584527,
+      "subscriptions": 1317512,
+      "votes": 12709,
+      "file": "https://cdn.steamusercontent.com/ugc/16306087461238538755/35B21E6435D5F45BE4CBF6BA40F2E67AEF2DF152/",
+      "sha256": "39dae0d07d485c6128803d9281bb2d1cdee73507df6307caf441c0cd52f9c4e7",
+      "url": "https://steamcommunity.com/sharedfiles/filedetails/?id=1468038788",
+      "roles": [
+        "offlane"
+      ],
+      "groups": [
+        [
+          "#DOTA_Item_Build_Starting_Items",
+          [
+            "item_branches",
+            "item_ring_of_protection",
+            "item_tango",
+            "item_gauntlets",
+            "item_gauntlets"
+          ]
+        ],
+        [
+          "#DOTA_Item_Build_Early_Game",
+          [
+            "item_bracer",
+            "item_boots",
+            "item_phase_boots",
+            "item_magic_wand"
+          ]
+        ],
+        [
+          "#DOTA_Item_Build_Core_Items",
+          [
+            "item_blade_mail",
+            "item_blink",
+            "item_black_king_bar",
+            "item_aghanims_shard",
+            "item_octarine_core",
+            "item_refresher"
+          ]
+        ],
+        [
+          "#DOTA_Item_Build_Luxury",
+          [
+            "item_travel_boots",
+            "item_phylactery",
+            "item_ultimate_scepter",
+            "item_shivas_guard",
+            "item_wind_waker",
+            "item_bloodstone",
+            "item_overwhelming_blink",
+            "item_lotus_orb",
+            "item_heart",
+            "item_urn_of_shadows"
+          ]
+        ]
+      ]
+    },
+    {
+      "id": "1468040611",
+      "hero": "chaos_knight",
+      "title": "7.42a (Core) MOUZ Guides  | Chaos Knight",
+      "steamRole": "#DOTA_HeroGuide_Role_Core",
+      "patch": "7.42a",
+      "timeUpdated": 1795721436,
+      "subscriptions": 1119387,
+      "votes": 8419,
+      "file": "https://cdn.steamusercontent.com/ugc/16786921019869664250/BBCAE0CE536399233722EA4D939F1A04350D5990/",
+      "sha256": "457fba220a637caa84a455f43e4f34fefc27689cadfec8b37161e78be01ec3f7",
+      "url": "https://steamcommunity.com/sharedfiles/filedetails/?id=1468040611",
+      "roles": [
+        "carry"
+      ],
+      "groups": [
+        [
+          "#DOTA_Item_Build_Starting_Items",
+          [
+            "item_quelling_blade",
+            "item_branches",
+            "item_branches",
+            "item_magic_stick",
+            "item_circlet"
+          ]
+        ],
+        [
+          "#DOTA_Item_Build_Early_Game",
+          [
+            "item_tango",
+            "item_magic_wand",
+            "item_power_treads"
+          ]
+        ],
+        [
+          "#DOTA_Item_Build_Core_Items",
+          [
+            "item_armlet",
+            "item_orchid",
+            "item_blink",
+            "item_black_king_bar",
+            "item_skadi",
+            "item_bloodthorn",
+            "item_assault",
+            "item_aghanims_shard"
+          ]
+        ],
+        [
+          "#DOTA_Item_Build_Luxury",
+          [
+            "item_phase_boots",
+            "item_berserkers_sabatons",
+            "item_satanic",
+            "item_invis_sword",
+            "item_silver_edge",
+            "item_sange_and_yasha",
+            "item_monkey_king_bar",
+            "item_abyssal_blade",
+            "item_moon_shard",
+            "item_heart",
+            "item_manta",
+            "item_overwhelming_blink",
+            "item_echo_sabre",
+            "item_harpoon",
+            "item_ultimate_scepter"
+          ]
+        ]
+      ]
+    },
+    {
+      "id": "1468093614",
+      "hero": "chen",
+      "title": "7.42a (Support) Chen | ImmortalFaith",
+      "steamRole": "#DOTA_HeroGuide_Role_Support",
+      "patch": "7.42a",
+      "timeUpdated": 1795584616,
+      "subscriptions": 309268,
+      "votes": 1486,
+      "file": "https://cdn.steamusercontent.com/ugc/17210381956819332364/742D6AE6F935BED209289B936C55AA992762C263/",
+      "sha256": "c9aba467a136baec386697ee9d2419a9338e256d55807523b3a69fff123faa42",
+      "url": "https://steamcommunity.com/sharedfiles/filedetails/?id=1468093614",
+      "roles": [
+        "support",
+        "roamer"
+      ],
+      "groups": [
+        [
+          "#DOTA_Item_Build_Starting_Items",
+          [
+            "item_ward_observer",
+            "item_ward_sentry",
+            "item_tango",
+            "item_faerie_fire",
+            "item_branches",
+            "item_blood_grenade",
+            "item_mantle",
+            "item_mantle"
+          ]
+        ],
+        [
+          "#DOTA_Item_Build_Early_Game",
+          [
+            "item_bloodslinger",
+            "item_boots",
+            "item_orb_of_frost",
+            "item_arcane_boots",
+            "item_ancient_janggo",
+            "item_magic_wand"
+          ]
+        ],
+        [
+          "#DOTA_Item_Build_Core_Items",
+          [
+            "item_mekansm",
+            "item_guardian_greaves",
+            "item_vladmir",
+            "item_ristuls_devotion",
+            "item_glimmer_cape",
+            "item_ultimate_scepter",
+            "item_refresher"
+          ]
+        ],
+        [
+          "#DOTA_Item_Build_Luxury",
+          [
+            "item_solar_crest",
+            "item_aghanims_shard",
+            "item_heavens_halberd",
+            "item_skypiercer",
+            "item_force_staff",
+            "item_black_king_bar",
+            "item_sheepstick",
+            "item_lotus_orb",
+            "item_pipe"
+          ]
+        ]
+      ]
+    },
+    {
+      "id": "1468094690",
+      "hero": "crystal_maiden",
+      "title": "7.42a (Support) MOUZ Guides  | Crystal Maiden",
+      "steamRole": "#DOTA_HeroGuide_Role_Support",
+      "patch": "7.42a",
+      "timeUpdated": 1795584638,
+      "subscriptions": 1503926,
+      "votes": 21639,
+      "file": "https://cdn.steamusercontent.com/ugc/13549754334087995146/390790A33D6E29B4EA3F755F5042443C43035370/",
+      "sha256": "01fd082c5572b256c0f42c4661bbab09756631828d800c47595b2be1fd66ecd4",
+      "url": "https://steamcommunity.com/sharedfiles/filedetails/?id=1468094690",
+      "roles": [
+        "support",
+        "roamer"
+      ],
+      "groups": [
+        [
+          "#DOTA_Item_Build_Starting_Items",
+          [
+            "item_ward_observer",
+            "item_tango",
+            "item_tango",
+            "item_enchanted_mango",
+            "item_enchanted_mango",
+            "item_smoke_of_deceit",
+            "item_ward_sentry",
+            "item_blood_grenade",
+            "item_branches",
+            "item_branches"
+          ]
+        ],
+        [
+          "#DOTA_Item_Build_Early_Game",
+          [
+            "item_flask",
+            "item_enchanted_mango",
+            "item_boots",
+            "item_tranquil_boots",
+            "item_magic_wand",
+            "item_bracer",
+            "item_infused_raindrop"
+          ]
+        ],
+        [
+          "#DOTA_Item_Build_Core_Items",
+          [
+            "item_aghanims_shard",
+            "item_blink",
+            "item_black_king_bar",
+            "item_ultimate_scepter"
+          ]
+        ],
+        [
+          "#DOTA_Item_Build_Luxury",
+          [
+            "item_boots_of_bearing",
+            "item_ancient_janggo",
+            "item_ghost",
+            "item_urn_of_shadows",
+            "item_aether_lens",
+            "item_cyclone",
+            "item_rod_of_atos",
+            "item_arcane_blink",
+            "item_solar_crest",
+            "item_aeon_disk",
+            "item_force_staff",
+            "item_glimmer_cape"
+          ]
+        ]
+      ]
+    },
+    {
+      "id": "1468060309",
+      "hero": "drow_ranger",
+      "title": "7.42a (Core) MOUZ Guides  | Drow Ranger",
+      "steamRole": "#DOTA_HeroGuide_Role_Core",
+      "patch": "7.42a",
+      "timeUpdated": 1795584737,
+      "subscriptions": 2107347,
+      "votes": 26930,
+      "file": "https://cdn.steamusercontent.com/ugc/12797955146670656344/0C52BF15F208938725E880A5A7BBB03D557430F1/",
+      "sha256": "0a2e5f29ae81aec6865f8c5145ec563cc4b26abd94531f9156565d02ff5168c3",
+      "url": "https://steamcommunity.com/sharedfiles/filedetails/?id=1468060309",
+      "roles": [
+        "carry"
+      ],
+      "groups": [
+        [
+          "#DOTA_Item_Build_Starting_Items",
+          [
+            "item_branches",
+            "item_branches",
+            "item_magic_wand"
+          ]
+        ],
+        [
+          "#DOTA_Item_Build_Early_Game",
+          [
+            "item_falcon_blade",
+            "item_wraith_band",
+            "item_power_treads"
+          ]
+        ],
+        [
+          "#DOTA_Item_Build_Core_Items",
+          [
+            "item_dragon_lance",
+            "item_yasha",
+            "item_ultimate_scepter",
+            "item_manta",
+            "item_hurricane_pike",
+            "item_black_king_bar",
+            "item_aghanims_shard",
+            "item_butterfly",
+            "item_satanic"
+          ]
+        ],
+        [
+          "#DOTA_Item_Build_Luxury",
+          [
+            "item_sphere",
+            "item_blink",
+            "item_swift_blink",
+            "item_skadi",
+            "item_greater_crit",
+            "item_monkey_king_bar",
+            "item_nullifier",
+            "item_ethereal_blade",
+            "item_manta",
+            "item_invis_sword",
+            "item_silver_edge"
+          ]
+        ]
+      ]
+    },
+    {
+      "id": "1468064842",
+      "hero": "juggernaut",
+      "title": "7.42a (Core) MOUZ Guides  | Juggernaut",
+      "steamRole": "#DOTA_HeroGuide_Role_Core",
+      "patch": "7.42a",
+      "timeUpdated": 1795584864,
+      "subscriptions": 1789604,
+      "votes": 23917,
+      "file": "https://cdn.steamusercontent.com/ugc/10015621861487936117/D299C13CDA17E3AF8325CD37EF36D53C3BEB04B9/",
+      "sha256": "567979286508b7a0ff89773a8f03a75c965eb059b92205fff369ca4414c0e4ae",
+      "url": "https://steamcommunity.com/sharedfiles/filedetails/?id=1468064842",
+      "roles": [
+        "carry"
+      ],
+      "groups": [
+        [
+          "#DOTA_Item_Build_Starting_Items",
+          [
+            "item_quelling_blade",
+            "item_tango",
+            "item_branches",
+            "item_branches",
+            "item_magic_stick",
+            "item_faerie_fire"
+          ]
+        ],
+        [
+          "#DOTA_Item_Build_Early_Game",
+          [
+            "item_magic_wand",
+            "item_boots",
+            "item_power_treads"
+          ]
+        ],
+        [
+          "#DOTA_Item_Build_Core_Items",
+          [
+            "item_bfury",
+            "item_manta",
+            "item_butterfly",
+            "item_ultimate_scepter",
+            "item_aghanims_shard",
+            "item_blink",
+            "item_swift_blink",
+            "item_skadi"
+          ]
+        ],
+        [
+          "#DOTA_Item_Build_Luxury",
+          [
+            "item_phase_boots",
+            "item_monkey_king_bar",
+            "item_black_king_bar",
+            "item_diffusal_blade",
+            "item_disperser",
+            "item_basher",
+            "item_abyssal_blade",
+            "item_bloodthorn",
+            "item_moon_shard",
+            "item_satanic",
+            "item_sange_and_yasha"
+          ]
+        ]
+      ]
+    },
+    {
+      "id": "1468046531",
+      "hero": "kunkka",
+      "title": "7.42a (Core) MOUZ Guides  | Kunkka",
+      "steamRole": "#DOTA_HeroGuide_Role_Core",
+      "patch": "7.42a",
+      "timeUpdated": 1795584935,
+      "subscriptions": 844348,
+      "votes": 5830,
+      "file": "https://cdn.steamusercontent.com/ugc/14876824555617577355/C7EA9F561AE5336F82368B9425BC91AF4DF7FDDA/",
+      "sha256": "795cb0804c7b02f1e832cdc7c72ff796d5615e12efb7c13ca27e0f352d32ed10",
+      "url": "https://steamcommunity.com/sharedfiles/filedetails/?id=1468046531",
+      "roles": [
+        "mid"
+      ],
+      "groups": [
+        [
+          "#DOTA_Item_Build_Starting_Items",
+          [
+            "item_quelling_blade",
+            "item_gauntlets",
+            "item_branches",
+            "item_branches",
+            "item_tango"
+          ]
+        ],
+        [
+          "#DOTA_Item_Build_Early_Game",
+          [
+            "item_bottle",
+            "item_boots",
+            "item_phase_boots",
+            "item_magic_wand"
+          ]
+        ],
+        [
+          "#DOTA_Item_Build_Core_Items",
+          [
+            "item_blade_mail",
+            "item_aghanims_shard",
+            "item_ultimate_scepter",
+            "item_black_king_bar",
+            "item_shivas_guard",
+            "item_refresher",
+            "item_octarine_core"
+          ]
+        ],
+        [
+          "#DOTA_Item_Build_Luxury",
+          [
+            "item_travel_boots",
+            "item_blink",
+            "item_sheepstick",
+            "item_invis_sword",
+            "item_silver_edge",
+            "item_satanic",
+            "item_orchid",
+            "item_radiance",
+            "item_greater_crit",
+            "item_rapier",
+            "item_sphere",
+            "item_heavens_halberd",
+            "item_assault",
+            "item_bloodstone"
+          ]
+        ]
+      ]
+    },
+    {
+      "id": "1468103159",
+      "hero": "ogre_magi",
+      "title": "7.42a (Support) MOUZ Guides | Ogre Magi",
+      "steamRole": "#DOTA_HeroGuide_Role_Support",
+      "patch": "7.42a",
+      "timeUpdated": 1795585155,
+      "subscriptions": 1783601,
+      "votes": 19156,
+      "file": "https://cdn.steamusercontent.com/ugc/12736045612945885847/1E6B5FF573D9AB6D24AAE99443818A50F8F2180A/",
+      "sha256": "846edce2742e13b3b59b5c447fd91b50c5f037b67f355f412f083f176127bb26",
+      "url": "https://steamcommunity.com/sharedfiles/filedetails/?id=1468103159",
+      "roles": [
+        "support",
+        "roamer"
+      ],
+      "groups": [
+        [
+          "#DOTA_Item_Build_Starting_Items",
+          [
+            "item_ward_observer",
+            "item_ward_sentry",
+            "item_tango",
+            "item_tango",
+            "item_enchanted_mango",
+            "item_enchanted_mango",
+            "item_faerie_fire",
+            "item_branches",
+            "item_branches",
+            "item_blood_grenade"
+          ]
+        ],
+        [
+          "#DOTA_Item_Build_Early_Game",
+          [
+            "item_boots",
+            "item_arcane_boots",
+            "item_magic_wand"
+          ]
+        ],
+        [
+          "#DOTA_Item_Build_Core_Items",
+          [
+            "item_pavise",
+            "item_solar_crest",
+            "item_aghanims_shard",
+            "item_glimmer_cape",
+            "item_sheepstick",
+            "item_ultimate_scepter"
+          ]
+        ],
+        [
+          "#DOTA_Item_Build_Luxury",
+          [
+            "item_aether_lens",
+            "item_force_staff",
+            "item_aeon_disk",
+            "item_spirit_vessel",
+            "item_pipe",
+            "item_cyclone",
+            "item_ghost",
+            "item_dagon_5",
+            "item_black_king_bar",
+            "item_hand_of_midas"
+          ]
+        ]
+      ]
+    },
+    {
+      "id": "1829488832",
+      "hero": "ogre_magi",
+      "title": "7.42a (Offlane) MOUZ Guides | Ogre Magi Offlane",
+      "steamRole": "#DOTA_HeroGuide_Role_OffLane",
+      "patch": "7.42a",
+      "timeUpdated": 1795585151,
+      "subscriptions": 1653545,
+      "votes": 8930,
+      "file": "https://cdn.steamusercontent.com/ugc/17326549072983717452/29A5E6CDEBDCD1668F488734BB4DC92F834287E6/",
+      "sha256": "21b2f2a9aa1a02636a124e424010c52ab0744bca0b1d4c25ebff2667756281da",
+      "url": "https://steamcommunity.com/sharedfiles/filedetails/?id=1829488832",
+      "roles": [
+        "offlane"
+      ],
+      "groups": [
+        [
+          "#DOTA_Item_Build_Starting_Items",
+          [
+            "item_quelling_blade",
+            "item_tango",
+            "item_branches",
+            "item_branches",
+            "item_gauntlets",
+            "item_gauntlets"
+          ]
+        ],
+        [
+          "#DOTA_Item_Build_Early_Game",
+          [
+            "item_soul_ring",
+            "item_boots",
+            "item_phase_boots",
+            "item_hand_of_midas",
+            "item_magic_wand"
+          ]
+        ],
+        [
+          "#DOTA_Item_Build_Core_Items",
+          [
+            "item_blink",
+            "item_ultimate_scepter",
+            "item_black_king_bar",
+            "item_heart",
+            "item_aghanims_shard",
+            "item_sheepstick"
+          ]
+        ],
+        [
+          "#DOTA_Item_Build_Luxury",
+          [
+            "item_aether_lens",
+            "item_lotus_orb",
+            "item_ethereal_blade",
+            "item_octarine_core",
+            "item_heavens_halberd",
+            "item_skypiercer",
+            "item_consecrated_wraps",
+            "item_shivas_guard",
+            "item_sphere"
+          ]
+        ]
+      ]
+    },
+    {
+      "id": "1468079905",
+      "hero": "weaver",
+      "title": "7.42a (Core) MOUZ Guides  | Weaver",
+      "steamRole": "#DOTA_HeroGuide_Role_Core",
+      "patch": "7.42a",
+      "timeUpdated": 1795585651,
+      "subscriptions": 1065919,
+      "votes": 7713,
+      "file": "https://cdn.steamusercontent.com/ugc/11604906694036468766/1C76282FB8BC651A1FBD6FC749D342AC6033557A/",
+      "sha256": "8e8d35f493f3c3dc06bde073775cdd1b180ccb8dc6cd4964d068bc7bfd8a2eec",
+      "url": "https://steamcommunity.com/sharedfiles/filedetails/?id=1468079905",
+      "roles": [
+        "carry"
+      ],
+      "groups": [
+        [
+          "#DOTA_Item_Build_Starting_Items",
+          [
+            "item_tango",
+            "item_branches",
+            "item_magic_stick",
+            "item_circlet",
+            "item_branches"
+          ]
+        ],
+        [
+          "#DOTA_Item_Build_Early_Game",
+          [
+            "item_wraith_band",
+            "item_power_treads",
+            "item_magic_wand",
+            "item_falcon_blade"
+          ]
+        ],
+        [
+          "#DOTA_Item_Build_Core_Items",
+          [
+            "item_maelstrom",
+            "item_mjollnir",
+            "item_black_king_bar",
+            "item_skadi",
+            "item_satanic",
+            "item_greater_crit"
+          ]
+        ],
+        [
+          "#DOTA_Item_Build_Luxury",
+          [
+            "item_dragon_lance",
+            "item_hydras_breath",
+            "item_hurricane_pike",
+            "item_monkey_king_bar",
+            "item_sange_and_yasha",
+            "item_sphere",
+            "item_sange_and_yasha",
+            "item_rapier",
+            "item_desolator",
+            "item_aghanims_shard"
+          ]
+        ]
+      ]
+    },
+    {
+      "id": "1683022789",
+      "hero": "weaver",
+      "title": "7.42a (Roamer) MOUZ Guides | Weaver Support",
+      "steamRole": "#DOTA_HeroGuide_Role_Roamer",
+      "patch": "7.42a",
+      "timeUpdated": 1795585642,
+      "subscriptions": 159361,
+      "votes": 416,
+      "file": "https://cdn.steamusercontent.com/ugc/9624006788051243129/3BDC0FD86E6C5A29FE1BC04D4F2AF0ED1E8DB785/",
+      "sha256": "e272444a9aefa5c725027206a5a3e9e91d4234d44d1f08437c02f3f84df2aa82",
+      "url": "https://steamcommunity.com/sharedfiles/filedetails/?id=1683022789",
+      "roles": [
+        "roamer"
+      ],
+      "groups": [
+        [
+          "Starting Items",
+          [
+            "item_ward_observer",
+            "item_ward_sentry",
+            "item_tango",
+            "item_blood_grenade",
+            "item_branches",
+            "item_branches",
+            "item_faerie_fire",
+            "item_circlet"
+          ]
+        ],
+        [
+          "#DOTA_Item_Build_Early_Game",
+          [
+            "item_urn_of_shadows",
+            "item_infused_raindrop",
+            "item_magic_wand"
+          ]
+        ],
+        [
+          "#DOTA_Item_Build_Core_Items",
+          [
+            "item_spirit_vessel",
+            "item_consecrated_wraps",
+            "item_ultimate_scepter",
+            "item_aether_lens",
+            "item_black_king_bar"
+          ]
+        ],
+        [
+          "#DOTA_Item_Build_Luxury",
+          [
+            "item_cyclone",
+            "item_wind_waker",
+            "item_aghanims_shard",
+            "item_vladmir",
+            "item_lotus_orb",
+            "item_pipe",
+            "item_pavise",
+            "item_solar_crest",
+            "item_rod_of_atos",
+            "item_gungir"
+          ]
+        ]
+      ]
+    },
+    {
+      "id": "1468110686",
+      "hero": "windrunner",
+      "title": "7.42a (Offlane) MOUZ Guides  | Windranger Offlane",
+      "steamRole": "#DOTA_HeroGuide_Role_OffLane",
+      "patch": "7.42a",
+      "timeUpdated": 1795585659,
+      "subscriptions": 1761503,
+      "votes": 15249,
+      "file": "https://cdn.steamusercontent.com/ugc/14551659234663220092/1E095E33CA1E73FA1E22702FF601F0A41D909717/",
+      "sha256": "e65b55c82dfc77c0b2922c3940136ff664f8bbb9627b615d72d8aaad1e35f54a",
+      "url": "https://steamcommunity.com/sharedfiles/filedetails/?id=1468110686",
+      "roles": [
+        "offlane"
+      ],
+      "groups": [
+        [
+          "Starting Items",
+          [
+            "item_branches",
+            "item_branches",
+            "item_circlet",
+            "item_tango",
+            "item_circlet",
+            "item_faerie_fire"
+          ]
+        ],
+        [
+          "#DOTA_Item_Build_Early_Game",
+          [
+            "item_null_talisman",
+            "item_boots",
+            "item_power_treads",
+            "item_magic_wand"
+          ]
+        ],
+        [
+          "#DOTA_Item_Build_Core_Items",
+          [
+            "item_maelstrom",
+            "item_blink",
+            "item_mjollnir",
+            "item_greater_crit",
+            "item_black_king_bar",
+            "item_sphere"
+          ]
+        ],
+        [
+          "#DOTA_Item_Build_Luxury",
+          [
+            "item_monkey_king_bar",
+            "item_aghanims_shard",
+            "item_hurricane_pike",
+            "item_invis_sword",
+            "item_sheepstick",
+            "item_nullifier",
+            "item_bloodthorn",
+            "item_ultimate_scepter"
+          ]
+        ]
+      ]
+    },
+    {
+      "id": "1780567951",
+      "hero": "windrunner",
+      "title": "7.42a (Core) MOUZ Guides  | Windranger Mid",
+      "steamRole": "#DOTA_HeroGuide_Role_Core",
+      "patch": "7.42a",
+      "timeUpdated": 1795585655,
+      "subscriptions": 659729,
+      "votes": 3322,
+      "file": "https://cdn.steamusercontent.com/ugc/12987743906252471125/9F3E33EEACE49DD72AADE15013AC72D3AEA65C4F/",
+      "sha256": "d37e4c1822a05cc6b037230b0fc68f5eb9175d1a69491ff12e6a59295de40f09",
+      "url": "https://steamcommunity.com/sharedfiles/filedetails/?id=1780567951",
+      "roles": [
+        "mid"
+      ],
+      "groups": [
+        [
+          "#DOTA_Item_Build_Starting_Items",
+          [
+            "item_faerie_fire",
+            "item_branches",
+            "item_branches",
+            "item_branches",
+            "item_tango"
+          ]
+        ],
+        [
+          "#DOTA_Item_Build_Early_Game",
+          [
+            "item_bottle",
+            "item_power_treads",
+            "item_magic_wand"
+          ]
+        ],
+        [
+          "#DOTA_Item_Build_Core_Items",
+          [
+            "item_maelstrom",
+            "item_black_king_bar",
+            "item_mjollnir",
+            "item_blink",
+            "item_greater_crit",
+            "item_monkey_king_bar"
+          ]
+        ],
+        [
+          "#DOTA_Item_Build_Luxury",
+          [
+            "item_travel_boots",
+            "item_aghanims_shard",
+            "item_sheepstick",
+            "item_sphere",
+            "item_nullifier",
+            "item_bloodthorn",
+            "item_wind_waker",
+            "item_refresher",
+            "item_gungir",
+            "item_ultimate_scepter"
+          ]
+        ]
+      ]
+    },
+    {
+      "id": "2177205431",
+      "hero": "windrunner",
+      "title": "7.42a (Support) MOUZ Guides  | Windranger Support",
+      "steamRole": "#DOTA_HeroGuide_Role_Support",
+      "patch": "7.42a",
+      "timeUpdated": 1795585663,
+      "subscriptions": 423089,
+      "votes": 1027,
+      "file": "https://cdn.steamusercontent.com/ugc/13547095111901220656/A1B7D5B61F3F0CB8D3CA0BF394463C532559A514/",
+      "sha256": "6ff5e5a5209fac497e3df561010b70d85b9060aa4cf725d8fa462ba4ab18b388",
+      "url": "https://steamcommunity.com/sharedfiles/filedetails/?id=2177205431",
+      "roles": [
+        "support",
+        "roamer"
+      ],
+      "groups": [
+        [
+          "#DOTA_Item_Build_Starting_Items",
+          [
+            "item_ward_observer",
+            "item_ward_sentry",
+            "item_tango",
+            "item_faerie_fire",
+            "item_enchanted_mango",
+            "item_branches",
+            "item_branches",
+            "item_blood_grenade",
+            "item_mantle"
+          ]
+        ],
+        [
+          "#DOTA_Item_Build_Early_Game",
+          [
+            "item_bloodslinger",
+            "item_arcane_boots",
+            "item_magic_wand"
+          ]
+        ],
+        [
+          "#DOTA_Item_Build_Core_Items",
+          [
+            "item_blink",
+            "item_consecrated_wraps",
+            "item_force_staff",
+            "item_aghanims_shard",
+            "item_lotus_orb"
+          ]
+        ],
+        [
+          "#DOTA_Item_Build_Luxury",
+          [
+            "item_guardian_greaves",
+            "item_black_king_bar",
+            "item_maelstrom",
+            "item_gungir",
+            "item_spirit_vessel",
+            "item_solar_crest",
+            "item_bloodthorn",
+            "item_sphere",
+            "item_wind_waker",
+            "item_glimmer_cape"
+          ]
+        ]
+      ]
+    }
+  ]
+}

@@ -56,7 +56,14 @@
     "cellCenter": "gridIndex*edgeSize+offset"
   },
   "navigationSemantics": "GridNav:IsTraversable tests bit 0; other flags and dynamic obstacles are separate.",
-  "heightSemantics": "Raw trm/vhcg retained. Vhcg first float/detail grid is solid ground; second float is separate water. Script GetGroundHeight(nil) uses mask0x3021. No additional runtime height array is introduced.",
+  "heightSemantics": "VHCG first float/detail grid is solid ground; second float is separate water. VScript GetGroundHeight(pos,nil) uses content mask 0x3021 and excludes water. The runtime samples both compiled layers at existing navigation centers.",
+  "heightMapVerifiedClient": {
+    "verifiedAt": "2026-11-27",
+    "steamBuild": 26936712,
+    "clientVersion": 6997,
+    "sourceRevision": 11278692,
+    "mapVpkSha256": "7fc24ff13fcbe6840e5b9d76beb23f681368ecd2aa8b32a1e31e3cda959bd304"
+  },
   "minimapBounds": {
     "sourceMinX": -9472,
     "sourceMaxX": 9472,
