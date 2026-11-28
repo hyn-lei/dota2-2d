@@ -1,4 +1,5 @@
 import { icon } from './icons.js';
+import { building } from './building-types.js';
 import { derivedStatusEffects, statusImage, statusDescription } from './status-catalog.js';
 
 const INFO = {
@@ -70,6 +71,7 @@ export function statusEffects(unit, time = 0, game = null) {
     if (!id || (!authoritative && claimed.has(id))) return;
     // An expired authoritative entry also suppresses a stale legacy mirror.
     claimed.add(id);
+    if (raw?.hidden && building(unit)) return;
     const picture=statusImage(id,raw,unit,game);
     const effect = normalizeStatus(id, {...raw,...(picture?{image:picture}:{})}, now);
     if (effect) effects.set(id, effect);

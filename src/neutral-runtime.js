@@ -197,24 +197,24 @@ function tickAuras(g){
  const sources=g.entities.filter(e=>alive(e)&&(e.ownerId||['eimermole','ogre_seal_pup'].includes(e.unitId))&&e.abilities?.some(id=>auraFields[id])&&!Skills.hasStatusFlag(g,e,'break'));
  if(!sources.length&&!g._hadCreatureAuras)return;g._hadCreatureAuras=!!sources.length;
  for(const unit of g.entities){
-  const tower=unit.kind==='tower';
-  if(!alive(unit)||!fighter(unit)&&!tower)continue;
+  const structure=building(unit);
+  if(!alive(unit)||!fighter(unit)&&!structure)continue;
   const buffs=new Map();
   for(const source of sources)for(const id of source.abilities||[]){
-   const fields=auraFields[id],a=definition(id);if(!fields||!a||tower&&!fields.creatureRegen)continue;
+   const fields=auraFields[id],a=definition(id);if(!fields||!a||structure&&!fields.creatureRegen)continue;
    const enemy=['ancient_rock_golem_weakening_aura','eimermole_miners_aura','ogre_seal_pup_disapproval_aura'].includes(id);if(enemy?unit.team===source.team:unit.team!==source.team)continue;
    if(enemy&&Skills.debuffImmune(g,unit))continue;
    if(id==='kobold_tunneler_prospecting'&&unit.kind!=='hero')continue;
    if(distance(source,unit)>rank(source,a.values.radius))continue;
    const data={sourceId:source.id};for(const [field,key]of Object.entries(fields)){
-    if(tower&&field!=='creatureRegen')continue;
+    if(structure&&field!=='creatureRegen')continue;
     data[field]=rank(source,a.values[id==='mudgolem_cloak_aura'&&unit.kind!=='hero'?'bonus_magical_armor_creeps':key])*(enemy&&field==='armor'?-1:1);
    }
    const previous=buffs.get(id);if(!previous||Object.entries(data).some(([key,n])=>key!=='sourceId'&&Math.abs(n)>Math.abs(previous[key]||0)))buffs.set(id,data);
   }
-  for(const [id,data]of buffs)Skills.addStatus(g,unit,'creatureAura:'+id,{name:UNIT_SKILL_UI[id]?.name||id,icon:'aura',positive:!['ancient_rock_golem_weakening_aura','eimermole_miners_aura','ogre_seal_pup_disapproval_aura'].includes(id),hidden:tower,duration:.1,creatureAura:true,...data});
+  for(const [id,data]of buffs)Skills.addStatus(g,unit,'creatureAura:'+id,{name:UNIT_SKILL_UI[id]?.name||id,icon:'aura',positive:!['ancient_rock_golem_weakening_aura','eimermole_miners_aura','ogre_seal_pup_disapproval_aura'].includes(id),hidden:structure,duration:.1,creatureAura:true,...data});
   for(const [id,status]of Object.entries(unit.statuses||{}))if(status.creatureAura&&!buffs.has(id.slice('creatureAura:'.length)))delete unit.statuses[id];
-  if(tower)continue;
+  if(structure)continue;
   const hpPct=Math.max(0,...[...buffs.values()].map(s=>s.creatureHpPct||0)),base=unit.maxHp-(unit.creatureHpBonus||0),bonus=base*hpPct/100;
   unit.creatureHpPct=hpPct;
   if(Math.abs(bonus-(unit.creatureHpBonus||0))>1e-6){const ratio=unit.hp/unit.maxHp;unit.creatureHpBonus=bonus;unit.maxHp=base+bonus;unit.hp=unit.maxHp*ratio;}

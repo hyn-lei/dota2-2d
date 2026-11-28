@@ -4,6 +4,7 @@ import * as Inventory from './inventory.js';
 import { ITEM_BY_ID } from './item-data.js';
 import { BASES } from './map-data.js';
 import * as C from './item-common.js';
+import {BUILDING_KINDS} from './building-types.js';
 import {NEUTRAL_ACTIVE_HANDLERS} from './item-neutral-runtime.js';
 import {toggleArmlet} from './armlet-runtime.js';
 import {queueHarpoon,resolveHarpoon,startShiva} from './item-projectiles.js';
@@ -81,7 +82,7 @@ define('mekansm guardian_greaves arcane_boots','self',(g,h,e)=>{
  const recipients=hp?C.areaHealingRecipients(g,h,radius):allies(g,h,radius);
  for(const ally of recipients){
   if(hp&&!active(g,ally,'mendLock')){C.healInArea(g,ally,hp,h);status(g,ally,'mendLock',i,{positive:true,duration:e.id==='mekansm'?50:40,hidden:true});}
-  if(mana&&ally.kind!=='tower')restoreMana(ally,mana);
+  if(mana&&!C.building(ally))restoreMana(ally,mana);
  }
  pulse(g,h,i,radius);
 });
@@ -202,7 +203,7 @@ export function findItemTarget(g,h,entry,point){
   const targetRange=t=>{const r=t.team!==h.team?v(entry.item,['enemy_cast_range','cast_range_enemy'],entry.item.range):entry.item.range;return r?r+(h.castRangeBonus||0):Infinity;};
   target=C.targetAt(g,h,p,team,type==='allyHero'?['hero']:type==='enemyCreep'?['creep','neutral','summon']:undefined,targetRange);
   if(!target&&type==='allyOptional'){
-   if(entry.id==='holy_locket'&&C.targetAt(g,h,p,'ally',['tower'],Infinity,true))return reject('请指向有效的友方单位');
+   if(entry.id==='holy_locket'&&C.targetAt(g,h,p,'ally',BUILDING_KINDS,Infinity,true))return reject('请指向有效的友方单位');
    target=h;
   }
  }

@@ -339,7 +339,7 @@ export function tickWorld(g,dt){
    for(const target of g.entities)if(alive(target)&&distance(h,target)<=radius){const a=target.itemAura;
     const positive=target.team===h.team;
     if(i.id==='headdress'&&target.kind!=='hero'&&!target.ownerId){
-     if(positive&&target.kind==='tower')a.hpRegen=Math.max(a.hpRegen||0,v(i,'aura_health_regen'));
+     if(positive&&C.building(target))a.hpRegen=Math.max(a.hpRegen||0,v(i,'aura_health_regen'));
      continue;
     }
     const values=positive?[v(i,['armor_aura','aura_positive_armor','bonus_aoe_armor']),v(i,'aura_attack_speed'),v(i,'damage_aura'),v(i,'lifesteal_aura'),v(i,'aura_health_regen'),v(i,['mana_regen_aura','aura_mana_regen']),v(i,['aura_magic_resistance','magic_resistance_aura']),v(i,'aura_movement_speed')]:[v(i,'aura_negative_armor'),i.id==='shivas_guard'?v(i,'aura_attack_speed'):0,v(i,'aura_spell_vulnerability'),i.id==='crellas_crozier'&&target.kind==='hero'?v(i,'health_steal'):0];

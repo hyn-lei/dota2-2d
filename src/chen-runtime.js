@@ -2,7 +2,7 @@ import * as Skills from './hero-runtime.js';
 import {innateAt} from './ability-data.js';
 import {ZEALOT,MARTYRDOM,CREATURE_LEVELS} from './chen-data.js';
 import {ownsControlledUnit,ownedUnits,setCreatureOrder} from './controlled-units.js';
-import {heal} from './item-common.js';
+import {building,heal} from './item-common.js';
 import {restoreMana} from './mana-runtime.js';
 import {ZEALOT_GROWTH_ID,zealotGrowthAt} from './zealot-growth.js';
 
@@ -207,12 +207,12 @@ export function tickChenWorld(g){
   updateZealotGrowth(g,h);
   const s=ability(h,2),active=alive(h)&&s.level>0&&!Skills.hasStatusFlag(g,h,'break'),channel=h.channel?.kind==='chenHandOfGod'?h.channel:null;
   for(const unit of g.entities){
-   const tower=unit.kind==='tower';
-   if(!alive(unit)||unit.team!==h.team||!fighter(unit)&&!tower)continue;
+   const structure=building(unit);
+   if(!alive(unit)||unit.team!==h.team||!fighter(unit)&&!structure)continue;
    const id='chenAura:'+h.id;
-   if(active&&distance(h,unit)<=s.values.aura_radius+(h.spellAoE||0))Skills.addStatus(g,unit,id,{name:'神力恩泽光环',description:`生命恢复 +${s.values.heal_rate}/秒。`,positive:true,hidden:tower,icon:'heal',sourceId:h.id,chenAuraRegen:s.values.heal_rate,duration:.1});
+   if(active&&distance(h,unit)<=s.values.aura_radius+(h.spellAoE||0))Skills.addStatus(g,unit,id,{name:'神力恩泽光环',description:`生命恢复 +${s.values.heal_rate}/秒。`,positive:true,hidden:structure,icon:'heal',sourceId:h.id,chenAuraRegen:s.values.heal_rate,duration:.1});
    else delete unit.statuses?.[id];
-   if(tower)continue;
+   if(structure)continue;
    const immuneId='chenImmunity:'+h.id;
    if(channel&&g.time<channel.until&&unit!==h&&distance(h,unit)<=channel.skill.values.debuff_immune_radius+(h.spellAoE||0))Skills.addStatus(g,unit,immuneId,{name:'上帝之手减益免疫',description:'持续施法期间获得减益免疫与魔法抗性。',positive:true,undispellable:true,icon:'heal',sourceId:h.id,chenImmunity:true,debuffImmune:true,magicResistance:channel.skill.values.debuff_immune_resist,duration:.1});
    else delete unit.statuses?.[immuneId];
