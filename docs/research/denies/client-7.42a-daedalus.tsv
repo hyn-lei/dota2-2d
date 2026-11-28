@@ -1,0 +1,37 @@
+# Dota 2 7.42a, Steam build 26936712, Client/Server 6997, SourceRevision 11278692.
+# Local dedicated dota map, game in progress. Kunkka with Daedalus alternated allied and enemy melee lane creeps.
+# START fields after time/event: match state, item name, crit chance, crit multiplier.
+# HIT fields after time/event: trial, relationship, damage from 490 initial HP, target selected.
+2.566666841507	START	10	item_greater_crit	30	225
+4.5666670799255	HIT	1	deny	172	true
+6.2333335876465	HIT	2	enemy	172	true
+7.8666672706604	HIT	3	deny	172	true
+9.5000009536743	HIT	4	enemy	387	true
+11.166666984558	HIT	5	deny	172	true
+12.800001144409	HIT	6	enemy	387	true
+14.466667175293	HIT	7	deny	172	true
+16.10000038147	HIT	8	enemy	172	true
+17.766668319702	HIT	9	deny	172	true
+19.433334350586	HIT	10	enemy	172	true
+21.066667556763	HIT	11	deny	172	true
+22.733333587646	HIT	12	enemy	172	true
+24.366668701172	HIT	13	deny	172	true
+26.033334732056	HIT	14	enemy	172	true
+27.666667938232	HIT	15	deny	172	true
+29.333333969116	HIT	16	enemy	387	true
+30.966669082642	HIT	17	deny	172	true
+32.600002288818	HIT	18	enemy	172	true
+34.266670227051	HIT	19	deny	172	true
+35.900001525879	HIT	20	enemy	172	true
+37.566669464111	HIT	21	deny	172	true
+39.233333587646	HIT	22	enemy	172	true
+40.866668701172	HIT	23	deny	172	true
+42.500003814697	HIT	24	enemy	387	true
+44.166667938232	HIT	25	deny	172	true
+45.800003051758	HIT	26	enemy	172	true
+47.46667098999	HIT	27	deny	172	true
+49.100002288818	HIT	28	enemy	172	true
+50.766670227051	HIT	29	deny	172	true
+52.400001525879	HIT	30	enemy	172	true
+54.066669464111	HIT	31	deny	172	true
+55.700004577637	HIT	32	enemy	172	true

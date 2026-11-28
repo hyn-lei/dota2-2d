@@ -33,6 +33,10 @@ try{
       Object.assign(p,{x:10400,y:10400,team,abilityLevels:[4,4,4,3],level:25,skillPoints:0,mana:5000,maxMana:5000,attackCooldown:999,manaRegen:0,hpRegen:0});
       Object.assign(e,{x:10600,y:10400,team:1-team,maxHp:10000,hp:10000,armor:0,magicResistance:0,speed:0,hpRegen:0,attackCooldown:999,cooldowns:[999,999,999,999],aiTimer:Infinity,abilityLevels:[0,0,0,0]});g._index();return {g,p,e};
     }
+    function revealTarget({g,p,e}){
+      g.entities.push(g._unit('ward',p.team,e.x,e.y,{wardType:'observer',expiresAt:g.time+360}));
+      g._index();
+    }
     const cases=[];
     for(const team of [0,1])for(const [hero,index,step,expected]of [
       ['crystal_maiden',0,.4,'frostNova'],['windranger',0,.16,'shackleShot'],['windranger',1,1.05,'powershot'],
@@ -71,11 +75,14 @@ try{
       cases.push(`juggernaut:bladeFury:${team}`,`juggernaut:omnislash:${team}`,`juggernaut:healingWard:${team}`);
     }
     const rope=arena('windranger');rope.e.x=rope.p.x+500;const anchor=rope.g._unit('creep',1,rope.p.x+650,rope.p.y,{speed:0,attackCooldown:999,lane:1,pathIndex:0});rope.g.entities.push(anchor);
-    rope.g.cast(0,rope.e);rope.g.step(.7);const tether=rope.g.effects.find(f=>f.visual==='shackleLink');assert(tether,'real tether');
+    revealTarget(rope);
+    const tetherCast=rope.g.cast(0,rope.e);assert(tetherCast.ok,tetherCast.reason);
+    rope.g.step(.7);const tether=rope.g.effects.find(f=>f.visual==='shackleLink');assert(tether,'real tether');
     const tetherFrame=()=>snapshot(()=>{c.save();c.translate(-rope.e.x+50,-rope.e.y+130);drawCombatEffect(c,tether,rope.g,.5);c.restore();});
     const attached=tetherFrame();applyDispel(rope.g,rope.e,true);const detached=tetherFrame();assert(attached!==detached,'dispel removes actual rope pixels');
     applyStun(rope.g,rope.e,1,{id:'other'});assert(tetherFrame()===detached,'unrelated stun cannot restore rope pixels');
-    const dodge=arena('windranger');dodge.e.x=dodge.p.x+700;dodge.e.hasShard=true;dodge.g.cast(0,dodge.e);dodge.g.step(.16);
+    const dodge=arena('windranger');dodge.e.x=dodge.p.x+700;dodge.e.hasShard=true;revealTarget(dodge);
+    const dodgeCast=dodge.g.cast(0,dodge.e);assert(dodgeCast.ok,dodgeCast.reason);dodge.g.step(.16);
     const shot=dodge.g.effects.find(f=>f.visual==='shackleShot');assert(shot,'incoming arrow');castExtraAbility(dodge.g,dodge.e,'crystal_maiden_crystal_clone',{x:dodge.e.x+1000,y:dodge.e.y});dodge.g.step(.21);
     const blank=snapshot(()=>{}),disjointFrame=snapshot(()=>drawCombatEffect(c,{...shot,x:50,y:130,tx:300,ty:130},dodge.g,.5));assert(blank===disjointFrame,'disjoint leaves no arrow pixels');
     const mainRenderer=window.vfxRenderer,edgeCanvas=document.createElement('canvas');edgeCanvas.style.cssText='position:fixed;left:-1000px;width:400px;height:300px';document.body.append(edgeCanvas);
