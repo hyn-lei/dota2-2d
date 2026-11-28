@@ -78,6 +78,8 @@ try {
     };
   });
   await page.locator('#difficulty').selectOption('hard');
+  // Keep the opening scenario fixed while exercising the versioned module graph.
+  await page.evaluate(() => { Math.random = () => 42 / 4294967296; });
   await page.locator('#start-game').click();
   await page.waitForFunction(() => window.observedGame?.time > 1);
   const progress = await page.evaluate(async () => {
