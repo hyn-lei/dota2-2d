@@ -72,7 +72,9 @@ test('one minute jumps directly to 200 and back while retaining units, resources
 
 test('nightmare AI reassesses its visible focus after rewinding instead of retaining a future team plan',()=>{
  const {g,p}=fixture(),bot=g._makeHero('axe',1,1,false,0);g.difficulty='nightmare';
- Object.assign(bot,{x:10400,y:11000,attackCooldown:Infinity});p.hp=100;g._index();
+ Object.assign(bot,{x:10400,y:11000,attackCooldown:Infinity});p.hp=100;
+ const ward=g._unit('ward',bot.team,p.x,p.y,{wardType:'observer',visionDay:1600,visionNight:1600,expiresAt:Infinity});
+ g.entities.push(ward);g._index();
  assert.equal(setTime(g,200).ok,true);tickBot(g,bot);assert.equal(bot.teamFocusTargetId,p.id);
  p.x=19000;g._index();assert.equal(setTime(g,0).ok,true);tickBot(g,bot);
  assert.equal(bot.teamFocusTargetId,null);
