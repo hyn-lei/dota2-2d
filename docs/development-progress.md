@@ -23,5 +23,6 @@
 - B1.3 取得原版 7.42a 正式对局样本。一塔 9% 可反补、10% 和 11% 拒绝。昆卡反补兵线兵后潮汐使者冷却仍为 0。陈劝化的人马在恰好 50% 可反补，`6e693ca` 已更新二维普通受控生物门槛。5 条定向规则用例和发布构建验证通过，前端版本 `10b7a332…93f7`。CI 通过追踪物品检查，停在风行者的特效用例。英雄反补的阳性对照、建筑赏金及其余攻修仍待采样。[塔与潮汐使者](research/denies/client-7.42a-hero-and-tidebringer.tsv) · [受控生物](research/denies/client-7.42a-controlled.tsv) · [发布记录](https://github.com/hyn-lei/dota2-2d/actions/runs/46152915036)
 - `5991447` 为风行者束缚击目标提供视野，Chromium 的实际绳索、驱散和弹道躲避均通过。代达罗斯之殇原版对照各做 16 次，友方兵均承受 172 伤害，敌方兵有 4 次承受 387 伤害。CI 通过特效与九 AI 性能用例，后续 AI 防塔场景因敌方英雄缺视野停止。[暴击取样](research/denies/client-7.42a-daedalus.tsv) · [发布记录](https://github.com/hyn-lei/dota2-2d/actions/runs/46154334019)
 - `6a4bcfc` 用真实侦察守卫修正 AI 防塔、避战和等兵线，以及食人魔引燃、卓尔游侠特效、英雄点选的测试条件。5 个受影响的 Chromium 场景均通过，英雄点选同时通过静止及攻击动画模式。[发布记录](https://github.com/hyn-lei/dota2-2d/actions/runs/46155451688)
-- 陈的远距离命令用例先分别复现单机目标点选失败和联机快照缺目标。补上友方守卫后，单机和真实 WebSocket 用例均通过，涵盖追击远处目标、击杀后继续搜敌、停驻及返回英雄。后续先核对发布与公网，再继续原版英雄反补与攻修的采样。[main 工作流](https://github.com/hyn-lei/dota2-2d/actions/workflows/docker.yml?query=branch%3Amain)
+- `ad1feb8` 修正陈的远距离命令用例，两项定向检查及 CI 中的单机和真实 WebSocket 场景均通过。后续五人联机用例误从受迷雾过滤的可见实体统计五名对手。[发布记录](https://github.com/hyn-lei/dota2-2d/actions/runs/46156322418)
+- 五人联机从公开阵容核对五名对手，并检查开局快照隐藏对手动态状态。Chromium 的 6 组联机回归通过。常规延迟与抖动测试从服务器核对负载，两次均有 9 名 AI、250 个实体，客户端可见 85 个，首次可见移动为 50.1 和 53.5 毫秒，现有性能阈值通过。下一步核对发布与公网，再继续原版英雄反补与攻修采样。[main 工作流](https://github.com/hyn-lei/dota2-2d/actions/workflows/docker.yml?query=branch%3Amain)
 - 新会话从本文件和[完整验收表](superpowers/plans/2026-11-25-parity-backlog.md)恢复，先核对最新提交与发布，再推进能完成的余项。回答“做了什么”时读本文件、验收表及其证据链接。

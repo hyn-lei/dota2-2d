@@ -77,6 +77,7 @@ try{
  });
  await page.locator('#quick-coop-room').click();await page.waitForFunction(()=>document.querySelector('#coop-connection')?.textContent.includes('\u5df2\u8fde\u63a5'));
  await page.locator('#coop-name').fill('Performance probe');await page.locator('#coop-create').click();await page.waitForSelector('#coop-room-code');
+ const code=await page.locator('#coop-room-code').textContent();
  await page.locator('#coop-ready').click();await page.locator('#coop-start').click();await page.waitForFunction(()=>window.coopGame?.isNetwork);
  await page.waitForTimeout(1000);timings.active=true;const firstWireBytes=wireBytes();
  await page.evaluate(()=>window.coopSamples={active:true,frames:[],packets:[],commands:[],armedAt:performance.now(),inputAt:null,inputReceivedAt:null,inputPosition:null,firstMoveMs:null});
@@ -85,8 +86,15 @@ try{
   await page.keyboard.down('ArrowLeft');await page.waitForTimeout(1000);await page.keyboard.up('ArrowLeft');
  }
  const stats=values=>{const a=[...values].sort((x,y)=>x-y);return {n:a.length,mean:a.length?a.reduce((s,n)=>s+n,0)/a.length:0,p50:a[Math.floor(a.length*.5)]||0,p95:a[Math.floor(a.length*.95)]||0,max:a.at(-1)||0};};
- const samples=await page.evaluate(()=>{coopSamples.active=false;return {samples:coopSamples,player:{hp:coopGame.player.hp,maxHp:coopGame.player.maxHp,dead:coopGame.player.dead,statuses:coopGame.player.statuses},frontendBuild:document.querySelector('meta[name="game-build"]')?.content||null,ai:coopGame.entities.filter(e=>e.kind==='hero'&&e.controller==='ai').length,heroes:coopGame.entities.filter(e=>e.kind==='hero').map(e=>e.heroId),entities:coopGame.entities.length,time:coopGame.time};});
+ const samples=await page.evaluate(()=>{
+  coopSamples.active=false;
+  return {samples:coopSamples,player:{hp:coopGame.player.hp,maxHp:coopGame.player.maxHp,dead:coopGame.player.dead,statuses:coopGame.player.statuses},
+   frontendBuild:document.querySelector('meta[name="game-build"]')?.content||null,visibleEntities:coopGame.entities.length,time:coopGame.time};
+ });
  timings.active=false;
+ const game=service.manager.rooms.get(code).game;
+ const heroes=game.entities.filter(e=>e.kind==='hero');
+ const workload={ai:heroes.filter(e=>e.controller==='ai').length,heroes:heroes.map(e=>e.heroId),entities:game.entities.length,visibleEntities:samples.visibleEntities};
  const frames=samples.samples.frames,packets=samples.samples.packets,intervals=a=>a.slice(1).map((v,i)=>v.at-a[i].at),duration=(frames.at(-1).at-frames[0].at)/1000;
  const changed=frames.slice(1).filter((f,i)=>Math.hypot(f.x-frames[i].x,f.y-frames[i].y)>.01).length;
  const backwards=frames.slice(1).map((f,i)=>{const previous=frames[i];return f.inputX===previous.inputX&&f.inputY===previous.inputY?(f.x-previous.x)*f.inputX+(f.y-previous.y)*f.inputY:0;}).filter(d=>d<-.05);
@@ -95,7 +103,7 @@ try{
   const f=frames[i],p=frames[i-1],held=f.inputX===p.inputX&&f.inputY===p.inputY&&(f.inputX||f.inputY);
   if(held&&Math.hypot(f.x-p.x,f.y-p.y)<=.01){plateauAt??=p.at;longestPlateau=Math.max(longestPlateau,f.at-plateauAt);}else plateauAt=null;
  }
- const report={label,mature,source,root,frontendBuild:samples.frontendBuild,testGround,simulatedRoundTripMs:roundTripMs,snapshotStallMs:stallMs,stallEvery,ai:samples.ai,heroes:samples.heroes,entities:samples.entities,time:samples.time,player:samples.player,deadFrames:frames.filter(f=>!f.alive).length,failedCommands:samples.samples.commands.filter(c=>!c.ok),durationSeconds:duration,firstVisibleMovementMs:samples.samples.firstMoveMs,positionChangesPerSecond:changed/duration,renderFramesPerSecond:frames.length/duration,longestHeldMovementPlateauMs:longestPlateau,snapshotIntervalsMs:stats(intervals(packets)),decodedPacketBytes:stats(packets.map(p=>p.bytes)),decodedIncomingBytesPerSecond:packets.reduce((s,p)=>s+p.bytes,0)/duration,compressedWebSocketBytesPerSecond:(wireBytes()-firstWireBytes)/duration,commandRoundTripMs:stats(samples.samples.commands.map(c=>c.rttMs)),renderMs:stats(frames.map(f=>f.renderMs)),serverStepMs:stats(timings.step),serverSnapshotMs:stats(timings.snapshot),serverSnapshotCpuMsPerSecond:timings.snapshot.reduce((s,n)=>s+n,0)/duration,errors};
+ const report={label,mature,source,root,frontendBuild:samples.frontendBuild,testGround,simulatedRoundTripMs:roundTripMs,snapshotStallMs:stallMs,stallEvery,...workload,time:samples.time,player:samples.player,deadFrames:frames.filter(f=>!f.alive).length,failedCommands:samples.samples.commands.filter(c=>!c.ok),durationSeconds:duration,firstVisibleMovementMs:samples.samples.firstMoveMs,positionChangesPerSecond:changed/duration,renderFramesPerSecond:frames.length/duration,longestHeldMovementPlateauMs:longestPlateau,snapshotIntervalsMs:stats(intervals(packets)),decodedPacketBytes:stats(packets.map(p=>p.bytes)),decodedIncomingBytesPerSecond:packets.reduce((s,p)=>s+p.bytes,0)/duration,compressedWebSocketBytesPerSecond:(wireBytes()-firstWireBytes)/duration,commandRoundTripMs:stats(samples.samples.commands.map(c=>c.rttMs)),renderMs:stats(frames.map(f=>f.renderMs)),serverStepMs:stats(timings.step),serverSnapshotMs:stats(timings.snapshot),serverSnapshotCpuMsPerSecond:timings.snapshot.reduce((s,n)=>s+n,0)/duration,errors};
  report.backwardsFrames=backwards.length;report.maxBackwardsDistance=backwards.length?-Math.min(...backwards):0;
  report.transportSequenceErrors=packets.slice(1).filter((packet,i)=>packet.frame<=packets[i].frame).length;
  report.inputDispatchWaitMs=samples.samples.inputAt==null?null:samples.samples.inputAt-samples.samples.armedAt;

@@ -26,8 +26,14 @@ try{
   await pages[4].locator('#coop-code').fill(code);await pages[4].locator('#coop-join').click();await pages[4].waitForSelector('#coop-room-code');await pages[4].locator('#coop-ready').click();
   await pages[0].waitForFunction(()=>!document.querySelector('#coop-start').disabled);await pages[0].screenshot({path:'artifacts/coop-five-ready.png'});await pages[0].locator('#coop-start').click();
   for(const page of pages)await page.waitForFunction(()=>window.observedGame?.isNetwork&&window.observedGame.player?.isHuman);
-  const owners=await Promise.all(pages.map(p=>p.evaluate(()=>({id:window.observedGame.player.id,clientId:window.observedGame.player.clientId,hero:window.observedGame.player.heroId,humans:window.observedGame.entities.filter(e=>e.isHuman).length,local:window.observedGame.entities.filter(e=>e.isPlayer).length,bots:window.observedGame.entities.filter(e=>e.kind==='hero'&&e.team===1&&e.controller==='ai').length}))));
-  assert.equal(new Set(owners.map(o=>o.id)).size,5);assert.equal(new Set(owners.map(o=>o.clientId)).size,5);assert.deepEqual(owners.map(o=>o.hero),heroes);assert.ok(owners.every(o=>o.humans===5&&o.local===1&&o.bots===5));check('Five isolated browser identities control distinct human heroes against five server AI');
+  const owners=await Promise.all(pages.map(p=>p.evaluate(()=>{
+    const g=window.observedGame;
+    return {id:g.player.id,clientId:g.player.clientId,hero:g.player.heroId,
+      humans:g.entities.filter(e=>e.isHuman).length,local:g.entities.filter(e=>e.isPlayer).length,
+      bots:g.roster.filter(e=>e.team!==g.player.team&&e.controller==='ai').length,
+      visibleEnemyHeroes:g.entities.filter(e=>e.kind==='hero'&&e.team!==g.player.team).length};
+  })));
+  assert.equal(new Set(owners.map(o=>o.id)).size,5);assert.equal(new Set(owners.map(o=>o.clientId)).size,5);assert.deepEqual(owners.map(o=>o.hero),heroes);assert.ok(owners.every(o=>o.humans===5&&o.local===1&&o.bots===5));assert.ok(owners.every(o=>o.visibleEnemyHeroes===0));check('Five isolated identities control distinct human heroes; five opponents appear in the roster with their opening state hidden');
 
   for(let i=0;i<5;i++){await pages[i].locator(`[data-learn="${i===0?2:0}"]`).click();await pages[i].waitForFunction(index=>window.observedGame.player.abilityLevels[index]===1,i===0?2:0);}
   const first=await pages[0].evaluate(()=>({x:window.observedGame.player.x,y:window.observedGame.player.y}));await pages[0].keyboard.down('ArrowRight');await pages[0].waitForFunction(x=>window.observedGame.player.x>x+20,first.x);await pages[0].keyboard.up('ArrowRight');
