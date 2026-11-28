@@ -18,7 +18,8 @@ try{
    const g=pickGame,p=g.player,e=g._makeHero(hero,1,1,false,0);
    Object.assign(p,{x:10400,y:10400,speed:0,attackCooldown:999,destination:null,explicitTarget:null,statuses:{}});
    Object.assign(e,{x:10800,y:10400,speed:0,aiTimer:Infinity,attackCooldown:999,hp:50000,maxHp:50000,angle:-.7});
-   g.entities=[p,e];g.selectedId=p.id;g.effects=[];g.pendingSpells=[];g.nextWave=g.nextNeutralSpawn=g.roshanRespawnAt=g.nextBuildingCheck=Infinity;g._index();
+   const ward=g._unit('ward',p.team,e.x,e.y,{wardType:'observer',expiresAt:g.time+360});
+   g.entities=[p,e,ward];g.selectedId=p.id;g.effects=[];g.pendingSpells=[];g.nextWave=g.nextNeutralSpawn=g.roshanRespawnAt=g.nextBuildingCheck=Infinity;g._index();
    if(attacking){
     const dummy=g._makeHero('axe',0,1,false,2);Object.assign(dummy,{x:e.x+(e.range>200?250:70),y:e.y,speed:0,aiTimer:Infinity,attackCooldown:999,hp:50000,maxHp:50000});
     g.entities.push(dummy);e.attackCooldown=0;g.time+=2;g._index();

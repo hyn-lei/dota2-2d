@@ -23,7 +23,9 @@ try{
   function scene(hero='drow_ranger'){
    const g=new Game({hero}),p=g.player,e=g._makeHero('crystal_maiden',1,1,false,0);g.entities=[p,e];g.nextWave=g.nextNeutralSpawn=g.roshanRespawnAt=Infinity;
    Object.assign(p,{x:10400,y:10400,abilityLevels:[4,4,4,3],attackCooldown:999,hpRegen:0,manaRegen:0});
-   Object.assign(e,{x:p.x+500,y:p.y,maxHp:10000,hp:10000,armor:0,magicResistance:0,speed:0,hpRegen:0,attackCooldown:999,aiTimer:Infinity,abilityLevels:[0,0,0,0],cooldowns:[999,999,999,999]});g._index();g.step(.05);p.hpRegen=p.manaRegen=0;p.mana=p.maxMana=3000;return {g,p,e};
+   Object.assign(e,{x:p.x+500,y:p.y,maxHp:10000,hp:10000,armor:0,magicResistance:0,speed:0,hpRegen:0,attackCooldown:999,aiTimer:Infinity,abilityLevels:[0,0,0,0],cooldowns:[999,999,999,999]});
+   g.entities.push(g._unit('ward',p.team,e.x,e.y,{wardType:'observer',expiresAt:g.time+360}));
+   g._index();g.step(.05);p.hpRegen=p.manaRegen=0;p.mana=p.maxMana=3000;return {g,p,e};
   }
   const renderer=window.drowRenderer,tiles=[];
   const frost=scene();frost.p.attackCooldown=0;frost.g._attack(frost.p,frost.e,{attackReleased:true});frost.p.attackCooldown=999;frost.g.step(.2);

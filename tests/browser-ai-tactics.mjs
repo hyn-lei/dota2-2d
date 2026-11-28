@@ -29,9 +29,13 @@ try{
       g._index();return {g,bots,bot:bots[0],enemy};
     }
     function tower(g,team,x){const t=g._unit('tower',team,x,10400,{maxHp:1800,range:700,lane:2,tier:1,attackCooldown:999});g.entities.push(t);g._index();return t;}
+    function observe(g,team,{x,y}){
+      g.entities.push(g._unit('ward',team,x,y,{wardType:'observer',expiresAt:g.time+360}));
+      g._index();
+    }
     const defenses=[],fights=[];
     for(const team of [0,1]){
-      const {g,bot,enemy}=setup(team),own=tower(g,team,15000);Object.assign(enemy,{x:15400,targetId:own.id});g._index();
+      const {g,bot,enemy}=setup(team),own=tower(g,team,15000);Object.assign(enemy,{x:15400,targetId:own.id});observe(g,team,enemy);
       g.step(.1);const channel=bot.itemChannel?.targetId,consumed=bot.tp.length===0,mana=bot.mana;
       if(team===0){window.tacticsGame=g;window.observedRenderer.lookAt(bot.x,bot.y);window.observedRenderer.followPlayer=false;}
       g.step(3.2);defenses.push({team,channel,expected:own.id,consumed,mana,landed:distance(bot,own)<500,target:bot.targetId,enemy:enemy.id});
@@ -40,17 +44,18 @@ try{
       a.g.step(.1);const mode=a.bot.botState.mode,tp=a.bot.itemChannel?.targetId;
       a.g.step(3.2);fights.push({team,mode,tp,expected:support.id,joined:a.bot.targetId===a.enemy.id});
     }
-    const a=setup(1);a.enemy.x=a.bot.x+450;a.enemy.level=12;a.g._refreshHero(a.enemy);a.enemy.hp=a.enemy.maxHp;a.bot.tp=[];a.bot.tpMeta=[];a.g._index();
+    const a=setup(1);a.enemy.x=a.bot.x+450;a.enemy.level=12;a.g._refreshHero(a.enemy);a.enemy.hp=a.enemy.maxHp;a.bot.tp=[];a.bot.tpMeta=[];observe(a.g,a.bot.team,a.enemy);
     const samples=[];for(let i=0;i<240;i++){a.g.step(.05);samples.push({x:a.bot.x,y:a.bot.y,mode:a.bot.botState.mode});}
     const tail=samples.slice(-60),retreat={mode:a.bot.botState.mode,distance:distance(a.bot,a.enemy),tailMovement:Math.max(...tail.map(p=>distance(p,tail[0])))};
     a.enemy.x+=3000;a.g._index();a.g.step(2);retreat.resumed=!a.bot.botState.safety;
     const b=setup();b.enemy.dead=true;b.enemy.hp=0;b.bot.tp=[];b.bot.tpMeta=[];const enemyTower=tower(b.g,1,b.bot.x+950);
+    observe(b.g,b.bot.team,enemyTower);
     const waiting=[];for(let i=0;i<240;i++){b.g.step(.05);waiting.push({x:b.bot.x,y:b.bot.y});}
     const last=waiting.slice(-60),wave={mode:b.bot.botState.mode,minDistance:Math.min(...waiting.map(p=>distance(p,enemyTower))),tailMovement:Math.max(...last.map(p=>distance(p,last[0])))};
     const creep=b.g._unit('creep',0,enemyTower.x-300,10400,{maxHp:1000,speed:0,attackCooldown:999});b.g.entities.push(creep);b.g._index();b.g.step(1);
     wave.resumed=!b.bot.botState.safety&&b.bot.targetId===enemyTower.id;
     // Leave a real channelling support case on the Canvas for the screenshot.
-    const picture=setup(0),own=tower(picture.g,0,15000);picture.enemy.x=15400;picture.enemy.targetId=own.id;picture.g._index();picture.g.step(.2);picture.g.paused=true;
+    const picture=setup(0),own=tower(picture.g,0,15000);picture.enemy.x=15400;picture.enemy.targetId=own.id;observe(picture.g,0,picture.enemy);picture.g.step(.2);picture.g.paused=true;
     window.tacticsGame=picture.g;window.observedRenderer.lookAt(picture.bot.x,picture.bot.y);window.observedRenderer.followPlayer=false;
     return {defenses,fights,retreat,wave};
   });
