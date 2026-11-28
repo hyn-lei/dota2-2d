@@ -32,7 +32,12 @@ try{
   g.navigation=new Navigator({cols:160,rows:160,cellSize:64,blocked:'0'.repeat(25600)},[]);
   Object.assign(p,{x:6000,y:6000,abilityLevels:[4,4,4,3],attackCooldown:Infinity});g._refreshHero(p);p.mana=p.maxMana;
   Object.assign(z,{x:6080,y:6000,attackCooldown:Infinity});g._index();r.zoom=.5;r.center(p);window.z=z;
-  window.addEnemy=(x,y)=>{const e=g._unit('creep',1,x,y,{name:'测试敌人',lane:1,maxHp:10000,hpRegen:0,speed:0,range:0,armor:0,attackCooldown:Infinity});g.entities.push(e);return e;};
+  window.addEnemy=(x,y)=>{
+   const e=g._unit('creep',1,x,y,{name:'测试敌人',lane:1,maxHp:10000,hpRegen:0,speed:0,range:0,armor:0,attackCooldown:Infinity});
+   const ward=g._unit('ward',p.team,x,y,{wardType:'observer',expiresAt:g.time+360});
+   g.entities.push(e,ward);
+   return e;
+  };
   return {player:p.id,zealot:z.id};
  });
  await select(ids.zealot);assert.equal(await page.locator('[data-unit-ability="chen_martyrdom"]').getAttribute('aria-readonly'),'false');

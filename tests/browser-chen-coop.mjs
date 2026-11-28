@@ -24,7 +24,12 @@ try{
  await page.waitForFunction(()=>g.player.x===6000);await page.locator(`[data-owned-unit="${z.id}"]`).click();await page.waitForFunction(id=>g.selected.id===id,z.id);
  await rightClick({x:7350,y:6000});await page.waitForFunction(id=>{const u=g.entities.find(e=>e.id===id);return u.creatureOrder==='hold'&&Math.abs(u.x-7350)<4;},z.id);
  assert.ok(Math.hypot(z.x-p.x,z.y-p.y)>600);
- const enemy=(x,y)=>{const e=game._unit('creep',1,x,y,{lane:1,name:'测试敌人',maxHp:10000,hpRegen:0,speed:0,range:0,armor:0,attackCooldown:Infinity});game.entities.push(e);game._index();service.manager.broadcastSnapshot(room);return e;};
+ const enemy=(x,y)=>{
+  const e=game._unit('creep',1,x,y,{lane:1,name:'测试敌人',maxHp:10000,hpRegen:0,speed:0,range:0,armor:0,attackCooldown:Infinity});
+  const ward=game._unit('ward',p.team,x,y,{wardType:'observer',expiresAt:game.time+360});
+  game.entities.push(e,ward);game._index();service.manager.broadcastSnapshot(room);
+  return e;
+ };
  const nearby=enemy(z.x+80,z.y),park={x:z.x,y:z.y},start=game.time;await page.waitForFunction(time=>g.time>time+1,start);
  assert.equal(nearby.hp,10000);assert.equal(z.targetId,null);assert.ok(Math.hypot(z.x-park.x,z.y-park.y)<.01);
  check('A real nine-AI room accepts independent Zealot movement beyond 600 and preserves parked orders through repeated WebSocket snapshots');
