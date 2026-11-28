@@ -13,7 +13,7 @@ const VERSION = 1;
 const RULESET = '7.42';
 const stateFields = new Set([
   'time', 'status', 'paused', 'winner', 'score', 'entities', 'effects', 'pendingSpells',
-  'feed', 'wave', 'nextWave', 'difficulty', 'seed', 'serial', 'keyboard', 'camps',
+  'feed', 'wave', 'nextWave', 'difficulty', 'seed', 'serial', 'keyboard', 'camps','firstBloodAwarded',
   'nextNeutralSpawn', 'nextBuildingCheck', 'selectedId', 'heroChoice', 'roshanPit',
   'roshanRespawnAt', 'cutTrees', 'plantedTrees', 'shopStocks', 'itemZones', 'nextItemAuraAt',
   '_chenTickAt','_creatureTickAt','_nextCreatureAuraAt',

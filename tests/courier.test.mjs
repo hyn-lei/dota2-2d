@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { Game } from '../src/engine.js';
 import { BASES } from '../src/map-data.js';
 import { SECRET_SHOPS } from '../src/inventory.js';
+import {tickCouriers} from '../src/courier.js';
 
 function setup(){const g=new Game({hero:'crystal_maiden'});g.nextWave=g.nextNeutralSpawn=g.roshanRespawnAt=Infinity;g.entities=g.entities.filter(e=>e.isPlayer||e.ownerId===g.player.id);const p=g.player;p.gold=10000;Object.assign(p,{x:BASES[0].x+600,y:BASES[0].y-1600});return {g,p};}
 test('courier physically collects stash and delivers instances without granting cargo stats',()=>{
@@ -31,7 +32,16 @@ test('courier secret-shop purchase spends the owner gold once and carries the ow
 });
 test('courier flight, speed burst and shield unlock with level and protect against attacks',()=>{
  const {g,p}=setup(),c=g.courier;assert.equal(g.courierCommand('burst').ok,false);p.level=20;g.step(.1);
+ Object.assign(c,{x:p.x,y:p.y});g.time+=7;tickCouriers(g,.1);
  assert.equal(c.flying,true);const speed=c.speed;assert.equal(g.courierCommand('burst').ok,true);g.step(.1);assert.equal(c.speed,speed*1.5);
  assert.equal(g.courierCommand('shield').ok,true);assert.equal(g.damage(c,100,{kind:'hero',range:150,team:1},'physical',{attack:true}),0);
  assert.equal(g.courierCommand('burst').ok,false);
+});
+
+test('ordinary couriers move at 550 in their own fountain and lose the bonus after leaving',()=>{
+ const {g}=setup(),c=g.courier;
+ tickCouriers(g,.05);assert.equal(c.speed,550);
+ Object.assign(c,{x:10000,y:10000});g.time=2;tickCouriers(g,.05);assert.equal(c.speed,550);
+ g.time=7;tickCouriers(g,.05);assert.equal(c.speed,290);
+ Object.assign(c,BASES[1]);g.time=8;tickCouriers(g,.05);assert.equal(c.speed,290);
 });

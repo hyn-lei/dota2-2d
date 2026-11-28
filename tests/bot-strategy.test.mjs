@@ -4,6 +4,66 @@ import {tacticalWorld,tacticalPlan,trySupportTeleport} from '../src/bot-tactics.
 import {tacticalArena,tower,supplyTp,advanceBots} from './bot-tactics-scenarios.mjs';
 import * as Items from '../src/item-runtime.js';
 import * as Skills from '../src/hero-runtime.js';
+import {teamCanSeePoint} from '../src/vision.js';
+
+test('nightmare sends one visible rune responder who actually moves and picks it up',()=>{
+  const {g,bots,enemy}=tacticalArena(1,'nightmare',3),[mid,support,offlane]=bots;
+  const rune=g.worldObjectives.find(o=>o.objectiveType==='powerRune');
+  const start=g.navigation.nearestWalkable({x:rune.x-330,y:rune.y});
+  Object.assign(mid,start,{lane:1,draftRole:'mid'});
+  Object.assign(support,{x:rune.x+900,y:rune.y,lane:0,draftRole:'support'});
+  Object.assign(offlane,{x:rune.x+1200,y:rune.y,lane:2,draftRole:'offlane'});
+  enemy.dead=true;enemy.hp=0;
+  g.time=370;for(const site of g.worldObjectives.filter(o=>o.objectiveType==='powerRune'))site.runePeriod=3;
+  rune.rune='haste';g._index();
+  const plans=tacticalWorld(g).teams[1].plans;
+  assert.equal(plans.get(mid.id)?.mode,'collect');
+  assert.equal([...plans.values()].filter(p=>p.mode==='collect').length,1);
+  g.step(2);
+  assert.ok(mid.statuses.hasteRune,'the designated hero receives the real rune effect');
+  assert.equal(rune.rune,null);
+});
+
+test('hell scouts a public rune site before spawn while nightmare preserves its lane',()=>{
+  for(const difficulty of ['nightmare','hell']){
+    const {g,bot,enemy}=tacticalArena(1,difficulty),site=g.worldObjectives.find(o=>o.objectiveType==='powerRune');
+    Object.assign(bot,{x:site.x+490,y:site.y,lane:1,draftRole:'mid'});enemy.dead=true;enemy.hp=0;g.time=357.5;g._index();
+    assert.equal(tacticalPlan(g,bot)?.mode,difficulty==='hell'?'scout-rune':undefined);
+  }
+});
+
+test('a rune responder switches to a new critical base defense',()=>{
+  const {g,bot,enemy}=tacticalArena(1,'nightmare');
+  const rune=g.worldObjectives.find(o=>o.objectiveType==='powerRune');
+  Object.assign(bot,g.navigation.nearestWalkable({x:rune.x-690,y:rune.y}),{lane:1,draftRole:'mid'});
+  Object.assign(enemy,{x:rune.x+2200,y:rune.y});
+  g.time=370;for(const site of g.worldObjectives.filter(o=>o.objectiveType==='powerRune'))site.runePeriod=3;
+  rune.rune='haste';g._index();
+  assert.equal(tacticalPlan(g,bot)?.mode,'collect');
+  g.step(.15);
+  const ancient=g._unit('ancient',1,enemy.x,enemy.y,{maxHp:1500});
+  g.entities.push(ancient);ancient.hp=300;enemy.targetId=ancient.id;g._index();
+  g.step(.4);
+  assert.equal(tacticalPlan(g,bot)?.objectiveId,ancient.id);
+  assert.equal(rune.rune,'haste');
+  assert.equal(bot.lane,1);
+});
+
+test('a scout ward reveals a rune contest beyond the hero sight radius',()=>{
+  const {g,bot,enemy}=tacticalArena(1,'nightmare');
+  delete g.canSee;
+  const rune=g.worldObjectives.find(o=>o.objectiveType==='powerRune');
+  Object.assign(bot,g.navigation.nearestWalkable({x:rune.x-1550,y:rune.y}),{lane:1,draftRole:'mid'});
+  Object.assign(enemy,g.navigation.nearestWalkable({x:rune.x+600,y:rune.y}));
+  const ward=g._unit('ward',1,rune.x,rune.y,{wardType:'observer',expiresAt:400});
+  g.entities.push(ward);g.time=370;rune.rune='haste';rune.runePeriod=3;g._index();
+  assert.equal(g.canSee(bot,enemy),true);
+  assert.equal(tacticalPlan(g,bot),undefined,'an outnumbered bot should not treat the warded rune as uncontested');
+  Skills.addStatus(g,enemy,'testInvisible',{duration:3,invisible:true});
+  g.time+=.3;g._index();
+  assert.equal(g.canSee(bot,enemy),false);
+  assert.equal(tacticalPlan(g,bot)?.mode,'collect','ordinary ward vision reveals the site while its hidden opponent is excluded');
+});
 
 test('nightmare sends the available support rather than pulling a farming carry into a small fight',()=>{
   const {g,bots,enemy}=tacticalArena(1,'nightmare',2),[carry,support]=bots;
@@ -70,6 +130,7 @@ test('hell releases an exposed push when visible reinforcements arrive and keeps
 test('hell anticipates a visible enemy support teleport before its real channel lands',()=>{
   const {g,bot,enemy}=tacticalArena(1,'hell');
   const own=tower(g,1,15000,11200,{lane:0}),anchor=tower(g,0,15000,10400,{lane:0});
+  g.entities.push(g._unit('ward',1,15000,10400,{wardType:'observer',expiresAt:30}));
   supplyTp(g,enemy);g._index();
   assert.equal(Items.useItem(g,enemy,0,anchor,'tp').ok,true);
   assert.equal(enemy.itemChannel?.kind,'teleport');
@@ -78,6 +139,17 @@ test('hell anticipates a visible enemy support teleport before its real channel 
   assert.ok(enemy.x<12000,'the enemy has not been moved early or teleported for free');
   g.difficulty='nightmare';g.time+=.3;g._index();
   assert.equal(tacticalPlan(g,bot),undefined,'the fourth tier waits for the actual arrival');
+});
+
+test('hell cannot anticipate a visible teleport landing behind a ground obstruction',()=>{
+  const {g,bot,enemy}=tacticalArena(1,'hell');
+  const own=tower(g,1,15000,11000,{lane:0}),anchor=tower(g,0,15000,10400,{lane:0});
+  supplyTp(g,enemy);g._index();
+  assert.equal(Items.useItem(g,enemy,0,anchor,'tp').ok,true);
+  assert.ok(Math.hypot(own.x-enemy.itemChannel.point.x,own.y-enemy.itemChannel.point.y)<800);
+  assert.equal(teamCanSeePoint(g,1,enemy.itemChannel.point),false);
+  assert.ok(tacticalWorld(g).teams[1].visibleHeroes.some(h=>h.id===enemy.id),'the caster is visible');
+  assert.equal(tacticalPlan(g,bot),undefined,'the hidden landing cannot create a defensive assignment');
 });
 
 test('hell waits for a surviving wave instead of assigning heroes behind one dying creep',()=>{
@@ -104,7 +176,7 @@ test('temporary middle-tower support preserves home lanes and releases helpers a
   const helpers=bots.filter(h=>h.itemChannel?.kind==='teleport');
   assert.ok(helpers.length>=1&&helpers.length<=2);
   assert.deepEqual(bots.map(h=>h.lane),home,'support must not rewrite the original lane assignment');
-  enemy.dead=true;enemy.hp=0;g.time=3.1;
+  enemy.dead=true;enemy.hp=0;g.time=Math.max(...helpers.map(h=>h.itemChannel.until))+.1;
   for(const h of helpers)Items.tickUnit(g,h,.05);
   g._index();advanceBots(g,helpers,.3);
   assert.ok(helpers.every(h=>!tacticalPlan(g,h)&&!h.botState.objectiveKey));

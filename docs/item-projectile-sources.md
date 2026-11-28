@@ -16,6 +16,8 @@
 
 ## 验证与边界
 
+7.42a 的原版鱼叉样本中，缠绕的施法者能牵引敌人，减益免疫敌人能被选中并牵引施法者。两项分别由目标选择和命中位移判定处理。闪烁与幻影斧的多轮结果还无法将发射、躲避和无敌帧逐一对应，鱼叉仍沿用 7.33 明示的不可躲避弹道规则。[原版样本](research/items/742/client-7.42a.tsv) · [边界行为用例](../tests/item-edge-742.test.mjs)
+
 `tests/item-tracking.test.mjs` 九项回归覆盖速度、飞行途中移动、Blink 与鱼叉例外、命中时获得林肯/莲花、多重施法、暂停、存档、减益免疫及死亡取消。浏览器检查覆盖物品快捷键、可见弹道移动、命中伤害、敌方共享 HUD 状态及鱼叉牵引；截图 `artifacts/ethereal-item-flight-1366.png`，报告 `artifacts/item-tracking-browser-report.json`。
 
 本次发布前 `npm test -- --test-concurrency=1` 共 499 项，498 通过，1 项 Docker Compose 环境检查跳过；`browser-item-tracking.mjs` 三组、`browser-items.mjs` 六组及 `browser-ogre.mjs` 七组检查通过。`npm run build` 与 `npm run check:build` 通过（54 模块、179 本地引用）。完整规则日志保存在本地 `artifacts/item-tracking-rules.log`。

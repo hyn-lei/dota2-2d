@@ -1,12 +1,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { Game } from '../src/engine.js';
+import {useOpenArenaVision} from './skill-arena.mjs';
 import { BOT_DIFFICULTY } from '../src/bot-ai.js';
 import * as Skills from '../src/hero-runtime.js';
 import * as Inventory from '../src/inventory.js';
 
 function battlefield(difficulty='nightmare',botIds=['axe','crystal_maiden','windranger','kunkka','ogre_magi']){
-  const g=new Game({difficulty,seed:17});
+  const g=useOpenArenaVision(new Game({difficulty,seed:17}));
   const bots=botIds.map((hero,i)=>g._makeHero(hero,1,i%3,false,i));
   const humans=['juggernaut','axe','crystal_maiden','windranger','kunkka'].map((hero,i)=>g._makeHero(hero,0,i%3,true,i));
   for(const [i,h] of [...bots,...humans].entries())Object.assign(h,{

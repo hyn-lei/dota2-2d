@@ -4,6 +4,7 @@ import { arena } from './skill-arena.mjs';
 import { BASES } from '../src/map-data.js';
 import * as Inventory from '../src/inventory.js';
 import * as Courier from '../src/courier.js';
+import { addStatus } from '../src/hero-runtime.js';
 import { tickBotShopping } from '../src/bot-items.js';
 
 function botArena(hero='juggernaut',difficulty='normal'){
@@ -11,6 +12,96 @@ function botArena(hero='juggernaut',difficulty='normal'){
   a.p.aiTimer=0;a.p.skillPoints=0;return a;
 }
 function shopTick(g,p,n=20){for(let i=0;i<n;i++){g.time+=.6;p.aiTimer=0;g._botTick(p,0);}}
+
+test('bot last hits account for real attack windups and a committed ranged shot',()=>{
+  for(const hero of ['axe','drow_ranger']){
+    const {g,p}=botArena(hero,'nightmare');p.team=1;
+    p.attackCooldown=0;p.abilityLevels=[0,0,0,0];
+    const early=g._unit('creep',0,p.x+130,p.y,{hp:20,maxHp:200,lane:1,armor:0});
+    const later=g._unit('creep',0,p.x+170,p.y+40,{hp:20,maxHp:200,lane:1,armor:0});
+    const archer=g._unit('creep',1,p.x+330,p.y,{range:400,damage:100,attackType:'pierce'});
+    early.hp=later.hp=20;
+    g.entities=[p,early,later,archer];g._index();
+    assert.equal(g._attack(archer,early),true);
+    assert.ok(g.pendingSpells.some(s=>s.type==='attack'&&s.targetId===early.id));
+    g._botTick(p,0);
+    if(hero==='axe')assert.equal(early.dead,true,'immediate melee hit beats the in-flight attack');
+    else {
+      assert.equal(p.attackPhase?.targetId,later.id,'ranged windup chases the remaining last hit');
+      assert.equal(early.dead,false,'the already claimed target is left to the in-flight projectile');
+    }
+  }
+});
+
+test('bots deny eligible lane creeps through the shared attack rule',()=>{
+  const {g,p}=botArena('axe','nightmare');p.team=1;p.attackCooldown=0;p.abilityLevels=[0,0,0,0];
+  p.botShop={nextAt:Infinity,needsShop:false};
+  const invalid=g._unit('creep',1,p.x+110,p.y,{hp:55,maxHp:100,lane:1,armor:0});
+  const summon=g._unit('summon',1,p.x+135,p.y,{hp:5,maxHp:100,ownerId:p.id,armor:0});
+  const valid=g._unit('creep',1,p.x+155,p.y,{hp:19,maxHp:100,lane:1,armor:0});
+  Object.assign(invalid,{hp:55});Object.assign(summon,{hp:5});Object.assign(valid,{hp:19});
+  g.entities=[p,invalid,summon,valid];g._index();
+  const gold=p.gold;
+  g._botTick(p,0);
+  assert.equal(valid.dead,true);
+  assert.equal(p.denies,1);
+  assert.equal(invalid.hp,55);assert.equal(summon.hp,5);
+  assert.equal(p.gold,gold);
+});
+
+test('a bot sees a fresh committed ranged shot during the same simulation tick',()=>{
+  const {g,p}=botArena('drow_ranger','nightmare');p.team=1;
+  Object.assign(p,{attackCooldown:0,abilityLevels:[0,0,0,0]});
+  const early=g._unit('creep',0,p.x+130,p.y,{maxHp:200,lane:1,armor:0});
+  const later=g._unit('creep',0,p.x+170,p.y+40,{maxHp:200,lane:1,armor:0});
+  const archer=g._unit('creep',1,p.x+330,p.y,{range:400,damage:100,attackType:'pierce'});
+  const teammate=g._makeHero('axe',1,1,false,1);
+  Object.assign(teammate,{x:p.x-850,y:p.y,aiTimer:0,abilityLevels:[0,0,0,0]});
+  early.hp=later.hp=20;
+  g.entities=[p,teammate,early,later,archer];g._index();
+  g._botTick(teammate,0);
+  assert.equal(g._attack(archer,early),true);
+  g._botTick(p,0);
+  assert.equal(p.attackPhase?.targetId,later.id);
+  assert.equal(early.dead,false);
+});
+
+test('Chen bots dispatch healthy and wounded creatures independently through real unit commands',()=>{
+  const {g,p,e,c}=botArena('chen','nightmare');p.team=1;e.team=c.team=0;
+  Object.assign(p,{botShop:{nextAt:Infinity},abilityLevels:[0,0,0,0]});
+  const bruiser=g._unit('summon',1,e.x-100,e.y+160,{
+    ownerId:p.id,maxHp:400,range:160,speed:320,mana:200,maxMana:200,abilities:['mud_golem_hurl_boulder']
+  });
+  const wounded=g._unit('summon',1,p.x+280,p.y+220,{ownerId:p.id,maxHp:400,range:160,speed:320});
+  wounded.hp=80;g.entities=[p,e,c,bruiser,wounded];g._index();
+  g._botTick(p,0);
+  assert.equal(bruiser.explicitTarget,e.id);
+  assert.equal(bruiser.neutralCast?.targetId,e.id,'the healthy creep starts its actual targeted ability');
+  assert.equal(wounded.explicitTarget,null);
+  assert.ok(wounded.destination&&wounded.destination.x!==bruiser.x,'the wounded creep takes a different movement order');
+  p.dead=true;p.hp=0;p.respawnTimer=30;
+  g.step(.05);
+  assert.equal(bruiser.explicitTarget,null,'orders are cleared when the owner dies');
+});
+
+test('Phantasm bots split real illusion orders and drop an invulnerable target',()=>{
+  const {g,p,e}=botArena('chaos_knight','nightmare');p.team=1;e.team=0;
+  Object.assign(p,{level:18,abilityLevels:[0,0,0,3],gold:0,botShop:{nextAt:Infinity}});
+  g._refreshHero(p);p.mana=p.maxMana;
+  const other=g._makeHero('axe',0,1,true,1);
+  Object.assign(other,{x:e.x+50,y:e.y-220,isHuman:true,aiTimer:Infinity,attackCooldown:999});
+  g.entities=[p,e,other];g._index();
+  assert.equal(g._cast(p,3,p).ok,true);
+  g.step(1.2);
+  const army=g.entities.filter(unit=>unit.phantasmOwnerId===p.id);
+  assert.ok(army.length>=2);
+  assert.ok(army.some(unit=>unit.explicitTarget===e.id));
+  assert.ok(army.some(unit=>unit.explicitTarget===other.id));
+  addStatus(g,e,'testInvulnerable',{invulnerable:true,duration:3});
+  g.step(.4);
+  assert.equal(army.some(unit=>unit.explicitTarget===e.id),false);
+  assert.ok(army.some(unit=>unit.explicitTarget===other.id));
+});
 
 test('bots continue shopping past five carried items plus their teleport scroll',()=>{
   const {g,p}=botArena();Object.assign(p,BASES[0]);p.inventory=['boots','bracer','blade','chainmail','diadem'];p.gold=20000;Inventory.ensureInventory(p);g._refreshHero(p);

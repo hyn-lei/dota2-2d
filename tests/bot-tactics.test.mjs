@@ -5,6 +5,7 @@ import * as Items from '../src/item-runtime.js';
 import {tacticalWorld,tacticalPlan} from '../src/bot-tactics.js';
 import {tacticalArena,supplyTp,tower,advanceBots} from './bot-tactics-scenarios.mjs';
 import {serializeMatch,parseMatch,restoreMatch} from '../src/game-save.js';
+import {useOpenArenaVision} from './skill-arena.mjs';
 import {createMeta} from '../src/inventory.js';
 
 for(const team of [0,1])test(`team ${team} can defend by TP after consuming Moon Shard, including after a save restore`,()=>{
@@ -16,7 +17,7 @@ for(const team of [0,1])test(`team ${team} can defend by TP after consuming Moon
   const own=tower(g,team,15000);Object.assign(enemy,{x:15400,targetId:own.id});g._index();
   // Keep the actual permanent-stat entry: it has no inventory ID or slot.
   assert.ok(Items.statItems(g,bot).some(e=>e.id===undefined&&e.stats.attackSpeed===60));
-  for(const game of [g,(()=>{enemy.isHuman=false;g.heroChoice=enemy.heroId;return restoreMatch(parseMatch(serializeMatch(g)));})()]){
+  for(const game of [g,(()=>{enemy.isHuman=false;g.heroChoice=enemy.heroId;return useOpenArenaVision(restoreMatch(parseMatch(serializeMatch(g))));})()]){
     const hero=game.entities.find(e=>e.id===bot.id);game.paused=false;supplyTp(game,hero);game._index();
     assert.doesNotThrow(()=>game._botTick(hero,.05));
     assert.equal(hero.itemChannel?.kind,'teleport');assert.equal(hero.itemChannel.targetId,own.id);
@@ -247,7 +248,7 @@ test('safe-position commitments survive save and restore',()=>{
   const ownPlayer=g._makeHero('axe',0,1,true,1);ownPlayer.x=3000;ownPlayer.y=17000;enemy.isPlayer=false;enemy.aiTimer=Infinity;
   enemy.x=bot.x+450;enemy.level=12;g._refreshHero(enemy);g._index();advanceBots(g,[bot],4);
   const goal={...bot.botState.safety.goal};
-  const resumed=restoreMatch(parseMatch(serializeMatch(g)));resumed.paused=false;
+  const resumed=useOpenArenaVision(restoreMatch(parseMatch(serializeMatch(g))));resumed.paused=false;
   const restored=resumed.entities.find(e=>e.id===bot.id);resumed._botTick(restored,.05);
   assert.deepEqual(restored.botState.safety.goal,goal);assert.equal(restored.botState.mode,'disengage');
 });

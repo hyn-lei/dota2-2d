@@ -16,7 +16,7 @@ try{
  await page.evaluate(async()=>{
   const g=window.g,p=g.player,{createMeta}=await import('/src/inventory.js'),{addStatus}=await import('/src/hero-runtime.js');
   g.nextWave=g.nextNeutralSpawn=g.roshanRespawnAt=Infinity;
-  for(const e of g.entities.filter(e=>e.kind==='hero'))Object.assign(e,{aiTimer:Infinity,destination:null,explicitTarget:null,x:10400+(e.team?2000:0),y:10400,attackCooldown:999});
+  for(const e of g.entities.filter(e=>e.kind==='hero'))Object.assign(e,{aiTimer:Infinity,destination:null,explicitTarget:null,x:10400+(e.team?10:0),y:10400,attackCooldown:999});
   Object.assign(p,{gold:10000,abilityLevels:[4,4,4,3],cooldowns:[0,0,0,0],skillPoints:0,talentPoints:1,level:10});
   const ally=g.entities.find(e=>e.team===p.team&&e.id!==p.id),enemy=g.entities.find(e=>e.team!==p.team&&e.kind==='hero');
   for(const e of [ally,enemy]){Object.assign(e,{hp:321,maxHp:900,mana:111,maxMana:500,abilityLevels:[1,2,3,1],cooldowns:[9,0,0,0],skillPoints:2,talentPoints:1,level:15,talents:[0]});e.inventory=['magic_wand'];e.inventoryMeta=[createMeta(e,'magic_wand',{charges:7})];e.itemCooldowns={magic_wand:8};addStatus(g,e,'ogreBloodlust',{name:'嗜血术',positive:true,duration:30});}

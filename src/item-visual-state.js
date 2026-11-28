@@ -1,5 +1,9 @@
 const attributes={strength:{name:'力量',color:'#ef7058',image:'str'},agility:{name:'敏捷',color:'#80d36a',image:'agi'},intelligence:{name:'智力',color:'#69baf5',image:'int'}};
 export function itemVisualState(item,meta){
+ if(item?.id==='ward_dispenser'){
+  const mode=meta?.mode==='sentry'?'sentry':'observer';
+  return {mode,label:mode==='sentry'?'岗哨':'侦查',color:mode==='sentry'?'#69baf5':'#dfca66',image:`assets/items/ward_${mode}.png`};
+ }
  if(item?.id==='power_treads'){
   const mode=attributes[meta?.mode]?meta.mode:'strength',attribute=attributes[mode];
   return {mode,label:attribute.name,color:attribute.color,image:`assets/items/power_treads_${attribute.image}.png`};

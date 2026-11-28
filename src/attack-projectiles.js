@@ -1,9 +1,15 @@
 import { ATTACK_PROFILES } from './attack-records.js';
 import { attackVisualFields } from './combat-visuals.js';
 import * as Skills from './hero-runtime.js';
+import {isControlledCreature} from './controlled-units.js';
 const alive=e=>e&&!e.dead&&e.hp>0;
 export const attackProfile=e=>ATTACK_PROFILES[e.heroId||e.sourceId]||{speed:e.kind==='tower'?750:e.kind==='fountain'?1400:900,attackPoint:0};
 export const isRangedAttack=e=>e.heroId?attackProfile(e).speed>0:e.range>200;
+const phasedAttacks=new Set(['weaver','ogre_magi','drow_ranger','chen','chaos_knight']);
+export function normalAttackWindup(source,attackSpeed=100){
+ if(!phasedAttacks.has(source.heroId)&&!isControlledCreature(source))return 0;
+ return (source.attackPoint||attackProfile(source).attackPoint)*100/attackSpeed;
+}
 
 /** The simulation owns the projectile; rendering reads this same moving position. */
 export function launchAttack(g,source,target,result,fields={}){
@@ -21,7 +27,8 @@ export function tickAttacks(g){
  for(const shot of g.pendingSpells)if(shot.type==='attack'){
   const target=g.entities.find(e=>e.id===shot.targetId),source=g.entities.find(e=>e.id===shot.sourceId);
   if(!target||!source||!alive(target)||Skills.isInvulnerable(g,target)||(target.projectileDisjoint||0)!==shot.disjoint||
-    (target.deathTime??null)!==shot.targetLife||!g.canSee(source,target)||
+    (target.deathTime??null)!==shot.targetLife||target.team!==source.team&&
+    Skills.hasStatusFlag(g,target,'invisible')&&!g.hasTrueSight(source,target)||
     shot.denyTeam!==undefined&&(source.team!==shot.denyTeam||target.team!==shot.denyTeam))shot.cancelled=true;
   if(!shot.cancelled){
    const dx=target.x-shot.x,dy=target.y-shot.y,d=Math.hypot(dx,dy),travel=shot.speed*Math.max(0,g.time-shot.lastTick);

@@ -158,9 +158,10 @@ function startGame(providedGame=null,resume=false){
       <div class="match-player-stats"><span>K / D / A <b id="kda">0 / 0 / 0</b></span><span>正补 <b id="last-hits">0</b></span></div>
     </footer><aside id="shop" class="shop-panel" hidden></aside><div id="toast" role="status"></div><div id="modal-root"></div></main>`;
   setupRenderer();renderer.center(game.player);bindShared();
-  shopUI=mountShop($('#shop'),$('#inventory'),game,{close:toggleShop,open:()=>{if(!shopOpen)toggleShop();},notify:toast,useItem:beginItemUse,changed:()=>{sound();updateHud();},locate:point=>{renderer.zoom=.4;renderer.lookAt(point.x,point.y);toast('已定位神秘商店，右键前往金色标记处');}});
+  shopUI=mountShop($('#shop'),$('#inventory'),game,{close:toggleShop,open:()=>{if(!shopOpen)toggleShop();},notify:toast,useItem:(index,area,point)=>point?useItem(index,area,point):beginItemUse(index,area),changed:()=>{sound();updateHud();},locate:point=>{renderer.zoom=.4;renderer.lookAt(point.x,point.y);toast('已定位神秘商店，右键前往金色标记处');}});
   mountSkills($('.abilities'),game,{cast,castSelf:i=>cast(i,true),autocast:async i=>{const activeGame=game,result=await controlledAction('toggleAutocast',[i]);if(game!==activeGame)return;if(!result.ok)toast(result.reason);updateHud();},learn:i=>learn('learnAbility',i),talent:i=>learn('learnTalent',i),attributes:()=>learn('learnAttributes'),recall});
-  if(game.isNetwork){const ai=game.entities.filter(e=>e.kind==='hero'&&e.team===0&&e.controller==='ai').length;document.querySelector('.match-clock small').textContent=ai?`${5-ai} 真人 + ${ai} 困难 AI`:'五真人 · 噩梦 AI';}
+  const roster=game.roster||game.entities.filter(e=>e.kind==='hero');
+  if(game.isNetwork){const ai=roster.filter(e=>e.team===0&&e.controller==='ai').length;document.querySelector('.match-clock small').textContent=ai?`${5-ai} 真人 + ${ai} 困难 AI`:'五真人 · 噩梦 AI';}
   $('.abilities').addEventListener('click',e=>{const b=e.target.closest('[data-extra]');if(b&&game.canControl(game.selected))castExtra(b.dataset.extra);});
   mountStatusBar($('.hud-vitals'));
   heroUpgradesUI=mountHeroUpgrades($('.hero-upgrades'),game);
@@ -173,7 +174,7 @@ function startGame(providedGame=null,resume=false){
   $('#stop-controlled-unit').onclick=()=>controlledAction('stop');$('#return-own-hero').onclick=restoreOwnHero;
   $('#select-all-owned').onclick=()=>{game.selectControlledGroup(true);updateHud();};$('#select-owned-only').onclick=()=>{game.selectControlledGroup(false);updateHud();};
   updateHud();
-  $('.match-header').insertAdjacentHTML('afterend',`<div class="match-roster" aria-label="点击英雄头像查看属性与装备">${[0,1].map(team=>`<div class="roster-team ${team?'dire':'radiant'}"><span>${team?'夜魇':'天辉'}</span>${game.entities.filter(e=>e.kind==='hero'&&e.team===team).map(e=>`<button data-inspect-hero="${e.id}" title="查看${e.name}${game.isNetwork&&e.team===0&&e.controller==='ai'?'（困难 AI 队友）':''}的属性和装备" aria-label="查看${team?'敌方':'友方'}${e.name}">${portrait(HEROES[e.heroId])}${game.isNetwork&&e.team===0&&e.controller==='ai'?'<small class="roster-ai-label">AI</small>':''}</button>`).join('')}</div>`).join('')}</div>`);
+  $('.match-header').insertAdjacentHTML('afterend',`<div class="match-roster" aria-label="点击英雄头像查看属性与装备">${[0,1].map(team=>`<div class="roster-team ${team?'dire':'radiant'}"><span>${team?'夜魇':'天辉'}</span>${roster.filter(e=>e.team===team).map(e=>`<button data-inspect-hero="${e.id}" title="查看${e.name}${game.isNetwork&&e.team===0&&e.controller==='ai'?'（困难 AI 队友）':''}的属性和装备" aria-label="查看${team?'敌方':'友方'}${e.name}">${portrait(HEROES[e.heroId])}${game.isNetwork&&e.team===0&&e.controller==='ai'?'<small class="roster-ai-label">AI</small>':''}</button>`).join('')}</div>`).join('')}</div>`);
   document.querySelectorAll('[data-inspect-hero]').forEach(b=>b.onclick=()=>{game.selectEntity(b.dataset.inspectHero);updateHud();if(b.dataset.inspectHero===game.player.id)showUnitDetails(true);});
   $('.hero-hud').insertAdjacentHTML('beforeend','<button id="hero-details" class="hero-details" title="查看所选单位完整属性">详细属性 <span id="attribute-summary"></span></button>');
   $('.hero-hud').insertAdjacentHTML('beforeend','<div id="hero-stat-tooltip" class="hero-stat-tooltip" role="tooltip" hidden></div>');
@@ -206,7 +207,15 @@ function startGame(providedGame=null,resume=false){
     if(game.status!=='playing')return;e.preventDefault();canvas.focus();const rect=canvas.getBoundingClientRect(),p=renderer.screenToWorld(e.clientX-rect.left,e.clientY-rect.top);pointer={x:e.clientX-rect.left,y:e.clientY-rect.top};
     if(e.button===1){dragging={x:e.clientX,y:e.clientY};canvas.setPointerCapture(e.pointerId);return;}
     const target=hitTest(p,e.button===2);
-    if(pendingItem){if(e.button===2){cancelItemUse();return;}if(e.button===0){const {index,area,uid}=pendingItem;if(game.itemState(index,area,game.controlledUnit).meta?.uid!==uid){cancelItemUse();toast('物品位置已改变');return;}useItem(index,area,p);return;}}
+    if(pendingItem){
+      if(e.button===2){cancelItemUse();return;}
+      if(e.button!==0)return;
+      if(pendingItem.extraId){await chooseVectorPoint(p);return;}
+      const {index,area,uid}=pendingItem,info=game.itemState(index,area,game.controlledUnit);
+      if(info.meta?.uid!==uid){cancelItemUse();toast('物品位置已改变');return;}
+      const share=e.ctrlKey&&['ward_observer','ward_sentry','ward_dispenser'].includes(info.id);
+      useItem(index,area,share?{...p,share:true}:p);return;
+    }
     const objective=worldObjectiveAt(game,p,Math.max(45,18/renderer.zoom));
     if(objective&&e.button===2&&(!target||target.team===game.player.team)){
       if(objective.objectiveType==='powerRune'||Math.hypot(game.player.x-objective.x,game.player.y-objective.y)>250){restoreOwnHero();controlledAction('moveTo',[objective.x,objective.y]);renderer.mark(objective.x,objective.y);toast(`${objectiveNames[objective.objectiveType]} · 靠近后${objective.objectiveType==='powerRune'?'自动拾取':'右键使用'}`);}
@@ -240,17 +249,47 @@ function controlledAction(action,args=[]){
 async function cast(i,self=false){if(!game||modal)return;const unit=prepareControlledUnit(),activeGame=game,target=self?unit:renderer.screenToWorld(pointer.x||renderer.w/2,pointer.y||renderer.h/2);const r=await controlledAction('cast',[i,target]);if(game!==activeGame)return;if(r.ok){if(game.skill(i,unit).kind==='active'||unit.heroId==='ogre_magi'||unit.heroId==='weaver'&&i===2)keys.clear();sound('cast');updateHud();}else toast(r.reason||'暂时无法施放技能');}
 let pendingItem=null;
 function cancelItemUse(){pendingItem=null;$('#battlefield')?.classList.remove('item-targeting');$('#item-target-prompt')?.remove();}
+function targetingPrompt(text){
+ $('#battlefield').classList.add('item-targeting');
+ $('.match').insertAdjacentHTML('beforeend',`<div id="item-target-prompt" role="status">${escapeHtml(text)}</div>`);
+}
 function beginItemUse(index,area='inventory'){
  if(!game||modal)return;const unit=prepareControlledUnit(),info=game.itemState(index,area,unit);if(!info.active){toast(weakIllusion(unit)?'弱幻象不能使用主动装备':'这是被动物品');return;}
  if(info.cooldown||info.ready){toast('物品尚未就绪');return;}
  if(shopOpen)toggleShop();
  const noTarget=info.item.behaviors.some(b=>b.endsWith('_NO_TARGET')||b.endsWith('_TOGGLE'));
  if(noTarget){useItem(index,area,unit);return;}
- cancelItemUse();pendingItem={index,area,uid:info.meta.uid};$('#battlefield').classList.add('item-targeting');
- $('.match').insertAdjacentHTML('beforeend',`<div id="item-target-prompt" role="status">${escapeHtml(info.item.name)} · 左键选择目标 · 右键 / Esc 取消</div>`);
+ cancelItemUse();pendingItem={index,area,uid:info.meta.uid};
+ const ward=['ward_observer','ward_sentry','ward_dispenser'].includes(info.id);
+ targetingPrompt(`${info.item.name} · 左键选择目标${ward?' · Ctrl + 左键分享':''} · 右键 / Esc 取消`);
 }
 async function useItem(index,area='inventory',point){if(!game||modal)return;const unit=prepareControlledUnit(),activeGame=game,aim=point||renderer.screenToWorld(pointer.x||renderer.w/2,pointer.y||renderer.h/2),result=await controlledAction('useItem',[index,aim,area]);if(game!==activeGame)return;if(result.ok){cancelItemUse();sound('cast');updateHud();}else toast(result.reason);}
-async function castExtra(id,self=false){if(!game||modal)return;const unit=prepareControlledUnit(),activeGame=game,target=self?unit:renderer.screenToWorld(pointer.x||renderer.w/2,pointer.y||renderer.h/2),result=await controlledAction('castExtra',[id,target]);if(game!==activeGame)return;if(result.ok){keys.clear();sound('cast');updateHud();}else toast(result.reason);}
+async function chooseVectorPoint(point){
+ const pending=pendingItem,unit=game.controlledUnit;
+ if(unit.id!==pending.unitId||unit.dead){cancelItemUse();return;}
+ if(!pending.anchor){
+  pending.anchor=point;
+  renderer.mark(point.x,point.y);
+  $('#item-target-prompt').textContent='狂风之力 · 左键确定风向 · 右键 / Esc 取消';
+  return;
+ }
+ const x=point.x-pending.anchor.x,y=point.y-pending.anchor.y,length=Math.hypot(x,y);
+ if(length<1){toast('请选择与施法位置不同的风向点');return;}
+ cancelItemUse();
+ await castExtra(pending.extraId,false,{...pending.anchor,direction:{x:x/length,y:y/length}});
+}
+async function castExtra(id,self=false,point=null){
+ if(!game||modal)return;
+ const unit=prepareControlledUnit(),activeGame=game;
+ if(id==='windrunner_gale_force'&&!point){
+  cancelItemUse();pendingItem={extraId:id,unitId:unit.id,anchor:null};
+  targetingPrompt('狂风之力 · 左键确定施法位置 · 右键 / Esc 取消');return;
+ }
+ const target=point||(self?unit:renderer.screenToWorld(pointer.x||renderer.w/2,pointer.y||renderer.h/2));
+ const result=await controlledAction('castExtra',[id,target]);
+ if(game!==activeGame)return;
+ if(result.ok){keys.clear();sound('cast');updateHud();}else toast(result.reason);
+}
 async function learn(method,index){if(!game||modal)return;restoreOwnHero();const activeGame=game,result=await activeGame[method](index);if(game!==activeGame)return;if(result.ok){sound();updateHud();}else toast(result.reason);}
 async function recall(){if(!game)return;prepareControlledUnit();const activeGame=game,r=await controlledAction('recall');if(game!==activeGame)return;if(!r.ok)toast(r.reason||'暂时无法回城');else sound();}
 let previousFeed='';
@@ -282,13 +321,24 @@ function updateHud(){
   $('#hp-regen').textContent=`${healthRegen>=0?'+':''}${healthRegen}`;$('#mana-regen').textContent=`+${Number(((hero?auraManaRegen(game,p):(p.manaRegen||0))+(p.itemAura?.manaRegen||0)).toFixed(1))}`;
   const queue=quickbuyPlan(game,actor).missing.map(id=>ITEM_BY_ID[id]).filter(Boolean).slice(0,6),queueHtml=queue.map(item=>`<button data-hud-buy="${item.id}" aria-label="购买${item.name}" title="${item.name} · ${item.cost} 金币 · 左键或右键购买" class="${actor.gold<item.cost?'unaffordable':''}"><img src="/${item.image}" alt="${item.name}" draggable="false"/></button>`).join('');
   if($('#hud-quickbuy-items').innerHTML!==queueHtml)$('#hud-quickbuy-items').innerHTML=queueHtml;
-  document.querySelectorAll('[data-inspect-hero]').forEach(button=>{const unit=game.entities.find(e=>e.id===button.dataset.inspectHero);button.setAttribute('aria-pressed',String(unit?.id===p.id));button.classList.toggle('hero-dead',!!unit?.dead);button.dataset.respawn=unit?.dead?Math.ceil(unit.respawnTimer):'';});
+  document.querySelectorAll('[data-inspect-hero]').forEach(button=>{
+    const candidate=game.entities.find(e=>e.id===button.dataset.inspectHero);
+    const unit=game.canSee(actor,candidate)?candidate:null;
+    button.disabled=!unit;
+    button.setAttribute('aria-pressed',String(unit?.id===p.id));
+    button.classList.toggle('hero-dead',!!unit?.dead);
+    button.dataset.respawn=unit?.dead?Math.ceil(unit.respawnTimer):'';
+  });
   const combat=game.combatStats(p);
   $('#stat-damage').textContent=Math.round(combat.damage);$('#stat-armor').textContent=Number(combat.armor.toFixed(1));$('#stat-speed').textContent=Math.round(combat.speed);
   $('.xp-bar').title=p.level===30?'Level 30':Math.floor(p.xp)+' / '+p.xpNext+' XP';
   if(p.level===30)$('#xp-fill').style.transform='scaleX(1)';
-  const count=game.entities.filter(e=>e.team===1&&e.kind==='tower'&&!e.dead).length,barracks=game.entities.filter(e=>e.team===1&&e.kind==='barracks'&&!e.dead).length;$('#tower-count').textContent=`敌方防御塔 ${count} / 11 · 兵营 ${barracks} / 6`;
-  const ancient=game.entities.find(e=>e.team===1&&e.kind==='ancient');$('#objective-text').textContent=ancient&&!game.isProtected(ancient)?'远古遗迹已暴露，发起最后进攻！':'跟随兵线，攻破敌方防御塔';
+  const enemyTeam=1-actor.team,buildings=game.buildingsRemaining?.[enemyTeam];
+  const count=buildings?.tower??game.entities.filter(e=>e.team===enemyTeam&&e.kind==='tower'&&!e.dead).length;
+  const barracks=buildings?.barracks??game.entities.filter(e=>e.team===enemyTeam&&e.kind==='barracks'&&!e.dead).length;
+  $('#tower-count').textContent=`敌方防御塔 ${count} / 11 · 兵营 ${barracks} / 6`;
+  const ancient=game.entities.find(e=>e.team===enemyTeam&&e.kind==='ancient');
+  $('#objective-text').textContent=ancient&&!game.isProtected(ancient)?'远古遗迹已暴露，发起最后进攻！':'跟随兵线，攻破敌方防御塔';
   $('#death-overlay').hidden=!actor.dead;$('#respawn-count').textContent=Math.ceil(actor.respawnTimer);$('#recall-progress').hidden=!(actor.recallTimer>0);$('#recall-fill').style.transform=`scaleX(${1-actor.recallTimer/(actor.recallDuration||3)})`;
   const feed=game.feed.map(e=>`${e.text}`).join('|');if(previousFeed!==feed){previousFeed=feed;$('#event-feed').innerHTML=game.feed.slice(0,4).map(e=>`<div class="feed-entry ${e.team===0?'radiant':'dire'}">${icon('swords')}<span>${escapeHtml(e.text)}</span></div>`).join('');}
   if(shopOpen)updateShop();else shopUI?.update();heroUpgradesUI?.update(p);worldControls?.update();updateInspection();renderer.minimap($('#minimap'),game);

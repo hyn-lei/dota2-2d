@@ -1,6 +1,6 @@
 import { WORLD, HEROES } from '../src/data.js';
 import { ITEM_BY_ID } from '../src/item-data.js';
-import { SLOT_COUNTS } from '../src/inventory.js';
+import { SLOT_COUNTS,canUseHeldItem } from '../src/inventory.js';
 
 const plain = value => value !== null && typeof value === 'object' && !Array.isArray(value) && Object.getPrototypeOf(value) === Object.prototype;
 const exact = (value, keys) => plain(value) && Object.keys(value).every(key => keys.includes(key));
@@ -10,9 +10,10 @@ const id = value => typeof value === 'string' && /^[a-zA-Z0-9:_-]{1,100}$/.test(
 const item = value => typeof value === 'string' && Object.hasOwn(ITEM_BY_ID,value);
 const standardSlot = (area,index) => ['inventory','backpack','stash','tp'].includes(area) && integer(index,0,SLOT_COUNTS[area]-1);
 const slot = (area,index) => area==='neutral'?index===0:standardSlot(area,index);
-const point = value => value == null || exact(value,['x','y','direction','self'])
+const point = value => value == null || exact(value,['x','y','direction','self','share'])
   && number(value.x,0,WORLD.width) && number(value.y,0,WORLD.height)
   && (value.self===undefined||value.self===true)
+  && (value.share===undefined||value.share===true)
   && (value.direction === undefined || exact(value.direction,['x','y']) && number(value.direction.x,-1,1) && number(value.direction.y,-1,1));
 const args = (values, low, high=low) => Array.isArray(values) && values.length>=low && values.length<=high;
 const noArgs = values => args(values,0);
@@ -70,9 +71,10 @@ export function executeCommand(game, actorId, message) {
     for(const [area,index] of required) {
       const matches=guards.filter(g=>g.area===area&&g.index===index);
       const meta=area==='neutral'?inventoryActor.neutralItemMeta:inventoryActor[area+'Meta']?.[index];
-      const uid=(area==='neutral'?inventoryActor.neutralItem:inventoryActor[area]?.[index])?meta?.uid:null;
+      const itemId=area==='neutral'?inventoryActor.neutralItem:inventoryActor[area]?.[index],uid=itemId?meta?.uid:null;
       if(matches.length!==1 || matches[0].uid!==uid) return fail('物品栏已更新，请重试');
-      if(uid && meta.ownerId!==inventoryActor.id && !meta.freeRapier) return fail('该物品不属于此玩家');
+      const action=message.action==='unitCommand'?message.args[1]:message.action;
+      if(uid&&meta.ownerId!==inventoryActor.id&&!meta.freeRapier&&!(action==='useItem'&&canUseHeldItem(inventoryActor,itemId,meta)))return fail('该物品不属于此玩家');
     }
     const action=message.action,a=message.args.map(value=>value===null?undefined:value);
     if(['cast','castExtra','useItem'].includes(action)&&a[1]?.self)a[1]=actor;

@@ -58,7 +58,7 @@ try{
   check(th.p.weaverThreads?.some(t=>t.phase==='established'),'Threads establishes from actual damage');tiles.push({label:'命运之线 · 已建立连线',...th});
   }
   if(scenario==='all'||scenario==='geminate'){
-  const ga=arena();ga.e.x=ga.p.x+400;ga.p.attackCooldown=0;ga.g._attack(ga.p,ga.e,{attackReleased:true});ga.p.attackCooldown=999;ga.g.step(.27);
+  const ga=arena();ga.p.attackCooldown=0;ga.g._attack(ga.p,ga.e,{attackReleased:true});ga.p.attackCooldown=999;ga.g.step(.27);
   check(ga.g.effects.some(f=>f.type==='projectile'&&f.visual==='weaverGeminate'),'Geminate dispatches a distinct extra projectile');tiles.push({label:'连击 · 延迟的额外弹道',...ga});
   }
   if(scenario==='all'||scenario==='time-lapse'){
@@ -89,8 +89,8 @@ try{
   const point=await page.evaluate(()=>{
    const g=window.weaverGame,p=g.player,e=g._makeHero('axe',1,1,false,0);
    g.entities=[p,e];g.nextWave=g.nextNeutralSpawn=g.roshanRespawnAt=Infinity;
-   Object.assign(p,{x:10400,y:10400,abilityLevels:[4,4,4,3],cooldowns:[0,0,0,0],attackCooldown:0,statuses:{},destination:null,targetId:null,explicitTarget:null});
-   Object.assign(e,{x:p.x+280,y:p.y,hp:50000,maxHp:50000,attackCooldown:999,aiTimer:Infinity,speed:0,abilityLevels:[0,0,0,0]});
+   Object.assign(p,{x:11200,y:11200,abilityLevels:[4,4,4,3],cooldowns:[0,0,0,0],attackCooldown:0,statuses:{},destination:null,targetId:null,explicitTarget:null});
+   Object.assign(e,{x:p.x+200,y:p.y,hp:50000,maxHp:50000,attackCooldown:999,aiTimer:Infinity,speed:0,abilityLevels:[0,0,0,0]});
    p.autocast[2]=true;p.hasScepter=true;p.mana=p.maxMana=5000;g._index();g.paused=false;
    const cast=g.cast;g.cast=function(...args){const result=cast.apply(this,args);window.lastWeaverCast={args,result};return result;};
    window.weaverRenderer.followPlayer=false;window.weaverRenderer.zoom=.45;window.weaverRenderer.lookAt(p.x,p.y);

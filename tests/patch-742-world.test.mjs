@@ -142,8 +142,8 @@ test('7.42 glyph charges replenish in order rather than restoring both at the fi
 test('7.42 an already spawned Tormentor continues growing its barrier and reflection over time',()=>{
  const g=quiet();g.time=900;g.step(.05);const t=g.entities.find(e=>e.isTormentor);g.time=959.95;g.step(.05);assert.equal(t.maxHp,4050);assert.equal(t.hpRegen,25);assert.equal(t.reflectPct,16.5);
 });
-test('7.42 fountains reveal invisible enemies out to eighteen hundred units',()=>{
- const g=new Game({hero:'chen'}),h=g.player,f=g.entities.find(e=>e.kind==='fountain'&&e.team===0),enemy=g._makeHero('axe',1,1,false,1);Skills.addStatus(g,enemy,'testInvisible',{duration:10,invisible:true});Object.assign(enemy,{x:f.x+1700,y:f.y});assert.equal(g.canSee(h,enemy),true);enemy.x=f.x+1801;assert.equal(g.canSee(h,enemy),false);
+test('7.42 fountains provide true sight out to eighteen hundred units',()=>{
+ const g=new Game({hero:'chen'}),h=g.player,f=g.entities.find(e=>e.kind==='fountain'&&e.team===0),enemy=g._makeHero('axe',1,1,false,1);Skills.addStatus(g,enemy,'testInvisible',{duration:10,invisible:true});Object.assign(enemy,{x:f.x+1700,y:f.y});assert.equal(g.hasTrueSight(h,enemy),true);enemy.x=f.x+1801;assert.equal(g.hasTrueSight(h,enemy),false);
 });
 test('7.42 mud golem camps award madstone only after their death shards are cleared',()=>{
  const g=quiet(),h=g.player,u=neutral(g,'mud_golem');Object.assign(h,{x:u.x,y:u.y});g.damage(u,1e9,h,'pure');const shards=g.entities.filter(e=>e.unitId==='mud_golem_split');assert.equal(shards.length,2);assert.equal(h.madstone,0);g.damage(shards[0],1e9,h,'pure');assert.equal(h.madstone,0);g.damage(shards[1],1e9,h,'pure');assert.equal(h.madstone,2);
@@ -162,7 +162,7 @@ test('7.42 regeneration rune restores health and mana and enemy damage lowers it
  const g=quiet(),h=g.player;h.hp=100;h.mana=0;giveRune(g,'regeneration');const hp=h.hp,mana=h.mana;g.step(1);assert.ok(h.hp-hp>h.maxHp*.05);assert.ok(h.mana-mana>h.maxMana*.05);const enemy=creep(g);g.damage(h,20,enemy,'pure');const before=h.hp;g.step(1);assert.ok(h.hp-before<h.maxHp*.03);
 });
 test('7.42 invisibility rune disguise blocks true sight after two seconds and attacking breaks it',()=>{
- const g=quiet(),h=g.player,enemy=creep(g);giveRune(g,'invisibility');Object.assign(enemy,{x:h.x+1200,y:h.y,trueSight:2000});assert.equal(g.canSee(enemy,h),true);g.step(2);assert.equal(g.canSee(enemy,h),false);enemy.x=h.x+100;h.attackCooldown=0;assert.equal(g._attack(h,enemy),true);g.step(.6);assert.equal(Skills.hasStatusFlag(g,h,'invisible'),false);
+ const g=quiet(),h=g.player,enemy=creep(g);giveRune(g,'invisibility');Object.assign(enemy,{x:h.x+1200,y:h.y,trueSight:2000,visionNight:2000,flying:true});assert.equal(g.canSee(enemy,h),true);g.step(2);assert.equal(g.canSee(enemy,h),false);enemy.x=h.x+10;h.attackCooldown=0;assert.equal(g._attack(h,enemy),true);g.step(.6);assert.equal(Skills.hasStatusFlag(g,h,'invisible'),false);
 });
 test('7.42 arcane rune changes real spell mana and cooldown then removes those bonuses on expiry',()=>{
  const g=quiet(),h=g.player;h.abilityLevels[0]=1;giveRune(g,'arcane');assert.equal(h.cooldownReduction,25);assert.equal(h.manaCostReduction,30);const enemy=creep(g,1,h.x+100,h.y),mana=h.mana;assert.equal(g._cast(h,0,enemy).ok,true);g.step(.4);assert.ok(mana-h.mana>=55&&mana-h.mana<=56);assert.ok(h.cooldowns[0]>14&&h.cooldowns[0]<=15);g.time=411;g.step(.05);assert.equal(h.cooldownReduction,0);assert.equal(h.manaCostReduction,0);

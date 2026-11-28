@@ -5,6 +5,7 @@ import { TREES, BASES } from './map-data.js';
 import {refreshedHealth} from './armlet-runtime.js';
 import {manaState,restoreManaRatio} from './mana-runtime.js';
 import {building} from './building-types.js';
+import {recordHeroContribution} from './hero-kills.js';
 export {building};
 
 export const alive=e=>!!e&&!e.dead&&e.hp>0;
@@ -46,7 +47,10 @@ export function heal(g,e,amount,source,isRegen=false,area=false){
  let result=Math.max(0,amount*amp*(1-reduction/100)*(1+received/100));
  const theft=isRegen&&e.itemAura?.regenTheft;
  if(theft){const lost=result*theft.percent/100;result-=lost;const thief=g.entities.find(h=>h.id===theft.sourceId);if(theft.active&&alive(thief))thief.hp=Math.min(thief.maxHp,thief.hp+lost);}
- const before=e.hp;e.hp=Math.min(e.maxHp,e.hp+result);return e.hp-before;
+ const before=e.hp;e.hp=Math.min(e.maxHp,e.hp+result);
+ const healed=e.hp-before;
+ if(healed>0&&!isRegen&&e.kind==='hero')recordHeroContribution(g,e,source,true);
+ return healed;
 }
 export const healInArea=(g,e,amount,source,isRegen=false)=>heal(g,e,amount,source,isRegen,true);
 export const canReceiveAreaHealing=e=>fighter(e)||building(e);
@@ -58,9 +62,14 @@ export function regen(g,e,item,duration,hpPerSec,manaPerSec,source,breakOnDamage
 }
 export function allies(g,h,radius,heroesOnly=false){return g.entities.filter(e=>alive(e)&&e.team===h.team&&(heroesOnly?e.kind==='hero':fighter(e))&&distance(e,h)<=radius);}
 export function enemies(g,h,point,radius,structures=false){return g.entities.filter(e=>alive(e)&&e.team!==h.team&&(fighter(e)||(structures&&building(e)))&&!invulnerable(g,e)&&distance(e,point)<=radius+(e.radius||0));}
+export function revealTargets(g,h,point,radius,itemId){
+ const units=enemies(g,h,point,radius);
+ if(itemId!=='gem')return units;
+ return units.concat(g.entities.filter(e=>e.kind==='ward'&&alive(e)&&e.team!==h.team&&!invulnerable(g,e)&&distance(e,point)<=radius+(e.radius||0)));
+}
 export function equipped(g,h){
  if(!['hero','illusion'].includes(h.kind))return [];
- return Inventory.itemEntries(h,['inventory','tp','neutral','enchantment']).filter(e=>(e.meta.readyAt||0)<=g.time).map(e=>({...e,item:effectiveItem(g,h,ITEM_BY_ID[e.id],e.meta)})).filter(e=>e.item);
+ return Inventory.itemEntries(h,['inventory','tp','neutral','enchantment']).filter(e=>(e.meta.readyAt||0)<=g.time&&Inventory.canUseHeldItem(h,e.id,e.meta)).map(e=>({...e,item:effectiveItem(g,h,ITEM_BY_ID[e.id],e.meta)})).filter(e=>e.item);
 }
 export function itemPotency(h,result={}){
  const base=result.itemPotency??h.itemPotency??(h.kind==='illusion'?20:100);

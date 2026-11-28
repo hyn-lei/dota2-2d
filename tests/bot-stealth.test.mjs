@@ -6,9 +6,10 @@ import * as Items from '../src/item-runtime.js';
 import * as Skills from '../src/hero-runtime.js';
 import * as Courier from '../src/courier.js';
 import {BASES} from '../src/map-data.js';
+import {useOpenArenaVision} from './skill-arena.mjs';
 
 function arena(difficulty='hell',hero='crystal_maiden',enemyId='juggernaut'){
-  const g=new Game({difficulty,seed:17}),bot=g._makeHero(hero,1,0,false,0),enemy=g._makeHero(enemyId,0,0,true,0);
+  const g=useOpenArenaVision(new Game({difficulty,seed:17})),bot=g._makeHero(hero,1,0,false,0),enemy=g._makeHero(enemyId,0,0,true,0);
   for(const [i,h] of [bot,enemy].entries())Object.assign(h,{x:10400+i*350,y:10400,abilityLevels:[0,0,0,0],skillPoints:0,talentPoints:0,gold:0,mana:1000,aiTimer:i?Infinity:0,isHuman:!!i,hpRegen:0,manaRegen:0,attackCooldown:999,botShop:{nextAt:Infinity,needsShop:false}});
   bot.draftRole='support';g.entities=[bot,enemy];g.nextWave=g.nextNeutralSpawn=g.roshanRespawnAt=Infinity;
   for(const c of g.camps)c.nextSpawn=Infinity;g._index();return {g,bot,enemy};

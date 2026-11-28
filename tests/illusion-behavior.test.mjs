@@ -8,9 +8,10 @@ import {createMeta} from '../src/inventory.js';
 import {ITEM_BY_ID} from '../src/item-data.js';
 import * as Skills from '../src/hero-runtime.js';
 import {parseMatch,serializeMatch,restoreMatch} from '../src/game-save.js';
+import {useOpenArenaVision} from './skill-arena.mjs';
 
 function arena(hero='juggernaut'){
- const g=new Game({hero});g.entities=[g.player];
+ const g=useOpenArenaVision(new Game({hero}));g.entities=[g.player];
  g.nextWave=g.nextNeutralSpawn=g.roshanRespawnAt=Infinity;
  g.navigation=new Navigator({cols:160,rows:160,cellSize:64,blocked:'0'.repeat(25600)},[]);
  Object.assign(g.player,{x:6000,y:6000,level:15,abilityLevels:[4,4,4,2],talents:[],skillPoints:0,talentPoints:0});

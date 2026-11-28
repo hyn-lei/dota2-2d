@@ -9,6 +9,7 @@ import * as Weaver from './weaver-runtime.js';
 import {weakIllusion,strongIllusion} from './illusions.js';
 import {spendMana,clearTemporaryMana} from './mana-runtime.js';
 import {canReceiveAreaHealing} from './item-common.js';
+import {recordHeroContribution} from './hero-kills.js';
 const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
 const alive=e=>e&&!e.dead&&e.hp>0;
 const fighter=e=>['hero','creep','neutral','illusion','summon'].includes(e?.kind);
@@ -52,7 +53,12 @@ export function addStatus(g,e,id,fields){
  const until=fields.until===undefined?startedAt+duration:startedAt+(fields.until-startedAt)*amplification;
  if(old&&old.until>until&&fields.keepLonger!==false)return old;
  const status={id,name:id,description:'',positive:false,icon:'aura',...fields,startedAt,until,duration:until-startedAt};
- e.statuses[id]=status;return status;
+ e.statuses[id]=status;
+ if(e.kind==='hero'&&status.sourceId&&startedAt<=g.time&&until>g.time){
+  const author=source||g.entities.find(unit=>unit.id===status.sourceId);
+  recordHeroContribution(g,e,author,status.positive);
+ }
+ return status;
 }
 function removeStatus(e,id){
  if(e.statuses)delete e.statuses[id];
@@ -139,20 +145,22 @@ export function castAbility(g,h,index,point){
  if(active(g,h,'spin')&&index===3)return {ok:false,reason:'剑刃风暴期间无法使用无敌斩'};
  const aim=point&&Number.isFinite(point.x)&&Number.isFinite(point.y)?{x:point.x,y:point.y}:{x:h.x+Math.cos(h.angle)*100,y:h.y+Math.sin(h.angle)*100};
  const ogreAlly=h.heroId==='ogre_magi'&&index===2;
- const unitTarget=(h.heroId==='weaver'&&index===2)||(h.heroId==='chaos_knight'&&index<2)||(h.heroId==='axe'&&(index===1||index===3))||(h.heroId==='crystal_maiden'&&index===1)||(h.heroId==='juggernaut'&&index===3)||(h.heroId==='windranger'&&(index===0||index===3))||(h.heroId==='kunkka'&&index===2)||(h.heroId==='ogre_magi'&&index<3)||(h.heroId==='drow_ranger'&&index===0);
+ const manualGeminate=h.heroId==='weaver'&&index===2;
+ const unitTarget=manualGeminate||(h.heroId==='chaos_knight'&&index<2)||(h.heroId==='axe'&&(index===1||index===3))||(h.heroId==='crystal_maiden'&&index===1)||(h.heroId==='juggernaut'&&index===3)||(h.heroId==='windranger'&&(index===0||index===3))||(h.heroId==='kunkka'&&index===2)||(h.heroId==='ogre_magi'&&index<3)||(h.heroId==='drow_ranger'&&index===0);
  let target;
  if(h.heroId==='chen'&&index<3){
   const result=Chen.chenTarget(g,h,index,point||aim);if(!result.ok)return result;target=result.target;
  }else if(unitTarget){
   target=ogreAlly&&point?.id===h.id&&!isInvulnerable(g,h)?h:g.entities.filter(e=>alive(e)&&(ogreAlly&&structure(e)||!isInvulnerable(g,e))&&g.canSee(h,e)&&distance(e,aim)<=Math.max(e.radius||24,90)&&
-   (ogreAlly?e.team===h.team&&(fighter(e)||structure(e)):h.heroId==='kunkka'?e.kind==='hero'||e.kind==='illusion':e.team!==h.team&&(fighter(e)||((h.heroId==='windranger'&&index===3||h.heroId==='weaver'&&index===2)&&structure(e))||h.heroId==='weaver'&&index===2&&['weaverBeetle','ward','courier'].includes(e.kind)))).sort((a,b)=>distance(a,aim)-distance(b,aim))[0];
+   (!manualGeminate||!e.attackImmune&&(!point?.id||point.id===e.id))&&
+   (ogreAlly?e.team===h.team&&(fighter(e)||structure(e)):h.heroId==='kunkka'?e.kind==='hero'||e.kind==='illusion':e.team!==h.team&&(fighter(e)||((h.heroId==='windranger'&&index===3||manualGeminate)&&structure(e))||manualGeminate&&['weaverBeetle','ward','courier'].includes(e.kind)))).sort((a,b)=>distance(a,aim)-distance(b,aim))[0];
   if(!target)return {ok:false,reason:h.heroId==='kunkka'?'请指向友方或敌方英雄':'请指向有效敌方目标'};
-  const targetRange=(h.heroId==='drow_ranger'&&index===0||h.heroId==='weaver'&&index===2)?g.combatStats(h,target).range:s.range;
+  const targetRange=(h.heroId==='drow_ranger'&&index===0||manualGeminate)?g.combatStats(h,target).range:s.range;
   if(distance(h,target)>targetRange+target.radius)return {ok:false,reason:`目标超过 ${targetRange} 施法距离`};
  }
  const pointTarget=(h.heroId==='kunkka'&&(index===0||index===3))||(h.heroId==='crystal_maiden'&&index===0)||(h.heroId==='juggernaut'&&index===1);
  if(pointTarget&&distance(h,aim)>s.range+1)return {ok:false,reason:`目标超过 ${s.range} 施法距离`};
- if(h.heroId==='weaver'&&index===2){
+ if(manualGeminate){
   if(hasStatusFlag(g,h,'disarmed')||hasStatusFlag(g,h,'break'))return {ok:false,reason:'当前不能发动连击'};
   interruptCast(g,h,true);h.recallTimer=0;h.destination=null;h.weaverManualGeminateTarget=target.id;h.explicitTarget=target.id;h.targetId=target.id;
   if(h.isPlayer)g.clearMovement(h);g._attack(h,target,{manualGeminate:true});return {ok:true};

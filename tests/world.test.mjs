@@ -96,6 +96,7 @@ test('neutral combat rewards the last hitter, shares experience, and never score
 test('selecting enemies and neutrals is independent of hero control and purchases', () => {
   const g=new Game();
   const enemy=g.entities.find(e=>e.kind==='hero'&&e.team===1);
+  Object.assign(enemy,{x:g.player.x+1,y:g.player.y});g._index();
   const before=enemy.inventory.slice();
   g.selectEntity(enemy.id);
   assert.equal(g.selected.id,enemy.id);

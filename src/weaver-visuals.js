@@ -41,7 +41,7 @@ export function drawWeaverState(c,e,game,zoom,layer){
  const marked=Object.values(e.statuses||{}).some(s=>(s.weaverShukuchiMark||s.id==='weaverShukuchiMark')&&s.until>t);
  if(marked){c.save();c.translate(e.x,e.y-95);c.rotate(t*.8);circle(c,0,0,17,'#c28aed',2);line(c,[[-22,0],[22,0]],'#8bdce9',1.5);line(c,[[0,-22],[0,22]],'#e8a8dd',1.5);c.restore();}
  const preview=e.weaverTimeLapsePreview;
- if(e.heroId==='weaver'&&e.id===(game.selectedId||game.player?.id)&&e.abilityLevels?.[3]>0&&preview){
+ if(e.heroId==='weaver'&&e.team===game.player?.team&&e.id===(game.selectedId||game.player?.id)&&e.abilityLevels?.[3]>0&&preview){
   c.save();c.globalAlpha*=.32;circle(c,preview.x,preview.y,48,'#99c6fa',Math.max(2,1/zoom));
   line(c,[[preview.x-15,preview.y],[preview.x+15,preview.y]],'#ced9ff',2);line(c,[[preview.x,preview.y-15],[preview.x,preview.y+15]],'#ced9ff',2);c.restore();
  }

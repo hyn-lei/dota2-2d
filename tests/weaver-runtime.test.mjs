@@ -69,10 +69,10 @@ test('Swarm expires after sixteen attached seconds and target death cancels atta
  g._kill(e,p);g.step(1.2);assert.equal(g.entities.some(b=>b.id===second.id),false);
 });
 
-test('Shukuchi phases immediately and fades over a quarter second before haste, and attacking ends its invisibility movement and damage',()=>{
+test('Shukuchi hastes and phases during its fade, and attacking ends its invisibility movement and damage',()=>{
  const {g,p,e,c}=setup();c.y+=900;assert.equal(g.cast(1).ok,true);
- assert.equal(g.combatStats(p).speed,275);assert.equal(Skills.hasStatusFlag(g,p,'invisible'),false);assert.equal(Skills.hasStatusFlag(g,p,'phased'),true);
- g.step(.2);close(e.hp,3900);assert.equal(Skills.hasStatusFlag(g,p,'invisible'),false);
+ assert.equal(g.combatStats(p).speed,550);assert.equal(Skills.hasStatusFlag(g,p,'invisible'),false);assert.equal(Skills.hasStatusFlag(g,p,'phased'),true);
+ g.step(.2);close(e.hp,3900);assert.equal(g.combatStats(p).speed,550);assert.equal(Skills.hasStatusFlag(g,p,'invisible'),false);
  g.step(.05);assert.equal(Skills.hasStatusFlag(g,p,'invisible'),true);assert.equal(Skills.hasStatusFlag(g,p,'phased'),true);
  p.abilityLevels[2]=0;p.attackCooldown=0;g._attack(p,e);g.step(.7);p.attackCooldown=999;
  assert.equal(Skills.hasStatusFlag(g,p,'invisible'),false);assert.equal(g.combatStats(p).speed,275);
@@ -86,7 +86,35 @@ test('Shukuchi skips debuff immune targets and its shard marks trigger secondary
  const mark=e.statuses['weaverShukuchiMark:'+p.id];assert.ok(mark);assert.ok(mark.until>4.6);
  g.step(3.45);assert.equal(g.pendingSpells.some(s=>s.result?.weaverGeminate),false);
  g.step(.2);const shot=g.pendingSpells.find(s=>s.result?.weaverGeminate);assert.ok(shot);assert.equal(shot.result.itemPotency,115);
- g.step(.2);assert.ok(e.hp<3900);assert.equal(e.statuses['weaverShukuchiMark:'+p.id],undefined);
+ g.step(.2);assert.ok(e.hp<3900);assert.equal(e.statuses['weaverShukuchiMark:'+p.id],mark);
+});
+
+test('Shukuchi shard selects allied marked targets when the delayed attack fires',()=>{
+ const {g,p,e,c}=setup();p.hasShard=true;c.x=p.x-140;c.y=p.y;c.speed=0;
+ assert.equal(g.cast(1).ok,true);g.step(.4);
+ const markKey='weaverShukuchiMark:'+p.id;
+ assert.ok(e.statuses[markKey]);assert.ok(c.statuses[markKey]);
+ const nearby=g._unit('summon',1,p.x+350,p.y,{hp:1000,maxHp:1000,speed:0,attackCooldown:999});
+ const other=g._unit('summon',1,p.x+500,p.y,{hp:1000,maxHp:1000,speed:0,attackCooldown:999});
+ g.entities.push(nearby,other);
+ Skills.addStatus(g,nearby,'weaverShukuchiMark:allied-weaver',{duration:4.6,sourceId:'allied-weaver',sourceTeam:0,weaverShukuchiMark:true});
+ Skills.addStatus(g,other,'weaverShukuchiMark:enemy-weaver',{duration:4.6,sourceId:'enemy-weaver',sourceTeam:1,weaverShukuchiMark:true});
+ c.x=p.x-1300;Weaver.breakShukuchiInvisibility(g,p);
+ g.step(.1);assert.equal(g.pendingSpells.some(shot=>shot.result?.weaverGeminate),false);
+ e.x=p.x+1300;c.x=p.x-140;
+ g.step(.1);
+ assert.deepEqual(g.pendingSpells.filter(shot=>shot.result?.weaverGeminate).map(shot=>shot.targetId),[c.id,nearby.id]);
+ assert.ok(e.statuses[markKey]);assert.ok(c.statuses[markKey]);
+});
+
+test('Shukuchi damages enemies crossed in its last movement tick only once per cast',()=>{
+ const {g,p,e,c}=setup();c.y+=900;e.x=p.x+140;e.y=p.y;
+ g.cast(1);g.step(.25);close(e.hp,3900);
+ p.x=e.x-240;g.step(.1);p.x=e.x+240;g.step(.1);close(e.hp,3900);
+ g.step(3.5);
+ c.x=p.x+175+c.radius+1;c.y=p.y;
+ p.x+=5;g.step(.05);
+ close(c.hp,3900);close(e.hp,3900);
 });
 
 test('Geminate creates a delayed full projectile attack beyond attack range without recursion or spending normal attack cooldown',()=>{
@@ -128,6 +156,20 @@ test('Swarm traveling beetles cannot be attacked or disabled and attached beetle
  assert.equal(g.damage(flying,999,e,'physical',{attack:true}),0);Skills.applyStun(g,flying,2,e);assert.equal(Skills.isStunned(g,flying),false);
  g.step(1);const attached=g.entities.find(b=>b.swarmTargetId===e.id);assert.ok(attached);
  assert.equal(g._chooseTarget(e,1000).id,attached.id);
+});
+
+test('Manual Geminate rejects an enemy flying beetle and can attack it once attached',()=>{
+ const {g,p,e,c}=setup();c.y+=900;
+ e.heroId='weaver';e.abilityLevels=[1,0,0,0];e.cooldowns[0]=0;e.mana=1000;e.x=p.x+350;
+ assert.ok(g._cast(e,0,{x:p.x-2500,y:p.y}).ok);g.step(.3);
+ const flying=g.entities.find(b=>b.kind==='weaverBeetle'&&b.attackImmune&&Math.hypot(p.x-b.x,p.y-b.y)<300);
+ assert.ok(flying);
+ assert.equal(g.cast(2,flying).ok,false);
+ assert.equal(p.weaverManualGeminateTarget??null,null);
+ g.step(.6);const attached=g.entities.find(b=>b.swarmTargetId===p.id);assert.ok(attached);
+ p.attackCooldown=0;assert.ok(g.cast(2,attached).ok);g.step(.5);
+ p.attackCooldown=999;g.step(.5);
+ assert.equal(attached.hp,1);
 });
 
 test('Weaver strong illusions retain active skill use with their own rewind history while weak illusions cannot proc Geminate',()=>{
@@ -212,6 +254,29 @@ test('Scepter ally Time Lapse uses the ultimate rank cost cooldown and rejects e
  assert.equal(g.cast(3).ok,true);g.step(.3);assert.equal(g.castExtra('weaver_time_lapse_ally',p).ok,false);
 });
 
+test('Time Lapse restores the same ally state after a save and simulated clock change',()=>{
+ const {g,p,e,c}=setup([1,1,1,3]);e.y+=900;c.y+=900;p.hasScepter=true;
+ const ally=g._makeHero('juggernaut',0,1,false,1);
+ Object.assign(ally,{x:p.x+100,y:p.y,hp:300,mana:120,hpRegen:0,manaRegen:0,speed:0,aiTimer:Infinity,attackCooldown:999});
+ Weaver.initializeHistory(g,ally);g.step(2);
+ ally.x+=100;ally.hp=150;ally.mana=60;g.step(3.2);
+ const restored=restoreMatch(parseMatch(serializeMatch(g)));
+ const restoredAlly=restored.entities.find(unit=>unit.id===ally.id);
+ rebaseMatchTime(restored,300);restored.setPaused(false);
+ assert.ok(g.castExtra('weaver_time_lapse_ally',ally).ok);
+ assert.ok(restored.castExtra('weaver_time_lapse_ally',restoredAlly).ok);
+ g.step(.3);restored.step(.3);
+ assert.equal(ally.x,p.x+100);
+ assert.ok(ally.hp>=300&&ally.hp<301);assert.ok(ally.mana>=120&&ally.mana<121);
+ assert.equal(restoredAlly.x,ally.x);assert.equal(restoredAlly.y,ally.y);
+ close(restoredAlly.hp,ally.hp);close(restoredAlly.mana,ally.mana);
+ for(const caster of [p,restored.player]){
+  assert.ok(caster.cooldowns[3]>29.9&&caster.cooldowns[3]<=30);
+  close(caster.cooldowns[3],caster.extraCooldowns.weaver_time_lapse_ally);
+ }
+ close(p.cooldowns[3],restored.player.cooldowns[3]);
+});
+
 test('Time Lapse disjoints incoming attacks and can rewind to living history from before death after respawn',()=>{
  const {g,p,e,c}=setup();c.y+=900;e.range=700;e.attackCooldown=0;g._attack(e,p);e.attackCooldown=999;
  assert.ok(g.pendingSpells.some(s=>s.targetId===p.id));p.abilityLevels[3]=3;const hp=p.hp;g.cast(3);g.step(.3);g.step(.3);close(p.hp,hp);
@@ -282,6 +347,17 @@ test('Geminate secondary impact applies real item attack procs with its increase
  const {g,p,e,c}=setup();c.y+=900;p.inventory=['diffusal_blade'];g._refreshHero(p);e.mana=1000;e.maxMana=1000;e.manaRegen=0;
  p.attackCooldown=0;g._attack(p,e);g.step(.5);p.attackCooldown=999;g.step(.5);
  close(e.mana,1000-40-46);assert.ok(e.hp<4000-2*p.damage);assert.equal(g.pendingSpells.length,0);
+});
+
+test('Rapid attacks overlapping talented Geminate spend their own Diffusal potency exactly once per impact',()=>{
+ const {g,p,e,c}=setup();c.y+=900;e.x=p.x+100;
+ p.talents=[7];p.inventory=['diffusal_blade'];g._refreshHero(p);p.attackSpeed=700;p.attackCooldown=0;
+ p.projectileSpeed=200;
+ e.mana=e.maxMana=1000;e.manaRegen=0;
+ g.attackTarget(e.id);g.step(.75);p.attackCooldown=999;p.explicitTarget=null;g.step(.6);
+ close(e.mana,1000-3*40-2*46);
+ assert.equal(g.pendingSpells.length,0);
+ assert.ok(p.cooldowns[2]>0);
 });
 
 test('Items marked IGNORE_INVISIBLE preserve Shukuchi while their real toggle still executes',()=>{

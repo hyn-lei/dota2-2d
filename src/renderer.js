@@ -8,6 +8,7 @@ import {fountainAreaRadius} from './collision.js';
 import {drawWeaverBeetle} from './weaver-visuals.js';
 import {loadHeroSprites,drawHeroSprite,heroSpriteScale,heroSpriteLabelHeight} from './hero-sprites.js';
 import {HeroAttackAnimations} from './hero-attack-animation.js';
+import {captureTeamVision,teamCanSeePoint} from './vision.js';
 
 const TAU = Math.PI * 2;
 const MAX_RENDER_PIXELS = 1500000;
@@ -207,6 +208,7 @@ export class Renderer {
     // The terrain reference is a baked image. Overlay clear ground and stumps where trees were cut.
     for(const [index]of game.cutTrees||[]){const tree=TREES[index];if(Math.abs(tree.x-this.camera.x)>halfW+100||Math.abs(tree.y-this.camera.y)>halfH+100)continue;circle(c,tree.x,tree.y,64,'#384936');circle(c,tree.x,tree.y,13,'#817052','#b0a079',2);}
     for(const tree of game.plantedTrees||[])if(tree.until>game.time)this.drawTree(c,tree.x,tree.y,1.3,false,random(17));
+    if(p)this.drawFog(c,owner,p.team,halfW,halfH);
     BASES.forEach((b,team)=>{const glow=c.createRadialGradient(b.x,b.y,30,b.x,b.y,300);glow.addColorStop(0,team?'rgba(204,103,75,.12)':'rgba(126,202,162,.12)');glow.addColorStop(1,'transparent');circle(c,b.x,b.y,300,glow);});
     const camps=game.camps||CAMP_LAYOUT;
     for(const camp of camps){
@@ -218,12 +220,13 @@ export class Renderer {
     const selected=game.entities.find(e=>e.id===(game.selectedId||p?.id));
     const hovered=game.entities.find(e=>e.id===this.hoverId);
     for(const e of new Set([selected,hovered])){
-      if(!e||e.dead||!e.range)continue;c.save();
+      if(!e||e.dead||!e.range||p&&!game.canSee(p,e))continue;c.save();
       c.globalAlpha=e===hovered ? .5 : .22;c.setLineDash([7/this.zoom,7/this.zoom]);
       circle(c,e.x,e.y,e.range,null,unitColor(e),1/this.zoom);c.restore();
     }
     for(const hero of game.entities)if(hero.xMark){
-      const mark=hero.xMark,target=game.entities.find(e=>e.id===mark.targetId&&!e.dead);if(!target)continue;
+      const mark=hero.xMark,target=game.entities.find(e=>e.id===mark.targetId&&!e.dead);
+      if(!target||p&&(!game.canSee(p,hero)||!game.canSee(p,target)))continue;
       c.save();const col=hero.team?'#df967c':'#dfc28b';c.globalAlpha=.6;c.setLineDash([5,8]);line(c,[mark,target],col,1);c.setLineDash([]);c.globalAlpha=.85;
       circle(c,mark.x,mark.y,52,null,col,2/this.zoom);line(c,[{x:mark.x-25,y:mark.y-25},{x:mark.x+25,y:mark.y+25}],col,3/this.zoom);line(c,[{x:mark.x+25,y:mark.y-25},{x:mark.x-25,y:mark.y+25}],col,3/this.zoom);
       c.font=`${11/this.zoom}px Consolas,monospace`;c.textAlign='center';c.fillStyle=col;c.fillText(`${Math.max(0,mark.expiresAt-game.time).toFixed(1)}s`,mark.x,mark.y+52+14/this.zoom);c.restore();
@@ -235,7 +238,9 @@ export class Renderer {
     for(const e of auraEntities)drawUnitCombatEffects(c,e,game,this.zoom,'above');
     for(const e of game.effects||[]){const padding=(e.radius||80)+300;
       if(Math.max(e.x,e.tx??e.x)<this.camera.x-halfW-padding||Math.min(e.x,e.tx??e.x)>this.camera.x+halfW+padding||Math.max(e.y,e.ty??e.y)<this.camera.y-halfH-padding||Math.min(e.y,e.ty??e.y)>this.camera.y+halfH+padding)continue;
-      this.drawEffect(c,e,game.time,game);
+      if(p&&e.team!==p.team&&!teamCanSeePoint(owner,p.team,e))continue;
+      const pathHidden=p&&e.team!==p.team&&e.path?.some(point=>!teamCanSeePoint(owner,p.team,point));
+      this.drawEffect(c,pathHidden?{...e,path:undefined}:e,game.time,game);
     }
     if(this.marker){const age=(performance.now()-this.marker.at)/1000;if(age<.8){c.save();c.translate(this.marker.x,this.marker.y);c.scale(1/this.zoom,1/this.zoom);c.globalAlpha=1-age/.8;const r=10+age*22;circle(c,0,0,r,null,'#d2e5a3',1.5);for(let i=0;i<4;i++){c.save();c.rotate(i*TAU/4);poly(c,[[0,-r],[-3,-r-5],[3,-r-5]],'#d2e5a3');c.restore();}c.restore();}else this.marker=null;}
     if(p?.recallTimer>0){circle(c,p.x,p.y,90+Math.sin(time*8)*6,null,'#9bd9d6',2/this.zoom);c.save();c.translate(p.x,p.y);c.rotate(time*2);poly(c,[[-55,-55],[55,-55],[55,55],[-55,55]],null,'#b4e4d9',1/this.zoom);c.restore();}
@@ -249,6 +254,27 @@ export class Renderer {
     if(this.pixelBudget===Infinity&&this.canvas.width*this.canvas.height>MAX_RENDER_PIXELS){
       this.slowRenderFrames=performance.now()-startedAt>SLOW_RENDER_MS?this.slowRenderFrames+1:0;
     }
+  }
+  drawFog(ctx,game,team,halfW,halfH){
+    if(!game.canSee)return;
+    const size=Math.max(128,96/this.zoom);
+    const left=Math.floor((this.camera.x-halfW)/size)-1,top=Math.floor((this.camera.y-halfH)/size)-1;
+    const cols=Math.ceil(2*halfW/size)+3,rows=Math.ceil(2*halfH/size)+3;
+    const previous=this.fogLayer;
+    if(!previous||previous.game!==game||previous.team!==team||previous.left!==left||previous.top!==top||
+       previous.size!==size||previous.cols!==cols||previous.rows!==rows||game.time<previous.time||game.time-previous.time>=.25){
+      const canvas=previous?.canvas||document.createElement('canvas');
+      if(canvas.width!==cols)canvas.width=cols;
+      if(canvas.height!==rows)canvas.height=rows;
+      const fog=canvas.getContext('2d');
+      fog.clearRect(0,0,cols,rows);
+      fog.fillStyle='rgba(10,16,17,.47)';
+      for(let y=0;y<rows;y++)for(let x=0;x<cols;x++){
+        if(!teamCanSeePoint(game,team,{x:(left+x+.5)*size,y:(top+y+.5)*size}))fog.fillRect(x,y,1,1);
+      }
+      this.fogLayer={canvas,game,team,left,top,size,cols,rows,time:game.time};
+    }
+    ctx.drawImage(this.fogLayer.canvas,left*size,top*size,cols*size,rows*size);
   }
   label(c,text,x,y,color='#e6e5cf',size=11){
     c.save();c.font=`500 ${size}px "Segoe UI","Microsoft YaHei",sans-serif`;c.textAlign='center';c.textBaseline='middle';
@@ -515,6 +541,7 @@ export class Renderer {
     c.restore();
   }
   minimap(canvas,game){
+    const owner=game;
     game=game?.renderView?.()||game;
     if(!canvas||!game)return;const c=canvas.getContext('2d'),{side,x:offsetX,y:offsetY}=this.minimapBounds(canvas),scale=side/WORLD.width;
     c.clearRect(0,0,canvas.width,canvas.height);c.fillStyle='#111b18';c.fillRect(0,0,canvas.width,canvas.height);
@@ -522,6 +549,17 @@ export class Renderer {
     c.fillStyle='rgba(7,15,14,.19)';c.fillRect(0,0,side,side);
     for(const camp of game.camps||CAMP_LAYOUT){const x=camp.x*scale,y=camp.y*scale,r=camp.type==='ancient'?2.2:1.6;poly(c,[[x,y-r],[x+r,y],[x,y+r],[x-r,y]],CAMP_COLORS[camp.type]||'#d9bb7c','#263227',.6);}
     const player=game.player;
+    if(player){
+      if(!owner.isNetwork&&owner.canSee&&(!this.visionMemory||this.visionMemory.game!==owner||
+         owner.time<this.visionMemory.time||owner.time-this.visionMemory.time>=.5)){
+        this.visionMemory={game:owner,time:owner.time,lastSeen:captureTeamVision(owner,player.team).lastSeen};
+      }
+      for(const seen of owner.isNetwork?owner.lastSeen||[]:this.visionMemory?.lastSeen||[]){
+        c.globalAlpha=.5*Math.min(1,Math.max(0,1-(game.time-seen.seenAt)/15));
+        circle(c,seen.x*scale,seen.y*scale,3,null,TEAM_COLORS[seen.team],.8);
+      }
+      c.globalAlpha=1;
+    }
     const entities=game.entities.filter(e=>(!e.dead||BUILDINGS.has(e.kind))&&(e.team===player?.team||!game.canSee||game.canSee(player,e)));
     for(const e of entities){
       const x=e.x*scale,y=e.y*scale,color=e.dead?'#77766b':e.isPlayer?'#fff1b7':unitColor(e);

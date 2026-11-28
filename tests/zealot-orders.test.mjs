@@ -3,9 +3,10 @@ import assert from 'node:assert/strict';
 import {Game} from '../src/engine.js';
 import {ownedUnits} from '../src/controlled-units.js';
 import {serializeMatch,parseMatch,restoreMatch} from '../src/game-save.js';
+import {useOpenArenaVision} from './skill-arena.mjs';
 const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
 function setup(){
- const g=new Game({hero:'chen'}),p=g.player,z=ownedUnits(g,p).find(e=>e.zealot);g.entities=[p,z];g.nextWave=g.nextNeutralSpawn=g.roshanRespawnAt=Infinity;
+ const g=useOpenArenaVision(new Game({hero:'chen'})),p=g.player,z=ownedUnits(g,p).find(e=>e.zealot);g.entities=[p,z];g.nextWave=g.nextNeutralSpawn=g.roshanRespawnAt=Infinity;
  Object.assign(p,{x:10000,y:11000,attackCooldown:Infinity});Object.assign(z,{x:10080,y:11000});g._index();return {g,p,z};
 }
 function enemy(g,x,y){const e=g._unit('creep',1,x,y,{lane:1,name:'目标',maxHp:10000,hpRegen:0,speed:0,range:0,armor:0,magicResistance:0,attackCooldown:Infinity});g.entities.push(e);return e;}

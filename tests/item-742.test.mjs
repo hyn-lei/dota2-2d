@@ -45,8 +45,45 @@ test('Roshan banner casts from backpack and protects allied lane creeps until it
 test('Buckler yields to stronger aura while Vladmir and Assault armor auras stack',()=>{
  const {g,p,e}=setup(['buckler','vladmir','assault']);e.team=p.team;Items.tickWorld(g,.25);assert.equal(e.itemAura.armor,6);
 });
+test('Assault and Shiva attack speed auras combine once each and expire with their sources',()=>{
+ const {g,p}=setup([]);
+ const sources=[['assault',0],['shivas_guard',1],['assault',0],['shivas_guard',1]].map(([item,team],index)=>{
+  const source=g._makeHero('axe',team,1,false,index+1);
+  Object.assign(source,{x:p.x+100,y:p.y+index*50,inventory:[item],inventoryMeta:[]});
+  g._refreshHero(source);return source;
+ });
+ const base=g.combatStats(p).attackSpeed;
+ const sample=()=>{g.time+=.5;Items.tickWorld(g,.5);return g.combatStats(p).attackSpeed-base;};
+ g.entities=[p,...sources];
+ assert.equal(sample(),-10);
+ g.entities.reverse();assert.equal(sample(),-10);
+ sources[0].x+=2000;assert.equal(sample(),-10);
+ sources[2].x+=2000;assert.equal(sample(),-40);
+ g._kill(sources[1],null);assert.equal(sample(),-40);
+ g._kill(sources[3],null);assert.equal(sample(),0);
+});
+test('Helm of the Hivemind counts both teams and dead holders while excluding their illusions',()=>{
+ const {g,p,e}=setup([]),item='helm_of_the_hivemind';
+ const initialHp=p.maxHp;
+ p.neutralItem=item;g._refreshHero(p);
+ assert.equal(p.castRangeBonus,200);assert.ok(Math.abs(p.maxHp-initialHp*.92)<1e-9);
+ const [illusion]=createIllusions(g,p,1,10);assert.equal(illusion.neutralItem,item);
+ e.neutralItem=item;Items.tickUnit(g,p,.05);
+ assert.equal(p.castRangeBonus,280);assert.ok(Math.abs(p.maxHp-initialHp*.84)<1e-9);
+ g._kill(e,null);Items.tickUnit(g,p,.05);
+ assert.equal(p.castRangeBonus,280);assert.ok(Math.abs(p.maxHp-initialHp*.84)<1e-9);
+ e.neutralItem=null;Items.tickUnit(g,p,.05);
+ assert.equal(p.castRangeBonus,200);assert.ok(Math.abs(p.maxHp-initialHp*.92)<1e-9);
+});
 test('Red Ledger exposes a real shared-trait hit list and pays each bounty once before rerolling',()=>{
- const {g,p,e}=setup([]);p.neutralItem='red_ledger';const extra=g._makeHero('kunkka',e.team,1,false,1);extra.x=e.x;extra.y=e.y;g.entities.push(extra);Items.tickUnit(g,p,.1);const state=Items.itemState(g,p,0,'neutral');assert.ok(state.bountyTrait?.name);assert.equal(state.bountyTargets.length,2);assert.ok(e.statuses['redLedgerWanted:'+p.id]);const gold=p.gold,baseline=setup([]),baseGold=baseline.p.gold;baseline.g._kill(baseline.e,baseline.p);g._kill(e,p);assert.equal(p.gold-gold,baseline.p.gold-baseGold+50);assert.ok(p.neutralItemMeta.closed.includes(e.id));
+ const create=()=>{const scene=setup([]),{g,e}=scene;
+  const extra=g._makeHero('kunkka',e.team,1,false,1);extra.x=e.x;extra.y=e.y;g.entities.push(extra);return scene;};
+ const {g,p,e}=create();p.neutralItem='red_ledger';
+ Items.tickUnit(g,p,.1);const state=Items.itemState(g,p,0,'neutral');
+ assert.ok(state.bountyTrait?.name);assert.equal(state.bountyTargets.length,2);assert.ok(e.statuses['redLedgerWanted:'+p.id]);
+ const gold=p.gold,baseline=create(),baseGold=baseline.p.gold;
+ baseline.g._kill(baseline.e,baseline.p);g._kill(e,p);
+ assert.equal(p.gold-gold,baseline.p.gold-baseGold+50);assert.ok(p.neutralItemMeta.closed.includes(e.id));
 });
 test('Red Ledger can include Weaver in its real shared blue-hero bounty',()=>{
  const {g,p}=setup([]),e=g._makeHero('axe',1,1,false,0),weaver=g._makeHero('weaver',1,1,false,1),maiden=g._makeHero('crystal_maiden',1,1,false,2);

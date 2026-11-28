@@ -64,7 +64,7 @@ export function releaseWeaver(g,h,phase){
  }else if(s.id==='weaver_shukuchi'){
   if(!g.hasTrueSight?.({team:1-h.team},h))disjointHero(g,h);
   h.weaverShukuchi={startedAt:g.time,until:g.time+v.duration,fadeAt:g.time+v.fade_time,broken:false,hitIds:[],skill:s,lastPosition:{x:h.x,y:h.y}};
-  Skills.addStatus(g,h,'weaverShukuchi',{name:'缩地',description:'穿过单位；完全隐身时达到最低移速，对接触的敌人造成一次伤害。',positive:true,undispellable:true,duration:v.duration,phased:true,icon:'wind'});
+  Skills.addStatus(g,h,'weaverShukuchi',{name:'缩地',description:'立即提高移速并穿过单位，对接触的敌人造成一次伤害。',positive:true,undispellable:true,duration:v.duration,phased:true,icon:'wind'});
   Skills.addStatus(g,h,'weaverShukuchiInvisible',{name:'缩地隐身',positive:true,undispellable:true,invisible:true,fadeStartedAt:g.time,fadeDuration:v.fade_time,startedAt:g.time+v.fade_time,until:g.time+v.duration,icon:'wind'});
   effect(g,h,'weaverShukuchi',h.x,h.y,{life:.45,radius:90});
  }
@@ -126,8 +126,11 @@ export function tickWeaverWorld(g,dt){
    }
   }
  }
- // Movement completes after the hero tick; damage uses the whole swept path.
- for(const h of g.entities)if(h.heroId==='weaver'&&alive(h))tickShukuchi(g,h);
+ for(const h of g.entities)if(h.heroId==='weaver'){
+  if(h.extraCooldowns?.weaver_time_lapse_ally!==undefined)h.extraCooldowns.weaver_time_lapse_ally=h.cooldowns[3];
+  // Movement completes after the hero tick; damage uses the whole swept path.
+  if(alive(h))tickShukuchi(g,h,dt);
+ }
 }
 function segmentDistance(point,a,b){const dx=b.x-a.x,dy=b.y-a.y,length=dx*dx+dy*dy,t=length?Math.max(0,Math.min(1,((point.x-a.x)*dx+(point.y-a.y)*dy)/length)):0;return Math.hypot(point.x-a.x-dx*t,point.y-a.y-dy*t);}
 export function breakShukuchiInvisibility(g,h){
@@ -139,22 +142,26 @@ function endShukuchi(g,h,endedAt){
  h.weaverShukuchi=null;delete h.statuses.weaverShukuchi;delete h.statuses.weaverShukuchiInvisible;
  if(h.hasShard){
   const s=Skills.skillOf(h,2),v=state.skill.values,radius=v.shukuchi_attack_mark_radius+(h.spellAoE||0);
-  if(s.level)for(const enemy of g.entities)if(alive(enemy)&&enemy.team!==h.team&&Object.values(enemy.statuses||{}).some(mark=>mark.weaverShukuchiMark&&mark.until>g.time)&&distance(h,enemy)<=radius){
-   h.weaverGeminateQueue||=[];h.weaverGeminateQueue.push({targetId:enemy.id,executeAt:endedAt+v.shukuchi_attack_delay,skill:s,shukuchi:true,targetLife:enemy.deathTime??null});
+  if(s.level){
+   h.weaverGeminateQueue||=[];
+   h.weaverGeminateQueue.push({executeAt:endedAt+v.shukuchi_attack_delay,skill:s,shukuchi:true,radius});
   }
  }
 }
-function tickShukuchi(g,h){
+function tickShukuchi(g,h,dt){
  const state=h.weaverShukuchi;if(!state)return;
  const v=state.skill.values;
- if(g.time<state.until-1e-7){
-  for(const enemy of g.entities)if(alive(enemy)&&fighter(enemy)&&enemy.team!==h.team&&!state.hitIds.includes(enemy.id)&&!Skills.debuffImmune(g,enemy)&&!Skills.isInvulnerable(g,enemy)&&segmentDistance(enemy,state.lastPosition,h)<=v.radius+(h.spellAoE||0)+(enemy.radius||0)){
+ const remaining=state.until-(g.time-dt);
+ if(remaining>1e-7){
+  const from=state.lastPosition,fraction=Math.min(1,remaining/dt);
+  const end={x:from.x+(h.x-from.x)*fraction,y:from.y+(h.y-from.y)*fraction};
+  for(const enemy of g.entities)if(alive(enemy)&&fighter(enemy)&&enemy.team!==h.team&&!state.hitIds.includes(enemy.id)&&!Skills.debuffImmune(g,enemy)&&!Skills.isInvulnerable(g,enemy)&&segmentDistance(enemy,from,end)<=v.radius+(h.spellAoE||0)+(enemy.radius||0)){
    state.hitIds.push(enemy.id);g.damage(enemy,v.damage,h,'magical',{weaverShukuchi:true});
-   if(h.hasShard&&alive(enemy)&&Skills.skillOf(h,2).level)Skills.addStatus(g,enemy,markId(h),{name:'缩地连击标记',duration:v.geminate_attack_mark_duration,sourceId:h.id,icon:'weaverGeminate',weaverShukuchiMark:true});
+   if(h.hasShard&&alive(enemy)&&Skills.skillOf(h,2).level)Skills.addStatus(g,enemy,markId(h),{name:'缩地连击标记',duration:v.geminate_attack_mark_duration,sourceId:h.id,sourceTeam:h.team,icon:'weaverGeminate',weaverShukuchiMark:true});
   }
-  state.lastPosition={x:h.x,y:h.y};return;
+  state.lastPosition={x:h.x,y:h.y};
  }
- endShukuchi(g,h,state.until);
+ if(g.time>=state.until-1e-7)endShukuchi(g,h,state.until);
 }
 export function triggerGeminate(g,h,target,options,result){
  if(h.heroId!=='weaver'||weakIllusion(h)||options.weaverGeminate||!alive(target))return;
@@ -175,8 +182,14 @@ export function tickWeaverHero(g,h){
  tickThreads(g,h);
  const queue=h.weaverGeminateQueue||[];h.weaverGeminateQueue=queue.filter(q=>q.executeAt>g.time+1e-7);
  for(const q of queue)if(q.executeAt<=g.time+1e-7){
-  const target=g.entities.find(e=>e.id===q.targetId);if(!alive(h)||!target||alive(target)&&(target.deathTime??null)!==q.targetLife)continue;
-  if(q.shukuchi)for(const [id,status]of Object.entries(target.statuses||{}))if(status.weaverShukuchiMark)delete target.statuses[id];
+  if(!alive(h))continue;
+  if(q.shukuchi&&!q.targetId){
+   for(const enemy of g.entities)if(alive(enemy)&&enemy.team!==h.team&&distance(h,enemy)<=q.radius&&
+     Object.values(enemy.statuses||{}).some(mark=>mark.weaverShukuchiMark&&mark.until>g.time&&
+       (mark.sourceId===h.id||(mark.sourceTeam??g.entities.find(source=>source.id===mark.sourceId)?.team)===h.team)))fireGeminate(g,h,enemy,q.skill);
+   continue;
+  }
+  const target=g.entities.find(e=>e.id===q.targetId);if(!target||alive(target)&&(target.deathTime??null)!==q.targetLife)continue;
   fireGeminate(g,h,target,q.skill);
   if(!q.shukuchi&&h.hasShard){
    const radius=q.skill.values.shard_beetle_search_range+(h.spellAoE||0);
@@ -198,7 +211,7 @@ export function weaverCombatStats(g,h,result){
  return result;
 }
 export function weaverMovementStats(g,h,result){
- if(h.weaverShukuchi&&h.weaverShukuchi.until>g.time&&g.time+1e-7>=h.weaverShukuchi.fadeAt){
+ if(h.weaverShukuchi?.until>g.time){
   const minimum=h.weaverShukuchi.skill.values.min_movespeed_override;
   result.speed=Math.max(minimum,result.speed);
  }
@@ -208,7 +221,9 @@ export function weaverDamage(g,target,dealt,source,type,options){
  if(!dealt||source?.heroId!=='weaver'||!['hero','illusion'].includes(source.kind)||!alive(source)||target.kind!=='hero'||source.team===target.team||options.itemProc||options.reflected||!(options.attack||options.weaverSwarm||options.weaverShukuchi)||Skills.hasStatusFlag(g,source,'break'))return;
  source.weaverThreads||=[];
  if(source.weaverThreads.some(t=>t.targetId===target.id)||distance(source,target)>700)return;
- source.weaverThreads.push({targetId:target.id,phase:'setup',startedAt:g.time,x:target.x,y:target.y});
+ const thread={targetId:target.id,phase:'setup',startedAt:g.time};
+ if(g.canSee(source,target))Object.assign(thread,{x:target.x,y:target.y});
+ source.weaverThreads.push(thread);
  Skills.addStatus(g,target,'weaverThread:'+source.id,{name:'命运之线连接',description:'保持连接，为编织者提供主攻击力加成。',duration:Infinity,sourceId:source.id,weaverThread:true,icon:'weaverThreads'});
 }
 function threadSlow(g,h,target,v){

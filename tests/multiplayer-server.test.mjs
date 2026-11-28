@@ -5,6 +5,7 @@ import { mkdtemp, mkdir, writeFile, symlink, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import WebSocket from 'ws';
+import {TREES} from '../src/map-data.js';
 
 const backend = await import('../server/coop-server.mjs').catch(() => ({}));
 const codec = await import('../src/network-protocol.js').catch(() => ({}));
@@ -80,6 +81,45 @@ test('recursive network snapshots preserve official infinite timestamps', () => 
   const value={nested:[{until:Infinity,purchasedAt:-Infinity}],finite:2,notANumber:NaN};
   assert.deepEqual(codec.decodeMessage(codec.encodeMessage(value)),{nested:[{until:Infinity,purchasedAt:-Infinity}],finite:2,notANumber:null});
 });
+
+test('co-op seats share observed opponents without receiving their unseen state or actions',async t=>{
+ const fixture=await lobby(t),first=await start(fixture),[host,ally]=fixture.clients;
+ const room=fixture.service.manager.rooms.get(fixture.code),g=room.game;
+ const a=g.entities.find(e=>e.clientId===host.clientId),b=g.entities.find(e=>e.clientId===ally.clientId);
+ const enemy=g.entities.find(e=>e.kind==='hero'&&e.team===1);
+ const initial=await ally.next('snapshot',message=>message.frame===first.frame);
+ assert.equal(first.playerId,a.id);
+ assert.equal(initial.playerId,b.id);
+ assert.deepEqual(first.state.roster,initial.state.roster);
+ assert.ok(first.state.roster.some(entry=>entry.id===enemy.id&&entry.kind==='hero'&&!('x' in entry)&&!('hp' in entry)));
+ assert.ok(!first.state.entities.some(e=>e.id===enemy.id));
+ assert.ok(first.state.buildingsRemaining.every(remaining=>remaining.tower===11&&remaining.barracks===6));
+ assert.ok(first.state.entities.some(e=>e.team===0&&e.kind==='ancient'&&e.protected===true));
+ assert.ok(!first.state.entities.some(e=>e.team===1&&e.kind==='ancient'));
+
+ Object.assign(a,{x:9856,y:9792});
+ Object.assign(enemy,{x:9856,y:10048});
+ g.time=1;
+ fixture.service.manager.broadcastSnapshot(room);
+ const spotted=await host.next('snapshot',message=>message.state.time===1);
+ const allySpotted=await ally.next('snapshot',message=>message.state.time===1);
+ assert.ok(spotted.state.entities.some(e=>e.id===enemy.id&&e.x===9856&&e.y===10048));
+ assert.deepEqual(spotted.state,allySpotted.state);
+
+ Object.assign(enemy,{x:16000,y:6400,hp:123,destination:{x:16100,y:6410}});
+ a.targetId=enemy.id;
+ g.effects=[{id:'hidden-effect',type:'projectile',x:16000,y:6400,tx:a.x,ty:a.y,sourceId:enemy.id}];
+ g.pendingSpells=[{type:'shackle',sourceId:enemy.id,targetId:a.id,origin:{x:16000,y:6400},landAt:10}];
+ g.time=2;
+ fixture.service.manager.broadcastSnapshot(room);
+ const lost=(await host.next('snapshot',message=>message.state.time===2)).state;
+ assert.ok(!lost.entities.some(e=>e.id===enemy.id));
+ assert.equal(lost.entities.find(e=>e.id===a.id).targetId,undefined);
+ assert.deepEqual(lost.effects,[]);
+ assert.deepEqual(lost.pendingSpells,[]);
+ assert.deepEqual(lost.lastSeen,[{id:enemy.id,heroId:enemy.heroId,team:1,x:9856,y:10048,seenAt:1}]);
+});
+
 test('WebSocket negotiates compression for large repeated state snapshots',async t=>{
  const {connect}=await setup(t);const client=await connect();t.after(()=>client.socket.close());
  assert.match(client.socket.extensions,/permessage-deflate/);
@@ -107,7 +147,7 @@ test('four ready members cannot start and fifth distinct connected member permit
   const fifth=await connect();clients.push(fifth);fifth.send({type:'join',code,name:'P5',heroId:heroes[4]});await fifth.next('room');fifth.send({type:'ready',ready:true});
   await host.next('room',m=>m.room.members.length===5&&m.room.members.every(p=>p.ready));host.send({type:'start'});
   const snapshot=await host.next('snapshot');
-  const radiant=snapshot.state.entities.filter(e=>e.kind==='hero'&&e.team===0),dire=snapshot.state.entities.filter(e=>e.kind==='hero'&&e.team===1);
+  const radiant=snapshot.state.entities.filter(e=>e.kind==='hero'&&e.team===0),dire=snapshot.state.roster.filter(e=>e.team===1);
   assert.equal(radiant.length,5);assert.ok(radiant.every(e=>e.isHuman&&e.isPlayer&&e.controller==='human'));
   assert.ok(radiant.every(e=>e.skillPoints===1&&e.abilityLevels.every(n=>n===0)));
   assert.equal(dire.length,5);assert.ok(dire.every(e=>e.controller==='ai'));
@@ -187,6 +227,7 @@ test('active items and recall require the actor slot UID, and snapshots preserve
   host.send({type:'command',id:2,action:'useItem',args:[0,null,'tp'],slotGuards:[{area:'tp',index:0,uid:'stale'}]});assert.equal((await host.next('ack')).result.ok,false);
   assert.equal(player.tpMeta[0].uid,uid);
   player.statuses.test={until:Infinity,nested:{amount:4}};player.navPath=[{x:1,y:2}];player.botState={secret:'private'};
+  Object.assign(player,{x:TREES[2].x,y:TREES[2].y});
   room.game.cutTrees=new Map([[2,Infinity]]);room.game.plantedTrees=[{x:2,y:3,until:Infinity}];room.game.shopStocks={'0:branch':{available:3,nextAt:Infinity}};
   room.game.pendingSpells=[{type:'shackle',sourceId:player.id,targetId:'target',landAt:5,skill:{secret:'private'}}];
   fixture.service.manager.broadcastSnapshot(room);const snapshot=await host.next('snapshot',m=>m.state.cutTrees.length===1),published=snapshot.state.entities.find(e=>e.id===player.id);

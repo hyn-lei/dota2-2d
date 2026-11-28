@@ -1,8 +1,9 @@
 import {Game} from '../src/engine.js';
 import * as Inventory from '../src/inventory.js';
+import {useOpenArenaVision} from './skill-arena.mjs';
 
 export function tacticalArena(team=0,difficulty='normal',count=1){
-  const g=new Game({difficulty,seed:812});g.entities=[];
+  const g=useOpenArenaVision(new Game({difficulty,seed:812}));g.entities=[];
   const bots=Array.from({length:count},(_,i)=>g._makeHero(['axe','crystal_maiden','windranger','kunkka','ogre_magi'][i%5],team,1,false,i));
   const enemy=g._makeHero('axe',1-team,1,true,0);
   for(const [i,h] of [...bots,enemy].entries())Object.assign(h,{x:10400+i*90,y:10400,

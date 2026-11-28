@@ -3,6 +3,8 @@ import * as Items from './item-runtime.js';
 import * as Skills from './hero-runtime.js';
 import {botProfile} from './bot-difficulty.js';
 import {BOT_DRAFT_PROFILES} from './bot-draft.js';
+import {teamCanSeePoint,unitVisionRange} from './vision.js';
+import {assignCampTask} from './bot-camp-tasks.js';
 
 const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
 const alive=e=>e&&!e.dead&&e.hp>0;
@@ -21,16 +23,17 @@ function combatSnapshot(g,world,h){
 }
 const tacticalPower=(g,world,h)=>fightingPower(g,h,combatSnapshot(g,world,h));
 function sight(g,e){
+  if(e.kind==='ward'||e.providesVision)return unitVisionRange(g,e);
   const night=g.time%600>=300;
   return night?(e.visionNight??e.nightVision??800):(e.visionDay??e.dayVision??1800);
 }
-function observeHero(g,world,e,observers){
+function observeHero(g,world,e,team){
   // Keep the attributes and position from this observation. A hidden hero's
   // live coordinates or health must not leak through the shared cached view.
   combatSnapshot(g,world,e);
   const channel=e.itemChannel;
   const publicLanding=channel?.kind==='teleport'&&channel.point&&
-    observers.some(a=>alive(a)&&distance(a,channel.point)<=sight(g,a));
+    teamCanSeePoint(g,team,channel.point);
   return {...e,itemChannel:channel?.kind==='teleport'?(publicLanding?
     {...channel,point:{...channel.point},origin:{...channel.origin}}:undefined):channel};
 }
@@ -53,6 +56,44 @@ function routeCost(g,h,world,goal){
   const target=landingTargets(g,h,world,goal)[0];
   return target?Math.min(walk,3+distance(target,goal)/speed):walk;
 }
+
+export const isMapCollection=plan=>['collect','scout-rune'].includes(plan?.mode);
+
+function allocateMapObjectives(g,world,team,available,plans,previous){
+  if(g.time<356||!available.size)return;
+  const view=world.teams[team],nextPower=Math.max(360,Math.ceil((g.time+1e-7)/120)*120);
+  const master=[...available].some(h=>botProfile(g,h).master);
+  const objectives=[];
+  for(const site of g.worldObjectives){
+    if(site.objectiveType==='powerRune'){
+      const visible=teamCanSeePoint(g,team,site);
+      if(visible&&site.rune)objectives.push({site,mode:'collect',limit:8,weight:0});
+      else if(master&&nextPower-g.time<=4)objectives.push({site,mode:'scout-rune',limit:5,weight:3});
+    }else if(site.objectiveType==='wisdom'&&Math.floor(g.time/420)>=1&&
+      teamCanSeePoint(g,team,site)&&site.collectedPeriod!==Math.floor(g.time/420)){
+      objectives.push({site,mode:'collect',limit:7,weight:2});
+    }
+  }
+  let selected=null,best=Infinity;
+  for(const {site,mode,limit,weight} of objectives){
+    const opponents=view.visibleHeroes.filter(e=>distance(e,site)<1150);
+    const allies=view.heroes.filter(h=>h.hp/h.maxHp>.45&&distance(h,site)<1150);
+    if(opponents.length>allies.length)continue;
+    const key=`objective:${site.id}`;
+    for(const h of available){
+      const settings=botProfile(g,h),power=site.objectiveType==='powerRune';
+      if(settings.tier<2||mode==='scout-rune'&&!settings.master||h.retreating||h.hp/h.maxHp<.56||
+        h.channel||h.castPhase||h.itemChannel||h.botShop?.needsShop)continue;
+      const eta=distance(h,site)/Math.max(100,combatSnapshot(g,world,h).speed);
+      const preferred=power?h.draftRole==='mid':['roamer','support'].includes(h.draftRole);
+      const score=eta+weight+(preferred?-1.2:0)-(previous.get(h.id)?.key===key?1.2:0);
+      if(eta>limit||score>=best)continue;
+      best=score;selected={h,key,mode,objectiveId:site.id,goal:{x:site.x,y:site.y}};
+    }
+  }
+  if(selected){const {h,...plan}=selected;plans.set(h.id,plan);available.delete(h);}
+}
+
 function defensePoint(t){
   const base=BASES[t.team],d=distance(t,base)||1;
   return {x:t.x+(base.x-t.x)/d*260,y:t.y+(base.y-t.y)/d*260};
@@ -153,6 +194,8 @@ function allocate(g,world,team,previous){
       for(const h of recruited){plans.delete(h.id);available.add(h);}
     }
   }
+  allocateMapObjectives(g,world,team,available,plans,previous);
+  assignCampTask(g,world,team,available,plans,previous);
   return plans;
 }
 
@@ -162,17 +205,22 @@ export function tacticalWorld(g){
   let world=worlds.get(g);
   if(world&&g.time>=world.at&&g.time<world.nextAt)return world;
   const previous=world;
-  world={at:g.time,nextAt:g.time+.2,entities:new Map(),combat:new Map(),fighters:[],structures:[],teams:[0,1].map(()=>({heroes:[],bots:[],units:[],buildings:[]}))};
+  world={at:g.time,nextAt:g.time+.2,entities:new Map(),combat:new Map(),fighters:[],structures:[],neutralsByCamp:new Map(),teams:[0,1].map(()=>({heroes:[],bots:[],units:[],buildings:[],visionUnits:[]}))};
   for(const e of g.entities)if(alive(e)){
     world.entities.set(e.id,e);const kind=e.kind,view=world.teams[e.team];
     if(fighter(kind)){world.fighters.push(e);if(view)view.units.push(e);}
+    if(kind==='neutral'&&e.team===2&&e.campId&&!e.isRoshan&&!e.isTormentor){
+      if(!world.neutralsByCamp.has(e.campId))world.neutralsByCamp.set(e.campId,[]);
+      world.neutralsByCamp.get(e.campId).push(e);
+    }
     if(building(kind)){world.structures.push(e);if(view)view.buildings.push(e);}
+    if(view&&(kind==='ward'||kind==='weaverBeetle'&&e.providesVision))view.visionUnits.push(e);
     if(kind==='hero'&&view){view.heroes.push(e);if(automated(e))view.bots.push(e);}
   }
   for(const team of [0,1]){
-    const view=world.teams[team],observers=[...view.units,...view.buildings];
+    const view=world.teams[team],observers=[...view.units,...view.buildings,...view.visionUnits];
     view.visibleFighters=world.teams[1-team].units.filter(e=>observers.some(a=>distance(a,e)<=sight(g,a)&&g.canSee(a,e)))
-      .map(e=>e.kind==='hero'?observeHero(g,world,e,observers):e);
+      .map(e=>e.kind==='hero'?observeHero(g,world,e,team):e);
     view.visibleHeroes=view.visibleFighters.filter(e=>e.kind==='hero'&&!Skills.isInvulnerable(g,e));
     view.plans=allocate(g,world,team,previous?.teams[team].plans||new Map());
   }

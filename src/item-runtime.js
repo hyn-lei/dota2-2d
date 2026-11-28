@@ -14,10 +14,10 @@ const {alive,distance,value:v,equipped,active,hasFlag,status,heal,enemies,slow,d
 const reject=reason=>({ok:false,reason});
 const statuses=(g,h)=>Object.values(h.statuses||{}).filter(s=>s.startedAt<=g.time&&s.until>g.time);
 const owner=(g,e)=>e?.ownerId?g.entities.find(h=>h.id===e.ownerId)||e:e;
-const passive=(g,h)=>equipped(g,h).filter(e=>['inventory','neutral','enchantment'].includes(e.area)&&(e.meta.ownerId===h.id||e.meta.freeRapier));
+const passive=(g,h)=>equipped(g,h).filter(e=>e.area!=='tp');
 
 export function statItems(g,h){
- const entries=equipped(g,h).filter(e=>e.area!=='tp').filter(e=>(e.meta.readyAt||0)<=g.time&&(e.meta.ownerId===h.id||e.meta.freeRapier));
+ const entries=passive(g,h);
  if(!entries.some(e=>e.id==='berserkers_sabatons'&&e.meta.mode==='on')){delete h.statuses?.['itemBuff:berserkers_sabatons'];h.itemSlowResistance=0;}
  const key=entries.map(e=>e.id).join('|')+`:${!!h.consumedScepter}:${!!h.consumedShard}`;
  if(h.upgradeEquipmentKey!==key){h.hasScepter=!!h.consumedScepter||entries.some(e=>e.id==='ultimate_scepter');h.hasShard=!!h.consumedShard;h.upgradeEquipmentKey=key;}
@@ -49,7 +49,7 @@ export function statItems(g,h){
 export function itemState(g,h,index,area='inventory'){
  Inventory.ensureInventory(h);const virtual=Inventory.itemEntries(h,[area]).find(e=>e.index===index),id=virtual?.id,meta=virtual?.meta,item=C.effectiveItem(g,h,ITEM_BY_ID[id],meta);
  const group=item?(item.sharedCooldown||item.id):area==='tp'?'teleport':null;
- return {id,meta,item,area,index,mode:meta?.mode,bountyTrait:meta?.trait,bountyTargets:id==='red_ledger'?(meta?.hitList||[]).map(id=>({id,name:g.entities.find(t=>t.id===id)?.name||id,claimed:meta.closed?.includes(id)||false})):undefined,active:!weakIllusion(h)&&!!ACTIVE_ITEM_HANDLERS[id],cooldown:Math.max(meta?.cooldownRemaining||0,h.itemCooldowns?.[group]||0),ready:Math.max(0,(meta?.readyAt||0)-g.time)};
+ return {id,meta,item,area,index,mode:meta?.mode,bountyTrait:meta?.trait,bountyTargets:id==='red_ledger'?(meta?.hitList||[]).map(id=>({id,name:g.entities.find(t=>t.id===id)?.name||id,claimed:meta.closed?.includes(id)||false})):undefined,active:!weakIllusion(h)&&!!ACTIVE_ITEM_HANDLERS[id]&&Inventory.canUseHeldItem(h,id,meta),cooldown:Math.max(meta?.cooldownRemaining||0,h.itemCooldowns?.[group]||0),ready:Math.max(0,(meta?.readyAt||0)-g.time)};
 }
 export function useItem(g,h,index,point,area='inventory',options={}){
  if(weakIllusion(h))return reject('弱幻象不能使用主动装备');
@@ -57,8 +57,9 @@ export function useItem(g,h,index,point,area='inventory',options={}){
  if(!['inventory','tp','neutral'].includes(area)&&!(area==='backpack'&&ITEM_BY_ID[h.backpack?.[index]]?.backpackUsable))return reject('该栏位中的物品不能使用');
  const entry=itemState(g,h,index,area),{item,meta}=entry;
  if(!item)return reject('该物品栏为空');
+ if(!Inventory.canUseHeldItem(h,entry.id,meta))return reject('不能使用其他英雄的装备');
  if(!entry.active)return reject('这是被动物品，无需施放');
- if(meta.ownerId!==h.id&&item.shareable!=='ITEM_FULLY_SHAREABLE'&&!meta.freeRapier)return reject('不能使用其他英雄的装备');
+ if(entry.id==='ward_dispenser'&&point?.id===h.id&&point.share!==true)return Inventory.switchWard(entry);
  if(Skills.isStunned(g,h)||g._tauntSource(h)||hasFlag(g,h,'muted')||h.omnislash)return reject('当前状态无法使用物品');
  if(entry.ready>0)return reject('从背包换入后尚未生效');
  if(entry.cooldown>1e-7)return reject('物品尚未冷却');
@@ -69,11 +70,12 @@ export function useItem(g,h,index,point,area='inventory',options={}){
  if(point&&(!Number.isFinite(point.x)||!Number.isFinite(point.y)))return reject('无效目标位置');
  const selection=findItemTarget(g,h,entry,point);if(!selection.ok)return selection;
  const {handler,target}=selection;
- if(target?.team!==h.team&&target&&C.immune(g,target)&&!['abyssal_blade','nullifier'].includes(item.id))return reject('目标处于减益免疫状态');
+ if(Inventory.isWardItem(entry.id)&&point?.share===true)return Inventory.shareWard(g,h,entry,target,true);
+ if(target?.team!==h.team&&target&&C.immune(g,target)&&!['abyssal_blade','nullifier','harpoon'].includes(item.id))return reject('目标处于减益免疫状态');
  if(!item.behaviors.includes('DOTA_ABILITY_BEHAVIOR_IGNORE_CHANNEL')){Skills.interruptCast(g,h,true);h.itemChannel=null;delete h.statuses.itemChannel;}
  spendMana(h,manaCost);meta.used=true;
  const travel=item.id==='tpscroll'&&passive(g,h).find(e=>e.id.startsWith('travel_boots'));
- const cooldown=(travel?v(travel.item,'tp_cooldown'):item.id==='holy_locket'?v(item,'use_cooldown'):['armlet','berserkers_sabatons'].includes(item.id)?v(item,'toggle_cooldown'):item.cooldown)*(1-(h.cooldownReduction||0)/100);
+ const cooldown=(travel?v(travel.item,'tp_cooldown'):item.id==='holy_locket'?v(item,'use_cooldown'):['armlet','berserkers_sabatons'].includes(item.id)?v(item,'toggle_cooldown'):entry.id==='ward_dispenser'?1:item.cooldown)*(1-(h.cooldownReduction||0)/100);
  meta.cooldownRemaining=cooldown;h.itemCooldowns||={};h.itemCooldowns[item.sharedCooldown||item.id]=cooldown;
  if(item.abilityCharges&&item.id!=='holy_locket'){meta.charges--;meta.rechargeRemaining||=item.chargeRestoreTime*(1-(h.cooldownReduction||0)/100);}
  if(!item.behaviors.includes('DOTA_ABILITY_BEHAVIOR_IGNORE_INVISIBLE'))Skills.breakHeroInvisibility(g,h);
@@ -320,7 +322,7 @@ export function tickUnit(g,h,dt){
  if(h.itemChannel){
   const channel=h.itemChannel,target=g.entities.find(e=>e.id===channel.targetId),i=ITEM_BY_ID[channel.itemId];
   if(channel.kind==='teleport')h.recallTimer=Math.max(0,channel.until-g.time);
-  if(Skills.isStunned(g,h)||(channel.kind==='teleport'&&Skills.isRooted(g,h))||hasFlag(g,h,'muted')||distance(h,channel.origin)>5||(channel.kind==='teleport'&&!alive(target))){h.itemChannel=null;h.recallTimer=0;delete h.statuses.itemChannel;}
+  if(Skills.isStunned(g,h)||(channel.kind==='teleport'&&Skills.isRooted(g,h))||hasFlag(g,h,'muted')||distance(h,channel.origin)>5||(channel.kind==='teleport'&&(!alive(target)||target.team!==h.team))){h.itemChannel=null;h.recallTimer=0;delete h.statuses.itemChannel;}
   else if(g.time>=channel.until){h.itemChannel=null;delete h.statuses.itemChannel;
    if(channel.kind==='teleport'){
     C.teleport(g,h,target.kind==='fountain'?target:{x:target.x+100,y:target.y+100});
@@ -346,15 +348,15 @@ export function tickWorld(g,dt){
     }
     const values=positive?[v(i,['armor_aura','aura_positive_armor','bonus_aoe_armor']),v(i,'aura_attack_speed'),v(i,'damage_aura'),v(i,'lifesteal_aura'),v(i,'aura_health_regen'),v(i,['mana_regen_aura','aura_mana_regen']),v(i,['aura_magic_resistance','magic_resistance_aura']),v(i,'aura_movement_speed')]:[v(i,'aura_negative_armor'),i.id==='shivas_guard'?v(i,'aura_attack_speed'):0,v(i,'aura_spell_vulnerability'),i.id==='crellas_crozier'&&target.kind==='hero'?v(i,'health_steal'):0];
     if((positive?values.some(n=>n>0):values.some(n=>n!==0))&&(positive||C.fighter(target)||C.building(target)))a.displayEffects.push({itemId:i.id,sourceId:h.id,positive});
-    if(target.team===h.team){const group=['vladmir','ristuls_devotion'].includes(i.id)?'vlad':i.id==='crimson_guard'?'crimson':i.id;a.armorSources||={};a.armorSources[group]=Math.max(a.armorSources[group]||0,v(i,['armor_aura','aura_positive_armor','bonus_aoe_armor']));a.attackSpeed=Math.max(a.attackSpeed||0,v(i,'aura_attack_speed'));a.damagePct=Math.max(a.damagePct||0,v(i,'damage_aura'));a.lifesteal=Math.max(a.lifesteal||0,v(i,'lifesteal_aura'));a.spellLifesteal=Math.max(a.spellLifesteal||0,v(i,'spell_lifesteal_aura'));a.hpRegen=Math.max(a.hpRegen||0,v(i,'aura_health_regen'));a.manaRegen=Math.max(a.manaRegen||0,v(i,['mana_regen_aura','aura_mana_regen']));a.magicResistance=Math.max(a.magicResistance||0,v(i,['aura_magic_resistance','magic_resistance_aura']));a.speed=Math.max(a.speed||0,v(i,'aura_movement_speed'));}
-    else if(C.fighter(target)||C.building(target)){if(v(i,'aura_negative_armor'))a.negativeArmor=Math.min(a.negativeArmor||0,v(i,'aura_negative_armor'));if(i.id==='shivas_guard')a.attackSpeed=Math.min(a.attackSpeed||0,v(i,'aura_attack_speed'));
+    if(target.team===h.team){const group=['vladmir','ristuls_devotion'].includes(i.id)?'vlad':i.id==='crimson_guard'?'crimson':i.id;a.armorSources||={};a.armorSources[group]=Math.max(a.armorSources[group]||0,v(i,['armor_aura','aura_positive_armor','bonus_aoe_armor']));a.attackSpeedBonus=Math.max(a.attackSpeedBonus||0,v(i,'aura_attack_speed'));a.damagePct=Math.max(a.damagePct||0,v(i,'damage_aura'));a.lifesteal=Math.max(a.lifesteal||0,v(i,'lifesteal_aura'));a.spellLifesteal=Math.max(a.spellLifesteal||0,v(i,'spell_lifesteal_aura'));a.hpRegen=Math.max(a.hpRegen||0,v(i,'aura_health_regen'));a.manaRegen=Math.max(a.manaRegen||0,v(i,['mana_regen_aura','aura_mana_regen']));a.magicResistance=Math.max(a.magicResistance||0,v(i,['aura_magic_resistance','magic_resistance_aura']));a.speed=Math.max(a.speed||0,v(i,'aura_movement_speed'));}
+    else if(C.fighter(target)||C.building(target)){if(v(i,'aura_negative_armor'))a.negativeArmor=Math.min(a.negativeArmor||0,v(i,'aura_negative_armor'));if(i.id==='shivas_guard')a.attackSpeedPenalty=Math.min(a.attackSpeedPenalty||0,v(i,'aura_attack_speed'));
      if(i.id==='ceremonial_robe'){a.magicResistanceReduction=Math.max(a.magicResistanceReduction||0,v(i,'magic_resistance'));a.statusResistanceReduction=Math.max(a.statusResistanceReduction||0,v(i,'status_resistance'));}
      a.spellVulnerability=Math.max(a.spellVulnerability||0,v(i,'aura_spell_vulnerability'));
      if(i.id==='crellas_crozier'&&target.kind==='hero'){const enabled=hasFlag(g,h,'crozierActive'),percent=v(i,enabled?'active_health_steal':'health_steal');if(percent>(a.regenTheft?.percent||0))a.regenTheft={sourceId:h.id,percent,active:enabled};}
     }
    }
   }
-  for(const target of g.entities){const a=target.itemAura,sources=a.armorSources||{};a.armor=(a.negativeArmor||0)+Object.entries(sources).reduce((sum,[id,value])=>sum+(id==='buckler'&&(sources.vlad||sources.assault||sources.crimson)?0:value),0);}
+  for(const target of g.entities){const a=target.itemAura,sources=a.armorSources||{};a.attackSpeed=(a.attackSpeedBonus||0)+(a.attackSpeedPenalty||0);a.armor=(a.negativeArmor||0)+Object.entries(sources).reduce((sum,[id,value])=>sum+(id==='buckler'&&(sources.vlad||sources.assault||sources.crimson)?0:value),0);}
  }
  for(const h of g.entities)if(alive(h)&&hasFlag(g,h,'crozierActive')&&g.time>=(h.nextCrozierSteal||0)){
   const i=ITEM_BY_ID.crellas_crozier;h.nextCrozierSteal=g.time+v(i,'interval');const targets=enemies(g,h,h,v(i,'active_radius')).filter(e=>e.kind==='hero');
@@ -377,7 +379,10 @@ export function tickWorld(g,dt){
   if(zone.type==='roshanBanner'){const flag=g.entities.find(e=>e.id===zone.bannerId);if(!alive(flag)){zone.until=g.time;continue;}for(const target of C.allies(g,{...h,x:zone.x,y:zone.y},zone.radius))if(target.kind==='creep'&&Number.isInteger(target.lane)&&target.lane>=0&&target.lane<=2)status(g,target,'roshanBannerProtection',i,{positive:true,duration:v(i,'buff_linger_duration',.1),invulnerable:true,undispellable:true});g._effect('ring',zone.x,zone.y,{radius:zone.radius,life:.15,color:'#ddb174'});}
   if(zone.type?.startsWith('neutral'))NeutralItems.tickNeutralWorld(g,zone,h,i,dt);
   if(['itemChain','itemMeteor','itemHarpoon','itemShiva','itemTracking','itemGrenade'].includes(zone.type))tickItemProjectiles(g,zone,h,i,resolveTargetItem);
-  if(zone.type==='reveal')for(const target of enemies(g,h,zone,zone.radius))status(g,target,'revealed',i,{duration:1,revealed:true});
+  if(zone.type==='reveal')for(const target of C.revealTargets(g,h,zone,zone.radius,zone.itemId)){
+   const id=`revealed:${zone.team}:${zone.itemId}`,previous=active(g,target,id);
+   if((previous?.until??0)<g.time+1)status(g,target,id,i,{duration:1,revealed:true,revealedTeam:zone.team});
+  }
   if(zone.type==='distiller'){const target=enemies(g,h,zone,zone.radius).find(e=>e.kind==='hero');if(target){dot(g,target,i,v(i,'duration'),v(i,'soul_damage_amount'),h);zone.until=g.time;}}
   if(zone.type==='itemSmoke'){
    if(!alive(h)||!statuses(g,h).some(s=>s.smoked&&s.smokeCastId===zone.castId)){zone.until=g.time;continue;}

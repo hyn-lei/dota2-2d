@@ -71,8 +71,10 @@ export class RoomManager {
     if(deferred){
       const {room,member}=deferred,session=socket.coopSession;
       // Project only the latest state, including a terminal result, for the same active seat.
-      if(!room.abortReason&&session?.socket===socket&&session.roomCode===room.code&&member.connected&&room.members.includes(member))
-        this.send(socket,{type:'snapshot',frame:++this.frame,playerId:member.heroEntityId,roomCode:room.code,state:snapshotState(room.game)});
+      if(!room.abortReason&&session?.socket===socket&&session.roomCode===room.code&&member.connected&&room.members.includes(member)){
+        const team=room.game.entities.find(e=>e.id===member.heroEntityId&&e.isHuman)?.team;
+        if(team===0||team===1)this.send(socket,{type:'snapshot',frame:++this.frame,playerId:member.heroEntityId,roomCode:room.code,state:snapshotState(room.game,team)});
+      }
     }
   }
   error(socket,code,message,requestId) {this.send(socket,{type:'error',code,message,...(requestId!==undefined?{requestId}:{})});}
@@ -110,8 +112,13 @@ export class RoomManager {
       else this.deferredSnapshots.set(socket,{room,member});
     }
     if(!recipients.length)return;
-    const state=snapshotState(room.game),frame=++this.frame;
-    for(const {member,socket} of recipients)this.send(socket,{type:'snapshot',frame,playerId:member.heroEntityId,roomCode:room.code,state});
+    const byTeam=new Map(),frame=++this.frame;
+    for(const {member,socket} of recipients){
+      const team=room.game.entities.find(e=>e.id===member.heroEntityId&&e.isHuman)?.team;
+      if(team!==0&&team!==1)continue;
+      if(!byTeam.has(team))byTeam.set(team,snapshotState(room.game,team));
+      this.send(socket,{type:'snapshot',frame,playerId:member.heroEntityId,roomCode:room.code,state:byTeam.get(team)});
+    }
   }
   attach(socket) {
     this.sockets.add(socket);socket.coopRates={};socket.coopAlive=true;socket.coopViolations=0;

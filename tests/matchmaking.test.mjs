@@ -46,7 +46,7 @@ test('the fifth online human automatically starts a nightmare match with five di
   assert.equal(roomCodes.size,1);assert.equal(new Set(states.map(m=>m.playerId)).size,5);
   const heroes=states[0].state.entities.filter(e=>e.kind==='hero'),humans=heroes.filter(e=>e.isHuman);
   assert.equal(humans.length,5);assert.equal(new Set(humans.map(h=>h.heroId)).size,5);assert.equal(humans.filter(h=>h.heroId==='ogre_magi').length,1);
-  assert.ok(humans.every(h=>h.controller==='human'&&h.team===0));assert.equal(heroes.filter(h=>h.team===1&&h.controller==='ai').length,5);
+  assert.ok(humans.every(h=>h.controller==='human'&&h.team===0));assert.equal(states[0].state.roster.filter(h=>h.team===1&&h.controller==='ai').length,5);
   const room=f.service.manager.rooms.get(states[0].roomCode);assert.equal(room.game.difficulty,'nightmare');assert.equal(room.matchmade,true);
   for(let i=0;i<5;i++)assert.equal(states[i].state.entities.find(e=>e.id===states[i].playerId).clientId,clients[i].clientId);
 });
@@ -108,8 +108,9 @@ test('consecutive groups stay isolated while the remaining humans continue waiti
   const f=await setup(t),clients=[];
   for(let i=0;i<12;i++){const c=await f.connect();clients.push(c);enqueue(c);}
   const first=await clients[0].next('snapshot'),second=await clients[5].next('snapshot');
-  assert.notEqual(first.roomCode,second.roomCode);assert.equal(f.service.manager.rooms.size,2);assert.equal(f.service.manager.matchQueue.length,2);
+  assert.notEqual(first.roomCode,second.roomCode);assert.equal(f.service.manager.rooms.size,2);
   assert.equal((await clients[11].next('matchmaking',m=>m.players===2)).status,'queued');
+  assert.equal(f.service.manager.matchQueue.length,2);
   assert.equal(clients[10].messages.some(m=>m.type==='snapshot'),false);
   const roomA=f.service.manager.rooms.get(first.roomCode),roomB=f.service.manager.rooms.get(second.roomCode);
   assert.deepEqual(roomA.members.map(m=>m.clientId),clients.slice(0,5).map(c=>c.clientId));

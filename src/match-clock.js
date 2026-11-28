@@ -10,7 +10,7 @@ export const hasExpiredMatchTime=game=>Boolean(game&&!game.isNetwork&&Number.isF
 // Only live state is traversed. Definitions and navigation grids are not clocks.
 const roots=['entities','effects','pendingSpells','itemZones','plantedTrees','feed','worldObjectives','madstoneDrops','glyphStates'];
 const skip=new Set(['skill','item','definition','skillCache','innateCache','navPath','navGoal','navigation','collisions','grid']);
-const dictionaries=new Set(['abilityCooldowns','itemBarrierCooldowns','drowWaveHits','dwell','lastDamagers','rechargeAt']);
+const dictionaries=new Set(['abilityCooldowns','itemBarrierCooldowns','drowWaveHits','dwell','lastDamagers','lastBenefactors','rechargeAt']);
 const timestamps=new Set(['time','until','deathTime','targetLife','lastTick','nextTick','nextSlash','nextExplosion','extraCooldownTick','nextTornadoTick','nextBloodlustCheck','nextBuildingCheck','nextProc','nextCrozierSteal','clearSince','_nextWorldObjectiveTick']);
 const timestamp=key=>timestamps.has(key)||/(?:At|Until)$/.test(key);
 

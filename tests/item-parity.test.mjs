@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {arena} from './skill-arena.mjs';
+import {arena,useOpenArenaVision} from './skill-arena.mjs';
 import {moveItem,sellItem} from '../src/inventory.js';
 import {tickUnit,tickWorld,afterAttack,attackModifiers,trueStrike,useItem} from '../src/item-runtime.js';
 import {dot,illusion,plantTree} from '../src/item-common.js';
@@ -92,7 +92,7 @@ test('Chain lightning grants true strike only for successful procs and jumps at 
 test('Chain lightning continues from a dead primary and survives pause/save/restore without duplicate hits',()=>{
  const {g,p,e,c}=equipped('mjollnir');g._random=()=>0;trueStrike(g,p,e);const result={damage:0,itemAttackProcs:[...p.itemAttackProcs]};
  e.hp=0;e.dead=true;e.deathTime=0;afterAttack(g,p,e,result,0);assert.equal(c.hp,4000);
- const restored=restoreMatch(parseMatch(serializeMatch(g)));restored.step(10);assert.equal(restored.time,0);assert.equal(restored.entities.find(x=>x.id===c.id).hp,4000);
+ const restored=useOpenArenaVision(restoreMatch(parseMatch(serializeMatch(g))));restored.step(10);assert.equal(restored.time,0);assert.equal(restored.entities.find(x=>x.id===c.id).hp,4000);
  restored.setPaused(false);restored.step(.25);assert.equal(restored.entities.find(x=>x.id===c.id).hp,3820);restored.step(.5);assert.equal(restored.entities.find(x=>x.id===c.id).hp,3820);
 });
 test('Meteor lands .5 seconds after its channel and burns for six full ticks; interruption prevents impact',()=>{

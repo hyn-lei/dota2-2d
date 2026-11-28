@@ -132,7 +132,7 @@ test('recent real hero damage still awards an assist after jumping forward',()=>
 
 test('rewinding does not revive an expired real assist window',()=>{
  const {g,p}=fixture(),victim=heroTarget(g),killer=g._makeHero('axe',0,1,true,0);
- Object.assign(killer,{x:9000,y:11000,attackCooldown:Infinity});g.damage(victim,10,p,'pure');g.step(9);
+ Object.assign(killer,{x:9000,y:11000,attackCooldown:Infinity});g.damage(victim,10,p,'pure');g.step(21);
  assert.equal(setTime(g,0).ok,true);g.damage(victim,victim.hp+1,killer,'pure');assert.equal(p.assists,0);
 });
 

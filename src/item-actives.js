@@ -48,13 +48,16 @@ define('blood_grenade bloodslinger','point',(g,h,e,p)=>{
  g._effect('projectile',h.x,h.y,{tx:p.x,ty:p.y,life:impactAt-g.time,color:'#bd614f'});if(e.id==='blood_grenade')consume(g,h,e);
 });
 define('ward_observer ward_sentry ward_dispenser','point',(g,h,e,p)=>{
- const mode=e.id==='ward_dispenser'?e.meta.mode:e.id==='ward_sentry'?'sentry':'observer',data=ITEM_BY_ID['ward_'+mode];
- const ward=g._unit('ward',h.team,p.x,p.y,{name:mode==='sentry'?'岗哨守卫':'侦查守卫',ownerId:h.id,wardType:mode,range:0,speed:0,maxHp:2,hitsRemaining:2,radius:16,visionDay:v(data,'vision_range',mode==='observer'?1600:0),visionNight:v(data,'vision_range',mode==='observer'?1600:0),trueSight:mode==='sentry'?v(data,'true_sight_range',1000):0,expiresAt:g.time+v(data,'duration',mode==='observer'?360:420),statuses:{}});status(g,ward,'wardHidden',data,{positive:true,invisible:true,undispellable:true,duration:ward.expiresAt-g.time});g.entities.push(ward);consume(g,h,e);
+ const data=ITEM_BY_ID[Inventory.selectedWard(e).id],mode=data.id.slice(5);
+ const ward=g._unit('ward',h.team,p.x,p.y,{name:mode==='sentry'?'岗哨守卫':'侦查守卫',ownerId:h.id,wardType:mode,range:0,speed:0,maxHp:2,hitsRemaining:2,radius:16,visionDay:v(data,['vision_range','vision_range_tooltip']),visionNight:v(data,['vision_range','vision_range_tooltip']),trueSight:mode==='sentry'?v(data,'true_sight_range',1050):0,expiresAt:g.time+v(data,'lifetime'),statuses:{}});status(g,ward,'wardHidden',data,{positive:true,invisible:true,undispellable:true,duration:ward.expiresAt-g.time});g.entities.push(ward);Inventory.spendWard(g,h,e);
+},(g,h,e,p,target)=>{
+ if(!Inventory.selectedWard(e))return reject('守卫数量不足');
+ if(p.share===true){const result=Inventory.shareWard(g,h,e,target);if(!result.ok)return result;}
 });
 define('dust gem','pointOptional',(g,h,e,p)=>{
  const i=e.item,center=e.id==='dust'?h:p,radius=v(i,e.id==='gem'?['active_radius','reveal_radius']:['radius','reveal_radius'],1050),duration=v(i,['duration','active_duration'],12);
  g.itemZones||=[];g.itemZones.push({id:g._id('reveal'),type:'reveal',sourceId:h.id,team:h.team,x:center.x,y:center.y,radius,until:g.time+duration,itemId:i.id});
- for(const target of enemies(g,h,center,radius)){const invisible=C.hasFlag(g,target,'invisible');status(g,target,'revealed',i,{duration:duration+v(i,'linger_duration'),revealed:true,slowPct:invisible?Math.abs(v(i,'movespeed')):0});if(invisible)g.damage(target,v(i,'damage'),h,'magical');}
+ for(const target of C.revealTargets(g,h,center,radius,i.id)){const invisible=C.hasFlag(g,target,'invisible');status(g,target,`revealed:${h.team}:${i.id}`,i,{duration:duration+v(i,'linger_duration'),revealed:true,revealedTeam:h.team,slowPct:invisible?Math.abs(v(i,'movespeed')):0});if(invisible&&v(i,'damage')>0)g.damage(target,v(i,'damage'),h,'magical');}
  if(e.id==='dust')consume(g,h,e);pulse(g,center,i,radius);
 });
 define('smoke_of_deceit','self',(g,h,e)=>{
@@ -178,7 +181,13 @@ define('meteor_hammer starforge','point',(g,h,e,p)=>{
  status(g,h,'itemChannel',e.item,{positive:true,duration:e.item.channelTime||v(e.item,'max_duration'),channeling:true});h.destination=null;h.explicitTarget=null;g.clearMovement(h);
 });
 define('tpscroll','point',(g,h,e,p,target)=>{
- const boots=C.equipped(g,h).filter(x=>['travel_boots','travel_boots_2'].includes(x.id)).sort((a,b)=>b.id.length-a.id.length)[0];const duration=v(boots?.item,'tp_channel_time',e.item.channelTime||3);
+ const boots=C.equipped(g,h).filter(x=>['travel_boots','travel_boots_2'].includes(x.id)).sort((a,b)=>b.id.length-a.id.length)[0];
+ let duration=v(boots?.item,'tp_channel_time',e.item.channelTime||3);
+ if(!boots&&target.kind!=='fountain'){
+  const attempts=(target.teleportAttempts||[]).filter(attempt=>g.time-attempt.startedAt<25);
+  if(attempts.length)duration+=2+(attempts.length-1)*.5;
+  target.teleportAttempts=[...attempts,{startedAt:g.time}];
+ }
  h.itemChannel={kind:'teleport',itemId:e.id,uid:e.meta.uid,startedAt:g.time,until:g.time+duration,targetId:target.id,point:{x:target.x,y:target.y},origin:{x:h.x,y:h.y}};
  status(g,h,'itemChannel',e.item,{positive:true,duration,channeling:true});h.destination=null;h.explicitTarget=null;g.clearMovement(h);
  h.recallTimer=duration;h.recallDuration=duration;g._effect('recall',h.x,h.y,{radius:65,life:duration,color:'#8adbe9',team:h.team});
@@ -195,6 +204,7 @@ export function findItemTarget(g,h,entry,point){
   const unit=C.targetAt(g,h,p,'enemy',undefined,range),tree=C.treeAt(g,p);
   target=tree&&(!unit||distance(tree,p)<distance(unit,p))?tree:unit;
  }
+ else if(Inventory.isWardItem(entry.id)&&p.share===true)target=C.targetAt(g,h,p,'ally',['hero'],range);
  else if(entry.id==='tpscroll'){
   const boots=C.equipped(g,h).find(e=>e.id.startsWith('travel_boots'));
   target=g.entities.filter(e=>alive(e)&&e.team===h.team&&e!==h&&(C.building(e)||(boots&&C.fighter(e)&&(boots.id==='travel_boots_2'||e.kind!=='hero')))&&distance(e,p)<=800).sort((a,b)=>distance(a,p)-distance(b,p))[0];
@@ -209,7 +219,7 @@ export function findItemTarget(g,h,entry,point){
  }
  if(['allyHero','allyUnit','anyUnit','enemyUnit','enemyCreep','tree','enemyOrTree'].includes(type)&&!target)return reject(type==='tree'?'请指向附近的树木':'请指向距离内的有效目标');
  if(type==='enemyOrTree'&&distance(h,target)>range+(target.radius||0))return reject('目标超过物品施法距离');
- if(type==='point'&&entry.id!=='tpscroll'&&!entry.id.includes('blink')&&range>0&&distance(h,p)>range)return reject('目标超过物品施法距离');
+ if((type==='point'||entry.id==='gem')&&entry.id!=='tpscroll'&&!entry.id.includes('blink')&&range>0&&distance(h,p)>range)return reject('目标超过物品施法距离');
  if(type==='tree'&&distance(h,target)>(range||350))return reject('树木距离过远');
  const invalid=handler.validate?.(g,h,entry,p,target);if(invalid)return invalid;
  return {ok:true,handler,point:p,target};

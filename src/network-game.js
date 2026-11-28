@@ -9,6 +9,7 @@ export class NetworkGame extends Game {
     this.presentation=new NetworkPresentation(this);this.applySnapshot(state,metadata);
   }
   get player(){return this.entities.find(e=>e.id===this.playerId)||super.player;}
+  isProtected(entity){return entity?.protected??super.isProtected(entity);}
   applySnapshot(state,metadata={}){
     const selected=this.selectedId;
     Object.assign(this,state);
@@ -23,7 +24,7 @@ export class NetworkGame extends Game {
   step(){} // The server is the only simulation clock.
   setPaused(){} // A personal menu cannot pause the other four players.
   guard(area,index){return {area,index,uid:(area==='neutral'?this.player.neutralItemMeta:this.player[area+'Meta']?.[index])?.uid||null};}
-  point(p){return p?{x:p.x,y:p.y,...(p.id===this.player.id?{self:true}:{}),...(p.direction?{direction:{x:p.direction.x,y:p.direction.y}}:{})}:null;}
+  point(p){return p?{x:p.x,y:p.y,...(p.id===this.player.id?{self:true}:{}),...(p.share===true?{share:true}:{}),...(p.direction?{direction:{x:p.direction.x,y:p.direction.y}}:{})}:null;}
   invoke(action,args=[],slotGuards=[]){
     const pending=this.request(action,args,slotGuards);
     this.presentation.command(pending.commandId,action,args,this.networkClock());
@@ -36,7 +37,7 @@ export class NetworkGame extends Game {
       if(previous&&previous.x===args[0]&&previous.y===args[1]&&(!args[0]&&!args[1]||now-previous.at<250))return;
       this.unitMovements.set(id,{x:args[0],y:args[1],at:now});
     }
-    const values=[...args];if(['cast','castExtra','useItem'].includes(action))values[1]=values[1]?{x:values[1].x,y:values[1].y,...(values[1].id===id||values[1].self?{self:true}:{})}:null;
+    const values=[...args];if(['cast','castExtra','useItem'].includes(action))values[1]=values[1]?{x:values[1].x,y:values[1].y,...(values[1].id===id||values[1].self?{self:true}:{}),...(values[1].share===true?{share:true}:{}),...(values[1].direction?{direction:{x:values[1].direction.x,y:values[1].direction.y}}:{})}:null;
     const slots=action==='useItem'?[[values[2]||'inventory',values[0]]]:action==='recall'?[['tp',0]]:[];
     return this.invoke('unitCommand',[id,action,values],slots.map(([area,index])=>({area,index,uid:(area==='neutral'?unit.neutralItemMeta:unit[area+'Meta']?.[index])?.uid||null})));
   }

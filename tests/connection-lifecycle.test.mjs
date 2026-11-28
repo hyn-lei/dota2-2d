@@ -38,7 +38,7 @@ test('the browser connection reconstructs ordered deltas, acknowledges movement 
  const room=await solo(fixture),game=room.game;
  Object.assign(game.player,game.navigation.nearestWalkable({x:10400,y:10400}));game._index();
  let applied=event(connection,'snapshot');service.manager.broadcastSnapshot(room);await applied;
- assert.equal(connection.serverSnapshotProtocol,'delta-v1');assert.equal(packets[0].state.entities.filter(e=>e.controller==='ai'&&e.kind==='hero').length,9);
+ assert.equal(connection.serverSnapshotProtocol,'delta-v1');assert.equal(packets[0].state.roster.filter(e=>e.controller==='ai'&&e.kind==='hero').length,9);
  assert.equal((await connection.game.setMovement(1,0)).ok,true);
  for(let i=0;i<4;i++){
   game.step(.05);applied=event(connection,'snapshot');service.manager.broadcastSnapshot(room);await applied;

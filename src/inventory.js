@@ -10,6 +10,16 @@ const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
 export const SECRET_SHOPS=(MAP_OBJECTIVES.ent_dota_shop||[]).slice(2);
 const validSlot=(area,index)=>area in SLOT_COUNTS&&Number.isInteger(index)&&index>=0&&index<SLOT_COUNTS[area];
 const gate=g=>g.paused?{ok:false,reason:'游戏已暂停'}:g.status!=='playing'?{ok:false,reason:'对局已经结束'}:{ok:true};
+const wardDispenser='ward_dispenser',wardIds=['ward_observer','ward_sentry'];
+const isWard=id=>wardIds.includes(id);
+export const isWardItem=id=>id===wardDispenser||isWard(id);
+export const canDisassembleItem=id=>id===wardDispenser||!!ITEM_BY_ID[id]?.components?.length&&String(ITEM_BY_ID[id].disassemble).endsWith('_ALWAYS');
+
+export function canUseHeldItem(holder,id,meta){
+ if(!meta)return false;
+ if(meta.ownerId===holder.id||meta.freeRapier||id==='gem')return true;
+ return meta.ownerTeam===holder.team&&(ITEM_BY_ID[id]?.shareable==='ITEM_FULLY_SHAREABLE'||id==='bottle'&&!meta.rune);
+}
 
 export function ensureInventory(h){
  for(const field of ['neutralItem','neutralEnchantment'])if(h[field]&&h[field+'Meta']?.itemId!==h[field])h[field+'Meta']=createMeta(h,h[field]);
@@ -20,6 +30,16 @@ export function ensureInventory(h){
    if(!id)h[area+'Meta'][i]=null;
    else if(h[area+'Meta'][i]?.itemId!==id)h[area+'Meta'][i]=createMeta(h,id);
    else if(!h[area+'Meta'][i].uid)h[area+'Meta'][i]=createMeta(h,id,h[area+'Meta'][i]);
+   if(id===wardDispenser&&h[area+'Meta'][i].wardCombinedAt===undefined){
+    const meta=h[area+'Meta'][i];
+    meta.wardCombinedAt=Number.isFinite(meta.purchasedAt)?meta.purchasedAt:-Infinity;
+    meta.components||=[];
+    if(meta.components.length===1){
+     const missing=wardIds.find(ward=>ward!==meta.components[0].id);
+     meta.components.push({id:missing,meta:createMeta(h,missing,{ownerId:meta.ownerId,ownerTeam:meta.ownerTeam,purchasedAt:meta.purchasedAt})});
+    }
+    syncWardMeta(meta);
+   }
   }
  }
  h.quickbuy||=[];
@@ -49,7 +69,7 @@ export function itemEntries(h,selectedAreas=storageAreas(h)){
  });
 }
 export function activeEquipment(g,h){
- ensureInventory(h);return (h.inventory||[]).filter((id,i)=>id&&(h.inventoryMeta[i]?.readyAt||0)<=g.time+1e-7&&(h.inventoryMeta[i].ownerId===h.id||h.inventoryMeta[i].freeRapier));
+ ensureInventory(h);return (h.inventory||[]).filter((id,i)=>id&&(h.inventoryMeta[i]?.readyAt||0)<=g.time+1e-7&&canUseHeldItem(h,id,h.inventoryMeta[i]));
 }
 function take(h,entry){h[entry.area][entry.index]=null;h[entry.area+'Meta'][entry.index]=null;}
 function put(h,area,index,id,meta){h[area][index]=id;h[area+'Meta'][index]={...meta,itemId:id};}
@@ -88,12 +108,16 @@ export function purchaseQuote(g,h,id){
  const storage=item.id==='tpscroll'&&access.base?['tp']:access.base?areas:access.secret&&secretSupply?['inventory','backpack']:['stash'];
  const consumed=[],missing=[];recipeParts(id,itemEntries(h,storage).filter(e=>e.meta.ownerId===h.id),consumed,missing,true);
  const cost=missing.reduce((sum,part)=>sum+ITEM_BY_ID[part].cost,0);
- const stack=item.stackable?itemEntries(h,storage).find(e=>e.id===id&&(!item.stackableMax||(e.meta.charges||0)+item.charges<=item.stackableMax)):null;
+ const stack=item.stackable?itemEntries(h,storage).find(e=>e.id===id&&e.meta.ownerId===h.id&&(!item.stackableMax||(e.meta.charges||0)+item.charges<=item.stackableMax)):null;
  let slot=stack||emptySlot(h,storage,consumed),resultItem=item;
  // A final component can immediately combine; it does not need a spare slot.
  if(!slot&&!item.components?.length){
   const pool=itemEntries(h,storage).filter(e=>e.meta.ownerId===h.id);
-  for(const upgrade of ITEMS.filter(i=>i.components?.includes(item.id))){
+  if(isWard(id)){
+   const dispenser=pool.find(e=>e.id===wardDispenser&&!e.meta.combineLocked);
+   if(dispenser){slot=dispenser;consumed.push(dispenser);resultItem=ITEM_BY_ID[wardDispenser];}
+  }
+  for(const upgrade of slot?[]:ITEMS.filter(i=>i.components?.includes(item.id))){
    const parts=[];let usedPurchase=false,complete=true;
    for(const id of upgrade.components){
     if(id===item.id&&!usedPurchase){usedPurchase=true;continue;}
@@ -119,6 +143,73 @@ function spendStock(g,h,id){const item=ITEM_BY_ID[id];if(!item?.maxStock)return;
 function combinationMeta(h,id,parts,purchasedAt=Infinity){
  return createMeta(h,id,{purchasedAt:Math.min(purchasedAt,...parts.map(p=>p.meta.purchasedAt)),readyAt:Math.max(0,...parts.map(p=>p.meta.readyAt||0)),cooldownRemaining:Math.max(0,...parts.map(p=>p.meta.cooldownRemaining||0)),components:parts.map(p=>({id:p.id,meta:structuredClone(p.meta)}))});
 }
+
+function wardParts(entry){
+ return entry.id===wardDispenser?entry.meta.components||[]:[entry];
+}
+function syncWardMeta(meta){
+ const parts=meta.components.filter(part=>part.meta.charges>0);
+ meta.charges=parts.reduce((total,part)=>total+part.meta.charges,0);
+ if(!parts.some(part=>part.id==='ward_'+meta.mode))meta.mode=wardIds.find(id=>parts.some(part=>part.id===id))?.slice(5);
+}
+function mergeWardMeta(g,h,entries){
+ const container=entries.find(entry=>entry.id===wardDispenser);
+ const parts=new Map();
+ for(const entry of entries.flatMap(wardParts)){
+  const stack=parts.get(entry.id);
+  if(stack){
+   stack.meta.charges+=entry.meta.charges;
+   stack.meta.used||=entry.meta.used;
+   stack.meta.purchasedAt=Math.min(stack.meta.purchasedAt,entry.meta.purchasedAt);
+   stack.meta.readyAt=Math.max(stack.meta.readyAt||0,entry.meta.readyAt||0);
+   stack.meta.cooldownRemaining=Math.max(stack.meta.cooldownRemaining||0,entry.meta.cooldownRemaining||0);
+  }else parts.set(entry.id,{id:entry.id,meta:structuredClone(entry.meta)});
+ }
+ const meta=container?{...container.meta}:combinationMeta(h,wardDispenser,entries);
+ meta.components=[...parts.values()];
+ meta.readyAt=Math.max(0,...entries.map(entry=>entry.meta.readyAt||0));
+ meta.cooldownRemaining=Math.max(0,...entries.map(entry=>entry.meta.cooldownRemaining||0));
+ meta.wardCombinedAt=g.time;
+ meta.used||=entries.some(entry=>entry.meta.used);
+ syncWardMeta(meta);
+ return meta;
+}
+export function selectedWard(entry){
+ return wardParts(entry).find(part=>part.id===(entry.id===wardDispenser?'ward_'+entry.meta.mode:entry.id)&&part.meta.charges>0);
+}
+export function switchWard(entry){
+ const next=wardParts(entry).find(part=>part.id!=='ward_'+entry.meta.mode&&part.meta.charges>0);
+ if(next)entry.meta.mode=next.id.slice(5);
+ return {ok:true,inventoryOnly:true};
+}
+export function spendWard(g,h,entry){
+ const ward=selectedWard(entry);
+ if(!ward)return {ok:false,reason:'守卫数量不足'};
+ if(entry.id!==wardDispenser)return consumeItemCharge(g,h,entry.area,entry.index);
+ ward.meta.charges--;
+ ward.meta.used=true;
+ syncWardMeta(entry.meta);
+ if(!entry.meta.charges){take(h,entry);refresh(g,h);}
+ return {ok:true};
+}
+export function shareWard(g,h,entry,target,apply=false){
+ if(!target||target===h||target.dead||target.kind!=='hero'||target.team!==h.team)return {ok:false,reason:'只能将守卫交给附近的友方英雄'};
+ const ward=selectedWard(entry);
+ if(!ward)return {ok:false,reason:'守卫数量不足'};
+ const choices=['inventory','backpack'];
+ const stack=itemEntries(target,choices).find(item=>item.id===ward.id&&item.meta.ownerId===ward.meta.ownerId);
+ const slot=stack||emptySlot(target,choices);
+ if(!slot)return {ok:false,reason:'友方英雄的物品栏已满'};
+ if(!apply)return {ok:true};
+ if(stack){stack.meta.charges++;stack.meta.used=true;}
+ else {
+  const {uid,itemId,...metadata}=ward.meta;
+  put(target,slot.area,slot.index,ward.id,createMeta(target,ward.id,{...metadata,charges:1,used:true}));
+ }
+ spendWard(g,h,entry);
+ combineItems(g,target);
+ return {ok:true,inventoryOnly:true};
+}
 export function completeQuickbuyTargets(h,completed){
  const pending=[...completed];h.quickbuy||=[];
  if(pending.length)h.quickbuy=h.quickbuy.filter(id=>{const index=pending.indexOf(id);if(index<0)return true;pending.splice(index,1);return false;});
@@ -126,10 +217,18 @@ export function completeQuickbuyTargets(h,completed){
 function assemble(g,h){
  const access=shopAccess(h),groups=access.base?[areas]:[['inventory','backpack'],['stash']],completed=[];
  for(const group of groups){
+  const wards=itemEntries(h,group).filter(e=>isWardItem(e.id)&&!e.meta.combineLocked&&e.meta.ownerId===h.id);
+  if(wards.length>1&&(wards.some(e=>e.id===wardDispenser)||wardIds.every(id=>wards.some(e=>e.id===id)))){
+   const slot=wards.find(e=>e.area==='inventory')||wards.find(e=>e.area==='backpack')||wards[0];
+   const meta=mergeWardMeta(g,h,wards);
+   for(const ward of wards)take(h,ward);
+   put(h,slot.area,slot.index,wardDispenser,meta);
+   completed.push(wardDispenser);
+  }
   let changed=true;
   while(changed){
    changed=false;
-   for(const item of ITEMS.filter(i=>i.components?.length))for(const recipe of [item.components,...(item.recipesAlternative||[])]){
+   for(const item of ITEMS.filter(i=>i.components?.length&&i.id!==wardDispenser))for(const recipe of [item.components,...(item.recipesAlternative||[])]){
     const pool=itemEntries(h,group),parts=[];
     for(const id of recipe){const part=pool.find(e=>e.id===id&&!e.meta.combineLocked&&e.meta.ownerId===h.id&&!parts.includes(e));if(part)parts.push(part);}
     if(parts.length!==recipe.length)continue;
@@ -155,7 +254,7 @@ const refresh=refreshInventory;
 function consumeUpgrades(g,h){for(const e of itemEntries(h,['inventory']))if((e.meta.readyAt||0)<=g.time&&e.meta.ownerId===h.id&&['aghanims_shard','ultimate_scepter_2'].includes(e.id)){h[e.id==='aghanims_shard'?'consumedShard':'consumedScepter']=true;take(h,e);}}
 export function buyItem(g,h,id){
  const quote=purchaseQuote(g,h,id);if(!quote.ok)return quote;
- const meta=combinationMeta(h,quote.resultItem.id,quote.consumed,g.time);
+ const meta=quote.resultItem.id===wardDispenser?mergeWardMeta(g,h,[...quote.consumed,{id:quote.item.id,meta:createMeta(h,quote.item.id,{purchasedAt:g.time})}]):combinationMeta(h,quote.resultItem.id,quote.consumed,g.time);
  h.gold-=quote.cost;for(const part of quote.consumed)take(h,part);
  for(const id of quote.missing)spendStock(g,h,id);
  if(quote.stack){quote.stack.meta.charges+=quote.item.charges||1;quote.stack.meta.purchasedAt=Math.min(quote.stack.meta.purchasedAt,g.time);}
@@ -185,6 +284,8 @@ export function moveItem(g,h,from,index,to,targetIndex){
 }
 export function sellValue(g,h,area,index){
  ensureInventory(h);const item=ITEM_BY_ID[h[area]?.[index]],meta=h[area+'Meta']?.[index];
+ if(item?.id===wardDispenser)return meta.components.filter(part=>part.id==='ward_sentry').reduce((total,part)=>total+
+  Math.floor(ITEM_BY_ID.ward_sentry.cost*part.meta.charges*(g.time<part.meta.purchasedAt+10&&!part.meta.used?1:.5)),0);
  return item?Math.floor(item.cost*(item.stackable?(meta.charges||0)/(item.charges||1):1)*(g.time<(meta?.purchasedAt??-Infinity)+10&&!meta.used?1:.5)):0;
 }
 export function sellItem(g,h,area,index){
@@ -226,21 +327,24 @@ export function buyQuick(g,h){
  const reserved=new Set(target.consumed.map(entry=>entry.meta.uid));
  if(quote.ok&&sameMissing&&quote.consumed.every(entry=>reserved.has(entry.meta.uid)))return buyItem(g,h,target.id);
  for(const id of target.missing)if(purchaseQuote(g,h,id).ok)return buyItem(g,h,id);
- return {ok:false,reason:!target.missing.length&&quote.item?'所需组件已购齐，等待运送或合成':quote.reason};
+ return {ok:false,reason:!target.missing.length?'所需组件已购齐，等待运送或合成':quote.reason};
 }
 
 export function setCombineLock(g,h,area,index,locked){
  const check=gate(g);if(!check.ok)return check;ensureInventory(h);
  if(!validSlot(area,index)||!h[area]?.[index])return {ok:false,reason:'该物品栏为空'};
- const meta=h[area+'Meta'][index];meta.combineLocked=locked??!meta.combineLocked;
+ const meta=h[area+'Meta'][index];if(meta.ownerId!==h.id)return {ok:false,reason:'只能锁定自己的物品'};
+ meta.combineLocked=locked??!meta.combineLocked;
  if(!meta.combineLocked)assemble(g,h);refresh(g,h);return {ok:true};
 }
 export function disassembleItem(g,h,area,index){
  const check=gate(g);if(!check.ok)return check;ensureInventory(h);
  const id=h[area]?.[index],item=ITEM_BY_ID[id],meta=h[area+'Meta']?.[index];
- if(!item?.components?.length||!String(item.disassemble).endsWith('_ALWAYS'))return {ok:false,reason:'此装备不能拆分'};
+ if(!canDisassembleItem(id))return {ok:false,reason:'此装备不能拆分'};
  if(meta.ownerId!==h.id)return {ok:false,reason:'只能拆分自己的装备'};
- const parts=meta.components?.length===item.components.length?meta.components:item.components.map(id=>({id,meta:createMeta(h,id,{purchasedAt:meta.purchasedAt})}));
+ if(id===wardDispenser&&g.time<meta.wardCombinedAt+10)return {ok:false,reason:'守卫叠组后十秒内不能拆分'};
+ const parts=id===wardDispenser?meta.components.filter(part=>part.meta.charges>0):
+  meta.components?.length===item.components.length?meta.components:item.components.map(id=>({id,meta:createMeta(h,id,{purchasedAt:meta.purchasedAt})}));
  const choices=area==='stash'?['stash']:['inventory','backpack'],slots=[];
  for(const destination of choices)for(let i=0;i<SLOT_COUNTS[destination];i++)if(!h[destination][i]||(destination===area&&i===index))slots.push({area:destination,index:i});
  if(slots.length<parts.length)return {ok:false,reason:'空位不足，无法拆分'};
@@ -274,9 +378,16 @@ export function pickupItem(g,h,entityOrId){
  if(!entity||h.dead)return {ok:false,reason:'该物品已被拾取'};
  if(distance(h,entity)>250)return {ok:false,reason:'请先靠近地上的物品'};
  const item=ITEM_BY_ID[entity.itemId],choices=item.id==='tpscroll'?['tp']:item.backpackAllowed?['inventory','backpack']:['inventory'];
- const slot=emptySlot(h,choices);if(!slot)return {ok:false,reason:'物品栏已满'};
  const meta={...entity.meta};if(item.id==='rapier'&&meta.ownerTeam!==h.team)meta.freeRapier=true;
- put(h,slot.area,slot.index,item.id,meta);entity.dead=true;entity.deathTime=g.time;assemble(g,h);refresh(g,h);return {ok:true};
+ const stack=item.stackable?itemEntries(h,choices).find(e=>e.id===item.id&&e.meta.ownerId===meta.ownerId&&(!item.stackableMax||e.meta.charges+meta.charges<=item.stackableMax)):null;
+ const slot=stack||emptySlot(h,choices);if(!slot)return {ok:false,reason:'物品栏已满'};
+ if(stack){
+  stack.meta.charges+=meta.charges;
+  stack.meta.purchasedAt=Math.min(stack.meta.purchasedAt,meta.purchasedAt);
+  stack.meta.used||=meta.used;
+ }
+ else put(h,slot.area,slot.index,item.id,meta);
+ entity.dead=true;entity.deathTime=g.time;assemble(g,h);refresh(g,h);return {ok:true};
 }
 export function consumeItemCharge(g,h,area,index,amount=1){
  ensureInventory(h);const meta=h[area+'Meta']?.[index],item=ITEM_BY_ID[h[area]?.[index]];

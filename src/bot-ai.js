@@ -8,10 +8,13 @@ import * as ItemRuntime from './item-runtime.js';
 import { physicalDamageMultiplier } from './hero-stats.js';
 import { tickBotShopping } from './bot-items.js';
 import { ITEM_BY_ID } from './item-data.js';
-import {tacticalWorld,tacticalPlan,trySupportTeleport,safeStandPoint,fightingPower,resetTacticalWorld} from './bot-tactics.js';
+import {tacticalWorld,tacticalPlan,trySupportTeleport,safeStandPoint,fightingPower,resetTacticalWorld,isMapCollection} from './bot-tactics.js';
 import {botProfile} from './bot-difficulty.js';
 import {spellProtection,basicDispelNeeded,channelOf,observeMotion,incomingControl} from './bot-micro.js';
 import {observeBotStealth,tryBotDetection,searchBotStealth,resetBotStealth} from './bot-stealth.js';
+import {laneAttackChoice} from './bot-lane-attacks.js';
+import {tickBotUnits} from './bot-controlled-units.js';
+import {isCampTask,advanceCampTask} from './bot-camp-tasks.js';
 export {BOT_DIFFICULTY,botProfile} from './bot-difficulty.js';
 
 const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
@@ -92,6 +95,7 @@ function reserveControl(g,h,target,window,index,extraId){
 
 export function maintainBot(g,h){
   if(h.isPlayer||h.isHuman||h.aiTimer===Infinity||g.paused||g.status!=='playing')return;
+  tickBotUnits(g,h);
   if((h.skillPoints>0||h.talentPoints>0)&&g.time>=(h.botLearnAt||0)){Progression.autoLearn(h);g._refreshHero(h);h.botLearnAt=g.time+.5;}
   tickBotShopping(g,h);
 }
@@ -145,17 +149,19 @@ function safetyGoal(g,h,ctx,settings){
   return state.safety;
 }
 export function chooseBotTarget(g,h,ctx){
-  const safe=e=>!ctx.unsupported.some(t=>distance(t,e)<t.range+80)&&
+  const safe=e=>!ctx.unsupported.some(t=>distance(t,e)<t.range+80)&&!Skills.isInvulnerable(g,e)&&
     !(e.kind==='hero'&&badMatchup(g,h,e,ctx));
   if(advanced(g,h)){
     const focus=ctx.enemyHeroes.find(e=>e.id===h.teamFocusTargetId&&alive(e)&&!g.isProtected(e)&&
       safe(e)&&!(h.botState?.ignoredTarget?.id===e.id&&h.botState.ignoredTarget.until>g.time));
     if(focus)return focus;
   }
+  const lane=laneAttackChoice(g,h,ctx.units,safe);
+  if(lane.target)return lane.target;
   let best=null,bestScore=Infinity;
   for(const e of ctx.enemies){
     if(!alive(e)||g.isProtected(e)||Skills.isInvulnerable(g,e)||['fountain','filler','courier','droppedItem'].includes(e.kind))continue;
-    if(!safe(e))continue;
+    if(!safe(e)||lane.unavailable.has(e.id))continue;
     if(h.botState?.ignoredTarget?.id===e.id&&h.botState.ignoredTarget.until>g.time)continue;
     if(e.kind==='neutral'&&e.targetId!==h.id&&e.id!==h.farmTargetId)continue;
     const d=distance(h,e),stats=g.combatStats(h,e),lastHit=e.kind==='creep'&&e.hp<=stats.damage*physicalDamageMultiplier(e.armor||0)&&d<=h.range+e.radius+100;
@@ -394,7 +400,7 @@ function castBotSkills(g,h,target,ctx,settings,retreating=false){
 function macroGoal(g,h,ctx){
   const state=h.botState;
   const plan=tacticalPlan(g,h);
-  if(plan?.goal){
+  if(plan?.goal&&!(isCampTask(plan)&&state.campSuppressedUntil>g.time)){
     state.mode=plan.mode;state.goal=plan.goal;state.nextMacroAt=g.time+botProfile(g,h).macroInterval;
     state.objectiveId=plan.objectiveId;state.objectiveKey=plan.key;
     return state.goal;
@@ -454,7 +460,7 @@ export function tickBot(g,h,dt){
     const interrupt=interruptChoice(g,h,ctx),target=interrupt?.target||chooseBotTarget(g,h,ctx);
     if(target?.id!==state.targetId){state.chaseStartedAt=g.time;state.chaseOrigin={x:h.x,y:h.y};}
     state.targetId=target?.id||null;h.targetId=state.targetId;
-    const castTarget=target||(defensive?ctx.enemyHeroes[0]:null);
+    const castTarget=target?.team!==h.team&&target||(defensive?ctx.enemyHeroes[0]:null);
     if(useDefensiveItems(g,h,ctx)||interruptEnemy(g,h,interrupt))return;
     if(target?.kind!=='hero'&&searchBotStealth(g,h,ctx,dt,plan,defensive))return;
     if(useBotItems(g,h,castTarget,ctx,defensive)||castBotSkills(g,h,castTarget,ctx,settings,defensive))return;
@@ -475,9 +481,9 @@ export function tickBot(g,h,dt){
     else g._move(h,BASES[h.team],dt,150);
     return;
   }
-  let target=settings.advanced?ctx.enemies.find(e=>e.id===state.targetId)||director(g).entities.get(state.targetId):
+  let target=settings.advanced?ctx.units.find(e=>e.id===state.targetId)||director(g).entities.get(state.targetId):
     g.entities.find(e=>e.id===state.targetId);
-  if(!alive(target)||!g.canSee(h,target)||g.isProtected(target)||Skills.isInvulnerable(g,target)||
+  if(!g.canSee(h,target)||!alive(target)||g.isProtected(target)||Skills.isInvulnerable(g,target)||target.team===h.team&&!g.canDenyTarget(h,target)||
     ctx.unsupported.some(t=>distance(t,target)<t.range+80)||target.kind==='hero'&&badMatchup(g,h,target,ctx))target=null;
   if(safety){
     state.mode=safety.mode;state.goal=safety.goal;h.targetId=null;
@@ -486,6 +492,17 @@ export function tickBot(g,h,dt){
     state.targetId=null;g._move(h,safety.goal,dt,25);return;
   }
   if(plan&&['defend','assist'].includes(plan.mode)&&distance(h,plan.goal)>1600&&target?.kind!=='hero')target=null;
+  if(isMapCollection(plan)&&!ctx.enemyHeroes.some(e=>distance(e,h)<650)){
+    h.targetId=null;state.targetId=null;
+    g._move(h,macroGoal(g,h,ctx),dt,36);return;
+  }
+  if(isCampTask(plan)&&!(state.campSuppressedUntil>g.time)){
+    if(!ctx.enemyHeroes.some(e=>distance(e,h)<850)){
+      macroGoal(g,h,ctx);state.targetId=null;
+      if(advanceCampTask(g,h,plan,tacticalWorld(g),dt))return;
+    }
+    state.campSuppressedUntil=g.time+5;state.campKey=null;
+  }else state.campKey=null;
   if(target?.kind==='hero'&&g.time-state.chaseStartedAt>6&&target.hp/target.maxHp>.3&&state.chaseOrigin&&distance(h,state.chaseOrigin)>1000){state.ignoredTarget={id:target.id,until:g.time+4};target=null;state.targetId=null;state.nextMacroAt=0;}
   if(target?.kind!=='hero'&&searchBotStealth(g,h,ctx,dt,plan,defensive))return;
   if(target){

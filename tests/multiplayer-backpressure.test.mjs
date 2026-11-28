@@ -5,6 +5,8 @@ import { RoomManager } from '../server/coop-server.mjs';
 import { decodeMessage } from '../src/network-protocol.js';
 import {SNAPSHOT_PROTOCOL,SNAPSHOT_WINDOW,applySnapshotDelta} from '../src/snapshot-delta.js';
 
+const seat=id=>({id,kind:'hero',heroId:'axe',isHuman:true,team:0,x:3000,y:17400,hp:100});
+
 function transport(slow=true) {
  return {readyState:WebSocket.OPEN,bufferedAmount:0,frames:[],callbacks:[],
   send(data,options,callback){
@@ -21,7 +23,7 @@ test('a slow peer skips stale snapshots while healthy peers and control replies 
  const slow=transport(),fast=transport(false);
  for(const [token,socket] of [['slow',slow],['fast',fast]]){const session={token,socket,roomCode:'TEST23'};socket.coopSession=session;socket.coopRates={};manager.sessions.set(token,session);}
  fast.onMessage=message=>{if(message.type==='snapshot')manager.handle(fast,{type:'snapshotAck',frame:message.frame});};
- const game={time:0,status:'playing',paused:false,score:[0,0],entities:[],effects:[],feed:[],camps:[],pendingSpells:[]};
+ const game={time:0,status:'playing',paused:false,score:[0,0],entities:[seat('one'),seat('two')],effects:[],feed:[],camps:[],pendingSpells:[]};
  const room={code:'TEST23',game,members:[{token:'slow',connected:true,heroEntityId:'one'},{token:'fast',connected:true,heroEntityId:'two'}]};
  manager.broadcastSnapshot(room);game.time=1;manager.broadcastSnapshot(room);game.time=2;manager.broadcastSnapshot(room);
  assert.deepEqual(slow.frames.filter(f=>f.message.type==='snapshot').map(f=>f.message.state.time),[0]);
@@ -36,7 +38,7 @@ test('a winning result reaches a slow peer after its last playing snapshot drain
  const socket=transport();
  const session={token:'one',clientId:'one',socket,roomCode:'TEST23'};
  socket.coopSession=session;socket.coopRates={};manager.sessions.set(session.token,session);
- const game={time:0,status:'playing',paused:false,score:[0,0],entities:[],effects:[],feed:[],camps:[],pendingSpells:[],step(){this.time=1;this.status='won';this.winner=0;}};
+ const game={time:0,status:'playing',paused:false,score:[0,0],entities:[seat('hero')],effects:[],feed:[],camps:[],pendingSpells:[],step(){this.time=1;this.status='won';this.winner=0;}};
  const room={code:'TEST23',game,phase:'playing',members:[{token:'one',clientId:'one',connected:true,heroEntityId:'hero'}]};
  manager.rooms.set(room.code,room);manager.broadcastSnapshot(room);manager.tick();
  assert.equal(room.phase,'ended');
@@ -51,7 +53,7 @@ test('transport drain alone cannot flood a client that has not applied its snaps
  const manager=new RoomManager({maxBufferedBytes:2*1024*1024,lobbyRate:2});
  const socket=transport(false),session={token:'one',socket,roomCode:'TEST23'};
  socket.coopSession=session;socket.coopRates={};manager.sessions.set(session.token,session);
- const game={time:0,status:'playing',paused:false,score:[0,0],entities:[],effects:[],feed:[],camps:[],pendingSpells:[]};
+ const game={time:0,status:'playing',paused:false,score:[0,0],entities:[seat('hero')],effects:[],feed:[],camps:[],pendingSpells:[]};
  const room={code:'TEST23',game,members:[{token:'one',connected:true,heroEntityId:'hero'}]};
  manager.broadcastSnapshot(room);game.time=1;manager.broadcastSnapshot(room);
  assert.deepEqual(socket.frames.filter(f=>f.message.type==='snapshot').map(f=>f.message.state.time),[0]);
@@ -71,7 +73,7 @@ test('a responsive transport that never acknowledges a snapshot is disconnected'
 test('negotiated peers keep bounded credits across RTT and coalesce excess snapshots to the latest state',()=>{
  const manager=new RoomManager({maxBufferedBytes:2*1024*1024,lobbyRate:2}),socket=transport();socket.coopSnapshotProtocol=SNAPSHOT_PROTOCOL;
  const session={token:'one',socket,roomCode:'TEST23',lastCommandId:7};socket.coopSession=session;socket.coopRates={};manager.sessions.set('one',session);
- const game={time:0,status:'playing',paused:false,score:[0,0],entities:[{id:'hero',x:0,hp:100}],effects:[],feed:[],camps:[],pendingSpells:[]};
+ const game={time:0,status:'playing',paused:false,score:[0,0],entities:[seat('hero')],effects:[],feed:[],camps:[],pendingSpells:[]};
  const room={code:'TEST23',game,members:[{token:'one',connected:true,heroEntityId:'hero'}]};
  for(let i=0;i<12;i++){game.time=i;game.entities[0].x=i;manager.broadcastSnapshot(room);}
  assert.equal(socket.frames.length,SNAPSHOT_WINDOW);assert.equal(manager.pendingSnapshots.get(socket).size,SNAPSHOT_WINDOW);
@@ -87,7 +89,7 @@ test('a 700ms acknowledgement round trip retains a 100ms negotiated snapshot cad
  let now=1000;t.mock.method(Date,'now',()=>now);
  const manager=new RoomManager({maxBufferedBytes:2*1024*1024,snapshotMs:100}),socket=transport(false);socket.coopSnapshotProtocol=SNAPSHOT_PROTOCOL;
  const session={token:'one',socket,roomCode:'TEST23',lastCommandId:0};socket.coopSession=session;socket.coopRates={};manager.sessions.set('one',session);
- const game={time:0,status:'playing',paused:false,score:[0,0],entities:[],effects:[],feed:[],camps:[],pendingSpells:[]};
+ const game={time:0,status:'playing',paused:false,score:[0,0],entities:[seat('hero')],effects:[],feed:[],camps:[],pendingSpells:[]};
  const room={code:'TEST23',game,members:[{token:'one',connected:true,heroEntityId:'hero'}]};
  for(let n=0;n<20;n++){
   now=1000+n*100;
@@ -122,7 +124,7 @@ test('simulation work cannot stretch a 100ms snapshot cadence and a delayed tick
  const manager=new RoomManager({maxBufferedBytes:2*1024*1024,tickMs:50,snapshotMs:100}),socket=transport(false);
  const session={token:'one',socket,roomCode:'TEST23'};socket.coopSession=session;socket.coopRates={};manager.sessions.set('one',session);
  socket.onMessage=message=>{if(message.type==='snapshot'){sentAt.push(now);manager.handle(socket,{type:'snapshotAck',frame:message.frame});}};
- const game={time:0,status:'playing',paused:false,entities:[],effects:[],feed:[],score:[0,0],camps:[],pendingSpells:[],step(dt){this.time+=dt;now+=12;}};
+ const game={time:0,status:'playing',paused:false,entities:[seat('hero')],effects:[],feed:[],score:[0,0],camps:[],pendingSpells:[],step(dt){this.time+=dt;now+=12;}};
  const room={code:'TEST23',phase:'playing',lastSnapshotAt:0,game,members:[{token:'one',connected:true,heroEntityId:'hero'}]};manager.rooms.set(room.code,room);
  for(let i=0;i<=10;i++){now=1000+i*50;manager.tick();}
  assert.deepEqual(sentAt,[1012,1112,1212,1312,1412,1512]);

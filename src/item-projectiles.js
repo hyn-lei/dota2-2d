@@ -1,4 +1,5 @@
 import * as C from './item-common.js';
+import {isRooted} from './hero-runtime.js';
 const value=C.value;
 export function queueTargetItem(g,h,entry,target,options={}){
  g.itemZones||=[];const colors={nullifier:'#cba366',ethereal_blade:'#7ddfba',harpoon:'#b6c4db'};
@@ -10,8 +11,8 @@ export function resolveHarpoon(g,h,item,target){
  const d=C.distance(h,target)||1,dx=(target.x-h.x)/d,dy=(target.y-h.y)/d;
  const minGap=Math.min(d,h.range<=300?Math.max(value(item,'min_distance'),h.range):value(item,'min_distance'));
  const pull=Math.min(d*value(item,'pull_distance_pct')/100,Math.max(0,(d-minGap)/2)),targetPull=h.range<=300?Math.max(pull,d-pull-minGap):pull;
- C.forceMove(g,target,{x:target.x-dx*targetPull,y:target.y-dy*targetPull},value(item,'pull_duration'));
- C.forceMove(g,h,{x:h.x+dx*pull,y:h.y+dy*pull},value(item,'pull_duration'));
+ if(!C.immune(g,target))C.forceMove(g,target,{x:target.x-dx*targetPull,y:target.y-dy*targetPull},value(item,'pull_duration'));
+ if(!isRooted(g,h))C.forceMove(g,h,{x:h.x+dx*pull,y:h.y+dy*pull},value(item,'pull_duration'));
 }
 const nextTarget=(g,h,point,radius,hit)=>C.enemies(g,h,point,radius).filter(e=>!hit.includes(e.id)&&g.canSee(h,e)).reduce((best,e)=>!best||C.distance(e,point)<C.distance(best,point)?e:best,null);
 function chainHit(g,h,item,state,target){
@@ -67,7 +68,7 @@ export function tickItemProjectiles(g,zone,h,item,deliver){
   g._effect('ring',h.x,h.y,{radius,life:.1,color:'#a2d6ee',itemId:item.id});
  }else if(zone.type==='itemHarpoon'&&zone.impactAt<=g.time+1e-7){
   const target=g.entities.find(e=>e.id===zone.targetId&&C.alive(e));
-  if(C.alive(h)&&zone.tree)C.forceMove(g,h,zone.tree,value(item,'pull_duration'));
+  if(C.alive(h)&&zone.tree&&!isRooted(g,h))C.forceMove(g,h,zone.tree,value(item,'pull_duration'));
   else resolveHarpoon(g,h,item,target);
   zone.until=g.time;
  }else if(zone.type==='itemGrenade'&&zone.impactAt<=g.time+1e-7){

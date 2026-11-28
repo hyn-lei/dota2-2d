@@ -1,13 +1,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { Game } from '../src/engine.js';
+import {useOpenArenaVision} from './skill-arena.mjs';
 import { botProfile,resetBotTiming } from '../src/bot-ai.js';
 import * as Skills from '../src/hero-runtime.js';
 import * as Inventory from '../src/inventory.js';
 import * as ItemRuntime from '../src/item-runtime.js';
 
 function arena(difficulty='hell',hero='ogre_magi',enemies=['juggernaut']){
-  const g=new Game({difficulty,seed:17}),bot=g._makeHero(hero,1,0,false,0);
+  const g=useOpenArenaVision(new Game({difficulty,seed:17})),bot=g._makeHero(hero,1,0,false,0);
   const opponents=enemies.map((id,i)=>g._makeHero(id,0,i%3,true,i));
   for(const [i,h] of [bot,...opponents].entries())Object.assign(h,{
     x:10400+i*250,y:10400,isHuman:h.team===0,aiTimer:h.team===1?0:Infinity,
