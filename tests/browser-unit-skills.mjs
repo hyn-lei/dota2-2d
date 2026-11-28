@@ -14,9 +14,14 @@ try{
  const fixtures=await page.evaluate(async()=>{
   const {LANE_CREEPS,NEUTRAL_UNITS}=await import('/src/unit-data.js');g.paused=true;g.time=450;
   const fixtures={};for(const type of ['melee','ranged','siege','flagbearer']){const u=g._unit('creep',0,8000,8000,{...LANE_CREEPS[type],name:type,range:0,speed:0});g.entities.push(u);fixtures[type]=u.id;}
-  for(const id of Object.keys(NEUTRAL_UNITS)){const u=g._makeNeutral(id,{x:10000,y:10000},g.camps[0]);fixtures[id]=u.id;}
+  const neutralLocation={x:10000,y:10000};
+  for(const id of Object.keys(NEUTRAL_UNITS)){const u=g._makeNeutral(id,neutralLocation,g.camps[0]);fixtures[id]=u.id;}
   for(const tier of [1,2,3,4])fixtures['tower'+tier]=g.entities.find(e=>e.kind==='tower'&&e.tier===tier&&e.team===0).id;
-  fixtures.roshan=g.entities.find(e=>e.isRoshan).id;fixtures.courier=g.courier.id;
+  const roshan=g.entities.find(e=>e.isRoshan);
+  fixtures.roshan=roshan.id;fixtures.courier=g.courier.id;
+  for(const {x,y} of [neutralLocation,roshan]){
+   g.entities.push(g._unit('ward',g.player.team,x,y,{wardType:'observer',expiresAt:g.time+360}));
+  }
   const ward=g._unit('ward',0,8000,8000,{name:'治疗守卫',healPct:5,healRadius:500,expiresAt:g.time+30,range:0});g.entities.push(ward);fixtures.healingWard=ward.id;
   return fixtures;
  });

@@ -18,5 +18,6 @@
 - B4 的共享视野、遮挡、反隐和联机快照过滤已接入。B5–B6 已验证共享、守卫合并与移交、多人传送及信使。B7–B8 已验证关键光环、两段矢量与鱼叉，原版的项目级边界仍逐项核对。[视野](vision-runtime-sources.md) · [物品](item-runtime-sources.md)
 - C1 原版逐项对照表已保存。编织者视觉和行为已验收的部分见对照表，连击组合、回溯及音画仍有原版样本未取得。[编织者验证](verification/2026-11-27-weaver-parity.md)
 - 集成提交 `977e970` 的发布停在时钟回归用例，`c063cd8` 为该场景补上守卫视野。第二轮发布在 HUD 用例尝试点击迷雾中敌方头像时超时。[首轮发布](https://github.com/hyn-lei/dota2-2d/actions/runs/46142258953) · [第二轮发布](https://github.com/hyn-lei/dota2-2d/actions/runs/46142720092)
-- 本批在 Chromium 重现上述 HUD 超时后，验证迷雾禁用检查、友方守卫提供视野后可以检查、Space 恢复己方 HUD。编织者目标转为友军时取消待发连击，休眠珍品强化不羁甲壳反击至 104%。直接相关的 5 条规则用例、物品离线生成、`build` 与 `check:build` 通过，前端版本 `1f13f67f…3d387`。本批发布从 [main 工作流](https://github.com/hyn-lei/dota2-2d/actions/workflows/docker.yml?query=branch%3Amain) 接续核对。
+- `ef17f49` 在 Chromium 验证迷雾禁用敌方检查、友方守卫提供视野后可以检查、Space 恢复己方 HUD。编织者目标转为友军时取消待发连击，休眠珍品强化不羁甲壳反击至 104%。直接相关的 5 条规则用例、物品离线生成、`build` 与 `check:build` 通过，前端版本 `1f13f67f…3d387`。CI 已通过规则、构建和 HUD 检查，随后因单位技能用例中的中立生物缺视野而停止。[发布记录](https://github.com/hyn-lei/dota2-2d/actions/runs/46150502711)
+- 单位技能场景为野怪和肉山布置友方侦察守卫，同一个 Chromium 用例复现超时后通过。原版 7.42a 继续采到昆卡兵线反补时不消耗潮汐使者。英雄与塔的试次在选人阶段进行，定论仍需正式对局的阳性对照。下轮继续核对发布和正式对局样本。[反补补充采样](research/denies/client-7.42a-hero-and-tidebringer.tsv) · [main 工作流](https://github.com/hyn-lei/dota2-2d/actions/workflows/docker.yml?query=branch%3Amain)
 - 新会话从本文件和[完整验收表](superpowers/plans/2026-11-25-parity-backlog.md)恢复，先核对最新提交与发布，再推进能完成的余项。回答“做了什么”时读本文件、验收表及其证据链接。
