@@ -287,8 +287,10 @@ export class Game {
     this.player.navPath=null;
   }
 
-  canDenyTarget(source,target) {
-    if(!Denies.canDenyTarget(source,target,this._combatOwner(source)))return false;
+  canDenyTarget(source,target,laneAttackReleased=false) {
+    const wardBlocksCamp=Denies.isPlacedWard(target,this.time)&&source?.team===target.team&&
+      this.camps.some(camp=>WorldRuntime.insideCampSpawnBounds(target,WorldRuntime.campSpawnBounds(camp)));
+    if(!Denies.canDenyTarget(source,target,this._combatOwner(source),wardBlocksCamp,laneAttackReleased))return false;
     return !building(target)||!(target.attackImmune||this.isProtected(target)||Skills.isInvulnerable(this,target));
   }
   canAttackTarget(source,target) {
@@ -349,7 +351,7 @@ export class Game {
   damage(target, amount, source, type='physical', options={}) {
     if (!target || !alive(target) || this.status !== 'playing' || !Number.isFinite(amount) || amount <= 0) return 0;
     if(options.deny||source?.team===target.team){
-      if(!options.attack||!options.deny||!this.canDenyTarget(source,target))return 0;
+      if(!options.attack||!options.deny||!this.canDenyTarget(source,target,options.laneAttackReleased))return 0;
     }
     if (this.isProtected(target)||target.kind==='droppedItem') return 0;
     if(target.attackImmune&&options.attack)return 0;
@@ -391,7 +393,7 @@ export class Game {
     Chen.chenDamage(this,target,value,source);
     Weaver.weaverDamage(this,target,value,source,type,options);
     ItemRuntime.afterDamage(this,target,value,source,type,options);
-    if(target.kind==='neutral' && source && source.team!==2) this._aggroCamp(target.campId,source);
+    if(target.kind==='neutral' && source && source.team!==2 && source.team!==target.team) this._aggroCamp(target.campId,source);
     if (target.kind === 'hero') {
       if(!target.itemChannel)target.recallTimer = 0;
       target.lastDamagers ||= {};
@@ -406,6 +408,7 @@ export class Game {
   _kill(target, source) {
     if(target.dead)return;
     const denied=Denies.isLaneCreep(target)&&source?.team===target.team;
+    const deniedControlled=Denies.isDeniableControlledCreature(target)&&source?.team===target.team;
     if(target.kind==='courier'){Courier.courierDied(this,target,source);return;}
     target.dead = true;
     target.hp = 0;
@@ -451,7 +454,7 @@ export class Game {
       if (denied&&source?.kind==='hero') {
         source.denies=(source.denies||0)+1;
         this._effect('text',target.x,target.y-60,{text:'反补',color:TEAM_COLORS[target.team],life:.8});
-      } else if (source?.kind === 'hero') {
+      } else if (!deniedControlled && source?.kind === 'hero') {
         source.lastHits++;
         const gold=ItemRuntime.creepBounty(this,source,target);
         source.gold += gold;
@@ -495,8 +498,9 @@ export class Game {
       this._feed(`${target.team ? '夜魇' : '天辉'}远古遗迹已被摧毁`, this.winner);
     }
     WorldRuntime.campDeath(this,target,source);
-    if (fighter(target)||target.kind==='weaverBeetle'&&source) {
-      const nearby = this.entities.filter(h => h.kind === 'hero' && alive(h) && h.team !== target.team && distance(h, target) < 1500);
+    if (!deniedControlled&&(fighter(target)||target.kind==='weaverBeetle'&&source)) {
+      const nearby = this.entities.filter(h => h.kind === 'hero' && alive(h) && h.team !== target.team &&
+        (denied?distance(h,target)<=Denies.DENIED_LANE_XP_RADIUS:distance(h,target)<1500));
       const xp = (target.kind === 'hero' ? 100 + target.level * 40 : (target.xpBounty||0)*(denied?.5:1)) / Math.max(1, nearby.length);
       for (const h of nearby) this._addXp(h, xp);
     }
@@ -578,9 +582,8 @@ export class Game {
 
   _spawnCamps() {
     for(const camp of this.camps){
-      const xs=camp.spawnBox.map(p=>p.x),ys=camp.spawnBox.map(p=>p.y);
-      const minX=Math.min(...xs),maxX=Math.max(...xs),minY=Math.min(...ys),maxY=Math.max(...ys);
-      camp.blocked=this.entities.some(e=>alive(e)&&fighter(e)&&e.x>=minX&&e.x<=maxX&&e.y>=minY&&e.y<=maxY);
+      const bounds=WorldRuntime.campSpawnBounds(camp);
+      camp.blocked=this.entities.some(e=>alive(e)&&(fighter(e)||Denies.isPlacedWard(e,this.time+1e-7))&&WorldRuntime.insideCampSpawnBounds(e,bounds));
       camp.nextSpawn=this.nextNeutralSpawn+60;
       if(camp.blocked)continue;
       const homeTeam=camp.homeTeam??(camp.sourceId?.includes('_good_')?0:1);
@@ -838,7 +841,8 @@ export class Game {
     let result;
     if(e.team===target.team){
       const stats=this.combatStats(e);
-      result={damage:stats.damage*(e.kind==='illusion'?(e.illusionOutgoing||0):1),interval:stats.attackInterval,deny:true,trueStrike:true};
+      result={damage:stats.damage*(e.kind==='illusion'?(e.illusionOutgoing||0):1),interval:stats.attackInterval,deny:true,
+        laneAttackReleased:Denies.isLaneCreep(target),trueStrike:true};
     }else{
       const modifiers=Skills.attackModifiers(this,e,target,options);
       const trueStrike=ItemRuntime.trueStrike(this,e,target,modifiers);
@@ -855,12 +859,13 @@ export class Game {
 
   _hitAttack(e,target,result){
     if(!alive(target)||Skills.isInvulnerable(this,target))return;
-    if(result.deny?!this.canDenyTarget(e,target):e.team===target.team)return;
+    if(result.deny?!this.canDenyTarget(e,target,result.laneAttackReleased):e.team===target.team)return;
     const evasion=this.combatStats(target).evasion;
     if(!result.trueStrike&&evasion&&this._random()*100<evasion){Skills.onAttackMiss?.(this,e,target);this._effect('text',target.x,target.y-40,{text:'MISS',life:.5,color:'#bfcdb1'});return;}
     if(!result.deny)result.damage=Skills.attackImpactDamage(this,target,result);
     let dealt=0;
-    dealt=this.damage(target,result.damage,e,'physical',{attack:true,deny:result.deny,itemPotency:result.itemPotency,ignoreBaseArmor:result.marksmanship,armorIgnorePct:result.cleave?.values.pierces_armor||0});
+    dealt=this.damage(target,result.damage,e,'physical',{attack:true,deny:result.deny,laneAttackReleased:result.laneAttackReleased,
+      itemPotency:result.itemPotency,ignoreBaseArmor:result.marksmanship,armorIgnorePct:result.cleave?.values.pierces_armor||0});
     if(!result.deny){
       Skills.afterAttack(this,e,target,result,dealt);
       ItemRuntime.afterAttack(this,e,target,result,dealt);

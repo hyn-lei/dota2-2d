@@ -21,19 +21,19 @@ function scene(hero='juggernaut',game=new Game({hero})){
 }
 function attack(g,p,c){g.attackTarget(c.id);g._playerTick(p,.01);}
 
-test('friendly lane deny rejects half-health and ineligible allies without changing the current order',()=>{
- const {g,p,c}=scene();p.explicitTarget='previous';c.hp=150;
+test('friendly lane deny accepts exactly half-health and rejects higher health and ineligible allies',()=>{
+ const {g,p,c}=scene();p.explicitTarget='previous';c.hp=151;
  g.attackTarget(c.id);assert.equal(p.explicitTarget,'previous');assert.equal(g._attack(p,c),false);
- c.hp=149;g.attackTarget(c.id);assert.equal(p.explicitTarget,c.id);
- for(const kind of ['hero','ancient','fountain','summon','neutral']){
-  const ally=g._unit(kind,p.team,p.x+60,p.y,{hp:1,maxHp:300,lane:1});g.entities.push(ally);
+ c.hp=150;g.attackTarget(c.id);assert.equal(p.explicitTarget,c.id);
+ for(const kind of ['hero','ancient','fountain','summon','neutral','illusion','courier']){
+  const ally=g._unit(kind,p.team,p.x+60,p.y,{maxHp:300,lane:1});ally.hp=1;g.entities.push(ally);
   p.explicitTarget='previous';g.attackTarget(ally.id);assert.equal(p.explicitTarget,'previous',kind);assert.equal(g._attack(p,ally),false,kind);
  }
  c.ownerId=p.id;p.explicitTarget='previous';g.attackTarget(c.id);assert.equal(p.explicitTarget,'previous');
 });
 test('melee lane deny gives owner credit, zero gold and half XP split among living nearby opponents',()=>{
  const {g,p,c,enemy}=scene(),second=g._makeHero('axe',enemy.team,1,false,1),dead=g._makeHero('axe',enemy.team,1,false,2),far=g._makeHero('axe',enemy.team,1,false,3);
- Object.assign(second,{x:c.x+1499,y:c.y});Object.assign(dead,{x:c.x+20,y:c.y,dead:true,hp:0});Object.assign(far,{x:c.x+1501,y:c.y});
+ Object.assign(second,{x:c.x+1499,y:c.y});Object.assign(dead,{x:c.x+20,y:c.y,dead:true,hp:0});Object.assign(far,{x:c.x+1525,y:c.y});
  const gold=p.gold,lastHits=p.lastHits,before=[p,enemy,second,dead,far].map(e=>e.xp);attack(g,p,c);
  assert.equal(c.dead,true);assert.equal(p.denies,1);assert.equal(p.gold,gold);assert.equal(p.lastHits,lastHits);
  assert.deepEqual([p,enemy,second,dead,far].map((e,i)=>e.xp-before[i]),[0,15,15,0,0]);
@@ -63,12 +63,15 @@ test('ranged deny settles at projectile arrival and survives a save without dupl
  restored.time+=1;tickAttacks(restored);assert.equal(restored.player.denies,1);assert.equal(foe.xp-xp,30);
  assert.equal(snapshotState(restored).entities.find(e=>e.id===p.id).denies,1);
 });
-test('healing or changing allegiance in flight prevents a ranged friendly hit',()=>{
- for(const change of ['heal','changeTeam']){
-  const {g,p,c}=scene('windranger');c.x=p.x+500;attack(g,p,c);
-  if(change==='heal')c.hp=c.maxHp;else c.team=1-p.team;
-  const hp=c.hp;g.time+=1;tickAttacks(g);assert.equal(c.hp,hp,change);assert.equal(p.denies||0,0);
- }
+test('a released ranged lane deny lands after healing while a change of team cancels it',()=>{
+ const healed=scene('windranger');healed.c.x=healed.p.x+500;attack(healed.g,healed.p,healed.c);
+ healed.c.hp=healed.c.maxHp;healed.g.time+=1;tickAttacks(healed.g);
+ assert.ok(healed.c.hp<healed.c.maxHp&&healed.c.hp>0);
+ assert.equal(healed.p.denies||0,0);
+ const switched=scene('windranger');switched.c.x=switched.p.x+500;attack(switched.g,switched.p,switched.c);
+ switched.c.team=1-switched.p.team;switched.g.time+=1;tickAttacks(switched.g);
+ assert.equal(switched.c.hp,1);
+ assert.equal(switched.p.denies||0,0);
 });
 test('lane deny does not consume Kunkka cleave or trigger lifesteal and item procs',()=>{
  const {g,p,c,enemy}=scene('kunkka');p.abilityLevels=[0,1,0,0];p.cooldowns[1]=0;p.inventory=['lifesteal','desolator','maelstrom'];g._refreshHero(p);p.hp=100;
@@ -286,4 +289,86 @@ test('destroying an exposed enemy base filler still pays its last-hit bounty',()
  assert.equal(filler.dead,true);
  assert.equal(p.gold-gold,filler.bounty);
  assert.equal(ally.gold,allyGold);
+});
+
+test('denying a Chen-owned creep prevents gold and experience for both teams',()=>{
+ const {g,p,enemy}=scene();
+ const chen=g._makeHero('chen',p.team,0,false,1);
+ const creep=g._unit('summon',p.team,p.x+90,p.y,{ownerId:chen.id,maxHp:300,xpBounty:76,bounty:75});
+ creep.hp=150;
+ g.entities.push(chen,creep);g._index();
+ assert.equal(g.attackTarget(creep.id).ok,false);
+ const heroes=[p,chen,enemy],rewards=heroes.map(h=>[h.gold,h.xp]);
+ creep.hp=1;attack(g,p,creep);
+ assert.equal(creep.dead,true);
+ assert.deepEqual(heroes.map(h=>[h.gold,h.xp]),rewards);
+ assert.equal(p.lastHits,0);
+});
+
+test('full-health allied observer ward can be denied by a teammate to unblock a camp',()=>{
+ const {g,p}=scene(),camp=g.camps[0],ally=g._makeHero('crystal_maiden',p.team,0,false,1);
+ const ward=g._unit('ward',p.team,p.x+85,p.y,{ownerId:ally.id,wardType:'observer',maxHp:2,hp:2,radius:12});
+ g.entities=[p,ally,ward];g.camps=[camp];g._index();
+ assert.equal(g.attackTarget(ward.id).ok,false);
+ const west=Math.min(...camp.spawnBox.map(point=>point.x));
+ Object.assign(ward,{x:west+15,y:camp.y});
+ Object.assign(p,{x:west-70,y:camp.y});g._index();
+ g._spawnCamps();
+ assert.equal(camp.blocked,true);
+ attack(g,p,ward);
+ assert.equal(ward.hp,1);
+ p.attackCooldown=0;g._playerTick(p,.01);
+ assert.equal(ward.dead,true);
+ g._spawnCamps();
+ assert.equal(camp.blocked,false);
+ assert.ok(g.entities.some(e=>e.campId===camp.id&&e.kind==='neutral'));
+});
+
+test('denied lane creep grants experience at 1524 center distance and not at 1525',()=>{
+ const {g,p,c,enemy}=scene();
+ const beyond=g._makeHero('axe',enemy.team,1,false,1);
+ Object.assign(enemy,{x:c.x+1524,y:c.y});
+ Object.assign(beyond,{x:c.x+1525,y:c.y});
+ g.entities.push(beyond);g._index();
+ attack(g,p,c);
+ assert.equal(c.dead,true);
+ assert.equal(enemy.xp,30);
+ assert.equal(beyond.xp,0);
+});
+
+test('a ward expiring on the spawn tick does not block the camp for another minute',()=>{
+ const {g,p}=scene(),camp=g.camps[0];
+ const ward=g._unit('ward',p.team,camp.x,camp.y,{ownerId:p.id,wardType:'sentry',maxHp:2,expiresAt:60});
+ const west=Math.min(...camp.spawnBox.map(point=>point.x));
+ Object.assign(p,{x:west-70,y:camp.y});
+ g.entities=[p,ward];g.camps=[camp];g._index();
+ g.time=59.98;g.nextNeutralSpawn=60;
+ g.step(.02);
+ assert.equal(ward.dead,true);
+ assert.equal(camp.blocked,false);
+ assert.ok(g.entities.some(e=>e.campId===camp.id&&e.kind==='neutral'));
+});
+
+test('a lane deny projectile is cancelled when both converted units change sides',()=>{
+ const {g,p,c,enemy}=scene();
+ const ranged=g._unit('summon',p.team,p.x,p.y,{ownerId:p.id,range:600,damage:70,attackCooldown:0});
+ g.entities.push(ranged);g._index();
+ assert.equal(g._attack(ranged,c,{attackReleased:true}),true);
+ assert.ok(g.pendingSpells.some(spell=>spell.type==='attack'));
+ for(const unit of [c,ranged])Object.assign(unit,{kind:'summon',team:enemy.team,ownerId:enemy.id});
+ const hp=c.hp;
+ g.time+=1;tickAttacks(g);
+ assert.equal(c.hp,hp);
+ assert.equal(c.dead,false);
+});
+
+test('owned crystal clones and boss creatures are ineligible for ordinary controlled-unit denies',()=>{
+ const {g,p}=scene();
+ for(const special of ['crystalClone','isTormentor','isRoshan']){
+  const unit=g._unit('summon',p.team,p.x+90,p.y,{ownerId:p.id,maxHp:300,[special]:true});
+  unit.hp=1;g.entities.push(unit);g._index();
+  assert.equal(g.attackTarget(unit.id).ok,false,special);
+  assert.equal(g._attack(p,unit),false,special);
+  assert.equal(unit.hp,1);
+ }
 });

@@ -65,8 +65,31 @@ try{
   return {dead:g.entities.find(e=>e.id===id).dead,allyGold:p.gold-gold,enemyGold:enemy.gold-enemyGold};
  },towerId);
  assert.deepEqual(towerResult,{dead:true,allyGold:37,enemyGold:37});
+ const wardId=await page.evaluate(()=>{
+  const g=denyGame,p=g.player,camp=g.camps[0];
+  const west=Math.min(...camp.spawnBox.map(point=>point.x));
+  Object.assign(p,{x:west-65,y:camp.y,attackCooldown:0,inventory:['ward_sentry'],inventoryMeta:[]});
+  g.camps=[camp];g.entities=[p];g._refreshHero(p);
+  if(!g.useItem(0,{x:west+15,y:camp.y}).ok)throw new Error('Could not place sentry');
+  const ward=g.entities.find(e=>e.kind==='ward'&&e.wardType==='sentry');
+  g._index();g._spawnCamps();
+  if(!camp.blocked)throw new Error('Sentry did not block a camp');
+  denyRenderer.lookAt(p.x,p.y);
+  return ward.id;
+ });
+ const ward=await position(wardId);
+ await page.mouse.click(ward.x,ward.y,{button:'right'});
+ assert.equal(await page.evaluate(()=>denyGame.player.explicitTarget),wardId);
+ const wardResult=await page.evaluate(id=>{
+  const g=denyGame,p=g.player,ward=g.entities.find(e=>e.id===id),camp=g.camps[0];
+  const fullHealth=ward.hp===ward.maxHp;
+  for(let hit=0;hit<2;hit++){p.attackCooldown=0;g._playerTick(p,.05);}
+  g._spawnCamps();
+  return {fullHealth,dead:ward.dead,blocked:camp.blocked,spawned:g.entities.some(e=>e.kind==='neutral'&&e.campId===camp.id)};
+ },wardId);
+ assert.deepEqual(wardResult,{fullHealth:true,dead:true,blocked:false,spawned:true});
  assert.deepEqual(errors,[]);
  await page.screenshot({path:'artifacts/deny-browser.png'});
- await writeFile('artifacts/deny-browser-report.json',JSON.stringify({checks:['Friendly selection and healthy-creep right-click movement','Low-health friendly-creep right-click deny with no gold and half enemy XP','Friendly tower right-click at and below ten percent with half bounty for both teams'],result,towerResult,errors},null,2)+'\n');
- console.log('PASS friendly selection, movement, lane creep deny, and tower deny with half bounty for both teams');
+ await writeFile('artifacts/deny-browser-report.json',JSON.stringify({checks:['Friendly selection and healthy-creep right-click movement','Low-health friendly-creep right-click deny with no gold and half enemy XP','Friendly tower right-click at and below ten percent with half bounty for both teams','Full-health sentry deny unblocks a neutral camp'],result,towerResult,wardResult,errors},null,2)+'\n');
+ console.log('PASS friendly selection, movement, lane creep and tower denies, and sentry deny to unblock a camp');
 }finally{await browser.close();}

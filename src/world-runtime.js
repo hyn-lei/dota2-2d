@@ -7,6 +7,13 @@ import {alive,distance,fighter,heal} from './item-common.js';
 import {restoreMana} from './mana-runtime.js';
 
 export const NEUTRAL_TIER_TIMES=Object.freeze([0,0,900,1800,3000]);
+export function campSpawnBounds(camp){
+ const xs=camp.spawnBox.map(p=>p.x),ys=camp.spawnBox.map(p=>p.y);
+ return {minX:Math.min(...xs),maxX:Math.max(...xs),minY:Math.min(...ys),maxY:Math.max(...ys)};
+}
+export const insideCampSpawnBounds=(unit,{minX,maxX,minY,maxY})=>
+ unit.x>=minX&&unit.x<=maxX&&unit.y>=minY&&unit.y<=maxY;
+
 export function initializeWorld(g){
  g.glyphStates=[{rechargeAt:[],cooldownUntil:0},{rechargeAt:[],cooldownUntil:0}];
  g.tormentorDeaths=0;g.tormentorRespawnAt=900;g.madstoneDrops=[];

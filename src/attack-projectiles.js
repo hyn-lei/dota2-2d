@@ -11,6 +11,7 @@ export function launchAttack(g,source,target,result,fields={}){
  g._effect('projectile',source.x,source.y,{...visual,...fields,visual:result.frostArrow?'drowFrostArrow':result.weaverGeminate?'weaverGeminate':visual.visual,tracked:true,life:60});
  const effect=g.effects.at(-1);
  const shot={type:'attack',sourceId:source.id,targetId:target.id,result,x:source.x,y:source.y,origin:{x:source.x,y:source.y},
+  denyTeam:result.deny?source.team:undefined,
   speed:source.projectileSpeed||profile.speed||900,disjoint:target.projectileDisjoint||0,targetLife:target.deathTime??null,
   visualId:effect.id,startedAt:g.time,lastTick:g.time,landAt:Infinity};
  g.pendingSpells.push(shot);return shot;
@@ -20,7 +21,8 @@ export function tickAttacks(g){
  for(const shot of g.pendingSpells)if(shot.type==='attack'){
   const target=g.entities.find(e=>e.id===shot.targetId),source=g.entities.find(e=>e.id===shot.sourceId);
   if(!target||!source||!alive(target)||Skills.isInvulnerable(g,target)||(target.projectileDisjoint||0)!==shot.disjoint||
-    (target.deathTime??null)!==shot.targetLife||!g.canSee(source,target))shot.cancelled=true;
+    (target.deathTime??null)!==shot.targetLife||!g.canSee(source,target)||
+    shot.denyTeam!==undefined&&(source.team!==shot.denyTeam||target.team!==shot.denyTeam))shot.cancelled=true;
   if(!shot.cancelled){
    const dx=target.x-shot.x,dy=target.y-shot.y,d=Math.hypot(dx,dy),travel=shot.speed*Math.max(0,g.time-shot.lastTick);
    shot.lastTick=g.time;const angle=Math.atan2(dy,dx);
