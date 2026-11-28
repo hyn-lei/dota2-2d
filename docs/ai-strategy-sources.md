@@ -71,3 +71,15 @@ TP 仍调用 `Items.useItem`，使用实际持有且可用的卷轴，扣魔法�
 `node tests/bot-comparison-sample.mjs nightmare 20 42` 和 `node tests/bot-comparison-sample.mjs hell 20 42` 提供本地 JSON。第四个参数可传入 `draft.json` 固定双方十位互不重复的英雄，按现有 `allies`、`enemies` 数组和每项的 `heroId`、`role`、`lane` 字段填写。本地记录每五分钟及结束时的补刀、反补、净资产与金币，并记录目标改变、建筑或首领击杀、可观测拾取和引导开始/提前结束。净资产复用击杀结算的持有物估值，包含可计价的信使货物及掉落物。样本未打至遗迹摧毁时标记 `completed: false`。
 
 相同种子 42 的两档 20 秒样本开局十英雄、分路、钱、血量、攻击、护甲与回城卷轴一致，进度在第 20 秒截断。该随机阵容包含跨两队重复英雄，适用于工程内的采样入口校验。仓库已有原版 7.42a 地形与反补样本，强度验收仍缺少可追溯的原版默认疯狂完整对局和同条件本地完整结果。[原版反补样本](research/denies/client-7.42a.tsv)
+
+### 默认机器人阵容预检
+
+从本机原版 7.42a build 26936712 的 `dota/pak01_dir.vpk` 只读提取 `scripts/npc/bot_builds.txt` 和 `bot_loadouts.txt`。两表列出同样的 39 个英雄，其中七个也在本工程内可玩：斧王、混沌骑士、水晶室女、卓尔游侠、主宰、昆卡、风行者。陈、食人魔魔法师和编织者在包含 127 个英雄的角色表中，未列入这两张升级和出装表。两份提取文件的 SHA-256 分别为 `579718223dbc8c58aedcd9b8aa85759ff9298ad9e0bde3cb6b153f367af1807` 和 `d71a847ac1232b7c348392217685965e7c576caccde38e97f5dceec11fcfc6ba`。[升级表镜像](https://github.com/SteamTracking/GameTracking-Dota2/blob/76ab89451c1384c2e106b676258c6e9f72787e11/game/dota/pak01_dir/scripts/npc/bot_builds.txt) · [出装表镜像](https://github.com/SteamTracking/GameTracking-Dota2/blob/76ab89451c1384c2e106b676258c6e9f72787e11/game/dota/pak01_dir/scripts/npc/bot_loadouts.txt)
+
+服务器二进制仍可找到陈的原生施法实现符号，包括旧的 `TestOfFaith`。实际默认选择和当前技能表现须由同构建普通大厅的开局及施法记录确认。大厅协议支持为天辉和夜魇分别选择脚本及难度，`BOT_DIFFICULTY_UNFAIR` 为 4。固定英雄和槽位的 `dota_bot_force_pick`、`dota_bot_force_pick_slot` 被标记为开发专用。当前仍缺少普通默认大厅能固定选出本工程十位不同英雄的实测，因此启用原生十人全机器人完整配对的前提尚未满足。[大厅协议](https://github.com/SteamTracking/Protobufs/blob/master/dota2/dota_gcmessages_common_lobby.proto) · [难度枚举](https://github.com/SteamTracking/Protobufs/blob/master/dota2/dota_shared_enums.proto) · [控制台变量](research/heroes/convars.txt)
+
+先在普通练习大厅保存默认脚本、难度、阵营设置与实际开局十名英雄。若十英雄、槽位、附加规则和输入无法匹配，保留七位交集英雄的逐路数据，注明对线英雄、双方阵容和经济差异。仅匹配英雄及对线条件的样本用于描述补刀、反补和目标响应。三位缺原版默认出装证据的英雄也可作为真人输入位研究，前提是两端存在可复查的相同输入和阵容。该配置的结论范围为真人与机器人混合对局。
+
+一轮可比较的初查至少每个配置运行至 15 分钟，取得 5、10、15 分钟各路快照、6 分钟后强化神符及 7、14 分钟智慧圣坛窗口。固定一套阵容与互换英雄阵容各一组，每组包括原版疯狂、工程疯狂、工程炼狱，合计两场原版和四场本地。当前本地采样器的被测档固定在夜魇，正式交换被测阵营仍需采集两端对应配置。原版按正常速度至少 30 分钟，另计开局及记录时间。本地参考历史 3 分钟模拟约 29.5 秒，四场 15 分钟预计约 10 分钟，首场实测后再校准。若需完整胜负，每场继续至遗迹摧毁，预留每场原版约 45–60 分钟，并把超时截断记为未完成。[历史本地模拟](research/world-7.42-coverage.md)
+
+两组用于初查与记录差异。若预先定义单一连续指标且分别比较一对配置，两侧精确符号检验至少需要六个独立有效配对，即便六对全同方向也只有 `p=0.03125`。同组多位英雄、多个时间点和重复播放同一录像属于同一对局。正式胜率或实际强度差异应预先定义最小效应，按初查波动确定样本量，同时记录阵容差异和删失场次。

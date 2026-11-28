@@ -189,7 +189,8 @@ export function tickWeaverHero(g,h){
        (mark.sourceId===h.id||(mark.sourceTeam??g.entities.find(source=>source.id===mark.sourceId)?.team)===h.team)))fireGeminate(g,h,enemy,q.skill);
    continue;
   }
-  const target=g.entities.find(e=>e.id===q.targetId);if(!target||alive(target)&&(target.deathTime??null)!==q.targetLife)continue;
+  const target=g.entities.find(e=>e.id===q.targetId);
+  if(!target||target.team===h.team||alive(target)&&(target.deathTime??null)!==q.targetLife)continue;
   fireGeminate(g,h,target,q.skill);
   if(!q.shukuchi&&h.hasShard){
    const radius=q.skill.values.shard_beetle_search_range+(h.spellAoE||0);

@@ -86,7 +86,7 @@
 | 转向 | 原版鱼叉订单后经 0.1–0.5 秒可见冷却开始下降。探针未固定每笔实际开火帧，完整转向和失败重试规则待采样。二维点选物品仍使用即时施放流程。 [原始采样](research/items/742/client-7.42a.tsv) |
 | 狂风之力 | 按英雄升级按钮或对应快捷键进入两段选取，第一点是区域中心，第二点设置风向。Esc 或右键取消，只有确认风向才提交施法指令。浏览器验证实际点选与取消资源，服务器执行同一方向数据。Canvas 预览与原版粒子需独立对照。 [浏览器场景](../tests/browser-gale-vector.mjs) |
 | 采菌套装 | 7.42 KV 列出三种消耗品和 30 金币，未公开产物权重。二维保持现有四种奖励等概率。每种奖励到账及消耗行为有测试，原版权重和连续采样分布待核对。 [官方快照](research/items/items.txt) · [行为用例](../tests/item-742.test.mjs) |
-| 不羁甲壳 | 7.42 KV 的反击伤害为 80%，冷却为 4 秒。二维在攻击伤害到达时检查攻击来源和持有者攻击距离，并由实际攻击弹道结算。初次原版探针的相近距离试次结果不一致，触发例外、反击物品特效和互相反击仍待进一步对照。 [官方快照](research/items/items.txt) · [初步采样](research/items/742/client-7.42a.tsv) |
+| 不羁甲壳 | 7.42 KV 的反击伤害为 80%，冷却为 4 秒。`counter_damage` 标有 `apply_curio_bonus "true"`。经休眠珍品打造后，二维反击按 104% 攻击伤害结算。二维在攻击伤害到达时检查攻击来源和持有者攻击距离，并由实际攻击弹道结算。初次原版探针的相近距离试次结果不一致。逐项核验需要记录实际攻击者、攻击到达时的两端位置、装备提供的攻击距离和反击冷却，并用单次普通攻击建立阳性对照。 [官方快照](research/items/items.txt) · [初步采样](research/items/742/client-7.42a.tsv) · [反击伤害用例](../tests/item-edge-742.test.mjs) |
 | 组合与目标边界 | 守卫组合见上。原版 Dagon I 对 1,200 生命兵线单位造成 400 伤害，二维采用普通法术伤害；幻象、中立单位和其他物品组合的特例待采样。 [原始采样](research/items/742/client-7.42a.tsv) |
 
 验证入口：`npm test`、`node tests/browser-shop.mjs`、`node tests/browser-items.mjs`、`node tests/browser.mjs`、`node scripts/simulate.mjs`。浏览器检查需要先启动本地服务器，可用 `GAME_URL` 指向已构建的容器。

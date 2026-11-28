@@ -262,7 +262,7 @@ export async function generateFullItems({refresh = false} = {}) {
       targetType:script.AbilityUnitTargetType || '',targetFlags:enumValues(script.AbilityUnitTargetFlags),
       damageType:script.AbilityUnitDamageType || '',
       neutralTier:artifactTier.get(id)||0,enchantment:enchIds.has(item.id),
-      curioFields:Object.entries(script.AbilityValues||{}).filter(([,field])=>field?.apply_curio_bonus==='1').map(([key])=>key),
+      curioFields:Object.entries(script.AbilityValues||{}).filter(([,field])=>['1','true'].includes(field?.apply_curio_bonus)).map(([key])=>key),
       potencyFields:Object.entries(script.AbilityValues||{}).filter(([,field])=>field?.apply_effectiveness==='1').map(([key])=>key),
       backpackUsable:script.ItemCanBeUsedWithoutInventory==='1'||id==='smoke_of_deceit',
       cooldown:field('AbilityCooldown',official.cooldowns),mana:field('AbilityManaCost',official.mana_costs),

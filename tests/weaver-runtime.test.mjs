@@ -125,6 +125,21 @@ test('Geminate creates a delayed full projectile attack beyond attack range with
  assert.equal(p.weaverGeminateQueue.length,0);g.step(3.6);assert.equal(g.pendingSpells.length,0);assert.ok(e.hp<4000);
 });
 
+test('Pending Geminate cannot deny its original target after allied Holy Persuasion',()=>{
+ const {g,p,e,c}=setup([0,0,1,0]);e.y+=900;c.hp=c.maxHp*.3;c.hpRegen=0;
+ const chen=g._makeHero('chen',0,1,false,1);
+ Object.assign(chen,{x:p.x+200,y:p.y+150,abilityLevels:[0,1,0,0],attackCooldown:999,aiTimer:Infinity});
+ g.entities.push(chen);g._index();
+ assert.equal(Skills.castAbility(g,chen,1,c).ok,true);
+ g.step(Skills.skillOf(chen,1).castPoint-.1);
+ p.attackCooldown=0;assert.equal(g._attack(p,c,{attackReleased:true}),true);
+ assert.ok(p.cooldowns[2]>0);
+ g.step(.15);assert.equal(c.ownerId,chen.id);assert.equal(g.canDenyTarget(p,c),true);
+ const health=c.hp;
+ g.step(.75);
+ close(c.hp,health);
+});
+
 test('Geminate can be manually ordered while autocast is off and the level 25 talent dispatches two additional attacks',()=>{
  const {g,p,e,c}=setup();c.y+=900;p.autocast={2:false};p.talents=[7];p.attackCooldown=0;
  assert.equal(g.cast(2,e).ok,true);g.step(.5);p.attackCooldown=999;g.step(.7);

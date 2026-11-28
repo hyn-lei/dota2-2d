@@ -81,14 +81,28 @@ try{
  await page.evaluate(()=>window.hudGame.time+=40);
  await page.waitForFunction(()=>!document.querySelector('.hud-vitals [data-status-id="ogreBloodlust"]'));
  check('Actual source death, Marksmanship near/far transition, dispel and simulation expiry remove the corresponding icons');
- await page.locator('.roster-team.dire button').first().click();
+ const enemyPortrait=page.locator('.roster-team.dire button').first();
+ const enemyId=await enemyPortrait.getAttribute('data-inspect-hero');
+ await page.evaluate(id=>{
+  const g=window.hudGame,enemy=g.entities.find(e=>e.id===id);
+  enemy.x=g.player.x+2000;
+  enemy.y=g.player.y;
+ },enemyId);
+ await enemyPortrait.and(page.locator(':disabled')).waitFor();
+ await page.evaluate(id=>{
+  const g=window.hudGame,enemy=g.entities.find(e=>e.id===id);
+  const ward=g._unit('ward',g.player.team,enemy.x,enemy.y,{wardType:'observer',expiresAt:g.time+360});
+  g.entities.push(ward);
+  g._index();
+ },enemyId);
+ await enemyPortrait.click();
  assert.equal(await page.locator('#selection-panel').count(),0);
  assert.equal(await page.locator('.game-hud').getAttribute('data-ownership'),'enemy');
  assert.equal(await page.locator('#ability-0').getAttribute('aria-readonly'),'true');
  await page.keyboard.press('Space');
  assert.equal(await page.locator('.game-hud').getAttribute('data-ownership'),'own');
  await page.locator('#shop-button').click();await page.fill('#item-search','奥术');assert.ok(await page.locator('.shop-item').count()>0);await page.locator('#close-shop').click();
- check('Selecting an enemy replaces the shared HUD; Space restores our hero and shop remains interactive');
+ check('Fog disables enemy inspection until allied ward vision reveals the hero; Space restores our HUD and shop access');
  assert.deepEqual(errors,[]);
  await writeFile('artifacts/hud-browser-report.json',JSON.stringify({checks,errors},null,2)+'\n');
 }finally{await browser.close();}
