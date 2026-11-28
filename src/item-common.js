@@ -36,7 +36,8 @@ export function dot(g,e,item,duration,dps,source,type='magical',extra={}){
  if(invulnerable(g,e))return;
  return status(g,e,'itemDot:'+item.id,item,{duration,sourceId:source.id,tickDamage:dps*.25,tickInterval:.25,nextTick:g.time+.25,damageType:type,endTickInclusive:true,fullDamageTicks:true,...extra});
 }
-export function heal(g,e,amount,source,isRegen=false){
+export function heal(g,e,amount,source,isRegen=false,area=false){
+ if(e.kind==='tower'&&!area&&(!isRegen||source!==e))return 0;
  const reduction=Object.values(e.statuses||{}).filter(s=>s.until>g.time).reduce((a,s)=>Math.max(a,s.healReduction||0),0);
  const received=Object.values(e.statuses||{}).filter(s=>s.until>g.time).reduce((a,s)=>a+(s.healReceivedAmp||0),0);
  const auraAmp=Object.values(source?.statuses||{}).filter(s=>s.until>g.time).reduce((n,s)=>n+(s.creatureHealAmp||0),0);
@@ -45,6 +46,11 @@ export function heal(g,e,amount,source,isRegen=false){
  const theft=isRegen&&e.itemAura?.regenTheft;
  if(theft){const lost=result*theft.percent/100;result-=lost;const thief=g.entities.find(h=>h.id===theft.sourceId);if(theft.active&&alive(thief))thief.hp=Math.min(thief.maxHp,thief.hp+lost);}
  const before=e.hp;e.hp=Math.min(e.maxHp,e.hp+result);return e.hp-before;
+}
+export const healInArea=(g,e,amount,source,isRegen=false)=>heal(g,e,amount,source,isRegen,true);
+export const canReceiveAreaHealing=e=>fighter(e)||e?.kind==='tower';
+export function areaHealingRecipients(g,center,radius){
+ return g.entities.filter(e=>alive(e)&&e.team===center.team&&canReceiveAreaHealing(e)&&distance(e,center)<=radius);
 }
 export function regen(g,e,item,duration,hpPerSec,manaPerSec,source,breakOnDamage=false,extra={}){
  return status(g,e,'itemRegen:'+item.id,item,{positive:true,duration,hpPerSec,manaPerSec,breakOnDamage,sourceId:source.id,...extra});

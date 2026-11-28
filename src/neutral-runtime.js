@@ -3,7 +3,7 @@ import {UNIT_SKILL_UI} from './unit-skill-data.js';
 import {CREATURE_RULES,CREATURE_SUMMONS,MARTYRDOM} from './chen-data.js';
 import * as Skills from './hero-runtime.js';
 import {castMartyrdom,castAnoint} from './chen-runtime.js';
-import {heal,alive,fighter,building,distance,forceMove} from './item-common.js';
+import {heal,healInArea,areaHealingRecipients,alive,fighter,building,distance,forceMove} from './item-common.js';
 import {spendMana,restoreMana} from './mana-runtime.js';
 
 const rank=(unit,raw,fallback=0)=>{
@@ -84,8 +84,9 @@ function bubble(g,unit,target,skill){
 function burstBubble(g,target,status){
  delete target.statuses[status.id];const source=g.entities.find(e=>e.id===status.sourceId)||target;
  if(!status.healPct||!alive(target))return;
- const units=status.healRadius?g.entities.filter(e=>alive(e)&&fighter(e)&&e.team===target.team&&distance(e,target)<=status.healRadius):[target];
- for(const unit of units)heal(g,unit,status.originalBarrier*status.healPct/100,source);
+ const amount=status.originalBarrier*status.healPct/100;
+ if(!status.healRadius){heal(g,target,amount,source);return;}
+ for(const unit of areaHealingRecipients(g,target,status.healRadius))healInArea(g,unit,amount,source);
 }
 function releaseCreature(g,unit){
  const phase=unit.neutralCast;if(!phase?.skill)return;const {skill,point}=phase,v=skill.values,target=g.entities.find(e=>e.id===phase.targetId);
@@ -196,19 +197,24 @@ function tickAuras(g){
  const sources=g.entities.filter(e=>alive(e)&&(e.ownerId||['eimermole','ogre_seal_pup'].includes(e.unitId))&&e.abilities?.some(id=>auraFields[id])&&!Skills.hasStatusFlag(g,e,'break'));
  if(!sources.length&&!g._hadCreatureAuras)return;g._hadCreatureAuras=!!sources.length;
  for(const unit of g.entities){
-  if(!alive(unit)||!fighter(unit))continue;
+  const tower=unit.kind==='tower';
+  if(!alive(unit)||!fighter(unit)&&!tower)continue;
   const buffs=new Map();
   for(const source of sources)for(const id of source.abilities||[]){
-   const fields=auraFields[id],a=definition(id);if(!fields||!a)continue;
+   const fields=auraFields[id],a=definition(id);if(!fields||!a||tower&&!fields.creatureRegen)continue;
    const enemy=['ancient_rock_golem_weakening_aura','eimermole_miners_aura','ogre_seal_pup_disapproval_aura'].includes(id);if(enemy?unit.team===source.team:unit.team!==source.team)continue;
    if(enemy&&Skills.debuffImmune(g,unit))continue;
    if(id==='kobold_tunneler_prospecting'&&unit.kind!=='hero')continue;
    if(distance(source,unit)>rank(source,a.values.radius))continue;
-   const data={sourceId:source.id};for(const [field,key]of Object.entries(fields))data[field]=rank(source,a.values[id==='mudgolem_cloak_aura'&&unit.kind!=='hero'?'bonus_magical_armor_creeps':key])*(enemy&&field==='armor'?-1:1);
+   const data={sourceId:source.id};for(const [field,key]of Object.entries(fields)){
+    if(tower&&field!=='creatureRegen')continue;
+    data[field]=rank(source,a.values[id==='mudgolem_cloak_aura'&&unit.kind!=='hero'?'bonus_magical_armor_creeps':key])*(enemy&&field==='armor'?-1:1);
+   }
    const previous=buffs.get(id);if(!previous||Object.entries(data).some(([key,n])=>key!=='sourceId'&&Math.abs(n)>Math.abs(previous[key]||0)))buffs.set(id,data);
   }
-  for(const [id,data]of buffs)Skills.addStatus(g,unit,'creatureAura:'+id,{name:UNIT_SKILL_UI[id]?.name||id,icon:'aura',positive:!['ancient_rock_golem_weakening_aura','eimermole_miners_aura','ogre_seal_pup_disapproval_aura'].includes(id),duration:.1,creatureAura:true,...data});
+  for(const [id,data]of buffs)Skills.addStatus(g,unit,'creatureAura:'+id,{name:UNIT_SKILL_UI[id]?.name||id,icon:'aura',positive:!['ancient_rock_golem_weakening_aura','eimermole_miners_aura','ogre_seal_pup_disapproval_aura'].includes(id),hidden:tower,duration:.1,creatureAura:true,...data});
   for(const [id,status]of Object.entries(unit.statuses||{}))if(status.creatureAura&&!buffs.has(id.slice('creatureAura:'.length)))delete unit.statuses[id];
+  if(tower)continue;
   const hpPct=Math.max(0,...[...buffs.values()].map(s=>s.creatureHpPct||0)),base=unit.maxHp-(unit.creatureHpBonus||0),bonus=base*hpPct/100;
   unit.creatureHpPct=hpPct;
   if(Math.abs(bonus-(unit.creatureHpBonus||0))>1e-6){const ratio=unit.hp/unit.maxHp;unit.creatureHpBonus=bonus;unit.maxHp=base+bonus;unit.hp=unit.maxHp*ratio;}

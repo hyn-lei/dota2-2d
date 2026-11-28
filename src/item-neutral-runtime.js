@@ -121,7 +121,12 @@ export function tickNeutralUnit(g,h,dt,entries){
  }
 }
 export function tickNeutralWorld(g,zone,h,item,dt){
- if(zone.type==='neutralRegen'){for(const target of allies(g,{...h,x:zone.x,y:zone.y},zone.radius))heal(g,target,(v(item,'aura_health_regen')+(target.hpRegen||0)*v(item,'aura_health_regen_pct')/100)*dt,h,true);}
+ if(zone.type==='neutralRegen'){
+  for(const target of C.areaHealingRecipients(g,{x:zone.x,y:zone.y,team:h.team},zone.radius)){
+   const amount=v(item,'aura_health_regen')+(target.hpRegen||0)*v(item,'aura_health_regen_pct')/100;
+   C.healInArea(g,target,amount*dt,h,true);
+  }
+ }
  if(zone.type==='neutralProjectile'){const t=g.entities.find(t=>t.id===zone.targetId);if(!alive(t)||C.invulnerable(g,t)){zone.until=g.time;return;}const d=distance(zone,t),travel=zone.speed*(g.time-zone.lastTick);zone.lastTick=g.time;if(d>travel){zone.x+=(t.x-zone.x)/d*travel;zone.y+=(t.y-zone.y)/d*travel;return;}zone.until=g.time;const i=zone.item||item;if(i.id==='brick'){let remaining=v(i,'barrier_damage');for(const type of ['magical','physical','all'])for(const s of Object.values(t.statuses||{}))if(s.barrier&&s.barrierType===type){const amount=Math.min(remaining,s.barrier);s.barrier-=amount;remaining-=amount;}g.damage(t,v(i,'damage'),h,'physical',{itemProc:true});}else{g.damage(t,v(i,'damage'),h,'physical',{itemProc:true});slow(g,t,i,v(i,'duration'),v(i,'slow_pct'),h,{healReduction:v(i,'heal_reduce')});}}
  if(zone.type==='neutralFallenSky'&&zone.impactAt<=g.time){const i=zone.item||item;C.teleport(g,h,zone);for(const t of enemies(g,h,zone,v(i,'impact_radius'),true)){const building=C.building(t);g.damage(t,v(i,building?'impact_damage_buildings':'impact_damage_units'),h,'magical',{itemProc:true});if(!building)C.stun(g,t,v(i,'stun_duration'),h);dot(g,t,i,v(i,'burn_duration'),v(i,building?'burn_dps_buildings':'burn_dps_units'),h);}zone.until=g.time;}
 }

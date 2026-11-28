@@ -733,7 +733,7 @@ export class Game {
       }
       if (!alive(e) || this.status !== 'playing') continue;
       if(e.kind!=='hero'&&e.kind!=='illusion'){
-        const aura=flagbearerAura(this,e,flagSources);
+        const aura=flagbearerAura(this,e,flagSources,true);
         ItemRuntime.regenerate(this,e,((e.hpRegen||0)+(aura?.hpRegen||0)+Chen.chenRegen(this,e)+Creatures.creatureRegen(this,e))*dt);
         if(e.backdoorActive){e.backdoorHealth=Math.max(e.backdoorHealth,e.hp);e.hp=Math.min(e.backdoorHealth,e.hp+90*dt);}
         if(e.maxMana)restoreMana(e,(e.manaRegen||0)*dt);

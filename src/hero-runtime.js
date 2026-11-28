@@ -8,6 +8,7 @@ import * as Chaos from './chaos-runtime.js';
 import * as Weaver from './weaver-runtime.js';
 import {weakIllusion,strongIllusion} from './illusions.js';
 import {spendMana,clearTemporaryMana} from './mana-runtime.js';
+import {canReceiveAreaHealing} from './item-common.js';
 const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
 const alive=e=>e&&!e.dead&&e.hp>0;
 const fighter=e=>['hero','creep','neutral','illusion','summon'].includes(e?.kind);
@@ -551,7 +552,7 @@ export function tickWard(g,ward,dt){
  if(g.time>=ward.expiresAt){g._kill(ward,null);return;}
  if(ward.wardType)return;
  const owner=g.entities.find(e=>e.id===ward.ownerId&&alive(e));if(owner&&distance(ward,owner)>150)g._move(ward,owner,dt,110);
- for(const ally of g.entities)if(alive(ally)&&ally.team===ward.team&&fighter(ally)&&distance(ally,ward)<=ward.healRadius)ally.hp=Math.min(ally.maxHp,ally.hp+ally.maxHp*ward.healPct/100*dt);
+ for(const ally of g.entities)if(alive(ally)&&ally.team===ward.team&&canReceiveAreaHealing(ally)&&distance(ally,ward)<=ward.healRadius)ally.hp=Math.min(ally.maxHp,ally.hp+ally.maxHp*ward.healPct/100*dt);
 }
 export function incomingDamage(g,target,value,source,type){
  if(isInvulnerable(g,target))return 0;

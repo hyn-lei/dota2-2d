@@ -78,7 +78,11 @@ define('soul_ring','self',(g,h,e)=>{const old=h.statuses['itemBuff:soul_ring'];i
 define('mekansm guardian_greaves arcane_boots','self',(g,h,e)=>{
  const i=e.item,radius=v(i,['replenish_radius','heal_radius'],1200),hp=v(i,['replenish_health','heal_amount']),mana=v(i,['replenish_mana','replenish_amount']);
  if(e.id==='guardian_greaves')dispel(g,h);
- for(const ally of allies(g,h,radius)){if(hp&&!active(g,ally,'mendLock')){heal(g,ally,hp,h);status(g,ally,'mendLock',i,{positive:true,duration:e.id==='mekansm'?50:40,hidden:true});}if(mana)restoreMana(ally,mana);}
+ const recipients=hp?C.areaHealingRecipients(g,h,radius):allies(g,h,radius);
+ for(const ally of recipients){
+  if(hp&&!active(g,ally,'mendLock')){C.healInArea(g,ally,hp,h);status(g,ally,'mendLock',i,{positive:true,duration:e.id==='mekansm'?50:40,hidden:true});}
+  if(mana&&ally.kind!=='tower')restoreMana(ally,mana);
+ }
  pulse(g,h,i,radius);
 });
 define('pipe crimson_guard','self',(g,h,e)=>{
@@ -197,7 +201,10 @@ export function findItemTarget(g,h,entry,point){
   const team=type.startsWith('ally')?'ally':type.startsWith('enemy')?'enemy':'both';
   const targetRange=t=>{const r=t.team!==h.team?v(entry.item,['enemy_cast_range','cast_range_enemy'],entry.item.range):entry.item.range;return r?r+(h.castRangeBonus||0):Infinity;};
   target=C.targetAt(g,h,p,team,type==='allyHero'?['hero']:type==='enemyCreep'?['creep','neutral','summon']:undefined,targetRange);
-  if(!target&&type==='allyOptional')target=h;
+  if(!target&&type==='allyOptional'){
+   if(entry.id==='holy_locket'&&C.targetAt(g,h,p,'ally',['tower'],Infinity,true))return reject('请指向有效的友方单位');
+   target=h;
+  }
  }
  if(['allyHero','allyUnit','anyUnit','enemyUnit','enemyCreep','tree','enemyOrTree'].includes(type)&&!target)return reject(type==='tree'?'请指向附近的树木':'请指向距离内的有效目标');
  if(type==='enemyOrTree'&&distance(h,target)>range+(target.radius||0))return reject('目标超过物品施法距离');
