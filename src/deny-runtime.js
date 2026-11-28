@@ -15,5 +15,5 @@ export function canDenyTarget(source,target,owner=source,wardBlocksCamp=false,la
  if(target.kind==='tower'||target.kind==='barracks'||target.kind==='filler')return target.hp<target.maxHp*.1;
  if(isPlacedWard(target))return wardBlocksCamp;
  if(isLaneCreep(target))return laneAttackReleased||target.hp<=target.maxHp*.5;
- return isDeniableControlledCreature(target)&&target.hp<target.maxHp*.5;
+ return isDeniableControlledCreature(target)&&target.hp<=target.maxHp*.5;
 }

@@ -29,7 +29,8 @@ test('friendly lane deny accepts exactly half-health and rejects higher health a
   const ally=g._unit(kind,p.team,p.x+60,p.y,{maxHp:300,lane:1});ally.hp=1;g.entities.push(ally);
   p.explicitTarget='previous';g.attackTarget(ally.id);assert.equal(p.explicitTarget,'previous',kind);assert.equal(g._attack(p,ally),false,kind);
  }
- c.ownerId=p.id;p.explicitTarget='previous';g.attackTarget(c.id);assert.equal(p.explicitTarget,'previous');
+ c.ownerId=p.id;c.hp=1;attack(g,p,c);
+ assert.equal(c.dead,true);assert.equal(p.denies||0,0);
 });
 test('melee lane deny gives owner credit, zero gold and half XP split among living nearby opponents',()=>{
  const {g,p,c,enemy}=scene(),second=g._makeHero('axe',enemy.team,1,false,1),dead=g._makeHero('axe',enemy.team,1,false,2),far=g._makeHero('axe',enemy.team,1,false,3);
@@ -291,15 +292,20 @@ test('destroying an exposed enemy base filler still pays its last-hit bounty',()
  assert.equal(ally.gold,allyGold);
 });
 
-test('denying a Chen-owned creep prevents gold and experience for both teams',()=>{
+test('a Chen-owned creep can be denied at half health without granting gold or experience',()=>{
  const {g,p,enemy}=scene();
  const chen=g._makeHero('chen',p.team,0,false,1);
  const creep=g._unit('summon',p.team,p.x+90,p.y,{ownerId:chen.id,maxHp:300,xpBounty:76,bounty:75});
- creep.hp=150;
+ creep.hp=151;
  g.entities.push(chen,creep);g._index();
  assert.equal(g.attackTarget(creep.id).ok,false);
  const heroes=[p,chen,enemy],rewards=heroes.map(h=>[h.gold,h.xp]);
- creep.hp=1;attack(g,p,creep);
+ creep.hp=150;
+ g.attackTarget(creep.id);
+ assert.equal(p.explicitTarget,creep.id);
+ g._playerTick(p,.01);
+ assert.ok(creep.hp<150&&creep.hp>0);
+ p.attackCooldown=0;creep.hp=1;attack(g,p,creep);
  assert.equal(creep.dead,true);
  assert.deepEqual(heroes.map(h=>[h.gold,h.xp]),rewards);
  assert.equal(p.lastHits,0);
