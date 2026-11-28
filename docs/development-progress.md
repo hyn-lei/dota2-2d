@@ -9,6 +9,7 @@
 | B3 地面高度、D1–D4 装备推荐 | `913f80e` | 原版地面坐标样本、装备推荐与购物用例通过。[发布记录](https://github.com/hyn-lei/dota2-2d/actions/runs/46121907005) |
 | 双方建筑的隐藏范围回血 | `771312a`、`a1c8d16` | 两队五类建筑、指向治疗排除、界面隐藏和旧存档通过。公网及 WebSocket 已核对。[发布记录](https://github.com/hyn-lei/dota2-2d/actions/runs/46134243759) |
 | B1 兵线、建筑、普通受控单位和封野守卫反补 | `8883add` | 已核对原版兵线半血、释放后回血和经验距离。29 项反补、5 项营地与收益回归、Chromium 定向用例和发布流程通过。公网版本及联机握手已核对。[发布记录](https://github.com/hyn-lei/dota2-2d/actions/runs/46137231750) |
+| AI、战争迷雾、编织者与物品集成，受控单位半血反补 | `14c71b6` | Actions 验证、两架构镜像与 SSH 部署成功。公网 `/healthz` 返回提交 `14c71b69005103f8cec9002c9b40d95b586dae66`，浏览器 Origin 的 WebSocket 握手返回 welcome。[发布记录](https://github.com/hyn-lei/dota2-2d/actions/runs/46158718599) |
 
 ## 正在推进
 
@@ -24,5 +25,5 @@
 - `5991447` 为风行者束缚击目标提供视野，Chromium 的实际绳索、驱散和弹道躲避均通过。代达罗斯之殇原版对照各做 16 次，友方兵均承受 172 伤害，敌方兵有 4 次承受 387 伤害。CI 通过特效与九 AI 性能用例，后续 AI 防塔场景因敌方英雄缺视野停止。[暴击取样](research/denies/client-7.42a-daedalus.tsv) · [发布记录](https://github.com/hyn-lei/dota2-2d/actions/runs/46154334019)
 - `6a4bcfc` 用真实侦察守卫修正 AI 防塔、避战和等兵线，以及食人魔引燃、卓尔游侠特效、英雄点选的测试条件。5 个受影响的 Chromium 场景均通过，英雄点选同时通过静止及攻击动画模式。[发布记录](https://github.com/hyn-lei/dota2-2d/actions/runs/46155451688)
 - `ad1feb8` 修正陈的远距离命令用例，两项定向检查及 CI 中的单机和真实 WebSocket 场景均通过。后续五人联机用例误从受迷雾过滤的可见实体统计五名对手。[发布记录](https://github.com/hyn-lei/dota2-2d/actions/runs/46156322418)
-- 五人联机从公开阵容核对五名对手，并检查开局快照隐藏对手动态状态。Chromium 的 6 组联机回归通过。常规延迟与抖动测试从服务器核对负载，两次均有 9 名 AI、250 个实体，客户端可见 85 个，首次可见移动为 50.1 和 53.5 毫秒，现有性能阈值通过。下一步核对发布与公网，再继续原版英雄反补与攻修采样。[main 工作流](https://github.com/hyn-lei/dota2-2d/actions/workflows/docker.yml?query=branch%3Amain)
+- 五人联机从公开阵容核对五名对手，并检查开局快照隐藏对手动态状态。Chromium 的 6 组联机回归通过。常规延迟与抖动测试从服务器核对负载，两次均有 9 名 AI、250 个实体，客户端可见 85 个，首次可见移动为 50.1 和 53.5 毫秒，现有性能阈值通过。下一步继续原版英雄反补阳性对照、建筑赏金与攻修采样。[发布记录](https://github.com/hyn-lei/dota2-2d/actions/runs/46158718599)
 - 新会话从本文件和[完整验收表](superpowers/plans/2026-11-25-parity-backlog.md)恢复，先核对最新提交与发布，再推进能完成的余项。回答“做了什么”时读本文件、验收表及其证据链接。
