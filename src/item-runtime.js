@@ -304,7 +304,9 @@ export function tickUnit(g,h,dt){
  for(const e of passive(g,h)){
   if(e.id==='heart')heal(g,h,(h.maxHp*v(e.item,'hp_regen')+(h.maxHp-h.hp)*v(e.item,'missing_health_regen'))/100*dt,h,true);
  }
- const aura=h.itemAura||{};if(aura.hpRegen)heal(g,h,aura.hpRegen*dt,h,true);if(aura.manaRegen)restoreMana(h,aura.manaRegen*dt);
+ const aura=h.itemAura||{},hpRegen=Math.max(aura.hpRegen||0,aura.hiddenHpRegen||0);
+ if(hpRegen)heal(g,h,hpRegen*dt,h,true);
+ if(aura.manaRegen)restoreMana(h,aura.manaRegen*dt);
  if(h.forcedMotion){
   const m=h.forcedMotion;
   // Earlier Hurricane saves used direction/distance instead of endpoint motion.
@@ -339,7 +341,7 @@ export function tickWorld(g,dt){
    for(const target of g.entities)if(alive(target)&&distance(h,target)<=radius){const a=target.itemAura;
     const positive=target.team===h.team;
     if(i.id==='headdress'&&target.kind!=='hero'&&!target.ownerId){
-     if(positive&&C.building(target))a.hpRegen=Math.max(a.hpRegen||0,v(i,'aura_health_regen'));
+     if(positive&&C.building(target))a.hiddenHpRegen=Math.max(a.hiddenHpRegen||0,v(i,'aura_health_regen'));
      continue;
     }
     const values=positive?[v(i,['armor_aura','aura_positive_armor','bonus_aoe_armor']),v(i,'aura_attack_speed'),v(i,'damage_aura'),v(i,'lifesteal_aura'),v(i,'aura_health_regen'),v(i,['mana_regen_aura','aura_mana_regen']),v(i,['aura_magic_resistance','magic_resistance_aura']),v(i,'aura_movement_speed')]:[v(i,'aura_negative_armor'),i.id==='shivas_guard'?v(i,'aura_attack_speed'):0,v(i,'aura_spell_vulnerability'),i.id==='crellas_crozier'&&target.kind==='hero'?v(i,'health_steal'):0];

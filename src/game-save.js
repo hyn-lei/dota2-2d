@@ -3,6 +3,7 @@ import {DIFFICULTIES} from './bot-difficulty.js';
 import { HEROES } from './data.js';
 import { ITEM_BY_ID } from './item-data.js';
 import { rebuildTrees } from './item-common.js';
+import { building } from './building-types.js';
 import {createIllusions} from './illusions.js';
 import {hasExpiredMatchTime,MAX_MATCH_MINUTES} from './match-clock.js';
 import {DRAFT_ROLES,laneFor} from './bot-draft.js';
@@ -125,6 +126,14 @@ export function restoreMatch(record) {
   if(hasExpiredMatchTime(state))throw new Error(`对局已超过 ${MAX_MATCH_MINUTES} 分钟，不能恢复`);
   const game = new Game({ hero: state.heroChoice, difficulty: state.difficulty, seed: state.seed });
   Object.assign(game, state);
+  // Earlier saves cached the hidden Headdress bonus as ordinary item regeneration.
+  for(const unit of game.entities)if(building(unit)&&unit.itemAura?.hpRegen>0){
+    const aura=unit.itemAura;
+    const hasVisibleRegen=aura.displayEffects?.some(effect=>effect.positive&&ITEM_BY_ID[effect.itemId]?.values?.aura_health_regen>0);
+    if(hasVisibleRegen)continue;
+    aura.hiddenHpRegen=Math.max(aura.hiddenHpRegen||0,aura.hpRegen);
+    delete aura.hpRegen;
+  }
   // Earlier support rotations overwrote the drafted lane in saved AI state.
   for(const unit of game.entities)if(unit.kind==='hero'&&!unit.isPlayer&&!unit.isHuman&&unit.homeLane===undefined){
     if(DRAFT_ROLES.includes(unit.draftRole)){

@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {Game} from '../src/engine.js';
 import {heal} from '../src/item-common.js';
+import {parseMatch,restoreMatch,serializeMatch} from '../src/game-save.js';
 import {statusEffects} from '../src/status-ui.js';
 
 const buildingKinds=['tower','barracks','filler','ancient','fountain'];
@@ -136,4 +137,21 @@ test('a controlled creature regenerates allied buildings without granting lifest
  expectHealth(allies,damagedHp+9);
  expectHealth(opponents,damagedHp);
  for(const building of allies)assert.equal(building.statuses['creatureAura:spawnlord_aura'].creatureLifesteal,undefined);
+});
+
+test('a restored legacy building aura still heals but stops reporting the hidden recovery',()=>{
+ const {g,allies}=scene({item:'headdress'});
+ g.step(.05);
+ for(const building of allies){
+  building.itemAura.hpRegen=2;
+  delete building.itemAura.hiddenHpRegen;
+ }
+ g.selectedId=allies[0].id;
+ const restored=restoreMatch(parseMatch(serializeMatch(g)));
+ const building=restored.selected,hp=building.hp;
+ assert.equal(restored.paused,true);
+ assert.equal(building.itemAura.hpRegen||0,0);
+ restored.setPaused(false);
+ restored.step(.05);
+ expectHealth([building],hp+.1);
 });

@@ -25,7 +25,7 @@ test('friendly lane deny rejects half-health and ineligible allies without chang
  const {g,p,c}=scene();p.explicitTarget='previous';c.hp=150;
  g.attackTarget(c.id);assert.equal(p.explicitTarget,'previous');assert.equal(g._attack(p,c),false);
  c.hp=149;g.attackTarget(c.id);assert.equal(p.explicitTarget,c.id);
- for(const kind of ['hero','filler','ancient','fountain','summon','neutral']){
+ for(const kind of ['hero','ancient','fountain','summon','neutral']){
   const ally=g._unit(kind,p.team,p.x+60,p.y,{hp:1,maxHp:300,lane:1});g.entities.push(ally);
   p.explicitTarget='previous';g.attackTarget(ally.id);assert.equal(p.explicitTarget,'previous',kind);assert.equal(g._attack(p,ally),false,kind);
  }
@@ -255,4 +255,35 @@ test('backdoor repairs enemy damage without undoing barracks deny damage',()=>{
  assert.ok(deniedDamage>0&&barracks.hp>0);
  g.step(.2);
  assert.equal(barracks.hp,100-deniedDamage);
+});
+
+test('base filler deny requires exposure and below ten percent health and grants no rewards',()=>{
+ const game=new Game(),team=game.player.team;
+ const filler=game.entities.find(e=>e.kind==='filler'&&e.team===team);
+ const guards=game.entities.filter(e=>e.kind==='tower'&&e.team===team&&e.tier===3);
+ const {g,p,ally,enemy}=buildingScene(game,filler),heroes=[p,ally,enemy];
+ const rewards=heroes.map(h=>[h.gold,h.xp,h.lastHits,h.denies]);
+ g.entities.push(...guards);filler.hp=1;
+ assert.equal(g.attackTarget(filler.id).ok,false);
+ guards[0].dead=true;
+ filler.hp=filler.maxHp*.1;
+ assert.equal(g.attackTarget(filler.id).ok,false);
+ filler.hp=1;
+ attack(g,p,filler);
+ assert.equal(filler.dead,true);
+ assert.deepEqual(heroes.map(h=>[h.gold,h.xp,h.lastHits,h.denies]),rewards);
+ assert.ok(g.feed[0].text.includes('反补'));
+ assert.equal(g.status,'playing');
+});
+
+test('destroying an exposed enemy base filler still pays its last-hit bounty',()=>{
+ const game=new Game(),team=1-game.player.team;
+ const filler=game.entities.find(e=>e.kind==='filler'&&e.team===team);
+ const guard=game.entities.find(e=>e.kind==='tower'&&e.team===team&&e.tier===3);
+ const {g,p,ally}=buildingScene(game,filler),gold=p.gold,allyGold=ally.gold;
+ guard.dead=true;g.entities.push(guard);filler.hp=1;
+ attack(g,p,filler);
+ assert.equal(filler.dead,true);
+ assert.equal(p.gold-gold,filler.bounty);
+ assert.equal(ally.gold,allyGold);
 });

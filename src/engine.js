@@ -487,7 +487,8 @@ export class Game {
       const result=denied?'已被反补':'已摧毁';
       this._feed(`${target.team?'夜魇':'天辉'} ${['上路','中路','下路'][target.lane]}${target.barracksType==='melee'?'近战':'远程'}兵营${result}，该路兵线升级`,denied?target.team:1-target.team);
     } else if(target.kind==='filler') {
-      if(source?.kind==='hero')source.gold+=target.bounty;
+      if(source?.team===target.team)this._feed(`${target.name}已被反补`,target.team);
+      else if(source?.kind==='hero')source.gold+=target.bounty;
     } else if (target.kind === 'ancient') {
       this.winner = 1 - target.team;
       this.status = this.winner === 0 ? 'won' : 'lost';
